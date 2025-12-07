@@ -38,6 +38,11 @@ class Module extends Model
         'is_rental',
         'is_service',
         'category',
+        'module_type',
+        'operation_config',
+        'integration_hooks',
+        'supports_reporting',
+        'supports_custom_fields',
     ];
 
     protected $casts = [
@@ -51,6 +56,10 @@ class Module extends Model
         'is_rental' => 'bool',
         'is_service' => 'bool',
         'default_settings' => 'array',
+        'operation_config' => 'array',
+        'integration_hooks' => 'array',
+        'supports_reporting' => 'bool',
+        'supports_custom_fields' => 'bool',
     ];
 
     public function branches(): BelongsToMany
@@ -94,6 +103,21 @@ class Module extends Model
     public function reportDefinitions(): HasMany
     {
         return $this->hasMany(ReportDefinition::class);
+    }
+
+    public function policies(): HasMany
+    {
+        return $this->hasMany(ModulePolicy::class);
+    }
+
+    public function operations(): HasMany
+    {
+        return $this->hasMany(ModuleOperation::class);
+    }
+
+    public function navigation(): HasMany
+    {
+        return $this->hasMany(ModuleNavigation::class);
     }
 
     public function getLocalizedNameAttribute(): string
@@ -164,5 +188,62 @@ class Module extends Model
     public function scopeCategory($q, string $category)
     {
         return $q->where('category', $category);
+    }
+
+    public function scopeByType($q, string $type)
+    {
+        return $q->where('module_type', $type);
+    }
+
+    public function scopeDataOriented($q)
+    {
+        return $q->where('module_type', 'data');
+    }
+
+    public function scopeFunctional($q)
+    {
+        return $q->where('module_type', 'functional');
+    }
+
+    public function scopeSupportsReporting($q)
+    {
+        return $q->where('supports_reporting', true);
+    }
+
+    public function scopeSupportsCustomFields($q)
+    {
+        return $q->where('supports_custom_fields', true);
+    }
+
+    /**
+     * Check if module is data-oriented
+     */
+    public function isDataOriented(): bool
+    {
+        return $this->module_type === 'data';
+    }
+
+    /**
+     * Check if module is functional
+     */
+    public function isFunctional(): bool
+    {
+        return $this->module_type === 'functional';
+    }
+
+    /**
+     * Get operation configuration
+     */
+    public function getOperationConfig(string $key, $default = null)
+    {
+        return $this->operation_config[$key] ?? $default;
+    }
+
+    /**
+     * Get integration hooks
+     */
+    public function getIntegrationHook(string $key, $default = null)
+    {
+        return $this->integration_hooks[$key] ?? $default;
     }
 }

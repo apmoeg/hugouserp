@@ -24,4 +24,16 @@ interface ModuleServiceInterface
 
     /** @return array<string, array{enabled:bool,settings:array}> */
     public function getBranchModulesConfig(Branch $branch): array;
+
+    /** Get modules by type (data/functional/hybrid) */
+    public function getModulesByType(string $type, ?int $branchId = null): array;
+
+    /** Get navigation items for user based on permissions */
+    public function getNavigationForUser($user, ?int $branchId = null): array;
+
+    /** Check if user can perform operation */
+    public function userCanPerformOperation($user, string $moduleKey, string $operationKey): bool;
+
+    /** Get active policies for module and branch */
+    public function getActivePolicies(int $moduleId, ?int $branchId = null): array;
 }

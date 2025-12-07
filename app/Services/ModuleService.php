@@ -136,4 +136,131 @@ class ModuleService implements ModuleServiceInterface
             })
             ->all();
     }
+
+    public function getModulesByType(string $type, ?int $branchId = null): array
+    {
+        $branchId = $branchId ?? request()->attributes->get('branch_id');
+
+        return Cache::remember("modules:type:{$type}:b:{$branchId}", 600, function () use ($type, $branchId) {
+            $modules = Module::byType($type)->active()->get();
+
+            if (! $branchId) {
+                return $modules->map(fn ($m) => [
+                    'id' => $m->id,
+                    'key' => $m->key,
+                    'name' => $m->localized_name,
+                    'type' => $m->module_type,
+                ])->all();
+            }
+
+            $enabledKeys = BranchModule::where('branch_id', $branchId)
+                ->where('enabled', true)
+                ->pluck('module_key')
+                ->toArray();
+
+            return $modules->filter(fn ($m) => in_array($m->key, $enabledKeys))
+                ->map(fn ($m) => [
+                    'id' => $m->id,
+                    'key' => $m->key,
+                    'name' => $m->localized_name,
+                    'type' => $m->module_type,
+                ])->values()->all();
+        });
+    }
+
+    public function getNavigationForUser($user, ?int $branchId = null): array
+    {
+        $branchId = $branchId ?? request()->attributes->get('branch_id');
+
+        // Get enabled modules for branch
+        $enabledModuleIds = [];
+        if ($branchId) {
+            $enabledModuleIds = BranchModule::where('branch_id', $branchId)
+                ->where('enabled', true)
+                ->with('module')
+                ->get()
+                ->pluck('module.id')
+                ->filter()
+                ->toArray();
+        } else {
+            $enabledModuleIds = Module::active()->pluck('id')->toArray();
+        }
+
+        if (empty($enabledModuleIds)) {
+            return [];
+        }
+
+        $navigation = \App\Models\ModuleNavigation::query()
+            ->whereIn('module_id', $enabledModuleIds)
+            ->active()
+            ->rootItems()
+            ->with(['children' => fn ($q) => $q->active()->ordered()])
+            ->ordered()
+            ->get();
+
+        return $navigation->filter(fn ($nav) => $nav->userHasAccess($user, $branchId))
+            ->map(function ($nav) use ($user, $branchId) {
+                return $this->formatNavigationItem($nav, $user, $branchId);
+            })
+            ->values()
+            ->all();
+    }
+
+    protected function formatNavigationItem($nav, $user, ?int $branchId): array
+    {
+        $children = $nav->children
+            ->filter(fn ($child) => $child->userHasAccess($user, $branchId))
+            ->map(fn ($child) => $this->formatNavigationItem($child, $user, $branchId))
+            ->values()
+            ->all();
+
+        return [
+            'id' => $nav->id,
+            'key' => $nav->nav_key,
+            'label' => $nav->localized_label,
+            'route' => $nav->route_name,
+            'icon' => $nav->icon,
+            'children' => $children,
+        ];
+    }
+
+    public function userCanPerformOperation($user, string $moduleKey, string $operationKey): bool
+    {
+        $module = Module::where('key', $moduleKey)->first();
+        if (! $module) {
+            return false;
+        }
+
+        $operation = \App\Models\ModuleOperation::query()
+            ->where('module_id', $module->id)
+            ->where('operation_key', $operationKey)
+            ->active()
+            ->first();
+
+        if (! $operation) {
+            return false;
+        }
+
+        return $operation->userCanExecute($user);
+    }
+
+    public function getActivePolicies(int $moduleId, ?int $branchId = null): array
+    {
+        return Cache::remember("module_policies:{$moduleId}:b:{$branchId}", 600, function () use ($moduleId, $branchId) {
+            return \App\Models\ModulePolicy::query()
+                ->forModule($moduleId)
+                ->forBranch($branchId)
+                ->active()
+                ->ordered()
+                ->get()
+                ->map(fn ($policy) => [
+                    'key' => $policy->policy_key,
+                    'name' => $policy->policy_name,
+                    'description' => $policy->policy_description,
+                    'rules' => $policy->policy_rules,
+                    'scope' => $policy->scope,
+                ])
+                ->all();
+        });
+    }
 }

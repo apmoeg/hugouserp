@@ -17,6 +17,11 @@ class ModuleSetting extends Model
         'setting_key',
         'setting_value',
         'setting_type',
+        'scope',
+        'is_inherited',
+        'inherited_from_setting_id',
+        'is_system',
+        'priority',
     ];
 
     public function module(): BelongsTo
@@ -27,6 +32,16 @@ class ModuleSetting extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function inheritedFromSetting(): BelongsTo
+    {
+        return $this->belongsTo(ModuleSetting::class, 'inherited_from_setting_id');
+    }
+
+    public function childSettings(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ModuleSetting::class, 'inherited_from_setting_id');
     }
 
     public function getTypedValueAttribute()
@@ -61,6 +76,26 @@ class ModuleSetting extends Model
     public function scopeGlobal($query)
     {
         return $query->whereNull('branch_id');
+    }
+
+    public function scopeByScope($query, string $scope)
+    {
+        return $query->where('scope', $scope);
+    }
+
+    public function scopeSystem($query)
+    {
+        return $query->where('is_system', true);
+    }
+
+    public function scopeNonSystem($query)
+    {
+        return $query->where('is_system', false);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('priority')->orderBy('setting_key');
     }
 
     public static function getValue($moduleId, $key, $branchId = null, $default = null)

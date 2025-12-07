@@ -30,11 +30,19 @@ class BranchModule extends Pivot
         'module_key',
         'enabled',
         'settings',
+        'activation_constraints',
+        'permission_overrides',
+        'inherit_settings',
+        'activated_at',
     ];
 
     protected $casts = [
         'enabled' => 'bool',
         'settings' => 'array',
+        'activation_constraints' => 'array',
+        'permission_overrides' => 'array',
+        'inherit_settings' => 'bool',
+        'activated_at' => 'datetime',
     ];
 
     public $timestamps = true;
@@ -70,5 +78,46 @@ class BranchModule extends Pivot
         return $this->relationLoaded('module') && $this->module
             ? $this->module->key
             : null;
+    }
+
+    /**
+     * Check if activation constraints are satisfied
+     */
+    public function constraintsSatisfied(array $context = []): bool
+    {
+        if (empty($this->activation_constraints)) {
+            return true;
+        }
+
+        foreach ($this->activation_constraints as $key => $value) {
+            if (! isset($context[$key]) || $context[$key] !== $value) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Get effective settings (with inheritance)
+     */
+    public function getEffectiveSettings(): array
+    {
+        $settings = $this->settings ?? [];
+
+        if ($this->inherit_settings && $this->module) {
+            $defaultSettings = $this->module->default_settings ?? [];
+            $settings = array_merge($defaultSettings, $settings);
+        }
+
+        return $settings;
+    }
+
+    /**
+     * Get permission overrides for this branch-module combination
+     */
+    public function getPermissionOverride(string $permission, $default = null)
+    {
+        return $this->permission_overrides[$permission] ?? $default;
     }
 }
