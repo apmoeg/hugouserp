@@ -19,11 +19,11 @@ class WebhooksController extends BaseApiController
     {
         $store = Store::with('integration')->find($storeId);
 
-        if (!$store || !$store->is_active || $store->type !== 'shopify') {
+        if (! $store || ! $store->is_active || $store->type !== 'shopify') {
             return $this->errorResponse(__('Store not found or not active'), 404);
         }
 
-        if (!$this->verifyShopifyWebhook($request, $store)) {
+        if (! $this->verifyShopifyWebhook($request, $store)) {
             return $this->errorResponse(__('Invalid webhook signature'), 401);
         }
 
@@ -50,11 +50,11 @@ class WebhooksController extends BaseApiController
     {
         $store = Store::with('integration')->find($storeId);
 
-        if (!$store || !$store->is_active || $store->type !== 'woocommerce') {
+        if (! $store || ! $store->is_active || $store->type !== 'woocommerce') {
             return $this->errorResponse(__('Store not found or not active'), 404);
         }
 
-        if (!$this->verifyWooCommerceWebhook($request, $store)) {
+        if (! $this->verifyWooCommerceWebhook($request, $store)) {
             return $this->errorResponse(__('Invalid webhook signature'), 401);
         }
 
@@ -81,7 +81,7 @@ class WebhooksController extends BaseApiController
         $hmacHeader = $request->header('X-Shopify-Hmac-Sha256');
         $secret = $store->integration?->webhook_secret;
 
-        if (!$hmacHeader || !$secret) {
+        if (! $hmacHeader || ! $secret) {
             return false;
         }
 
@@ -95,7 +95,7 @@ class WebhooksController extends BaseApiController
         $signature = $request->header('X-WC-Webhook-Signature');
         $secret = $store->integration?->webhook_secret;
 
-        if (!$signature || !$secret) {
+        if (! $signature || ! $secret) {
             return false;
         }
 

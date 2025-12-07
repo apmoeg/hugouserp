@@ -39,6 +39,7 @@ class RentalPeriod extends Model
     public function getLocalizedNameAttribute(): string
     {
         $locale = app()->getLocale();
+
         return $locale === 'ar' && $this->period_name_ar ? $this->period_name_ar : $this->period_name;
     }
 

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Jobs;
@@ -15,6 +16,7 @@ class SendEmailNotificationJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public $timeout = 120;
 
     public function __construct(
@@ -33,6 +35,6 @@ class SendEmailNotificationJob implements ShouldQueue
 
     public function tags(): array
     {
-        return ['notify','email', 'to:'.$this->to];
+        return ['notify', 'email', 'to:'.$this->to];
     }
 }

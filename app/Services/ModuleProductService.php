@@ -98,8 +98,8 @@ class ModuleProductService
         return $this->handleServiceOperation(
             callback: function () use ($moduleId, $data) {
                 $data['module_id'] = $moduleId;
-                
-                if (!isset($data['sort_order'])) {
+
+                if (! isset($data['sort_order'])) {
                     $maxOrder = ModuleProductField::where('module_id', $moduleId)->max('sort_order') ?? 0;
                     $data['sort_order'] = $maxOrder + 1;
                 }
@@ -117,6 +117,7 @@ class ModuleProductService
             callback: function () use ($fieldId, $data) {
                 $field = ModuleProductField::findOrFail($fieldId);
                 $field->update($data);
+
                 return $field->fresh();
             },
             operation: 'updateField',
@@ -130,6 +131,7 @@ class ModuleProductService
             callback: function () use ($fieldId) {
                 $field = ModuleProductField::findOrFail($fieldId);
                 ProductFieldValue::where('module_product_field_id', $fieldId)->delete();
+
                 return $field->delete();
             },
             operation: 'deleteField',
@@ -159,10 +161,10 @@ class ModuleProductService
             callback: function () use ($moduleId, $productData, $fieldValues, $branchId) {
                 return DB::transaction(function () use ($moduleId, $productData, $fieldValues, $branchId) {
                     $module = Module::findOrFail($moduleId);
-                    
+
                     $productData['module_id'] = $moduleId;
                     $productData['branch_id'] = $branchId;
-                    
+
                     if ($module->is_rental) {
                         $productData['product_type'] = 'rental';
                     } elseif ($module->is_service) {
@@ -215,6 +217,7 @@ class ModuleProductService
 
                     if ($field->is_required && empty($value)) {
                         $errors[$field->field_key] = __('The :field field is required.', ['field' => $field->localized_label]);
+
                         continue;
                     }
 
@@ -233,15 +236,15 @@ class ModuleProductService
                         }
                     }
 
-                    if (in_array($field->field_type, ['select', 'radio']) && !empty($field->field_options)) {
-                        if (!array_key_exists($value, $field->field_options)) {
+                    if (in_array($field->field_type, ['select', 'radio']) && ! empty($field->field_options)) {
+                        if (! array_key_exists($value, $field->field_options)) {
                             $errors[$field->field_key] = __('Invalid option selected for :field.', ['field' => $field->localized_label]);
                         }
                     }
 
-                    if ($field->field_type === 'multiselect' && !empty($field->field_options) && is_array($value)) {
+                    if ($field->field_type === 'multiselect' && ! empty($field->field_options) && is_array($value)) {
                         foreach ($value as $v) {
-                            if (!array_key_exists($v, $field->field_options)) {
+                            if (! array_key_exists($v, $field->field_options)) {
                                 $errors[$field->field_key] = __('Invalid option selected for :field.', ['field' => $field->localized_label]);
                                 break;
                             }
@@ -270,7 +273,9 @@ class ModuleProductService
                 }
 
                 foreach ($filters as $key => $value) {
-                    if (empty($value)) continue;
+                    if (empty($value)) {
+                        continue;
+                    }
 
                     if (in_array($key, ['name', 'code', 'sku'])) {
                         $query->where($key, 'like', "%{$value}%");
@@ -278,11 +283,13 @@ class ModuleProductService
                         $query->where('status', $value);
                     } elseif ($key === 'custom_fields') {
                         foreach ($value as $fieldKey => $fieldValue) {
-                            if (empty($fieldValue)) continue;
-                            
+                            if (empty($fieldValue)) {
+                                continue;
+                            }
+
                             $query->whereHas('fieldValues', function ($q) use ($fieldKey, $fieldValue) {
-                                $q->whereHas('field', fn($fq) => $fq->where('field_key', $fieldKey))
-                                  ->where('value', 'like', "%{$fieldValue}%");
+                                $q->whereHas('field', fn ($fq) => $fq->where('field_key', $fieldKey))
+                                    ->where('value', 'like', "%{$fieldValue}%");
                             });
                         }
                     }
@@ -300,7 +307,7 @@ class ModuleProductService
         return $this->handleServiceOperation(
             callback: function () use ($moduleId) {
                 $module = Module::findOrFail($moduleId);
-                
+
                 return [
                     'pricing_type' => $module->pricing_type,
                     'has_buy_price' => $module->hasBuyPrice(),

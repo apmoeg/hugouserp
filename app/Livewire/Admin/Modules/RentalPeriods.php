@@ -12,19 +12,31 @@ class RentalPeriods extends Component
     use AuthorizesRequests;
 
     public Module $module;
+
     public bool $showModal = false;
+
     public bool $isEditing = false;
+
     public ?int $editingPeriodId = null;
 
     public string $period_key = '';
+
     public string $period_name = '';
+
     public string $period_name_ar = '';
+
     public string $period_type = 'monthly';
+
     public int $duration_value = 1;
+
     public string $duration_unit = 'months';
+
     public float $price_multiplier = 1;
+
     public bool $is_default = false;
+
     public bool $is_active = true;
+
     public int $sort_order = 0;
 
     protected $rules = [
@@ -41,8 +53,8 @@ class RentalPeriods extends Component
     {
         $this->authorize('modules.manage');
         $this->module = $module;
-        
-        if (!$module->is_rental) {
+
+        if (! $module->is_rental) {
             session()->flash('warning', __('This module is not configured for rentals'));
         }
     }
@@ -59,7 +71,7 @@ class RentalPeriods extends Component
     public function openEditModal(int $periodId): void
     {
         $period = RentalPeriod::findOrFail($periodId);
-        
+
         $this->editingPeriodId = $period->id;
         $this->period_key = $period->period_key;
         $this->period_name = $period->period_name;
@@ -71,7 +83,7 @@ class RentalPeriods extends Component
         $this->is_default = $period->is_default;
         $this->is_active = $period->is_active;
         $this->sort_order = $period->sort_order;
-        
+
         $this->isEditing = true;
         $this->showModal = true;
     }
@@ -144,16 +156,16 @@ class RentalPeriods extends Component
     {
         $this->authorize('modules.manage');
         $period = RentalPeriod::findOrFail($periodId);
-        $period->update(['is_active' => !$period->is_active]);
+        $period->update(['is_active' => ! $period->is_active]);
     }
 
     public function setDefault(int $periodId): void
     {
         $this->authorize('modules.manage');
-        
+
         RentalPeriod::where('module_id', $this->module->id)->update(['is_default' => false]);
         RentalPeriod::findOrFail($periodId)->update(['is_default' => true]);
-        
+
         session()->flash('success', __('Default period updated'));
     }
 

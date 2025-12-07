@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -11,11 +12,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\NewAccessToken;
-use Throwable;
 
 /**
  * Authentication facade for API (Sanctum-based) and web login.
@@ -37,13 +36,15 @@ class AuthService implements AuthServiceInterface
 
     /**
      * Issue a Sanctum token with abilities.
-     * @param array<string> $abilities
+     *
+     * @param  array<string>  $abilities
      */
     public function issueToken(Authenticatable $user, array $abilities = ['*'], ?string $name = null): NewAccessToken
     {
         return $this->handleServiceOperation(
             callback: function () use ($user, $abilities, $name) {
                 $tokenName = $name ?: ('api-'.Str::random(6));
+
                 return $user->createToken($tokenName, $abilities);
             },
             operation: 'issueToken',
@@ -57,7 +58,7 @@ class AuthService implements AuthServiceInterface
     public function attempt(array $credentials, bool $remember = false): bool
     {
         return $this->handleServiceOperation(
-            callback: fn() => Auth::guard('web')->attempt($credentials, $remember),
+            callback: fn () => Auth::guard('web')->attempt($credentials, $remember),
             operation: 'attempt',
             context: ['remember' => $remember],
             defaultValue: false
@@ -72,7 +73,10 @@ class AuthService implements AuthServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($user) {
                 $user = $user ?: $this->user();
-                if (!$user || !method_exists($user, 'tokens')) return 0;
+                if (! $user || ! method_exists($user, 'tokens')) {
+                    return 0;
+                }
+
                 return (int) $user->tokens()->delete();
             },
             operation: 'revokeAllTokens',
@@ -88,9 +92,13 @@ class AuthService implements AuthServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($asUserId, $abilities) {
-                if (!$asUserId) return null;
+                if (! $asUserId) {
+                    return null;
+                }
                 $actor = $this->user();
-                if (!$actor) return null;
+                if (! $actor) {
+                    return null;
+                }
 
                 if (method_exists($actor, 'hasRole') && $actor->hasRole('Super Admin')) {
                 } elseif (method_exists($actor, 'hasPermissionTo') && $actor->hasPermissionTo('impersonate.users')) {
@@ -102,6 +110,7 @@ class AuthService implements AuthServiceInterface
                 $token = $as->createToken('impersonate-'.Str::random(4), $abilities, now()->addHours(4));
                 request()->attributes->set('impersonating', true);
                 request()->attributes->set('impersonated_by', $actor->getKey());
+
                 return $token;
             },
             operation: 'enableImpersonation',
@@ -118,7 +127,7 @@ class AuthService implements AuthServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($credential) {
                 $credential = trim($credential);
-                
+
                 return User::query()
                     ->where('email', $credential)
                     ->orWhere('phone', $credential)
@@ -141,7 +150,7 @@ class AuthService implements AuthServiceInterface
             callback: function () use ($credential, $password, $remember) {
                 $user = $this->findUserByCredential($credential);
 
-                if (!$user) {
+                if (! $user) {
                     return [
                         'success' => false,
                         'error' => 'user_not_found',
@@ -149,7 +158,7 @@ class AuthService implements AuthServiceInterface
                     ];
                 }
 
-                if (!$user->is_active) {
+                if (! $user->is_active) {
                     return [
                         'success' => false,
                         'error' => 'account_inactive',
@@ -157,7 +166,7 @@ class AuthService implements AuthServiceInterface
                     ];
                 }
 
-                if (!Hash::check($password, $user->password)) {
+                if (! Hash::check($password, $user->password)) {
                     return [
                         'success' => false,
                         'error' => 'invalid_password',
@@ -189,14 +198,14 @@ class AuthService implements AuthServiceInterface
             callback: function () use ($email) {
                 $user = User::where('email', $email)->first();
 
-                if (!$user) {
+                if (! $user) {
                     return [
                         'success' => false,
                         'error' => 'user_not_found',
                     ];
                 }
 
-                if (!$user->is_active) {
+                if (! $user->is_active) {
                     return [
                         'success' => false,
                         'error' => 'account_inactive',
@@ -224,7 +233,7 @@ class AuthService implements AuthServiceInterface
                     'expiresIn' => 60,
                 ], function ($message) use ($user) {
                     $message->to($user->email)
-                        ->subject(__('Reset Your Password') . ' - ' . config('app.name'));
+                        ->subject(__('Reset Your Password').' - '.config('app.name'));
                 });
 
                 $this->logServiceInfo('initiatePasswordReset', 'Password reset email sent', ['email' => $email]);
@@ -252,14 +261,14 @@ class AuthService implements AuthServiceInterface
                     ->where('email', $email)
                     ->first();
 
-                if (!$record) {
+                if (! $record) {
                     return [
                         'valid' => false,
                         'error' => 'invalid_token',
                     ];
                 }
 
-                if (!Hash::check($token, $record->token)) {
+                if (! Hash::check($token, $record->token)) {
                     return [
                         'valid' => false,
                         'error' => 'invalid_token',
@@ -294,8 +303,8 @@ class AuthService implements AuthServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($email, $token, $password) {
                 $validation = $this->validateResetToken($email, $token);
-                
-                if (!$validation['valid']) {
+
+                if (! $validation['valid']) {
                     return [
                         'success' => false,
                         'error' => $validation['error'],
@@ -304,7 +313,7 @@ class AuthService implements AuthServiceInterface
 
                 $user = User::where('email', $email)->first();
 
-                if (!$user) {
+                if (! $user) {
                     return [
                         'success' => false,
                         'error' => 'user_not_found',

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('loyalty_settings')) {
+        if (! Schema::hasTable('loyalty_settings')) {
             Schema::create('loyalty_settings', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('branch_id')->nullable()->constrained()->nullOnDelete();
@@ -22,7 +22,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('loyalty_transactions')) {
+        if (! Schema::hasTable('loyalty_transactions')) {
             Schema::create('loyalty_transactions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
@@ -40,7 +40,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('low_stock_alerts')) {
+        if (! Schema::hasTable('low_stock_alerts')) {
             Schema::create('low_stock_alerts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('product_id')->constrained()->cascadeOnDelete();
@@ -60,7 +60,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('installment_plans')) {
+        if (! Schema::hasTable('installment_plans')) {
             Schema::create('installment_plans', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('sale_id')->constrained()->cascadeOnDelete();
@@ -84,7 +84,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('installment_payments')) {
+        if (! Schema::hasTable('installment_payments')) {
             Schema::create('installment_payments', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('installment_plan_id')->constrained()->cascadeOnDelete();
@@ -105,7 +105,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('login_activities')) {
+        if (! Schema::hasTable('login_activities')) {
             Schema::create('login_activities', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
@@ -125,7 +125,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('user_preferences')) {
+        if (! Schema::hasTable('user_preferences')) {
             Schema::create('user_preferences', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
@@ -145,13 +145,13 @@ return new class extends Migration
         // Add loyalty columns to customers table if not exists (safe, no after())
         if (Schema::hasTable('customers')) {
             Schema::table('customers', function (Blueprint $table) {
-                if (!Schema::hasColumn('customers', 'loyalty_points')) {
+                if (! Schema::hasColumn('customers', 'loyalty_points')) {
                     $table->integer('loyalty_points')->default(0);
                 }
-                if (!Schema::hasColumn('customers', 'customer_tier')) {
+                if (! Schema::hasColumn('customers', 'customer_tier')) {
                     $table->string('customer_tier')->default('new');
                 }
-                if (!Schema::hasColumn('customers', 'tier_updated_at')) {
+                if (! Schema::hasColumn('customers', 'tier_updated_at')) {
                     $table->timestamp('tier_updated_at')->nullable();
                 }
             });
@@ -160,7 +160,7 @@ return new class extends Migration
         // Add stock alert column to products table if not exists (safe, no after())
         if (Schema::hasTable('products')) {
             Schema::table('products', function (Blueprint $table) {
-                if (!Schema::hasColumn('products', 'track_stock_alerts')) {
+                if (! Schema::hasColumn('products', 'track_stock_alerts')) {
                     $table->boolean('track_stock_alerts')->default(true);
                 }
             });
@@ -171,7 +171,7 @@ return new class extends Migration
     {
         // Note: Customer and product columns are now in base migrations
         // so we don't drop them here to maintain rollback safety
-        
+
         Schema::dropIfExists('user_preferences');
         Schema::dropIfExists('login_activities');
         Schema::dropIfExists('installment_payments');

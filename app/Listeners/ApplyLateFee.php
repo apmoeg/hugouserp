@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Listeners;
@@ -27,10 +28,12 @@ class ApplyLateFee implements ShouldQueue
             ->orderBy('due_date')
             ->first();
 
-        if (!$invoice) return;
+        if (! $invoice) {
+            return;
+        }
 
         $base = (float) $invoice->amount;
-        $penalty = max($base * ($this->penaltyPercent/100), $this->minPenalty);
+        $penalty = max($base * ($this->penaltyPercent / 100), $this->minPenalty);
         $invoice->amount = round($base + $penalty, 2);
         $invoice->save();
     }

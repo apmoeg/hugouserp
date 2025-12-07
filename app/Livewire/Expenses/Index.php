@@ -13,15 +13,20 @@ use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination;
-    use HasExport;
     use AuthorizesRequests;
+    use HasExport;
+    use WithPagination;
 
     public string $search = '';
+
     public string $categoryId = '';
+
     public string $dateFrom = '';
+
     public string $dateTo = '';
+
     public string $sortField = 'expense_date';
+
     public string $sortDirection = 'desc';
 
     protected $queryString = ['search', 'categoryId'];
@@ -57,11 +62,11 @@ class Index extends Component
     {
         $expenses = Expense::query()
             ->with(['category', 'branch', 'creator'])
-            ->when($this->search, fn($q) => $q->where('description', 'like', "%{$this->search}%")
+            ->when($this->search, fn ($q) => $q->where('description', 'like', "%{$this->search}%")
                 ->orWhere('reference_number', 'like', "%{$this->search}%"))
-            ->when($this->categoryId, fn($q) => $q->where('category_id', $this->categoryId))
-            ->when($this->dateFrom, fn($q) => $q->whereDate('expense_date', '>=', $this->dateFrom))
-            ->when($this->dateTo, fn($q) => $q->whereDate('expense_date', '<=', $this->dateTo))
+            ->when($this->categoryId, fn ($q) => $q->where('category_id', $this->categoryId))
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('expense_date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('expense_date', '<=', $this->dateTo))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(15);
 

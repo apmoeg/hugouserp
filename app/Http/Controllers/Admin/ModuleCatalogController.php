@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
@@ -10,6 +11,7 @@ class ModuleCatalogController extends Controller
     public function index()
     {
         $mods = (array) config('modules.available', []);
+
         return $this->ok($mods);
     }
 }

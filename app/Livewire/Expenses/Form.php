@@ -4,30 +4,39 @@ declare(strict_types=1);
 
 namespace App\Livewire\Expenses;
 
+use App\Livewire\Concerns\HandlesErrors;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
-use App\Livewire\Concerns\HandlesErrors;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class Form extends Component
 {
-    use WithFileUploads;
     use AuthorizesRequests;
     use HandlesErrors;
+    use WithFileUploads;
 
     public ?Expense $expense = null;
+
     public bool $editMode = false;
 
     public string $category_id = '';
+
     public string $reference_number = '';
+
     public string $expense_date = '';
+
     public float $amount = 0;
+
     public string $payment_method = 'cash';
+
     public string $description = '';
+
     public $attachment;
+
     public bool $is_recurring = false;
+
     public string $recurrence_interval = '';
 
     protected function rules(): array
@@ -48,9 +57,9 @@ class Form extends Component
     public function mount(?Expense $expense = null): void
     {
         $this->authorize('expenses.manage');
-        
+
         $this->expense_date = now()->format('Y-m-d');
-        
+
         if ($expense && $expense->exists) {
             $this->expense = $expense;
             $this->editMode = true;
@@ -85,7 +94,7 @@ class Form extends Component
     public function render()
     {
         $categories = ExpenseCategory::active()->get();
-        
+
         return view('livewire.expenses.form', [
             'categories' => $categories,
         ])->layout('layouts.app', ['title' => $this->editMode ? __('Edit Expense') : __('Add Expense')]);

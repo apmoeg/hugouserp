@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -27,6 +28,7 @@ class ETag
             $response->setStatusCode(304);
             $response->setContent(null);
         }
+
         return $response;
     }
 }

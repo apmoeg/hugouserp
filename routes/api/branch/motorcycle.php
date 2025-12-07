@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Branch\Motorcycle\VehicleController;
 use App\Http\Controllers\Branch\Motorcycle\ContractController;
+use App\Http\Controllers\Branch\Motorcycle\VehicleController;
 use App\Http\Controllers\Branch\Motorcycle\WarrantyController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,7 +26,7 @@ Route::prefix('modules/motorcycle')->middleware(['module.enabled:motorcycle'])->
         Route::get('{vehicle}', [VehicleController::class, 'show'])
             ->middleware('perm:motorcycle.vehicles.view');
 
-        Route::match(['put','patch'], '{vehicle}', [VehicleController::class, 'update'])
+        Route::match(['put', 'patch'], '{vehicle}', [VehicleController::class, 'update'])
             ->middleware('perm:motorcycle.vehicles.update');
     });
 
@@ -41,7 +41,7 @@ Route::prefix('modules/motorcycle')->middleware(['module.enabled:motorcycle'])->
         Route::get('{contract}', [ContractController::class, 'show'])
             ->middleware('perm:motorcycle.contracts.view');
 
-        Route::match(['put','patch'], '{contract}', [ContractController::class, 'update'])
+        Route::match(['put', 'patch'], '{contract}', [ContractController::class, 'update'])
             ->middleware('perm:motorcycle.contracts.update');
 
         Route::post('{contract}/deliver', [ContractController::class, 'deliver'])
@@ -59,7 +59,7 @@ Route::prefix('modules/motorcycle')->middleware(['module.enabled:motorcycle'])->
         Route::get('{warranty}', [WarrantyController::class, 'show'])
             ->middleware('perm:motorcycle.warranties.view');
 
-        Route::match(['put','patch'], '{warranty}', [WarrantyController::class, 'update'])
+        Route::match(['put', 'patch'], '{warranty}', [WarrantyController::class, 'update'])
             ->middleware('perm:motorcycle.warranties.update');
     });
 });

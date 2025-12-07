@@ -3,19 +3,18 @@
 declare(strict_types=1);
 
 namespace App\Livewire\Admin\Settings;
-use App\Models\SystemSetting;
-use App\Models\Branch;
-use App\Models\AuditLog;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 
-use Livewire\Component;
+use App\Models\AuditLog;
+use App\Models\Branch;
+use App\Models\SystemSetting;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
+use Livewire\Component;
 
 class BranchSettings extends Component
 {
     #[Layout('layouts.app')]
-
     public ?int $branchId = null;
 
     /**
@@ -51,18 +50,18 @@ class BranchSettings extends Component
             return;
         }
 
-        $prefix = 'branch:' . $this->branchId . ':';
+        $prefix = 'branch:'.$this->branchId.':';
 
         $this->rows = SystemSetting::query()
-            ->where('key', 'like', $prefix . '%')
+            ->where('key', 'like', $prefix.'%')
             ->orderBy('key')
             ->get()
             ->map(function (SystemSetting $setting) use ($prefix): array {
-                $plainKey = preg_replace('/^' . preg_quote($prefix, '/') . '/', '', $setting->key) ?? $setting->key;
+                $plainKey = preg_replace('/^'.preg_quote($prefix, '/').'/', '', $setting->key) ?? $setting->key;
 
                 return [
-                    'id'    => $setting->id,
-                    'key'   => $plainKey,
+                    'id' => $setting->id,
+                    'key' => $plainKey,
                     'value' => is_array($setting->value) ? json_encode($setting->value) : ($setting->value ?? ''),
                 ];
             })
@@ -76,8 +75,8 @@ class BranchSettings extends Component
     public function addRow(): void
     {
         $this->rows[] = [
-            'id'    => null,
-            'key'   => '',
+            'id' => null,
+            'key' => '',
             'value' => '',
         ];
     }
@@ -96,20 +95,20 @@ class BranchSettings extends Component
         }
 
         $this->validate([
-            'branchId'   => ['required', 'integer'],
+            'branchId' => ['required', 'integer'],
             'rows.*.key' => ['required', 'string', 'max:255'],
         ]);
 
-        $prefix = 'branch:' . $this->branchId . ':';
+        $prefix = 'branch:'.$this->branchId.':';
 
         // نقرأ الإعدادات القديمة للفرع
         $before = SystemSetting::query()
             ->where('group', 'branch')
-            ->where('key', 'LIKE', $prefix . '%')
+            ->where('key', 'LIKE', $prefix.'%')
             ->get()
             ->keyBy('key')
             ->map(fn (SystemSetting $s) => [
-                'key'   => $s->key,
+                'key' => $s->key,
                 'value' => $s->value,
             ])
             ->all();
@@ -122,16 +121,16 @@ class BranchSettings extends Component
                 }
 
                 $value = (string) ($row['value'] ?? '');
-                $fullKey = $prefix . $plainKey;
+                $fullKey = $prefix.$plainKey;
 
                 SystemSetting::query()->updateOrCreate(
                     [
-                        'key'   => $fullKey,
+                        'key' => $fullKey,
                         'group' => 'branch',
                     ],
                     [
                         'value' => $value,
-                        'type'  => 'string',
+                        'type' => 'string',
                         'group' => 'branch',
                     ]
                 );
@@ -141,11 +140,11 @@ class BranchSettings extends Component
         // الإعدادات بعد التعديل
         $after = SystemSetting::query()
             ->where('group', 'branch')
-            ->where('key', 'LIKE', $prefix . '%')
+            ->where('key', 'LIKE', $prefix.'%')
             ->get()
             ->keyBy('key')
             ->map(fn (SystemSetting $s) => [
-                'key'   => $s->key,
+                'key' => $s->key,
                 'value' => $s->value,
             ])
             ->all();
@@ -157,18 +156,19 @@ class BranchSettings extends Component
             if (! $beforeRow) {
                 $changes[] = [
                     'type' => 'created',
-                    'key'  => $key,
-                    'after'=> $row,
+                    'key' => $key,
+                    'after' => $row,
                 ];
+
                 continue;
             }
 
             if ($beforeRow['value'] !== $row['value']) {
                 $changes[] = [
-                    'type'   => 'updated',
-                    'key'    => $key,
+                    'type' => 'updated',
+                    'key' => $key,
                     'before' => $beforeRow,
-                    'after'  => $row,
+                    'after' => $row,
                 ];
             }
         }
@@ -176,22 +176,22 @@ class BranchSettings extends Component
         foreach ($before as $key => $row) {
             if (! isset($after[$key])) {
                 $changes[] = [
-                    'type'   => 'deleted',
-                    'key'    => $key,
+                    'type' => 'deleted',
+                    'key' => $key,
                     'before' => $row,
-                    'after'  => null,
+                    'after' => null,
                 ];
             }
         }
 
         if (! empty($changes)) {
             AuditLog::query()->create([
-                'user_id'        => Auth::id(),
+                'user_id' => Auth::id(),
                 'target_user_id' => null,
-                'action'         => 'branch.settings.updated',
-                'meta'           => [
+                'action' => 'branch.settings.updated',
+                'meta' => [
                     'branch_id' => $this->branchId,
-                    'changes'   => $changes,
+                    'changes' => $changes,
                 ],
             ]);
         }

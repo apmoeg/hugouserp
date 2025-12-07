@@ -12,7 +12,7 @@ class ReportsController extends Controller
     {
         $model = '\\App\\Models\\RentalUnit';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             abort(500, 'RentalUnit model not found');
         }
 
@@ -22,7 +22,7 @@ class ReportsController extends Controller
             $query->where('property_id', $request->integer('property_id'));
         }
 
-        $filename = 'rental_occupancy_' . now()->format('Ymd_His') . '.csv';
+        $filename = 'rental_occupancy_'.now()->format('Ymd_His').'.csv';
 
         $callback = function () use ($query) {
             $handle = fopen('php://output', 'w');
@@ -56,7 +56,7 @@ class ReportsController extends Controller
 
         $model = '\\App\\Models\\RentalContract';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             abort(500, 'RentalContract model not found');
         }
 
@@ -65,7 +65,7 @@ class ReportsController extends Controller
             ->where('status', 'active')
             ->whereDate('end_date', '<=', $threshold);
 
-        $filename = 'rental_expiring_contracts_' . now()->format('Ymd_His') . '.csv';
+        $filename = 'rental_expiring_contracts_'.now()->format('Ymd_His').'.csv';
 
         $callback = function () use ($query) {
             $handle = fopen('php://output', 'w');
@@ -94,4 +94,3 @@ class ReportsController extends Controller
         ]);
     }
 }
-

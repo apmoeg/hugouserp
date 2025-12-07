@@ -10,8 +10,11 @@ use Illuminate\Support\Collection;
 trait WithInfiniteScroll
 {
     public int $perPage = 15;
+
     public int $page = 1;
+
     public bool $hasMorePages = true;
+
     public bool $isLoading = false;
 
     public function initializeWithInfiniteScroll(): void
@@ -26,7 +29,7 @@ trait WithInfiniteScroll
 
     public function loadMore(): void
     {
-        if ($this->hasMorePages && !$this->isLoading) {
+        if ($this->hasMorePages && ! $this->isLoading) {
             $this->isLoading = true;
             $this->page++;
             $this->isLoading = false;
@@ -43,7 +46,7 @@ trait WithInfiniteScroll
     {
         $total = $query->count();
         $items = $query->skip(0)->take($this->page * $this->perPage)->get();
-        
+
         $this->hasMorePages = $items->count() < $total;
 
         return $items;
@@ -54,9 +57,9 @@ trait WithInfiniteScroll
         $items = $query->orderByDesc($orderColumn)
             ->take(($this->page * $this->perPage) + 1)
             ->get();
-        
+
         $this->hasMorePages = $items->count() > ($this->page * $this->perPage);
-        
+
         return $items->take($this->page * $this->perPage);
     }
 }

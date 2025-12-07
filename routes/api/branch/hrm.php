@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Branch\HRM\EmployeeController as BranchEmployeeController;
 use App\Http\Controllers\Branch\HRM\AttendanceController as BranchAttendanceController;
+use App\Http\Controllers\Branch\HRM\EmployeeController as BranchEmployeeController;
 use App\Http\Controllers\Branch\HRM\PayrollController as BranchPayrollController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,7 +46,7 @@ Route::prefix('hrm')->group(function () {
     Route::post('attendance', [BranchAttendanceController::class, 'store'])
         ->middleware('perm:hrm.attendance.create');
 
-    Route::match(['put','patch'], 'attendance/{record}', [BranchAttendanceController::class, 'update'])
+    Route::match(['put', 'patch'], 'attendance/{record}', [BranchAttendanceController::class, 'update'])
         ->middleware('perm:hrm.attendance.update');
 
     Route::post('attendance/{record}/deactivate', [BranchAttendanceController::class, 'deactivate'])

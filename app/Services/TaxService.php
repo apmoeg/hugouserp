@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -6,8 +7,6 @@ namespace App\Services;
 use App\Models\Tax;
 use App\Services\Contracts\TaxServiceInterface;
 use App\Traits\HandlesServiceErrors;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class TaxService implements TaxServiceInterface
 {
@@ -15,7 +14,7 @@ class TaxService implements TaxServiceInterface
 
     public function rate(?int $taxId): float
     {
-        if (!$taxId || !class_exists(Tax::class)) {
+        if (! $taxId || ! class_exists(Tax::class)) {
             return 0.0;
         }
         $tax = Tax::find($taxId);
@@ -34,12 +33,12 @@ class TaxService implements TaxServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($base, $taxId) {
-                if (!$taxId || !class_exists(Tax::class)) {
+                if (! $taxId || ! class_exists(Tax::class)) {
                     return 0.0;
                 }
 
                 $tax = Tax::find($taxId);
-                if (!$tax) {
+                if (! $tax) {
                     return 0.0;
                 }
 
@@ -69,12 +68,12 @@ class TaxService implements TaxServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($base, $taxId) {
-                if (!$taxId || !class_exists(Tax::class)) {
+                if (! $taxId || ! class_exists(Tax::class)) {
                     return round($base, 4);
                 }
 
                 $tax = Tax::find($taxId);
-                if (!$tax) {
+                if (! $tax) {
                     return round($base, 4);
                 }
 

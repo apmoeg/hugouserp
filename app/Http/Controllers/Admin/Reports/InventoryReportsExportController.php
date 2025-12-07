@@ -22,9 +22,9 @@ class InventoryReportsExportController extends Controller
         }
 
         $validated = $request->validate([
-            'branch_id'   => ['nullable', 'integer'],
-            'only_low'    => ['nullable', 'boolean'],
-            'format'      => ['nullable', 'in:web,excel,pdf'],
+            'branch_id' => ['nullable', 'integer'],
+            'only_low' => ['nullable', 'boolean'],
+            'format' => ['nullable', 'in:web,excel,pdf'],
         ]);
 
         $format = $validated['format'] ?? 'web';
@@ -38,11 +38,11 @@ class InventoryReportsExportController extends Controller
         $products = $query->orderBy('name')->limit(5000)->get();
 
         $columns = [
-            'id'             => 'ID',
-            'sku'            => 'SKU',
-            'name'           => 'Name',
-            'stock_qty'      => 'Stock',
-            'reorder_level'  => 'Reorder Level',
+            'id' => 'ID',
+            'sku' => 'SKU',
+            'name' => 'Name',
+            'stock_qty' => 'Stock',
+            'reorder_level' => 'Reorder Level',
         ];
 
         $rows = $products->map(function (Product $product) use ($validated) {
@@ -54,11 +54,11 @@ class InventoryReportsExportController extends Controller
             }
 
             return [
-                'id'             => $product->id,
-                'sku'            => $product->sku,
-                'name'           => $product->name,
-                'stock_qty'      => $stock,
-                'reorder_level'  => $reorder,
+                'id' => $product->id,
+                'sku' => $product->sku,
+                'name' => $product->name,
+                'stock_qty' => $stock,
+                'reorder_level' => $reorder,
             ];
         })->filter()->values()->toArray();
 
@@ -84,7 +84,7 @@ class InventoryReportsExportController extends Controller
         if ($format === 'pdf') {
             $pdf = Pdf::loadView('admin.reports.inventory-export-pdf', [
                 'columns' => $columns,
-                'rows'    => $rows,
+                'rows' => $rows,
             ]);
 
             return $pdf->download('inventory_report_'.now()->format('Ymd_His').'.pdf');
@@ -92,7 +92,7 @@ class InventoryReportsExportController extends Controller
 
         return view('admin.reports.inventory-export-web', [
             'columns' => $columns,
-            'rows'    => $rows,
+            'rows' => $rows,
         ]);
     }
 }

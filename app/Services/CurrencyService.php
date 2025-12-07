@@ -18,11 +18,11 @@ class CurrencyService
     {
         return Cache::remember('supported_currencies', 3600, function () {
             $currencies = Currency::active()->ordered()->get();
-            
+
             if ($currencies->isEmpty()) {
                 return $this->getDefaultCurrencies();
             }
-            
+
             return $currencies->pluck('name', 'code')->toArray();
         });
     }
@@ -36,11 +36,11 @@ class CurrencyService
     {
         return Cache::remember('currency_symbols', 3600, function () {
             $currencies = Currency::active()->get();
-            
+
             if ($currencies->isEmpty()) {
                 return $this->getDefaultSymbols();
             }
-            
+
             return $currencies->pluck('symbol', 'code')->toArray();
         });
     }
@@ -79,7 +79,7 @@ class CurrencyService
     public function getActiveRates(): Collection
     {
         return $this->handleServiceOperation(
-            callback: fn() => CurrencyRate::query()
+            callback: fn () => CurrencyRate::query()
                 ->where('is_active', true)
                 ->orderBy('from_currency')
                 ->orderBy('to_currency')
@@ -87,7 +87,7 @@ class CurrencyService
                 ->get(),
             operation: 'getActiveRates',
             context: [],
-            defaultValue: new Collection()
+            defaultValue: new Collection
         );
     }
 
@@ -99,18 +99,18 @@ class CurrencyService
                     return 1.0;
                 }
 
-                $cacheKey = "currency_rate:{$from}:{$to}:" . ($date ?? 'current');
-                
+                $cacheKey = "currency_rate:{$from}:{$to}:".($date ?? 'current');
+
                 return Cache::remember($cacheKey, 3600, function () use ($from, $to, $date) {
                     $rate = CurrencyRate::getRate($from, $to, $date);
-                    
+
                     if ($rate === null) {
                         $reverseRate = CurrencyRate::getRate($to, $from, $date);
                         if ($reverseRate !== null && $reverseRate > 0) {
                             return 1 / $reverseRate;
                         }
                     }
-                    
+
                     return $rate;
                 });
             },
@@ -123,7 +123,7 @@ class CurrencyService
     public function convert(float $amount, string $from, string $to, $date = null): ?float
     {
         $rate = $this->getRate($from, $to, $date);
-        
+
         if ($rate === null) {
             return null;
         }
@@ -138,7 +138,7 @@ class CurrencyService
                 $effectiveDate = $effectiveDate ?? now()->toDateString();
                 $from = strtoupper($from);
                 $to = strtoupper($to);
-                
+
                 $currencyRate = CurrencyRate::updateOrCreate(
                     [
                         'from_currency' => $from,
@@ -164,7 +164,7 @@ class CurrencyService
     public function setRateWithReverse(string $from, string $to, float $rate, $effectiveDate = null): array
     {
         $forwardRate = $this->setRate($from, $to, $rate, $effectiveDate);
-        
+
         $reverseRate = null;
         if ($rate > 0) {
             $reverseRate = $this->setRate($to, $from, 1 / $rate, $effectiveDate);
@@ -177,7 +177,7 @@ class CurrencyService
     {
         Cache::forget("currency_rate:{$from}:{$to}:current");
         Cache::forget("currency_rate:{$to}:{$from}:current");
-        
+
         if ($effectiveDate) {
             Cache::forget("currency_rate:{$from}:{$to}:{$effectiveDate}");
             Cache::forget("currency_rate:{$to}:{$from}:{$effectiveDate}");
@@ -193,7 +193,7 @@ class CurrencyService
                 $rate->save();
 
                 $this->clearRateCache($rate->from_currency, $rate->to_currency);
-                
+
                 return true;
             },
             operation: 'deactivateRate',
@@ -206,10 +206,10 @@ class CurrencyService
     {
         $symbols = $this->getCurrencySymbols();
         $symbol = $symbols[strtoupper($currency)] ?? $currency;
-        
+
         $currencyModel = Currency::getCurrencyByCode($currency);
         $decimals = $currencyModel ? $currencyModel->decimal_places : 2;
-        
+
         $formatted = number_format($amount, $decimals);
 
         return "{$formatted} {$symbol}";
@@ -221,10 +221,12 @@ class CurrencyService
             callback: function () use ($baseCurrency) {
                 $rates = [];
                 $currencies = array_keys($this->getSupportedCurrencies());
-                
+
                 foreach ($currencies as $currency) {
-                    if ($currency === $baseCurrency) continue;
-                    
+                    if ($currency === $baseCurrency) {
+                        continue;
+                    }
+
                     $rate = $this->getRate($baseCurrency, $currency);
                     if ($rate !== null) {
                         $rates[$currency] = $rate;

@@ -44,7 +44,7 @@ class StoreIntegration extends BaseModel
 
     public function isTokenExpired(): bool
     {
-        if (!$this->token_expires_at) {
+        if (! $this->token_expires_at) {
             return false;
         }
 
@@ -53,7 +53,7 @@ class StoreIntegration extends BaseModel
 
     public function hasPermission(string $permission): bool
     {
-        if (!$this->permissions) {
+        if (! $this->permissions) {
             return true;
         }
 

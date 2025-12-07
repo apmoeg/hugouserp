@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Models\Sale;
-use App\Models\SaleItem;
-use App\Models\Product;
 use App\Models\Customer;
+use App\Models\Product;
 use App\Models\ProductStoreMapping;
+use App\Models\Sale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,18 +20,14 @@ class OrdersController extends BaseApiController
 
         $query = Sale::query()
             ->with(['customer:id,name,email,phone', 'items.product:id,name,sku'])
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
-            ->when($request->filled('status'), fn($q) => 
-                $q->where('status', $request->status)
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status)
             )
-            ->when($request->filled('customer_id'), fn($q) => 
-                $q->where('customer_id', $request->customer_id)
+            ->when($request->filled('customer_id'), fn ($q) => $q->where('customer_id', $request->customer_id)
             )
-            ->when($request->filled('from_date'), fn($q) => 
-                $q->whereDate('created_at', '>=', $request->from_date)
+            ->when($request->filled('from_date'), fn ($q) => $q->whereDate('created_at', '>=', $request->from_date)
             )
-            ->when($request->filled('to_date'), fn($q) => 
-                $q->whereDate('created_at', '<=', $request->to_date)
+            ->when($request->filled('to_date'), fn ($q) => $q->whereDate('created_at', '<=', $request->to_date)
             )
             ->orderBy($request->get('sort_by', 'created_at'), $request->get('sort_dir', 'desc'));
 
@@ -47,10 +42,10 @@ class OrdersController extends BaseApiController
 
         $order = Sale::query()
             ->with(['customer', 'items.product', 'user:id,name'])
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
             ->find($id);
 
-        if (!$order) {
+        if (! $order) {
             return $this->errorResponse(__('Order not found'), 404);
         }
 
@@ -82,10 +77,10 @@ class OrdersController extends BaseApiController
         $store = $this->getStore($request);
 
         try {
-            $order = DB::transaction(function () use ($validated, $store, $request) {
+            $order = DB::transaction(function () use ($validated, $store) {
                 $customerId = $validated['customer_id'] ?? null;
 
-                if (!$customerId && isset($validated['customer'])) {
+                if (! $customerId && isset($validated['customer'])) {
                     $customer = Customer::firstOrCreate(
                         ['email' => $validated['customer']['email'] ?? null],
                         [
@@ -109,14 +104,14 @@ class OrdersController extends BaseApiController
                         $mapping = ProductStoreMapping::where('store_id', $store->id)
                             ->where('external_id', $item['external_id'])
                             ->first();
-                        
+
                         if ($mapping) {
                             $product = $mapping->product;
                         }
                     }
 
-                    if (!$product) {
-                        throw new \Exception(__('Product not found') . ': ' . ($item['product_id'] ?? $item['external_id']));
+                    if (! $product) {
+                        throw new \Exception(__('Product not found').': '.($item['product_id'] ?? $item['external_id']));
                     }
 
                     $lineTotal = ($item['price'] * $item['quantity']) - ($item['discount'] ?? 0);
@@ -173,10 +168,10 @@ class OrdersController extends BaseApiController
         $store = $this->getStore($request);
 
         $order = Sale::query()
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
             ->find($id);
 
-        if (!$order) {
+        if (! $order) {
             return $this->errorResponse(__('Order not found'), 404);
         }
 
@@ -191,11 +186,11 @@ class OrdersController extends BaseApiController
 
         $order = Sale::query()
             ->with(['customer', 'items.product'])
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
             ->where('external_reference', $externalId)
             ->first();
 
-        if (!$order) {
+        if (! $order) {
             return $this->errorResponse(__('Order not found'), 404);
         }
 

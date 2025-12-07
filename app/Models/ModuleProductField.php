@@ -55,12 +55,14 @@ class ModuleProductField extends Model
     public function getLocalizedLabelAttribute(): string
     {
         $locale = app()->getLocale();
+
         return $locale === 'ar' && $this->field_label_ar ? $this->field_label_ar : $this->field_label;
     }
 
     public function getLocalizedPlaceholderAttribute(): ?string
     {
         $locale = app()->getLocale();
+
         return $locale === 'ar' && $this->placeholder_ar ? $this->placeholder_ar : $this->placeholder;
     }
 

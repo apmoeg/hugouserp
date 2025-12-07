@@ -1,13 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
-use Illuminate\Support\Facades\Log;
 
+use App\Models\Vehicle;
+use App\Models\VehicleContract;
+use App\Models\Warranty;
 use App\Services\Contracts\MotorcycleServiceInterface;
 use App\Traits\HandlesServiceErrors;
-
-use App\Models\{Vehicle, VehicleContract, Warranty};
 use Illuminate\Support\Facades\DB;
 
 class MotorcycleService implements MotorcycleServiceInterface
@@ -17,7 +18,7 @@ class MotorcycleService implements MotorcycleServiceInterface
     public function vehicles()
     {
         return $this->handleServiceOperation(
-            callback: fn() => Vehicle::query()->orderByDesc('id')->get(),
+            callback: fn () => Vehicle::query()->orderByDesc('id')->get(),
             operation: 'vehicles',
             context: []
         );
@@ -30,11 +31,12 @@ class MotorcycleService implements MotorcycleServiceInterface
                 return DB::transaction(function () use ($vehicleId, $customerId, $startDate, $endDate) {
                     $contract = VehicleContract::create([
                         'vehicle_id' => $vehicleId,
-                        'customer_id'=> $customerId,
+                        'customer_id' => $customerId,
                         'start_date' => $startDate,
-                        'end_date'   => $endDate,
-                        'status'     => 'active',
+                        'end_date' => $endDate,
+                        'status' => 'active',
                     ]);
+
                     return $contract;
                 });
             },
@@ -51,6 +53,7 @@ class MotorcycleService implements MotorcycleServiceInterface
                 $c->status = 'delivered';
                 $c->delivered_at = now();
                 $c->save();
+
                 return $c;
             },
             operation: 'deliverContract',
@@ -67,8 +70,8 @@ class MotorcycleService implements MotorcycleServiceInterface
                     [
                         'provider' => $payload['provider'] ?? 'default',
                         'start_at' => $payload['start_at'] ?? now(),
-                        'end_at'   => $payload['end_at'] ?? now()->addYear(),
-                        'notes'    => $payload['notes'] ?? null,
+                        'end_at' => $payload['end_at'] ?? now()->addYear(),
+                        'notes' => $payload['notes'] ?? null,
                     ]
                 );
             },

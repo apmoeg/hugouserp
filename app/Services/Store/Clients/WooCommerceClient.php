@@ -10,14 +10,17 @@ use Illuminate\Support\Facades\Http;
 class WooCommerceClient
 {
     protected Store $store;
+
     protected string $baseUrl;
+
     protected string $consumerKey;
+
     protected string $consumerSecret;
 
     public function __construct(Store $store)
     {
         $this->store = $store;
-        $this->baseUrl = rtrim($store->url, '/') . '/wp-json/wc/v3';
+        $this->baseUrl = rtrim($store->url, '/').'/wp-json/wc/v3';
         $this->consumerKey = $store->integration?->api_key ?? '';
         $this->consumerSecret = $store->integration?->api_secret ?? '';
     }
@@ -32,8 +35,8 @@ class WooCommerceClient
                 'per_page' => $perPage,
                 'page' => $page,
             ]);
-            
-            if (!$response->successful()) {
+
+            if (! $response->successful()) {
                 break;
             }
 
@@ -46,7 +49,7 @@ class WooCommerceClient
             $page++;
 
             $totalPages = (int) $response->header('X-WP-TotalPages', 1);
-            
+
         } while ($page <= $totalPages);
 
         return $products;
@@ -55,7 +58,7 @@ class WooCommerceClient
     public function getProduct(string $productId): ?array
     {
         $response = $this->request('GET', "/products/{$productId}");
-        
+
         if ($response->successful()) {
             return $response->json();
         }
@@ -66,6 +69,7 @@ class WooCommerceClient
     public function updateProduct(string $productId, array $data): bool
     {
         $response = $this->request('PUT', "/products/{$productId}", $data);
+
         return $response->successful();
     }
 
@@ -93,8 +97,8 @@ class WooCommerceClient
             }
 
             $response = $this->request('GET', '/orders', $params);
-            
-            if (!$response->successful()) {
+
+            if (! $response->successful()) {
                 break;
             }
 
@@ -107,7 +111,7 @@ class WooCommerceClient
             $page++;
 
             $totalPages = (int) $response->header('X-WP-TotalPages', 1);
-            
+
         } while ($page <= $totalPages);
 
         return $orders;
@@ -116,7 +120,7 @@ class WooCommerceClient
     public function getOrder(string $orderId): ?array
     {
         $response = $this->request('GET', "/orders/{$orderId}");
-        
+
         if ($response->successful()) {
             return $response->json();
         }
@@ -143,8 +147,8 @@ class WooCommerceClient
                 'per_page' => $perPage,
                 'page' => $page,
             ]);
-            
-            if (!$response->successful()) {
+
+            if (! $response->successful()) {
                 break;
             }
 
@@ -157,7 +161,7 @@ class WooCommerceClient
             $page++;
 
             $totalPages = (int) $response->header('X-WP-TotalPages', 1);
-            
+
         } while ($page <= $totalPages);
 
         return $customers;
@@ -170,7 +174,7 @@ class WooCommerceClient
 
         foreach ($topics as $topic) {
             $response = $this->request('POST', '/webhooks', [
-                'name' => 'ERP Integration - ' . $topic,
+                'name' => 'ERP Integration - '.$topic,
                 'topic' => $topic,
                 'delivery_url' => $webhookUrl,
                 'secret' => $this->store->integration?->webhook_secret ?? '',
@@ -184,7 +188,7 @@ class WooCommerceClient
 
     protected function request(string $method, string $endpoint, array $data = [])
     {
-        $url = $this->baseUrl . $endpoint;
+        $url = $this->baseUrl.$endpoint;
 
         $http = Http::withBasicAuth($this->consumerKey, $this->consumerSecret)
             ->withHeaders(['Content-Type' => 'application/json']);

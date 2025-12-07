@@ -24,11 +24,11 @@ class ScheduledReportService
     ): array {
         try {
             $data = $this->fetchReportData($template, $filters);
-            
+
             $filePath = $this->generateFile($template, $data, $format);
-            
+
             $sentTo = $this->sendEmails($recipientEmails, $filePath, $template, $scheduleName);
-            
+
             return [
                 'success' => true,
                 'file_path' => $filePath,
@@ -40,7 +40,7 @@ class ScheduledReportService
                 'template' => $template->name,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -52,7 +52,7 @@ class ScheduledReportService
     {
         $config = json_decode($template->config ?? '{}', true);
         $reportType = $config['type'] ?? $template->type ?? 'general';
-        
+
         return match ($reportType) {
             'sales' => $this->fetchSalesReportData($filters),
             'inventory' => $this->fetchInventoryReportData($filters),
@@ -74,13 +74,13 @@ class ScheduledReportService
                     DB::raw('AVG(total) as avg_order'),
                 ]);
 
-            if (!empty($filters['date_from'])) {
+            if (! empty($filters['date_from'])) {
                 $query->where('created_at', '>=', $filters['date_from']);
             }
-            if (!empty($filters['date_to'])) {
+            if (! empty($filters['date_to'])) {
                 $query->where('created_at', '<=', $filters['date_to']);
             }
-            if (!empty($filters['branch_id'])) {
+            if (! empty($filters['branch_id'])) {
                 $query->where('branch_id', (int) $filters['branch_id']);
             }
 
@@ -88,10 +88,11 @@ class ScheduledReportService
                 ->orderByDesc('date')
                 ->limit(100)
                 ->get()
-                ->map(fn($row) => (array) $row)
+                ->map(fn ($row) => (array) $row)
                 ->toArray();
         } catch (\Exception $e) {
             Log::warning('Sales report data fetch failed', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -103,20 +104,21 @@ class ScheduledReportService
                 ->select(['name', 'sku', 'quantity', 'price', 'cost'])
                 ->where('is_active', true);
 
-            if (!empty($filters['category_id'])) {
+            if (! empty($filters['category_id'])) {
                 $query->where('category_id', (int) $filters['category_id']);
             }
-            if (!empty($filters['low_stock'])) {
+            if (! empty($filters['low_stock'])) {
                 $query->whereColumn('quantity', '<=', 'reorder_level');
             }
 
             return $query->orderBy('name')
                 ->limit(500)
                 ->get()
-                ->map(fn($row) => (array) $row)
+                ->map(fn ($row) => (array) $row)
                 ->toArray();
         } catch (\Exception $e) {
             Log::warning('Inventory report data fetch failed', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -135,17 +137,18 @@ class ScheduledReportService
                 ])
                 ->groupBy('customers.id', 'customers.name', 'customers.email', 'customers.phone');
 
-            if (!empty($filters['branch_id'])) {
+            if (! empty($filters['branch_id'])) {
                 $query->where('customers.branch_id', (int) $filters['branch_id']);
             }
 
             return $query->orderByDesc('total_spent')
                 ->limit(200)
                 ->get()
-                ->map(fn($row) => (array) $row)
+                ->map(fn ($row) => (array) $row)
                 ->toArray();
         } catch (\Exception $e) {
             Log::warning('Customer report data fetch failed', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -164,23 +167,24 @@ class ScheduledReportService
                     'orders.created_at',
                 ]);
 
-            if (!empty($filters['date_from'])) {
+            if (! empty($filters['date_from'])) {
                 $query->where('orders.created_at', '>=', $filters['date_from']);
             }
-            if (!empty($filters['date_to'])) {
+            if (! empty($filters['date_to'])) {
                 $query->where('orders.created_at', '<=', $filters['date_to']);
             }
-            if (!empty($filters['status'])) {
+            if (! empty($filters['status'])) {
                 $query->where('orders.status', $filters['status']);
             }
 
             return $query->orderByDesc('orders.created_at')
                 ->limit(500)
                 ->get()
-                ->map(fn($row) => (array) $row)
+                ->map(fn ($row) => (array) $row)
                 ->toArray();
         } catch (\Exception $e) {
             Log::warning('Orders report data fetch failed', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -199,20 +203,21 @@ class ScheduledReportService
                     'products.quantity',
                 ]);
 
-            if (!empty($filters['category_id'])) {
+            if (! empty($filters['category_id'])) {
                 $query->where('products.category_id', (int) $filters['category_id']);
             }
-            if (!empty($filters['is_active'])) {
+            if (! empty($filters['is_active'])) {
                 $query->where('products.is_active', true);
             }
 
             return $query->orderBy('products.name')
                 ->limit(500)
                 ->get()
-                ->map(fn($row) => (array) $row)
+                ->map(fn ($row) => (array) $row)
                 ->toArray();
         } catch (\Exception $e) {
             Log::warning('Products report data fetch failed', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -220,7 +225,7 @@ class ScheduledReportService
     protected function getSampleData(ReportTemplate $template): array
     {
         $type = $template->type ?? 'general';
-        
+
         switch ($type) {
             case 'sales':
                 return [
@@ -246,19 +251,19 @@ class ScheduledReportService
         $timestamp = now()->format('Y-m-d_His');
         $safeName = Str::slug($template->name);
         $filename = "{$safeName}_{$timestamp}.{$format}";
-        
+
         Storage::makeDirectory($this->storagePath);
-        
+
         $content = match ($format) {
             'csv' => $this->generateCsv($data),
             'pdf' => $this->generatePdf($template, $data),
             'excel', 'xlsx' => $this->generateExcel($data),
             default => $this->generateCsv($data),
         };
-        
+
         $fullPath = "{$this->storagePath}/{$filename}";
         Storage::put($fullPath, $content);
-        
+
         return Storage::path($fullPath);
     }
 
@@ -267,27 +272,27 @@ class ScheduledReportService
         if (empty($data)) {
             return '';
         }
-        
+
         $output = fopen('php://temp', 'r+');
-        
+
         $headers = array_keys($data[0]);
         fputcsv($output, $headers);
-        
+
         foreach ($data as $row) {
             fputcsv($output, array_values($row));
         }
-        
+
         rewind($output);
         $csv = stream_get_contents($output);
         fclose($output);
-        
+
         return $csv;
     }
 
     protected function generatePdf(ReportTemplate $template, array $data): string
     {
         $html = $this->buildPdfHtml($template, $data);
-        
+
         return $html;
     }
 
@@ -310,21 +315,21 @@ class ScheduledReportService
 </head>
 <body>
     <div class="header">
-        <h1>' . htmlspecialchars($template->name) . '</h1>
-        <p class="generated">Generated: ' . now()->format('Y-m-d H:i:s') . '</p>
+        <h1>'.htmlspecialchars($template->name).'</h1>
+        <p class="generated">Generated: '.now()->format('Y-m-d H:i:s').'</p>
     </div>';
-        
-        if (!empty($data)) {
+
+        if (! empty($data)) {
             $html .= '<table><thead><tr>';
             foreach (array_keys($data[0]) as $header) {
-                $html .= '<th>' . htmlspecialchars(ucwords(str_replace('_', ' ', $header))) . '</th>';
+                $html .= '<th>'.htmlspecialchars(ucwords(str_replace('_', ' ', $header))).'</th>';
             }
             $html .= '</tr></thead><tbody>';
-            
+
             foreach ($data as $row) {
                 $html .= '<tr>';
                 foreach ($row as $value) {
-                    $html .= '<td>' . htmlspecialchars((string) $value) . '</td>';
+                    $html .= '<td>'.htmlspecialchars((string) $value).'</td>';
                 }
                 $html .= '</tr>';
             }
@@ -332,9 +337,9 @@ class ScheduledReportService
         } else {
             $html .= '<p>No data available for this report.</p>';
         }
-        
+
         $html .= '</body></html>';
-        
+
         return $html;
     }
 
@@ -346,13 +351,13 @@ class ScheduledReportService
     protected function sendEmails(array $recipientEmails, string $filePath, ReportTemplate $template, string $scheduleName): array
     {
         $sentTo = [];
-        
+
         foreach ($recipientEmails as $email) {
             $email = trim($email);
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 continue;
             }
-            
+
             try {
                 Mail::raw(
                     $this->buildEmailBody($template, $scheduleName),
@@ -365,25 +370,25 @@ class ScheduledReportService
                             ]);
                     }
                 );
-                
+
                 $sentTo[] = $email;
-                Log::info("Report sent successfully", ['email' => $email, 'file' => $filePath]);
-                
+                Log::info('Report sent successfully', ['email' => $email, 'file' => $filePath]);
+
             } catch (\Exception $e) {
-                Log::warning("Failed to send report email", [
+                Log::warning('Failed to send report email', [
                     'email' => $email,
                     'error' => $e->getMessage(),
                 ]);
             }
         }
-        
+
         return $sentTo;
     }
 
     protected function buildEmailBody(ReportTemplate $template, string $scheduleName): string
     {
         $name = $scheduleName ?: $template->name;
-        
+
         return __('Dear User,
 
 Your scheduled report ":name" has been generated and is attached to this email.
@@ -402,7 +407,7 @@ Ghanem ERP', [
     protected function getMimeType(string $filePath): string
     {
         $extension = pathinfo($filePath, PATHINFO_EXTENSION);
-        
+
         return match ($extension) {
             'csv' => 'text/csv',
             'pdf' => 'application/pdf',
@@ -414,19 +419,19 @@ Ghanem ERP', [
     public function runNow(int $scheduleId): array
     {
         $schedule = DB::table('report_schedules')->where('id', $scheduleId)->first();
-        
-        if (!$schedule) {
+
+        if (! $schedule) {
             return ['success' => false, 'error' => __('Schedule not found')];
         }
-        
+
         $template = ReportTemplate::find($schedule->report_template_id);
-        
-        if (!$template) {
+
+        if (! $template) {
             return ['success' => false, 'error' => __('Report template not found')];
         }
-        
+
         $filters = json_decode($schedule->filters ?? '[]', true);
-        
+
         $result = $this->generateAndSend(
             $template,
             $schedule->format,
@@ -434,13 +439,13 @@ Ghanem ERP', [
             $filters,
             $schedule->name
         );
-        
+
         if ($result['success']) {
             DB::table('report_schedules')
                 ->where('id', $scheduleId)
                 ->update(['last_run_at' => now(), 'updated_at' => now()]);
         }
-        
+
         return $result;
     }
 }

@@ -14,10 +14,12 @@ use Livewire\Component;
 class Modules extends Component
 {
     #[Layout('layouts.app')]
-
     public Branch $branch;
+
     public array $modules = [];
+
     public array $enabledModules = [];
+
     public array $moduleSettings = [];
 
     public function mount(Branch $branch): void
@@ -42,7 +44,7 @@ class Modules extends Component
 
         foreach ($allModules as $module) {
             $branchModule = $branchModules->get($module->id);
-            
+
             $this->modules[] = [
                 'id' => $module->id,
                 'name' => $module->name,
@@ -59,7 +61,7 @@ class Modules extends Component
 
     public function toggleModule(int $moduleId): void
     {
-        $this->enabledModules[$moduleId] = !($this->enabledModules[$moduleId] ?? false);
+        $this->enabledModules[$moduleId] = ! ($this->enabledModules[$moduleId] ?? false);
     }
 
     public function save(): void

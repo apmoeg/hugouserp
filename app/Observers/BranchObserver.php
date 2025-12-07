@@ -1,17 +1,18 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Observers;
 
-use App\Models\Branch;
 use App\Models\AuditLog;
+use App\Models\Branch;
 use Illuminate\Support\Str;
 
 class BranchObserver
 {
     public function creating(Branch $branch): void
     {
-        if (!$branch->getAttribute('code') && $branch->getAttribute('name')) {
+        if (! $branch->getAttribute('code') && $branch->getAttribute('name')) {
             $branch->code = Str::upper(Str::slug((string) $branch->name, '_'));
         }
         if ($branch->getAttribute('is_active') === null) {
@@ -27,7 +28,7 @@ class BranchObserver
     public function updating(Branch $branch): void
     {
         // Keep code in sync with name if not manually maintained
-        if ($branch->isDirty('name') && !$branch->isDirty('code')) {
+        if ($branch->isDirty('name') && ! $branch->isDirty('code')) {
             $branch->code = Str::upper(Str::slug((string) $branch->name, '_'));
         }
     }
@@ -47,14 +48,14 @@ class BranchObserver
         try {
             $req = request();
             AuditLog::create([
-                'user_id'      => optional(auth()->user())->getKey(),
-                'action'       => "Branch:{$action}",
+                'user_id' => optional(auth()->user())->getKey(),
+                'action' => "Branch:{$action}",
                 'subject_type' => Branch::class,
-                'subject_id'   => $branch->getKey(),
-                'ip'           => $req?->ip(),
-                'user_agent'   => (string) $req?->userAgent(),
-                'old_values'   => [],
-                'new_values'   => $changes ?: $branch->attributesToArray(),
+                'subject_id' => $branch->getKey(),
+                'ip' => $req?->ip(),
+                'user_agent' => (string) $req?->userAgent(),
+                'old_values' => [],
+                'new_values' => $changes ?: $branch->attributesToArray(),
             ]);
         } catch (\Throwable $e) {
             // Swallow observer errors to not break requests

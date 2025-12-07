@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Livewire\Purchases;
 
+use App\Livewire\Concerns\HandlesErrors;
+use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
-use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\Warehouse;
-use App\Livewire\Concerns\HandlesErrors;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Livewire\Component;
 
 class Form extends Component
@@ -21,19 +20,29 @@ class Form extends Component
     use HandlesErrors;
 
     public ?Purchase $purchase = null;
+
     public bool $editMode = false;
 
     public string $supplier_id = '';
+
     public string $warehouse_id = '';
+
     public string $reference_no = '';
+
     public string $status = 'draft';
+
     public string $currency = 'EGP';
+
     public string $notes = '';
+
     public float $discount_total = 0;
+
     public float $shipping_total = 0;
 
     public array $items = [];
+
     public string $productSearch = '';
+
     public array $searchResults = [];
 
     protected function rules(): array
@@ -57,7 +66,7 @@ class Form extends Component
     public function mount(?Purchase $purchase = null): void
     {
         $this->authorize('purchases.manage');
-        
+
         if ($purchase && $purchase->exists) {
             $this->purchase = $purchase;
             $this->editMode = true;
@@ -69,8 +78,8 @@ class Form extends Component
             $this->notes = $purchase->notes ?? '';
             $this->discount_total = (float) ($purchase->discount_total ?? 0);
             $this->shipping_total = (float) ($purchase->shipping_total ?? 0);
-            
-            $this->items = $purchase->items->map(fn($item) => [
+
+            $this->items = $purchase->items->map(fn ($item) => [
                 'id' => $item->id,
                 'product_id' => $item->product_id,
                 'product_name' => $item->product?->name ?? '',
@@ -87,11 +96,12 @@ class Form extends Component
     {
         if (strlen($this->productSearch) < 2) {
             $this->searchResults = [];
+
             return;
         }
-        
+
         $this->searchResults = Product::query()
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->where('name', 'ilike', "%{$this->productSearch}%")
                     ->orWhere('sku', 'ilike', "%{$this->productSearch}%");
             })
@@ -103,10 +113,12 @@ class Form extends Component
     public function addProduct(int $productId): void
     {
         $product = Product::find($productId);
-        if (!$product) return;
+        if (! $product) {
+            return;
+        }
 
-        $existingIndex = collect($this->items)->search(fn($item) => $item['product_id'] == $productId);
-        
+        $existingIndex = collect($this->items)->search(fn ($item) => $item['product_id'] == $productId);
+
         if ($existingIndex !== false) {
             $this->items[$existingIndex]['qty'] += 1;
         } else {
@@ -121,7 +133,7 @@ class Form extends Component
                 'tax_rate' => 0,
             ];
         }
-        
+
         $this->productSearch = '';
         $this->searchResults = [];
     }
@@ -134,15 +146,16 @@ class Form extends Component
 
     public function getSubTotalProperty(): float
     {
-        return collect($this->items)->sum(function($item) {
+        return collect($this->items)->sum(function ($item) {
             return ($item['qty'] ?? 0) * ($item['unit_cost'] ?? 0) - ($item['discount'] ?? 0);
         });
     }
 
     public function getTaxTotalProperty(): float
     {
-        return collect($this->items)->sum(function($item) {
+        return collect($this->items)->sum(function ($item) {
             $lineTotal = ($item['qty'] ?? 0) * ($item['unit_cost'] ?? 0) - ($item['discount'] ?? 0);
+
             return $lineTotal * (($item['tax_rate'] ?? 0) / 100);
         });
     }
@@ -155,7 +168,7 @@ class Form extends Component
     public function save(): void
     {
         $this->validate();
-        
+
         $user = auth()->user();
 
         $this->handleOperation(
@@ -191,7 +204,7 @@ class Form extends Component
                     foreach ($this->items as $item) {
                         $lineTotal = ($item['qty'] * $item['unit_cost']) - ($item['discount'] ?? 0);
                         $lineTotal += $lineTotal * (($item['tax_rate'] ?? 0) / 100);
-                        
+
                         PurchaseItem::create([
                             'purchase_id' => $purchase->id,
                             'product_id' => $item['product_id'],
@@ -215,7 +228,7 @@ class Form extends Component
     {
         $suppliers = Supplier::where('is_active', true)->orderBy('name')->get(['id', 'name']);
         $warehouses = Warehouse::where('is_active', true)->orderBy('name')->get(['id', 'name']);
-        
+
         return view('livewire.purchases.form', [
             'suppliers' => $suppliers,
             'warehouses' => $warehouses,

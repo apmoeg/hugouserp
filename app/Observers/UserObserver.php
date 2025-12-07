@@ -1,11 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Observers;
 
-use App\Models\User;
-use App\Models\AuditLog;
 use App\Events\UserDisabled;
+use App\Models\AuditLog;
+use App\Models\User;
 
 class UserObserver
 {
@@ -36,14 +37,14 @@ class UserObserver
         try {
             $req = request();
             AuditLog::create([
-                'user_id'      => optional(auth()->user())->getKey(),
-                'action'       => "User:{$action}",
+                'user_id' => optional(auth()->user())->getKey(),
+                'action' => "User:{$action}",
                 'subject_type' => User::class,
-                'subject_id'   => $user->getKey(),
-                'ip'           => $req?->ip(),
-                'user_agent'   => (string) $req?->userAgent(),
-                'old_values'   => [],
-                'new_values'   => $changes ?: $user->attributesToArray(),
+                'subject_id' => $user->getKey(),
+                'ip' => $req?->ip(),
+                'user_agent' => (string) $req?->userAgent(),
+                'old_values' => [],
+                'new_values' => $changes ?: $user->attributesToArray(),
             ]);
         } catch (\Throwable $e) {
             // ignore failures

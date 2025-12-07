@@ -16,20 +16,26 @@ class Edit extends Component
     use WithFileUploads;
 
     #[Layout('layouts.app')]
-
     public string $name = '';
+
     public string $email = '';
+
     public string $phone = '';
+
     public string $current_password = '';
+
     public string $password = '';
+
     public string $password_confirmation = '';
+
     public $avatar;
+
     public ?string $currentAvatar = null;
 
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             abort(403);
         }
 
@@ -42,10 +48,10 @@ class Edit extends Component
     public function updateProfile(): void
     {
         $user = Auth::user();
-        
+
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'phone' => ['nullable', 'string', 'max:50'],
         ]);
 
@@ -57,7 +63,7 @@ class Edit extends Component
     public function updatePassword(): void
     {
         $user = Auth::user();
-        
+
         $this->validate([
             'current_password' => ['required', 'current_password'],
             'password' => ['required', 'confirmed', Password::defaults()],
@@ -68,40 +74,40 @@ class Edit extends Component
         ]);
 
         $this->reset(['current_password', 'password', 'password_confirmation']);
-        
+
         session()->flash('success', __('Password updated successfully'));
     }
 
     public function updateAvatar(): void
     {
         $user = Auth::user();
-        
+
         $this->validate([
             'avatar' => ['required', 'image', 'max:2048'],
         ]);
 
         $path = $this->avatar->store('avatars', 'public');
-        
+
         $user->update([
             'avatar' => $path,
         ]);
 
         $this->currentAvatar = $path;
         $this->reset('avatar');
-        
+
         session()->flash('success', __('Avatar updated successfully'));
     }
 
     public function removeAvatar(): void
     {
         $user = Auth::user();
-        
+
         $user->update([
             'avatar' => null,
         ]);
 
         $this->currentAvatar = null;
-        
+
         session()->flash('success', __('Avatar removed successfully'));
     }
 

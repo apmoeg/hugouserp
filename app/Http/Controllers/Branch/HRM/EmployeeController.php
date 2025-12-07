@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Branch\HRM;
@@ -12,37 +13,47 @@ use Illuminate\Support\Facades\Schema;
 
 class EmployeeController extends Controller
 {
-    public function __construct(protected HRM $hrm){}
+    public function __construct(protected HRM $hrm) {}
 
-    public function index(){ return $this->ok($this->hrm->employees()); }
-    public function show(HREmployee $employee){ return $this->ok($employee); }
+    public function index()
+    {
+        return $this->ok($this->hrm->employees());
+    }
+
+    public function show(HREmployee $employee)
+    {
+        return $this->ok($employee);
+    }
 
     public function assign(Request $request)
     {
         $data = $this->validate($request, [
-            'employee_id'=>['required','exists:hr_employees,id'],
-            'branch_id'  =>['sometimes','integer'],
+            'employee_id' => ['required', 'exists:hr_employees,id'],
+            'branch_id' => ['sometimes', 'integer'],
         ]);
         $branchId = (int) ($data['branch_id'] ?? $request->attributes->get('branch_id'));
         if (Schema::hasTable('branch_employee')) {
             DB::table('branch_employee')->updateOrInsert(
-                ['hr_employee_id'=>$data['employee_id'],'branch_id'=>$branchId],
-                ['created_at'=>now(),'updated_at'=>now()]
+                ['hr_employee_id' => $data['employee_id'], 'branch_id' => $branchId],
+                ['created_at' => now(), 'updated_at' => now()]
             );
         } else {
-            HREmployee::whereKey($data['employee_id'])->update(['branch_id'=>$branchId]);
+            HREmployee::whereKey($data['employee_id'])->update(['branch_id' => $branchId]);
         }
-        return $this->ok(['employee_id'=>$data['employee_id'],'branch_id'=>$branchId], __('Assigned'));
+
+        return $this->ok(['employee_id' => $data['employee_id'], 'branch_id' => $branchId], __('Assigned'));
     }
 
     public function unassign(Request $request, HREmployee $employee)
     {
         $branchId = (int) $request->attributes->get('branch_id');
         if (Schema::hasTable('branch_employee')) {
-            DB::table('branch_employee')->where('hr_employee_id',$employee->id)->where('branch_id',$branchId)->delete();
+            DB::table('branch_employee')->where('hr_employee_id', $employee->id)->where('branch_id', $branchId)->delete();
         } else {
-            $employee->branch_id = null; $employee->save();
+            $employee->branch_id = null;
+            $employee->save();
         }
-        return $this->ok(['employee_id'=>$employee->id,'branch_id'=>$branchId], __('Unassigned'));
+
+        return $this->ok(['employee_id' => $employee->id, 'branch_id' => $branchId], __('Unassigned'));
     }
 }

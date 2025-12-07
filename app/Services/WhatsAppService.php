@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\Sale;
 use App\Models\Customer;
+use App\Models\Sale;
 use App\Services\Sms\SmsManager;
 use App\Traits\HandlesServiceErrors;
-use Illuminate\Support\Facades\Log;
 
 class WhatsAppService
 {
@@ -26,13 +25,13 @@ class WhatsAppService
         return $this->handleServiceOperation(
             callback: function () use ($sale, $customMessage) {
                 $customer = $sale->customer;
-                
-                if (!$customer || !$customer->phone) {
+
+                if (! $customer || ! $customer->phone) {
                     return false;
                 }
 
                 $message = $customMessage ?? $this->buildInvoiceMessage($sale);
-                
+
                 return $this->smsManager->sendWhatsApp($customer->phone, $message);
             },
             operation: 'sendInvoice',
@@ -45,7 +44,7 @@ class WhatsAppService
     {
         return $this->handleServiceOperation(
             callback: function () use ($customer, $amount, $dueDate) {
-                if (!$customer->phone) {
+                if (! $customer->phone) {
                     return false;
                 }
 
@@ -67,7 +66,7 @@ class WhatsAppService
     {
         return $this->handleServiceOperation(
             callback: function () use ($customer, $points, $totalPoints) {
-                if (!$customer->phone) {
+                if (! $customer->phone) {
                     return false;
                 }
 
@@ -88,7 +87,7 @@ class WhatsAppService
     protected function buildInvoiceMessage(Sale $sale): string
     {
         $items = $sale->items->map(function ($item) {
-            return "• {$item->product->name} x{$item->qty} = " . number_format($item->total, 2);
+            return "• {$item->product->name} x{$item->qty} = ".number_format($item->total, 2);
         })->join("\n");
 
         return __("Invoice #:invoice\n\nDear :customer,\n\nThank you for your purchase!\n\n:items\n\nSubtotal: :subtotal\nTax: :tax\nDiscount: :discount\n\nTotal: :total\n\nDate: :date\n\nThank you for shopping with us!", [

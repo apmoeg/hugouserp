@@ -44,6 +44,7 @@ class CurrencyRate extends Model
     public function scopeEffectiveOn($query, $date = null)
     {
         $date = $date ?? now()->toDateString();
+
         return $query->where('effective_date', '<=', $date)
             ->orderByDesc('effective_date');
     }
@@ -66,7 +67,7 @@ class CurrencyRate extends Model
     public static function convert(float $amount, string $from, string $to, $date = null): ?float
     {
         $rate = static::getRate($from, $to, $date);
-        
+
         if ($rate === null) {
             return null;
         }
@@ -74,37 +75,37 @@ class CurrencyRate extends Model
         return round($amount * $rate, 2);
     }
 
-public static function getRate(string $from, string $to, $date = null): ?float
-{
-    $from = strtoupper($from);
-    $to   = strtoupper($to);
+    public static function getRate(string $from, string $to, $date = null): ?float
+    {
+        $from = strtoupper($from);
+        $to = strtoupper($to);
 
-    $dateKey  = $date ? (is_string($date) ? $date : $date->format('Y-m-d')) : 'latest';
-    $cacheKey = sprintf('currency_rate:%s:%s:%s', $from, $to, $dateKey);
+        $dateKey = $date ? (is_string($date) ? $date : $date->format('Y-m-d')) : 'latest';
+        $cacheKey = sprintf('currency_rate:%s:%s:%s', $from, $to, $dateKey);
 
-    return Cache::remember($cacheKey, 300, function () use ($from, $to, $date) {
-        $query = static::query()
-            ->where('from_currency', $from)
-            ->where('to_currency', $to);
+        return Cache::remember($cacheKey, 300, function () use ($from, $to, $date) {
+            $query = static::query()
+                ->where('from_currency', $from)
+                ->where('to_currency', $to);
 
-        if ($date) {
-            $query->whereDate('effective_date', '<=', is_string($date) ? $date : $date->format('Y-m-d'));
-        }
+            if ($date) {
+                $query->whereDate('effective_date', '<=', is_string($date) ? $date : $date->format('Y-m-d'));
+            }
 
-        $rate = $query->orderByDesc('effective_date')->first();
+            $rate = $query->orderByDesc('effective_date')->first();
 
-        return $rate ? (float) $rate->rate : null;
-    });
-}
-
-public static function convert(float $amount, string $from, string $to, $date = null): ?float
-{
-    $rate = static::getRate($from, $to, $date);
-
-    if ($rate === null) {
-        return null;
+            return $rate ? (float) $rate->rate : null;
+        });
     }
 
-    return round($amount * $rate, 2);
-}
+    public static function convert(float $amount, string $from, string $to, $date = null): ?float
+    {
+        $rate = static::getRate($from, $to, $date);
+
+        if ($rate === null) {
+            return null;
+        }
+
+        return round($amount * $rate, 2);
+    }
 }

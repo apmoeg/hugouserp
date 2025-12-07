@@ -22,24 +22,37 @@ class Stores extends Component
     protected string $paginationTheme = 'tailwind';
 
     public string $search = '';
+
     public ?string $typeFilter = null;
+
     public ?string $statusFilter = null;
 
     public bool $showModal = false;
+
     public bool $showSyncModal = false;
+
     public ?int $editingId = null;
+
     public ?int $syncingStoreId = null;
 
     public string $name = '';
+
     public string $type = 'shopify';
+
     public string $url = '';
+
     public ?int $branch_id = null;
+
     public bool $is_active = true;
+
     public array $settings = [];
 
     public string $api_key = '';
+
     public string $api_secret = '';
+
     public string $access_token = '';
+
     public string $webhook_secret = '';
 
     public array $sync_settings = [
@@ -54,6 +67,7 @@ class Stores extends Component
     ];
 
     public array $branches = [];
+
     public array $syncLogs = [];
 
     protected array $storeTypes = [
@@ -82,7 +96,7 @@ class Stores extends Component
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('stores.view')) {
+        if (! $user || ! $user->can('stores.view')) {
             abort(403);
         }
 
@@ -208,7 +222,7 @@ class Stores extends Component
 
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', __('Error saving store: ') . $e->getMessage());
+            session()->flash('error', __('Error saving store: ').$e->getMessage());
         }
     }
 
@@ -223,7 +237,7 @@ class Stores extends Component
     public function toggleStatus(int $id): void
     {
         $store = Store::findOrFail($id);
-        $store->update(['is_active' => !$store->is_active]);
+        $store->update(['is_active' => ! $store->is_active]);
 
         if ($store->integration) {
             $store->integration->update(['is_active' => $store->is_active]);
@@ -257,10 +271,12 @@ class Stores extends Component
 
     public function syncProducts(): void
     {
-        if (!$this->syncingStoreId) return;
+        if (! $this->syncingStoreId) {
+            return;
+        }
 
         $store = Store::findOrFail($this->syncingStoreId);
-        $service = new StoreSyncService();
+        $service = new StoreSyncService;
 
         try {
             if ($store->isShopify()) {
@@ -269,23 +285,26 @@ class Stores extends Component
                 $log = $service->pullProductsFromWooCommerce($store);
             } else {
                 session()->flash('error', __('Sync not supported for this store type'));
+
                 return;
             }
 
             $this->loadSyncLogs();
-            session()->flash('success', __('Products synced: ') . $log->success_count . ' / ' . ($log->success_count + $log->failed_count));
+            session()->flash('success', __('Products synced: ').$log->success_count.' / '.($log->success_count + $log->failed_count));
 
         } catch (\Exception $e) {
-            session()->flash('error', __('Sync failed: ') . $e->getMessage());
+            session()->flash('error', __('Sync failed: ').$e->getMessage());
         }
     }
 
     public function syncInventory(): void
     {
-        if (!$this->syncingStoreId) return;
+        if (! $this->syncingStoreId) {
+            return;
+        }
 
         $store = Store::findOrFail($this->syncingStoreId);
-        $service = new StoreSyncService();
+        $service = new StoreSyncService;
 
         try {
             if ($store->isShopify()) {
@@ -294,23 +313,26 @@ class Stores extends Component
                 $log = $service->pushStockToWooCommerce($store);
             } else {
                 session()->flash('error', __('Sync not supported for this store type'));
+
                 return;
             }
 
             $this->loadSyncLogs();
-            session()->flash('success', __('Inventory synced: ') . $log->success_count . ' / ' . ($log->success_count + $log->failed_count));
+            session()->flash('success', __('Inventory synced: ').$log->success_count.' / '.($log->success_count + $log->failed_count));
 
         } catch (\Exception $e) {
-            session()->flash('error', __('Sync failed: ') . $e->getMessage());
+            session()->flash('error', __('Sync failed: ').$e->getMessage());
         }
     }
 
     public function syncOrders(): void
     {
-        if (!$this->syncingStoreId) return;
+        if (! $this->syncingStoreId) {
+            return;
+        }
 
         $store = Store::findOrFail($this->syncingStoreId);
-        $service = new StoreSyncService();
+        $service = new StoreSyncService;
 
         try {
             if ($store->isShopify()) {
@@ -319,26 +341,27 @@ class Stores extends Component
                 $log = $service->pullOrdersFromWooCommerce($store);
             } else {
                 session()->flash('error', __('Sync not supported for this store type'));
+
                 return;
             }
 
             $this->loadSyncLogs();
-            session()->flash('success', __('Orders synced: ') . $log->success_count . ' / ' . ($log->success_count + $log->failed_count));
+            session()->flash('success', __('Orders synced: ').$log->success_count.' / '.($log->success_count + $log->failed_count));
 
         } catch (\Exception $e) {
-            session()->flash('error', __('Sync failed: ') . $e->getMessage());
+            session()->flash('error', __('Sync failed: ').$e->getMessage());
         }
     }
 
     #[Layout('layouts.app')]
     public function render()
     {
-        $query = Store::with(['branch', 'integration', 'syncLogs' => fn($q) => $q->latest()->limit(1)]);
+        $query = Store::with(['branch', 'integration', 'syncLogs' => fn ($q) => $q->latest()->limit(1)]);
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('name', 'ilike', '%' . $this->search . '%')
-                    ->orWhere('url', 'ilike', '%' . $this->search . '%');
+                $q->where('name', 'ilike', '%'.$this->search.'%')
+                    ->orWhere('url', 'ilike', '%'.$this->search.'%');
             });
         }
 

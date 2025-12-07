@@ -32,12 +32,11 @@ class SystemSetting extends Model
     ];
 
     protected $casts = [
-        'value'     => 'array',
+        'value' => 'array',
         'is_public' => 'bool',
     ];
 
     /** Scopes */
-
     public function scopeKey($q, string $key)
     {
         return $q->where('key', $key);
@@ -48,15 +47,15 @@ class SystemSetting extends Model
         return $q->where('group', $group);
     }
 
-/**
- * Get a setting value using cache.
- */
-public static function cachedValue(?string $group, string $key, $default = null, int $ttlSeconds = 1800)
-{
-    $cacheKey = sprintf('system_setting:%s:%s', $group ?? 'global', $key);
+    /**
+     * Get a setting value using cache.
+     */
+    public static function cachedValue(?string $group, string $key, $default = null, int $ttlSeconds = 1800)
+    {
+        $cacheKey = sprintf('system_setting:%s:%s', $group ?? 'global', $key);
 
-    return Cache::remember($cacheKey, $ttlSeconds, function () use ($group, $key, $default) {
-        return static::getValue($group, $key, $default);
-    });
-}
+        return Cache::remember($cacheKey, $ttlSeconds, function () use ($group, $key, $default) {
+            return static::getValue($group, $key, $default);
+        });
+    }
 }

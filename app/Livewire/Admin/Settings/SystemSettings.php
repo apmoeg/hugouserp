@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin\Settings;
 
-use Livewire\Component;
-use Illuminate\Support\Facades\Auth;
-use Livewire\Attributes\Layout;
-use Illuminate\Support\Facades\DB;
-use App\Models\SystemSetting;
 use App\Models\AuditLog;
-use Spatie\Permission\Models\Role;
+use App\Models\SystemSetting;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class SystemSettings extends Component
 {
@@ -52,7 +52,6 @@ class SystemSettings extends Component
             abort(403);
         }
 
-
         $this->loadRows();
         $this->loadRolesAndPermissions();
         $this->loadScreenPermissionsMap();
@@ -66,10 +65,10 @@ class SystemSettings extends Component
             ->get()
             ->map(function (SystemSetting $row) {
                 return [
-                    'id'        => $row->getKey(),
-                    'key'       => $row->key,
-                    'value'     => $row->value,
-                    'group'     => $row->group,
+                    'id' => $row->getKey(),
+                    'key' => $row->key,
+                    'value' => $row->value,
+                    'group' => $row->group,
                     'is_public' => (bool) $row->is_public,
                 ];
             })
@@ -79,10 +78,10 @@ class SystemSettings extends Component
     public function addRow(): void
     {
         $this->rows[] = [
-            'id'        => null,
-            'key'       => '',
-            'value'     => '',
-            'group'     => null,
+            'id' => null,
+            'key' => '',
+            'value' => '',
+            'group' => null,
             'is_public' => false,
         ];
     }
@@ -112,10 +111,10 @@ class SystemSettings extends Component
                 continue;
             }
             $clean[] = [
-                'id'        => isset($row['id']) ? (int) $row['id'] : null,
-                'key'       => $key,
-                'value'     => (string) ($row['value'] ?? ''),
-                'group'     => $row['group'] !== '' ? $row['group'] : null,
+                'id' => isset($row['id']) ? (int) $row['id'] : null,
+                'key' => $key,
+                'value' => (string) ($row['value'] ?? ''),
+                'group' => $row['group'] !== '' ? $row['group'] : null,
                 'is_public' => (bool) ($row['is_public'] ?? false),
             ];
         }
@@ -125,10 +124,10 @@ class SystemSettings extends Component
             ->get()
             ->keyBy('id')
             ->map(fn (SystemSetting $s) => [
-                'id'        => $s->id,
-                'key'       => $s->key,
-                'value'     => $s->value,
-                'group'     => $s->group,
+                'id' => $s->id,
+                'key' => $s->key,
+                'value' => $s->value,
+                'group' => $s->group,
                 'is_public' => (bool) $s->is_public,
             ])
             ->all();
@@ -142,16 +141,16 @@ class SystemSettings extends Component
                         continue;
                     }
                     $model->fill([
-                        'key'       => $row['key'],
-                        'value'     => $row['value'],
-                        'group'     => $row['group'],
+                        'key' => $row['key'],
+                        'value' => $row['value'],
+                        'group' => $row['group'],
                         'is_public' => $row['is_public'],
                     ])->save();
                 } else {
                     $created = SystemSetting::query()->create([
-                        'key'       => $row['key'],
-                        'value'     => $row['value'],
-                        'group'     => $row['group'],
+                        'key' => $row['key'],
+                        'value' => $row['value'],
+                        'group' => $row['group'],
                         'is_public' => $row['is_public'],
                     ]);
                 }
@@ -167,10 +166,10 @@ class SystemSettings extends Component
             ->get()
             ->keyBy('id')
             ->map(fn (SystemSetting $s) => [
-                'id'        => $s->id,
-                'key'       => $s->key,
-                'value'     => $s->value,
-                'group'     => $s->group,
+                'id' => $s->id,
+                'key' => $s->key,
+                'value' => $s->value,
+                'group' => $s->group,
                 'is_public' => (bool) $s->is_public,
             ])
             ->all();
@@ -182,9 +181,10 @@ class SystemSettings extends Component
             if (! $beforeRow) {
                 $changes[] = [
                     'type' => 'created',
-                    'key'  => $row['key'],
-                    'after'=> $row,
+                    'key' => $row['key'],
+                    'after' => $row,
                 ];
+
                 continue;
             }
 
@@ -192,10 +192,10 @@ class SystemSettings extends Component
                 || $beforeRow['group'] !== $row['group']
                 || $beforeRow['is_public'] !== $row['is_public']) {
                 $changes[] = [
-                    'type'   => 'updated',
-                    'key'    => $row['key'],
+                    'type' => 'updated',
+                    'key' => $row['key'],
                     'before' => $beforeRow,
-                    'after'  => $row,
+                    'after' => $row,
                 ];
             }
         }
@@ -203,20 +203,20 @@ class SystemSettings extends Component
         foreach ($before as $id => $row) {
             if (! isset($after[$id])) {
                 $changes[] = [
-                    'type'   => 'deleted',
-                    'key'    => $row['key'],
+                    'type' => 'deleted',
+                    'key' => $row['key'],
                     'before' => $row,
-                    'after'  => null,
+                    'after' => null,
                 ];
             }
         }
 
         if (! empty($changes)) {
             AuditLog::query()->create([
-                'user_id'        => Auth::id(),
+                'user_id' => Auth::id(),
                 'target_user_id' => null,
-                'action'         => 'system.settings.updated',
-                'meta'           => [
+                'action' => 'system.settings.updated',
+                'meta' => [
                     'changes' => $changes,
                 ],
             ]);
@@ -253,7 +253,7 @@ class SystemSettings extends Component
                 }
 
                 // نفصل module.action
-                $parts  = explode('.', $name, 2);
+                $parts = explode('.', $name, 2);
                 $module = $parts[0] ?? 'misc';
                 $action = $parts[1] ?? '';
 
@@ -272,11 +272,11 @@ class SystemSettings extends Component
             ksort($byModule);
 
             $matrix[] = [
-                'id'                   => $role->getKey(),
-                'name'                 => $role->name,
-                'guard'                => $role->guard_name,
-                'permissions_by_module'=> $byModule,
-                'permissions_count'    => $role->permissions->count(),
+                'id' => $role->getKey(),
+                'name' => $role->name,
+                'guard' => $role->guard_name,
+                'permissions_by_module' => $byModule,
+                'permissions_count' => $role->permissions->count(),
             ];
         }
 
@@ -288,57 +288,57 @@ class SystemSettings extends Component
     {
         $this->screenPermissions = [
             [
-                'label'      => __('Dashboard'),
+                'label' => __('Dashboard'),
                 'route_name' => 'dashboard',
                 'permission' => config('screen_permissions.dashboard', 'dashboard.view'),
             ],
             [
-                'label'      => __('POS Terminal'),
+                'label' => __('POS Terminal'),
                 'route_name' => 'pos.terminal',
                 'permission' => config('screen_permissions.pos.terminal', 'pos.use'),
             ],
             [
-                'label'      => __('Users'),
+                'label' => __('Users'),
                 'route_name' => 'admin.users.index',
                 'permission' => config('screen_permissions.admin.users.index', 'users.manage'),
             ],
             [
-                'label'      => __('Branches'),
+                'label' => __('Branches'),
                 'route_name' => 'admin.branches.index',
                 'permission' => config('screen_permissions.admin.branches.index', 'branches.view'),
             ],
             [
-                'label'      => __('System settings'),
+                'label' => __('System settings'),
                 'route_name' => 'admin.settings.system',
                 'permission' => config('screen_permissions.admin.settings.system', 'settings.view'),
             ],
             [
-                'label'      => __('Branch settings'),
+                'label' => __('Branch settings'),
                 'route_name' => 'admin.settings.branch',
                 'permission' => config('screen_permissions.admin.settings.branch', 'settings.branch'),
             ],
             [
-                'label'      => __('Notifications center'),
+                'label' => __('Notifications center'),
                 'route_name' => 'notifications.center',
                 'permission' => config('screen_permissions.notifications.center', 'system.view-notifications'),
             ],
             [
-                'label'      => __('Inventory products'),
+                'label' => __('Inventory products'),
                 'route_name' => 'inventory.products.index',
                 'permission' => config('screen_permissions.inventory.products.index', 'inventory.products.view'),
             ],
             [
-                'label'      => __('HRM reports'),
+                'label' => __('HRM reports'),
                 'route_name' => 'hrm.reports.dashboard',
                 'permission' => config('screen_permissions.hrm.reports.dashboard', 'hr.view-reports'),
             ],
             [
-                'label'      => __('Rental reports'),
+                'label' => __('Rental reports'),
                 'route_name' => 'rental.reports.dashboard',
                 'permission' => config('screen_permissions.rental.reports.dashboard', 'rental.view-reports'),
             ],
             [
-                'label'      => __('Audit log'),
+                'label' => __('Audit log'),
                 'route_name' => 'admin.logs.audit',
                 'permission' => config('screen_permissions.logs.audit', 'logs.audit.view'),
             ],
@@ -348,9 +348,9 @@ class SystemSettings extends Component
     public function render()
     {
         return view('livewire.admin.settings.system-settings', [
-            'rolesMatrix'      => $this->rolesMatrix,
-            'allPermissions'   => $this->allPermissions,
-            'screenPermissions'=> $this->screenPermissions,
+            'rolesMatrix' => $this->rolesMatrix,
+            'allPermissions' => $this->allPermissions,
+            'screenPermissions' => $this->screenPermissions,
         ]);
     }
 }

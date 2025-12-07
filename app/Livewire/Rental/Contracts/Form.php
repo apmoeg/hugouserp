@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Rental\Contracts;
 
-use App\Models\Property;
 use App\Models\RentalContract;
 use App\Models\RentalPeriod;
 use App\Models\RentalUnit;
@@ -23,16 +22,16 @@ class Form extends Component
      * @var array{branch_id:int,unit_id:int,tenant_id:int,rental_period_id:?int,custom_days:?int,start_date:?string,end_date:?string,rent:float,deposit:float,status:string}
      */
     public array $form = [
-        'branch_id'        => 0,
-        'unit_id'          => 0,
-        'tenant_id'        => 0,
+        'branch_id' => 0,
+        'unit_id' => 0,
+        'tenant_id' => 0,
         'rental_period_id' => null,
-        'custom_days'      => null,
-        'start_date'       => null,
-        'end_date'         => null,
-        'rent'             => 0.0,
-        'deposit'          => 0.0,
-        'status'           => 'draft',
+        'custom_days' => null,
+        'start_date' => null,
+        'end_date' => null,
+        'rent' => 0.0,
+        'deposit' => 0.0,
+        'status' => 'draft',
     ];
 
     /**
@@ -97,8 +96,8 @@ class Form extends Component
             ->get()
             ->map(function (RentalUnit $u): array {
                 return [
-                    'id'    => $u->id,
-                    'label' => $u->code . ($u->property ? ' - ' . $u->property->name : ''),
+                    'id' => $u->id,
+                    'label' => $u->code.($u->property ? ' - '.$u->property->name : ''),
                 ];
             })
             ->all();
@@ -110,7 +109,7 @@ class Form extends Component
             ->get()
             ->map(function (Tenant $t): array {
                 return [
-                    'id'    => $t->id,
+                    'id' => $t->id,
                     'label' => $t->name,
                 ];
             })
@@ -124,9 +123,9 @@ class Form extends Component
             ->get()
             ->map(function (RentalPeriod $p): array {
                 return [
-                    'id'    => $p->id,
+                    'id' => $p->id,
                     'label' => $p->localizedName,
-                    'type'  => $p->period_type,
+                    'type' => $p->period_type,
                 ];
             })
             ->all();
@@ -141,7 +140,7 @@ class Form extends Component
 
         // Set default rental period (monthly)
         $defaultPeriod = collect($this->availablePeriods)->firstWhere('type', 'monthly');
-        if ($defaultPeriod && !$this->form['rental_period_id']) {
+        if ($defaultPeriod && ! $this->form['rental_period_id']) {
             $this->form['rental_period_id'] = $defaultPeriod['id'];
         }
 
@@ -152,16 +151,16 @@ class Form extends Component
             /** @var RentalContract $model */
             $model = RentalContract::query()->with(['tenant', 'unit'])->findOrFail($this->contractId);
 
-            $this->form['branch_id']        = (int) $model->branch_id;
-            $this->form['unit_id']          = (int) $model->unit_id;
-            $this->form['tenant_id']        = (int) $model->tenant_id;
+            $this->form['branch_id'] = (int) $model->branch_id;
+            $this->form['unit_id'] = (int) $model->unit_id;
+            $this->form['tenant_id'] = (int) $model->tenant_id;
             $this->form['rental_period_id'] = $model->rental_period_id ? (int) $model->rental_period_id : null;
-            $this->form['custom_days']      = $model->custom_days ? (int) $model->custom_days : null;
-            $this->form['start_date']       = $model->start_date ? $model->start_date->format('Y-m-d') : null;
-            $this->form['end_date']         = $model->end_date ? $model->end_date->format('Y-m-d') : null;
-            $this->form['rent']             = (float) $model->rent;
-            $this->form['deposit']          = (float) $model->deposit;
-            $this->form['status']           = (string) $model->status;
+            $this->form['custom_days'] = $model->custom_days ? (int) $model->custom_days : null;
+            $this->form['start_date'] = $model->start_date ? $model->start_date->format('Y-m-d') : null;
+            $this->form['end_date'] = $model->end_date ? $model->end_date->format('Y-m-d') : null;
+            $this->form['rent'] = (float) $model->rent;
+            $this->form['deposit'] = (float) $model->deposit;
+            $this->form['status'] = (string) $model->status;
 
             // Check if custom days should be shown
             if ($model->rental_period_id) {
@@ -189,16 +188,16 @@ class Form extends Component
     protected function rules(): array
     {
         return [
-            'form.branch_id'        => ['required', 'integer'],
-            'form.unit_id'          => ['required', 'integer', 'exists:rental_units,id'],
-            'form.tenant_id'        => ['required', 'integer', 'exists:tenants,id'],
+            'form.branch_id' => ['required', 'integer'],
+            'form.unit_id' => ['required', 'integer', 'exists:rental_units,id'],
+            'form.tenant_id' => ['required', 'integer', 'exists:tenants,id'],
             'form.rental_period_id' => ['required', 'integer', 'exists:rental_periods,id'],
-            'form.custom_days'      => ['nullable', 'integer', 'min:1', 'max:365'],
-            'form.start_date'       => ['required', 'date'],
-            'form.end_date'         => ['nullable', 'date', 'after_or_equal:form.start_date'],
-            'form.rent'             => ['required', 'numeric', 'min:0'],
-            'form.deposit'          => ['required', 'numeric', 'min:0'],
-            'form.status'           => ['required', 'string', 'max:50'],
+            'form.custom_days' => ['nullable', 'integer', 'min:1', 'max:365'],
+            'form.start_date' => ['required', 'date'],
+            'form.end_date' => ['nullable', 'date', 'after_or_equal:form.start_date'],
+            'form.rent' => ['required', 'numeric', 'min:0'],
+            'form.deposit' => ['required', 'numeric', 'min:0'],
+            'form.status' => ['required', 'string', 'max:50'],
         ];
     }
 
@@ -207,9 +206,9 @@ class Form extends Component
         if ($value) {
             $period = collect($this->availablePeriods)->firstWhere('id', (int) $value);
             $this->showCustomDays = $period && $period['type'] === 'custom';
-            
+
             // Calculate end date based on period and start date
-            if ($this->form['start_date'] && !$this->showCustomDays) {
+            if ($this->form['start_date'] && ! $this->showCustomDays) {
                 $this->calculateEndDate();
             }
         } else {
@@ -233,12 +232,12 @@ class Form extends Component
 
     protected function calculateEndDate(): void
     {
-        if (!$this->form['start_date'] || !$this->form['rental_period_id']) {
+        if (! $this->form['start_date'] || ! $this->form['rental_period_id']) {
             return;
         }
 
         $period = RentalPeriod::find($this->form['rental_period_id']);
-        if (!$period) {
+        if (! $period) {
             return;
         }
 
@@ -279,19 +278,19 @@ class Form extends Component
             /** @var RentalContract $contract */
             $contract = RentalContract::query()->findOrFail($this->contractId);
         } else {
-            $contract = new RentalContract();
+            $contract = new RentalContract;
         }
 
-        $contract->branch_id        = (int) $this->form['branch_id'];
-        $contract->unit_id          = (int) $this->form['unit_id'];
-        $contract->tenant_id        = (int) $this->form['tenant_id'];
+        $contract->branch_id = (int) $this->form['branch_id'];
+        $contract->unit_id = (int) $this->form['unit_id'];
+        $contract->tenant_id = (int) $this->form['tenant_id'];
         $contract->rental_period_id = $this->form['rental_period_id'] ? (int) $this->form['rental_period_id'] : null;
-        $contract->custom_days      = $this->form['custom_days'] ? (int) $this->form['custom_days'] : null;
-        $contract->start_date       = $this->form['start_date'] ?: null;
-        $contract->end_date         = $this->form['end_date'] ?: null;
-        $contract->rent             = (float) $this->form['rent'];
-        $contract->deposit          = (float) $this->form['deposit'];
-        $contract->status           = (string) $this->form['status'];
+        $contract->custom_days = $this->form['custom_days'] ? (int) $this->form['custom_days'] : null;
+        $contract->start_date = $this->form['start_date'] ?: null;
+        $contract->end_date = $this->form['end_date'] ?: null;
+        $contract->rent = (float) $this->form['rent'];
+        $contract->deposit = (float) $this->form['deposit'];
+        $contract->status = (string) $this->form['status'];
         $contract->extra_attributes = $this->dynamicData;
 
         $contract->save();

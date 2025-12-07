@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Hrm\Reports;
 
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class Dashboard extends Component
 {
@@ -13,9 +13,11 @@ class Dashboard extends Component
     ];
 
     public array $attendanceChart = [];
+
     public array $payrollChart = [];
 
     public array $attendanceSummary = [];
+
     public array $payrollSummary = [];
 
     public function mount(): void
@@ -25,7 +27,6 @@ class Dashboard extends Component
         if (! $user || ! $user->can('hr.view-reports')) {
             abort(403);
         }
-
 
         if (auth()->check()) {
             abort_unless(auth()->user()->can('hr.view-reports'), 403);
@@ -49,9 +50,10 @@ class Dashboard extends Component
     {
         $model = '\\App\\Models\\Attendance';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             $this->attendanceChart = [];
             $this->attendanceSummary = [];
+
             return;
         }
 
@@ -96,15 +98,16 @@ class Dashboard extends Component
     {
         $model = '\\App\\Models\\Payroll';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             $this->payrollChart = [];
             $this->payrollSummary = [];
+
             return;
         }
 
         $builder = $model::query();
 
-        if (!empty($this->filters['payroll_period'])) {
+        if (! empty($this->filters['payroll_period'])) {
             $builder->where('period', $this->filters['payroll_period']);
         }
 
@@ -138,4 +141,3 @@ class Dashboard extends Component
         return view('livewire.hrm.reports.dashboard');
     }
 }
-

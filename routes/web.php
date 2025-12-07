@@ -1,77 +1,72 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\Store\StoreOrdersExportController;
+use App\Livewire\Accounting\Index as AccountingIndexPage;
+use App\Livewire\Admin\Branches\Form as BranchFormPage;
+use App\Livewire\Admin\Branches\Index as BranchesIndexPage;
+use App\Livewire\Admin\Logs\Audit as AuditLogPage;
+use App\Livewire\Admin\Modules\Form as ModuleFormPage;
+use App\Livewire\Admin\Modules\Index as ModulesIndexPage;
 use App\Livewire\Admin\Reports\InventoryChartsDashboard;
 use App\Livewire\Admin\Reports\PosChartsDashboard;
 use App\Livewire\Admin\Reports\ReportsHub;
-use App\Http\Controllers\Admin\Store\StoreOrdersExportController;
-use App\Livewire\Admin\Store\OrdersDashboard;
 use App\Livewire\Admin\Reports\ReportTemplatesManager;
 use App\Livewire\Admin\Reports\ScheduledReportsManager;
-use App\Livewire\Auth\Login as LoginPage;
+use App\Livewire\Admin\Roles\Form as RoleFormPage;
+use App\Livewire\Admin\Roles\Index as RolesIndexPage;
+use App\Livewire\Admin\Settings\BranchSettings as BranchSettingsPage;
+use App\Livewire\Admin\Settings\SystemSettings as SystemSettingsPage;
+use App\Livewire\Admin\Store\OrdersDashboard;
+use App\Livewire\Admin\Users\Form as UserFormPage;
+use App\Livewire\Admin\Users\Index as UsersIndexPage;
 use App\Livewire\Auth\ForgotPassword;
+use App\Livewire\Auth\Login as LoginPage;
 use App\Livewire\Auth\ResetPassword;
 use App\Livewire\Auth\TwoFactorChallenge;
 use App\Livewire\Auth\TwoFactorSetup;
+use App\Livewire\Customers\Form as CustomerFormPage;
+use App\Livewire\Customers\Index as CustomersIndexPage;
 use App\Livewire\Dashboard\Index as DashboardPage;
-use App\Livewire\Admin\Settings\SystemSettings as SystemSettingsPage;
-use App\Livewire\Admin\Settings\BranchSettings as BranchSettingsPage;
-use App\Livewire\Admin\Users\Index as UsersIndexPage;
-use App\Livewire\Admin\Users\Form as UserFormPage;
-use App\Livewire\Admin\Branches\Index as BranchesIndexPage;
-use App\Livewire\Admin\Branches\Form as BranchFormPage;
-use App\Livewire\Admin\Roles\Index as RolesIndexPage;
-use App\Livewire\Admin\Roles\Form as RoleFormPage;
-use App\Livewire\Admin\Modules\Index as ModulesIndexPage;
-use App\Livewire\Admin\Modules\Form as ModuleFormPage;
-use App\Livewire\Pos\Terminal as PosTerminalPage;
-use App\Livewire\Pos\Reports\OfflineSales as PosOfflineSalesPage;
-use App\Livewire\Inventory\Products\Index as ProductsIndexPage;
-use App\Livewire\Inventory\Products\Form as ProductFormPage;
-use App\Livewire\Rental\Reports\Dashboard as RentalReportsDashboard;
-use App\Livewire\Notifications\Center as NotificationsCenter;
-use App\Livewire\Admin\Logs\Audit as AuditLogPage;
-use App\Livewire\Profile\Edit as ProfileEditPage;
-
-use App\Livewire\Hrm\Reports\Dashboard as HrmReportsDashboard;
-use App\Livewire\Hrm\Employees\Index as HrmEmployeesIndex;
-use App\Livewire\Hrm\Employees\Form as HrmEmployeeForm;
+use App\Livewire\Expenses\Form as ExpenseFormPage;
+use App\Livewire\Expenses\Index as ExpensesIndexPage;
 use App\Livewire\Hrm\Attendance\Index as HrmAttendanceIndex;
+use App\Livewire\Hrm\Employees\Form as HrmEmployeeForm;
+use App\Livewire\Hrm\Employees\Index as HrmEmployeesIndex;
 use App\Livewire\Hrm\Payroll\Index as HrmPayrollIndex;
 use App\Livewire\Hrm\Payroll\Run as HrmPayrollRun;
-use App\Livewire\Rental\Units\Index as RentalUnitsIndex;
-use App\Livewire\Rental\Units\Form as RentalUnitForm;
-use App\Livewire\Rental\Contracts\Index as RentalContractsIndex;
-use App\Livewire\Rental\Contracts\Form as RentalContractForm;
-use App\Http\Controllers\Branch\HRM\ReportsController as HrmReportsController;
-use App\Http\Controllers\Branch\HRM\ExportImportController as HrmExportImportController;
-use App\Http\Controllers\Branch\Rental\ReportsController as RentalReportsController;
-use App\Http\Controllers\Branch\Rental\ExportImportController as RentalExportImportController;
-
-use App\Livewire\Customers\Index as CustomersIndexPage;
-use App\Livewire\Customers\Form as CustomerFormPage;
-use App\Livewire\Suppliers\Index as SuppliersIndexPage;
-use App\Livewire\Suppliers\Form as SupplierFormPage;
-use App\Livewire\Sales\Index as SalesIndexPage;
-use App\Livewire\Purchases\Index as PurchasesIndexPage;
-use App\Livewire\Expenses\Index as ExpensesIndexPage;
-use App\Livewire\Expenses\Form as ExpenseFormPage;
+use App\Livewire\Hrm\Reports\Dashboard as HrmReportsDashboard;
 use App\Livewire\Income\Index as IncomeIndexPage;
-use App\Livewire\Accounting\Index as AccountingIndexPage;
+use App\Livewire\Inventory\Products\Form as ProductFormPage;
+use App\Livewire\Inventory\Products\Index as ProductsIndexPage;
+use App\Livewire\Notifications\Center as NotificationsCenter;
+use App\Livewire\Pos\Reports\OfflineSales as PosOfflineSalesPage;
+use App\Livewire\Pos\Terminal as PosTerminalPage;
+use App\Livewire\Profile\Edit as ProfileEditPage;
+use App\Livewire\Purchases\Index as PurchasesIndexPage;
+use App\Livewire\Rental\Contracts\Form as RentalContractForm;
+use App\Livewire\Rental\Contracts\Index as RentalContractsIndex;
+use App\Livewire\Rental\Reports\Dashboard as RentalReportsDashboard;
+use App\Livewire\Rental\Units\Form as RentalUnitForm;
+use App\Livewire\Rental\Units\Index as RentalUnitsIndex;
+use App\Livewire\Sales\Index as SalesIndexPage;
+use App\Livewire\Suppliers\Form as SupplierFormPage;
+use App\Livewire\Suppliers\Index as SuppliersIndexPage;
 use App\Livewire\Warehouse\Index as WarehouseIndexPage;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('dashboard');
     }
+
     return redirect()->route('login');
 });
 
 Route::get('/health', function () {
     return response()->json([
         'success' => true,
-        'status'  => 'ok',
-        'time'    => now()->toIso8601String(),
+        'status' => 'ok',
+        'time' => now()->toIso8601String(),
     ]);
 });
 
@@ -91,6 +86,7 @@ Route::post('/logout', function () {
     auth()->logout();
     request()->session()->invalidate();
     request()->session()->regenerateToken();
+
     return redirect('/login');
 })->middleware('auth')->name('logout');
 
@@ -107,7 +103,7 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::get('/dashboard', DashboardPage::class)
         ->name('dashboard')
-        ->middleware('can:' . config('screen_permissions.dashboard', 'dashboard.view'));
+        ->middleware('can:'.config('screen_permissions.dashboard', 'dashboard.view'));
 
     // Profile
     Route::get('/profile', ProfileEditPage::class)
@@ -116,7 +112,7 @@ Route::middleware('auth')->group(function () {
     // POS Terminal
     Route::get('/pos', PosTerminalPage::class)
         ->name('pos.terminal')
-        ->middleware('can:' . config('screen_permissions.pos.terminal', 'pos.use'));
+        ->middleware('can:'.config('screen_permissions.pos.terminal', 'pos.use'));
 
     // POS Offline sales report
     Route::get('/pos/offline-sales', PosOfflineSalesPage::class)
@@ -131,7 +127,7 @@ Route::middleware('auth')->group(function () {
     // Notifications center
     Route::get('/notifications', NotificationsCenter::class)
         ->name('notifications.center')
-        ->middleware('can:' . config('screen_permissions.notifications.center', 'system.view-notifications'));
+        ->middleware('can:'.config('screen_permissions.notifications.center', 'system.view-notifications'));
 
     // Admin area
     Route::prefix('admin')->name('admin.')->group(function () {
@@ -139,28 +135,28 @@ Route::middleware('auth')->group(function () {
         // Users
         Route::get('/users', UsersIndexPage::class)
             ->name('users.index')
-            ->middleware('can:' . config('screen_permissions.admin.users.index', 'users.manage'));
+            ->middleware('can:'.config('screen_permissions.admin.users.index', 'users.manage'));
 
         Route::get('/users/create', UserFormPage::class)
             ->name('users.create')
-            ->middleware('can:' . config('screen_permissions.admin.users.index', 'users.manage'));
+            ->middleware('can:'.config('screen_permissions.admin.users.index', 'users.manage'));
 
         Route::get('/users/{user}/edit', UserFormPage::class)
             ->name('users.edit')
-            ->middleware('can:' . config('screen_permissions.admin.users.index', 'users.manage'));
+            ->middleware('can:'.config('screen_permissions.admin.users.index', 'users.manage'));
 
         // Branches
         Route::get('/branches', BranchesIndexPage::class)
             ->name('branches.index')
-            ->middleware('can:' . config('screen_permissions.admin.branches.index', 'branches.view'));
+            ->middleware('can:'.config('screen_permissions.admin.branches.index', 'branches.view'));
 
         Route::get('/branches/create', BranchFormPage::class)
             ->name('branches.create')
-            ->middleware('can:' . config('screen_permissions.admin.branches.index', 'branches.view'));
+            ->middleware('can:'.config('screen_permissions.admin.branches.index', 'branches.view'));
 
         Route::get('/branches/{branch}/edit', BranchFormPage::class)
             ->name('branches.edit')
-            ->middleware('can:' . config('screen_permissions.admin.branches.index', 'branches.view'));
+            ->middleware('can:'.config('screen_permissions.admin.branches.index', 'branches.view'));
 
         Route::get('/branches/{branch}/modules', \App\Livewire\Admin\Branches\Modules::class)
             ->name('branches.modules')
@@ -172,12 +168,12 @@ Route::middleware('auth')->group(function () {
             // System settings
             Route::get('/system', SystemSettingsPage::class)
                 ->name('system')
-                ->middleware('can:' . config('screen_permissions.admin.settings.system', 'settings.view'));
+                ->middleware('can:'.config('screen_permissions.admin.settings.system', 'settings.view'));
 
             // Branch settings
             Route::get('/branch', BranchSettingsPage::class)
                 ->name('branch')
-                ->middleware('can:' . config('screen_permissions.admin.settings.branch', 'settings.branch'));
+                ->middleware('can:'.config('screen_permissions.admin.settings.branch', 'settings.branch'));
 
             // Translation Manager
             Route::get('/translations', \App\Livewire\Admin\Settings\TranslationManager::class)
@@ -193,7 +189,7 @@ Route::middleware('auth')->group(function () {
         // Audit logs
         Route::get('/logs/audit', AuditLogPage::class)
             ->name('logs.audit')
-            ->middleware('can:' . config('screen_permissions.logs.audit', 'logs.audit.view'));
+            ->middleware('can:'.config('screen_permissions.logs.audit', 'logs.audit.view'));
     });
 
     // Roles management
@@ -344,16 +340,16 @@ Route::middleware('auth')->group(function () {
     Route::prefix('inventory')->name('inventory.')->group(function () {
         Route::get('/products', ProductsIndexPage::class)
             ->name('products.index')
-            ->middleware('can:' . config('screen_permissions.inventory.products.index', 'inventory.products.view'));
+            ->middleware('can:'.config('screen_permissions.inventory.products.index', 'inventory.products.view'));
 
         Route::get('/products/create', ProductFormPage::class)
             ->name('products.create')
-            ->middleware('can:' . config('screen_permissions.inventory.products.index', 'inventory.products.view'));
+            ->middleware('can:'.config('screen_permissions.inventory.products.index', 'inventory.products.view'));
 
         Route::get('/products/{product}/edit', ProductFormPage::class)
             ->name('products.edit')
-            ->middleware('can:' . config('screen_permissions.inventory.products.index', 'inventory.products.view'));
-        
+            ->middleware('can:'.config('screen_permissions.inventory.products.index', 'inventory.products.view'));
+
         Route::get('/products/{product}/store-mappings', \App\Livewire\Inventory\ProductStoreMappings::class)
             ->name('products.store-mappings')
             ->middleware('can:inventory.products.view');
@@ -465,7 +461,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/store/dashboard', OrdersDashboard::class)
         ->name('admin.store.dashboard')
         ->middleware('can:store.reports.dashboard');
-    
+
     Route::get('/admin/stores', \App\Livewire\Admin\Store\Stores::class)
         ->name('admin.stores.index')
         ->middleware('can:stores.view');

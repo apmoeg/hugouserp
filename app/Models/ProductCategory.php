@@ -39,7 +39,7 @@ class ProductCategory extends Model
     {
         static::creating(function ($model): void {
             if (empty($model->slug)) {
-                $model->slug = Str::slug($model->name) . '-' . Str::random(4);
+                $model->slug = Str::slug($model->name).'-'.Str::random(4);
             }
         });
     }
@@ -87,6 +87,7 @@ class ProductCategory extends Model
     public function getLocalizedNameAttribute(): string
     {
         $locale = app()->getLocale();
+
         return $locale === 'ar' && $this->name_ar ? $this->name_ar : $this->name;
     }
 }

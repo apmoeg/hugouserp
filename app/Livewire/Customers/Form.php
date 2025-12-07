@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Customers;
 
-use App\Models\Customer;
 use App\Livewire\Concerns\HandlesErrors;
+use App\Models\Customer;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
 
@@ -15,20 +15,33 @@ class Form extends Component
     use HandlesErrors;
 
     public ?Customer $customer = null;
+
     public bool $editMode = false;
 
     public string $name = '';
+
     public string $email = '';
+
     public string $phone = '';
+
     public string $phone2 = '';
+
     public string $address = '';
+
     public string $city = '';
+
     public string $country = '';
+
     public string $tax_number = '';
+
     public string $company_name = '';
+
     public string $customer_type = 'individual';
+
     public float $credit_limit = 0;
+
     public string $notes = '';
+
     public bool $is_active = true;
 
     protected function rules(): array

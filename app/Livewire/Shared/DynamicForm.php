@@ -12,13 +12,21 @@ class DynamicForm extends Component
     use WithFileUploads;
 
     public array $schema = [];
+
     public array $data = [];
+
     public string $submitLabel = '';
+
     public string $cancelLabel = '';
+
     public ?string $cancelRoute = null;
+
     public bool $showCancel = true;
+
     public string $layout = 'vertical';
+
     public int $columns = 1;
+
     public bool $loading = false;
 
     protected $listeners = ['resetForm' => 'resetFormData'];
@@ -43,7 +51,7 @@ class DynamicForm extends Component
 
         foreach ($this->schema as $field) {
             $name = $field['name'] ?? '';
-            if ($name && !isset($data[$name])) {
+            if ($name && ! isset($data[$name])) {
                 $data[$name] = $field['default'] ?? '';
             }
         }
@@ -58,15 +66,15 @@ class DynamicForm extends Component
     public function submit(): void
     {
         $this->loading = true;
-        
+
         try {
             $rules = $this->buildValidationRules();
-            if (!empty($rules)) {
+            if (! empty($rules)) {
                 $this->validate($rules);
             }
-            
+
             $this->processFileUploads();
-            
+
             $this->dispatch('formSubmitted', data: $this->data);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->dispatch('formError', errors: $e->errors());
@@ -75,13 +83,13 @@ class DynamicForm extends Component
             $this->loading = false;
         }
     }
-    
+
     protected function processFileUploads(): void
     {
         foreach ($this->schema as $field) {
             $name = $field['name'] ?? '';
             $type = $field['type'] ?? 'text';
-            
+
             if ($type === 'file' && $name && isset($this->data[$name])) {
                 $file = $this->data[$name];
                 if ($file && method_exists($file, 'store')) {
@@ -111,6 +119,7 @@ class DynamicForm extends Component
                 $rules["data.{$name}"] = $field['rules'];
             }
         }
+
         return $rules;
     }
 
@@ -123,6 +132,7 @@ class DynamicForm extends Component
                 $attributes["data.{$name}"] = $field['label'] ?? $name;
             }
         }
+
         return $attributes;
     }
 

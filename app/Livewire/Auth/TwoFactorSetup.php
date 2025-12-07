@@ -12,10 +12,15 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 class TwoFactorSetup extends Component
 {
     public string $secret = '';
+
     public string $qrCodeSvg = '';
+
     public string $code = '';
+
     public array $recoveryCodes = [];
+
     public bool $enabled = false;
+
     public bool $showRecoveryCodes = false;
 
     protected TwoFactorAuthService $twoFactorService;
@@ -52,12 +57,12 @@ class TwoFactorSetup extends Component
             if (class_exists(QrCode::class)) {
                 $this->qrCodeSvg = QrCode::size(200)->generate($qrCodeUrl)->toHtml();
             } else {
-                $this->qrCodeSvg = '<div class="p-4 bg-slate-100 rounded text-center text-sm text-slate-600">' .
-                    __('QR Code: Use the secret key below') . '<br><code class="text-xs">' . $this->secret . '</code></div>';
+                $this->qrCodeSvg = '<div class="p-4 bg-slate-100 rounded text-center text-sm text-slate-600">'.
+                    __('QR Code: Use the secret key below').'<br><code class="text-xs">'.$this->secret.'</code></div>';
             }
         } catch (\Exception $e) {
-            $this->qrCodeSvg = '<div class="p-4 bg-slate-100 rounded text-center text-sm text-slate-600">' .
-                __('Secret Key') . ': <code class="text-xs">' . $this->secret . '</code></div>';
+            $this->qrCodeSvg = '<div class="p-4 bg-slate-100 rounded text-center text-sm text-slate-600">'.
+                __('Secret Key').': <code class="text-xs">'.$this->secret.'</code></div>';
         }
     }
 
@@ -65,8 +70,9 @@ class TwoFactorSetup extends Component
     {
         $this->validate(['code' => 'required|string|size:6']);
 
-        if (!$this->twoFactorService->verify($this->secret, $this->code)) {
+        if (! $this->twoFactorService->verify($this->secret, $this->code)) {
             $this->addError('code', __('Invalid authentication code'));
+
             return;
         }
 

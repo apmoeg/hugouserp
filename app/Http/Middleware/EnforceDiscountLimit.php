@@ -23,7 +23,7 @@ class EnforceDiscountLimit
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return $this->error('Unauthenticated.', 401);
         }
 
@@ -34,7 +34,7 @@ class EnforceDiscountLimit
 
         $payload = $request->all();
 
-        $maxLine    = $this->getUserMaxLineDiscount($user);    // e.g., 15 (%)
+        $maxLine = $this->getUserMaxLineDiscount($user);    // e.g., 15 (%)
         $maxInvoice = $this->getUserMaxInvoiceDiscount($user); // e.g., 20 (%)
 
         // Validate line discounts
@@ -42,7 +42,7 @@ class EnforceDiscountLimit
         foreach ($items as $idx => $row) {
             $disc = (float) ($row['discount'] ?? 0);
             if ($disc > $maxLine) {
-                return $this->error("Line #".($idx + 1)." discount exceeds your limit ($maxLine%).", 422);
+                return $this->error('Line #'.($idx + 1)." discount exceeds your limit ($maxLine%).", 422);
             }
         }
 
@@ -65,6 +65,7 @@ class EnforceDiscountLimit
                 return true;
             }
         }
+
         return false;
     }
 
@@ -74,6 +75,7 @@ class EnforceDiscountLimit
         if (property_exists($user, 'max_line_discount') && is_numeric($user->max_line_discount)) {
             return (float) $user->max_line_discount;
         }
+
         // If using spatie permissions meta, you can read from a profile/settings table.
         return (float) (config('erp.discount.max_line', 15)); // sensible default
     }
@@ -83,6 +85,7 @@ class EnforceDiscountLimit
         if (property_exists($user, 'max_invoice_discount') && is_numeric($user->max_invoice_discount)) {
             return (float) $user->max_invoice_discount;
         }
+
         return (float) (config('erp.discount.max_invoice', 20));
     }
 

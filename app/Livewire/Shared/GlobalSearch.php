@@ -6,9 +6,9 @@ namespace App\Livewire\Shared;
 
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\Purchase;
 use App\Models\Sale;
 use App\Models\Supplier;
-use App\Models\Purchase;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -16,8 +16,11 @@ use Livewire\Component;
 class GlobalSearch extends Component
 {
     public string $query = '';
+
     public array $results = [];
+
     public bool $showResults = false;
+
     public bool $isSearching = false;
 
     public function updatedQuery(): void
@@ -37,12 +40,12 @@ class GlobalSearch extends Component
 
         /** @var User|null $user */
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
         $this->isSearching = true;
-        $searchTerm = '%' . $this->query . '%';
+        $searchTerm = '%'.$this->query.'%';
 
         if ($user->can('inventory.products.view')) {
             $canEdit = $user->can('inventory.products.manage');
@@ -60,11 +63,11 @@ class GlobalSearch extends Component
                     'label' => __('Products'),
                     'icon' => '📦',
                     'route' => 'inventory.products.index',
-                    'items' => $products->map(fn($p) => [
+                    'items' => $products->map(fn ($p) => [
                         'id' => $p->id,
                         'title' => $p->name,
-                        'subtitle' => 'SKU: ' . ($p->sku ?: '-'),
-                        'route' => $canEdit 
+                        'subtitle' => 'SKU: '.($p->sku ?: '-'),
+                        'route' => $canEdit
                             ? route('inventory.products.edit', $p->id)
                             : route('inventory.products.index', ['search' => $p->sku]),
                     ])->toArray(),
@@ -88,7 +91,7 @@ class GlobalSearch extends Component
                     'label' => __('Customers'),
                     'icon' => '👥',
                     'route' => 'customers.index',
-                    'items' => $customers->map(fn($c) => [
+                    'items' => $customers->map(fn ($c) => [
                         'id' => $c->id,
                         'title' => $c->name,
                         'subtitle' => __('Customer'),
@@ -116,7 +119,7 @@ class GlobalSearch extends Component
                     'label' => __('Suppliers'),
                     'icon' => '🏭',
                     'route' => 'suppliers.index',
-                    'items' => $suppliers->map(fn($s) => [
+                    'items' => $suppliers->map(fn ($s) => [
                         'id' => $s->id,
                         'title' => $s->name,
                         'subtitle' => __('Supplier'),
@@ -142,9 +145,9 @@ class GlobalSearch extends Component
                     'label' => __('Sales'),
                     'icon' => '💰',
                     'route' => 'sales.index',
-                    'items' => $sales->map(fn($s) => [
+                    'items' => $sales->map(fn ($s) => [
                         'id' => $s->id,
-                        'title' => $s->invoice_number ?: '#' . $s->id,
+                        'title' => $s->invoice_number ?: '#'.$s->id,
                         'subtitle' => ucfirst($s->status ?? 'pending'),
                         'route' => route('sales.show', $s->id),
                     ])->toArray(),
@@ -166,9 +169,9 @@ class GlobalSearch extends Component
                     'label' => __('Purchases'),
                     'icon' => '📋',
                     'route' => 'purchases.index',
-                    'items' => $purchases->map(fn($p) => [
+                    'items' => $purchases->map(fn ($p) => [
                         'id' => $p->id,
-                        'title' => $p->reference_no ?: '#' . $p->id,
+                        'title' => $p->reference_no ?: '#'.$p->id,
                         'subtitle' => ucfirst($p->status ?? 'pending'),
                         'route' => $canEdit
                             ? route('purchases.edit', $p->id)
@@ -178,7 +181,7 @@ class GlobalSearch extends Component
             }
         }
 
-        $this->showResults = !empty($this->results);
+        $this->showResults = ! empty($this->results);
         $this->isSearching = false;
     }
 
@@ -196,7 +199,7 @@ class GlobalSearch extends Component
 
     public function getTotalResultsProperty(): int
     {
-        return collect($this->results)->sum(fn($group) => count($group['items'] ?? []));
+        return collect($this->results)->sum(fn ($group) => count($group['items'] ?? []));
     }
 
     public function render()

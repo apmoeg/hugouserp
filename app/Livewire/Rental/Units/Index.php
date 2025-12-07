@@ -15,8 +15,11 @@ class Index extends Component
     use WithPagination;
 
     public ?string $search = '';
+
     public ?string $status = null;
+
     public ?int $propertyId = null;
+
     public ?int $branchId = null;
 
     public function mount(): void
@@ -65,7 +68,7 @@ class Index extends Component
                 $q->where('property_id', $this->propertyId);
             })
             ->when($this->search !== null && $this->search !== '', function ($q) {
-                $term = '%' . $this->search . '%';
+                $term = '%'.$this->search.'%';
 
                 $q->where(function ($inner) use ($term) {
                     $inner->where('code', 'like', $term)
@@ -92,7 +95,7 @@ class Index extends Component
             ->get(['id', 'name']);
 
         return view('livewire.rental.units.index', [
-            'units'      => $units,
+            'units' => $units,
             'properties' => $properties,
         ]);
     }

@@ -23,12 +23,12 @@ class PosReportsExportController extends Controller
 
         $validated = $request->validate([
             'date_from' => ['nullable', 'date'],
-            'date_to'   => ['nullable', 'date', 'after_or_equal:date_from'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
             'branch_id' => ['nullable', 'integer'],
-            'status'    => ['nullable', 'string', 'max:50'],
-            'channel'   => ['nullable', 'string', 'max:50'],
+            'status' => ['nullable', 'string', 'max:50'],
+            'channel' => ['nullable', 'string', 'max:50'],
             'min_total' => ['nullable', 'numeric'],
-            'format'    => ['nullable', 'in:web,excel,pdf'],
+            'format' => ['nullable', 'in:web,excel,pdf'],
         ]);
 
         $format = $validated['format'] ?? 'web';
@@ -62,26 +62,26 @@ class PosReportsExportController extends Controller
         $sales = $query->with('branch')->orderBy('sale_date')->limit(5000)->get();
 
         $columns = [
-            'id'          => 'ID',
-            'sale_date'   => 'Date',
+            'id' => 'ID',
+            'sale_date' => 'Date',
             'branch_name' => 'Branch',
-            'status'      => 'Status',
-            'channel'     => 'Channel',
+            'status' => 'Status',
+            'channel' => 'Channel',
             'grand_total' => 'Total',
-            'paid_total'  => 'Paid',
-            'due_total'   => 'Due',
+            'paid_total' => 'Paid',
+            'due_total' => 'Due',
         ];
 
         $rows = $sales->map(function (Sale $sale) {
             return [
-                'id'          => $sale->id,
-                'sale_date'   => optional($sale->sale_date)->format('Y-m-d H:i'),
+                'id' => $sale->id,
+                'sale_date' => optional($sale->sale_date)->format('Y-m-d H:i'),
                 'branch_name' => optional($sale->branch)->name ?? '-',
-                'status'      => $sale->status,
-                'channel'     => $sale->channel ?? null,
+                'status' => $sale->status,
+                'channel' => $sale->channel ?? null,
                 'grand_total' => $sale->grand_total,
-                'paid_total'  => $sale->paid_total,
-                'due_total'   => $sale->due_total,
+                'paid_total' => $sale->paid_total,
+                'due_total' => $sale->due_total,
             ];
         })->toArray();
 
@@ -107,7 +107,7 @@ class PosReportsExportController extends Controller
         if ($format === 'pdf') {
             $pdf = Pdf::loadView('admin.reports.pos-export-pdf', [
                 'columns' => $columns,
-                'rows'    => $rows,
+                'rows' => $rows,
             ]);
 
             return $pdf->download('pos_report_'.now()->format('Ymd_His').'.pdf');
@@ -115,7 +115,7 @@ class PosReportsExportController extends Controller
 
         return view('admin.reports.pos-export-web', [
             'columns' => $columns,
-            'rows'    => $rows,
+            'rows' => $rows,
         ]);
     }
 }

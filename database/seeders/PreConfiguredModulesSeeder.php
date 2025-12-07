@@ -597,8 +597,8 @@ class PreConfiguredModulesSeeder extends Seeder
         $reports = [
             [
                 'report_key' => "{$moduleKey}_inventory",
-                'report_name' => ucfirst(str_replace('_', ' ', $moduleKey)) . ' Inventory Report',
-                'report_name_ar' => 'تقرير مخزون ' . $module->name_ar,
+                'report_name' => ucfirst(str_replace('_', ' ', $moduleKey)).' Inventory Report',
+                'report_name_ar' => 'تقرير مخزون '.$module->name_ar,
                 'description' => 'Stock levels and inventory status',
                 'description_ar' => 'مستويات المخزون وحالة الجرد',
                 'report_type' => 'table',
@@ -608,8 +608,8 @@ class PreConfiguredModulesSeeder extends Seeder
             ],
             [
                 'report_key' => "{$moduleKey}_sales",
-                'report_name' => ucfirst(str_replace('_', ' ', $moduleKey)) . ' Sales Report',
-                'report_name_ar' => 'تقرير مبيعات ' . $module->name_ar,
+                'report_name' => ucfirst(str_replace('_', ' ', $moduleKey)).' Sales Report',
+                'report_name_ar' => 'تقرير مبيعات '.$module->name_ar,
                 'description' => 'Sales transactions and revenue',
                 'description_ar' => 'معاملات البيع والإيرادات',
                 'report_type' => 'chart',
@@ -619,8 +619,8 @@ class PreConfiguredModulesSeeder extends Seeder
             ],
             [
                 'report_key' => "{$moduleKey}_purchases",
-                'report_name' => ucfirst(str_replace('_', ' ', $moduleKey)) . ' Purchases Report',
-                'report_name_ar' => 'تقرير مشتريات ' . $module->name_ar,
+                'report_name' => ucfirst(str_replace('_', ' ', $moduleKey)).' Purchases Report',
+                'report_name_ar' => 'تقرير مشتريات '.$module->name_ar,
                 'description' => 'Purchase orders and costs',
                 'description_ar' => 'طلبات الشراء والتكاليف',
                 'report_type' => 'table',

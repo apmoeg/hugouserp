@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Traits;
 
@@ -9,9 +11,9 @@ use Illuminate\Support\Str;
 
 trait HasDynamicFields
 {
+    use HasBranch;
     use HasJsonAttributes;
     use ModuleAware;
-    use HasBranch;
 
     /**
      * اسم الـ entity اللي بيُستخدم جوه module_fields.entity

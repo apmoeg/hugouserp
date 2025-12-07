@@ -21,7 +21,7 @@ class BranchResource extends JsonResource
             'is_active' => $this->is_active,
             'is_main' => $this->is_main,
             'settings' => $this->when($request->user()?->can('branches.settings'), $this->settings),
-            'modules' => $this->whenLoaded('modules', fn() => ModuleResource::collection($this->modules)),
+            'modules' => $this->whenLoaded('modules', fn () => ModuleResource::collection($this->modules)),
             'users_count' => $this->whenCounted('users'),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

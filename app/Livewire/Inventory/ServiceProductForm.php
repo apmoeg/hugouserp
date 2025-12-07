@@ -12,23 +12,35 @@ use Livewire\Component;
 class ServiceProductForm extends Component
 {
     public ?int $productId = null;
+
     public ?int $moduleId = null;
-    
+
     public string $name = '';
+
     public string $code = '';
+
     public string $sku = '';
+
     public ?string $description = null;
+
     public float $defaultPrice = 0;
+
     public float $cost = 0;
+
     public ?float $hourlyRate = null;
+
     public ?int $serviceDuration = null;
+
     public string $durationUnit = 'hours';
+
     public ?int $taxId = null;
+
     public string $status = 'active';
+
     public string $notes = '';
-    
+
     public bool $showModal = false;
-    
+
     protected $listeners = [
         'openServiceForm' => 'open',
         'editService' => 'edit',
@@ -56,7 +68,7 @@ class ServiceProductForm extends Component
             ->orWhere('key', 'services')
             ->orderBy('name')
             ->get();
-        
+
         $taxes = Tax::where('is_active', true)->orderBy('name')->get();
 
         return view('livewire.inventory.service-product-form', [

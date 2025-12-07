@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Exceptions;
@@ -17,9 +18,10 @@ class DomainException extends Exception
     {
         $payload = [
             'success' => false,
-            'error'   => class_basename(static::class),
+            'error' => class_basename(static::class),
             'message' => $this->getMessage(),
         ];
+
         return response()->json($payload, $this->status);
     }
 }

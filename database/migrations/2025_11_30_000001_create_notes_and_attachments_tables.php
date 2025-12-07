@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('notes')) {
+        if (! Schema::hasTable('notes')) {
             Schema::create('notes', function (Blueprint $table) {
                 $table->id();
                 $table->morphs('noteable');
@@ -28,7 +28,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('attachments')) {
+        if (! Schema::hasTable('attachments')) {
             Schema::create('attachments', function (Blueprint $table) {
                 $table->id();
                 $table->morphs('attachable');

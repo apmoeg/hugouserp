@@ -15,8 +15,8 @@ class ApiResponse
     {
         return response()->json([
             'success' => true,
-            'data'    => self::toArray($data),
-            'meta'    => (object) $meta,
+            'data' => self::toArray($data),
+            'meta' => (object) $meta,
         ], $status);
     }
 
@@ -36,16 +36,16 @@ class ApiResponse
 
         return response()->json([
             'success' => true,
-            'data'    => $items,
-            'meta'    => (object) array_merge($meta, [
+            'data' => $items,
+            'meta' => (object) array_merge($meta, [
                 'pagination' => [
-                    'total'        => $paginator->total(),
-                    'count'        => $paginator->count(),
-                    'per_page'     => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                    'count' => $paginator->count(),
+                    'per_page' => $paginator->perPage(),
                     'current_page' => $paginator->currentPage(),
-                    'last_page'    => $paginator->lastPage(),
-                    'from'         => $paginator->firstItem(),
-                    'to'           => $paginator->lastItem(),
+                    'last_page' => $paginator->lastPage(),
+                    'from' => $paginator->firstItem(),
+                    'to' => $paginator->lastItem(),
                 ],
             ]),
         ]);
@@ -55,7 +55,7 @@ class ApiResponse
     {
         return response()->json([
             'success' => true,
-            'data'    => $resource->resolve(request()),
+            'data' => $resource->resolve(request()),
         ], $status);
     }
 
@@ -64,8 +64,8 @@ class ApiResponse
         return response()->json([
             'success' => false,
             'message' => $message,
-            'errors'  => (object) $errors,
-            'meta'    => (object) $meta,
+            'errors' => (object) $errors,
+            'meta' => (object) $meta,
         ], $status);
     }
 
@@ -88,8 +88,8 @@ class ApiResponse
     {
         return self::error($e->getMessage(), $status, [], [
             'exception' => class_basename($e),
-            'file'      => $e->getFile(),
-            'line'      => $e->getLine(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
         ]);
     }
 

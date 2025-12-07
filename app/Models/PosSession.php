@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PosSession extends Model
 {
@@ -39,6 +38,7 @@ class PosSession extends Model
     ];
 
     public const STATUS_OPEN = 'open';
+
     public const STATUS_CLOSED = 'closed';
 
     public function branch(): BelongsTo

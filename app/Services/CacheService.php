@@ -19,13 +19,14 @@ class CacheService
     public function tags(array $tags): self
     {
         $this->tags = $tags;
+
         return $this;
     }
 
     public function get(string $key, mixed $default = null): mixed
     {
         return $this->handleServiceOperation(
-            callback: fn() => $this->getCache()->get($key, $default),
+            callback: fn () => $this->getCache()->get($key, $default),
             operation: 'get',
             context: ['key' => $key],
             defaultValue: $default
@@ -37,6 +38,7 @@ class CacheService
         return $this->handleServiceOperation(
             callback: function () use ($key, $value, $ttl) {
                 $ttl = $ttl ?? self::DEFAULT_TTL;
+
                 return $this->getCache()->put($key, $value, $ttl);
             },
             operation: 'put',
@@ -50,6 +52,7 @@ class CacheService
         return $this->handleServiceOperation(
             callback: function () use ($key, $callback, $ttl) {
                 $ttl = $ttl ?? self::DEFAULT_TTL;
+
                 return $this->getCache()->remember($key, $ttl, $callback);
             },
             operation: 'remember',
@@ -60,7 +63,7 @@ class CacheService
     public function forget(string $key): bool
     {
         return $this->handleServiceOperation(
-            callback: fn() => $this->getCache()->forget($key),
+            callback: fn () => $this->getCache()->forget($key),
             operation: 'forget',
             context: ['key' => $key],
             defaultValue: false
@@ -71,9 +74,10 @@ class CacheService
     {
         return $this->handleServiceOperation(
             callback: function () {
-                if (!empty($this->tags)) {
+                if (! empty($this->tags)) {
                     return $this->getCache()->flush();
                 }
+
                 return Cache::flush();
             },
             operation: 'flush',
@@ -87,11 +91,12 @@ class CacheService
         return $this->handleServiceOperation(
             callback: function () use ($branchId) {
                 $key = $branchId ? "settings.branch.{$branchId}" : 'settings.system';
-                
+
                 return $this->tags(['settings'])->remember($key, function () use ($branchId) {
                     if ($branchId) {
                         return \App\Models\Branch::find($branchId)?->settings ?? [];
                     }
+
                     return \App\Models\SystemSetting::pluck('value', 'key')->toArray();
                 });
             },
@@ -106,14 +111,14 @@ class CacheService
         return $this->handleServiceOperation(
             callback: function () use ($branchId) {
                 $key = $branchId ? "modules.branch.{$branchId}" : 'modules.all';
-                
+
                 return $this->tags(['modules'])->remember($key, function () use ($branchId) {
                     $query = \App\Models\Module::where('is_active', true);
-                    
+
                     if ($branchId) {
-                        $query->whereHas('branches', fn($q) => $q->where('branches.id', $branchId));
+                        $query->whereHas('branches', fn ($q) => $q->where('branches.id', $branchId));
                     }
-                    
+
                     return $query->get()->toArray();
                 });
             },
@@ -128,12 +133,14 @@ class CacheService
         return $this->handleServiceOperation(
             callback: function () use ($userId) {
                 $key = $userId ? "permissions.user.{$userId}" : 'permissions.all';
-                
+
                 return $this->tags(['permissions'])->remember($key, function () use ($userId) {
                     if ($userId) {
                         $user = \App\Models\User::find($userId);
+
                         return $user?->getAllPermissions()->pluck('name')->toArray() ?? [];
                     }
+
                     return \Spatie\Permission\Models\Permission::pluck('name')->toArray();
                 });
             },
@@ -210,7 +217,7 @@ class CacheService
         return $this->handleServiceOperation(
             callback: function () use ($module) {
                 $key = "permissions.module.{$module}";
-                
+
                 return $this->tags(['permissions'])->remember($key, function () use ($module) {
                     return \Spatie\Permission\Models\Permission::where('name', 'like', "{$module}.%")
                         ->orderBy('name')
@@ -229,7 +236,7 @@ class CacheService
         return $this->handleServiceOperation(
             callback: function () use ($branchId, $limit) {
                 $key = "products.branch.{$branchId}.limit.{$limit}";
-                
+
                 return $this->tags(['products'])->remember($key, function () use ($branchId, $limit) {
                     return \App\Models\Product::where('branch_id', $branchId)
                         ->where('is_active', true)
@@ -249,12 +256,13 @@ class CacheService
     {
         return $this->handleServiceOperation(
             callback: function () use ($identifier) {
-                $key = "product.lookup." . md5($identifier);
-                
+                $key = 'product.lookup.'.md5($identifier);
+
                 return $this->tags(['products'])->remember($key, function () use ($identifier) {
                     $product = \App\Models\Product::where('sku', $identifier)
                         ->orWhere('barcode', $identifier)
                         ->first();
+
                     return $product?->toArray();
                 }, 600);
             },
@@ -319,19 +327,22 @@ class CacheService
 
     protected function getCache()
     {
-        if (!empty($this->tags) && $this->supportsTags()) {
+        if (! empty($this->tags) && $this->supportsTags()) {
             $cache = Cache::tags($this->tags);
             $this->tags = [];
+
             return $cache;
         }
-        
+
         $this->tags = [];
+
         return Cache::store();
     }
 
     protected function supportsTags(): bool
     {
         $driver = config('cache.default');
+
         return in_array($driver, ['redis', 'memcached', 'array']);
     }
 }

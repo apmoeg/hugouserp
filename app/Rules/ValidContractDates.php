@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Rules;
@@ -17,9 +18,9 @@ class ValidContractDates implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         $start = $this->asDate($value);
-        $end   = $this->asDate(request()->input($this->endField));
+        $end = $this->asDate(request()->input($this->endField));
 
-        if (!$start || !$end) {
+        if (! $start || ! $end) {
             return;
         }
 
@@ -31,8 +32,13 @@ class ValidContractDates implements ValidationRule
     protected function asDate(mixed $v): ?Carbon
     {
         try {
-            if ($v instanceof Carbon) return $v;
-            if (empty($v)) return null;
+            if ($v instanceof Carbon) {
+                return $v;
+            }
+            if (empty($v)) {
+                return null;
+            }
+
             return Carbon::parse($v);
         } catch (\Throwable) {
             return null;

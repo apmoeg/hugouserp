@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Services\Sms\SmsManager;
 use App\Services\SettingsService;
+use App\Services\Sms\SmsManager;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -18,7 +18,9 @@ class SendSmsNotificationJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 60;
+
     public int $backoff = 30;
 
     public function __construct(
@@ -31,10 +33,11 @@ class SendSmsNotificationJob implements ShouldQueue
     {
         $smsManager = new SmsManager($settingsService);
 
-        if (!$smsManager->isConfigured()) {
+        if (! $smsManager->isConfigured()) {
             Log::warning('SMS not configured, skipping notification', [
                 'to' => $this->toPhone,
             ]);
+
             return;
         }
 
@@ -67,6 +70,6 @@ class SendSmsNotificationJob implements ShouldQueue
 
     public function tags(): array
     {
-        return ['notify', 'sms', 'to:' . $this->toPhone];
+        return ['notify', 'sms', 'to:'.$this->toPhone];
     }
 }

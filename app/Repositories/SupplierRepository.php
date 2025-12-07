@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Repositories;
@@ -26,10 +27,10 @@ final class SupplierRepository extends EloquentBaseRepository implements Supplie
 
         if ($search !== null && $search !== '') {
             $query->where(function (Builder $q) use ($search): void {
-                $q->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('email', 'like', '%' . $search . '%')
-                    ->orWhere('phone', 'like', '%' . $search . '%')
-                    ->orWhere('tax_number', 'like', '%' . $search . '%');
+                $q->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('email', 'like', '%'.$search.'%')
+                    ->orWhere('phone', 'like', '%'.$search.'%')
+                    ->orWhere('tax_number', 'like', '%'.$search.'%');
             });
         }
 

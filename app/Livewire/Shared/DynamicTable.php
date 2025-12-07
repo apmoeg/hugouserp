@@ -12,22 +12,39 @@ class DynamicTable extends Component
     use WithPagination;
 
     public array $columns = [];
+
     public array $rows = [];
+
     public array $filters = [];
+
     public array $filterValues = [];
+
     public ?string $search = null;
+
     public string $sortField = '';
+
     public string $sortDirection = 'asc';
+
     public int $perPage = 10;
+
     public array $perPageOptions = [10, 25, 50, 100];
+
     public bool $showSearch = true;
+
     public bool $showFilters = true;
+
     public bool $showPagination = true;
+
     public bool $showPerPage = true;
+
     public string $emptyMessage = '';
+
     public string $tableClass = '';
+
     public array $actions = [];
+
     public bool $selectable = false;
+
     public array $selected = [];
 
     protected $queryString = [
@@ -115,7 +132,7 @@ class DynamicTable extends Component
         if (count($this->selected) === count($this->rows)) {
             $this->selected = [];
         } else {
-            $this->selected = array_map(fn($row) => $row['id'] ?? null, $this->rows);
+            $this->selected = array_map(fn ($row) => $row['id'] ?? null, $this->rows);
         }
         $this->dispatch('selection-changed', selected: $this->selected);
     }
@@ -145,6 +162,7 @@ class DynamicTable extends Component
                         }
                     }
                 }
+
                 return false;
             });
         }
@@ -162,6 +180,7 @@ class DynamicTable extends Component
                 $valA = $a[$this->sortField] ?? '';
                 $valB = $b[$this->sortField] ?? '';
                 $result = $valA <=> $valB;
+
                 return $this->sortDirection === 'asc' ? $result : -$result;
             });
         }
@@ -173,6 +192,7 @@ class DynamicTable extends Component
     {
         $filtered = $this->getFilteredRows();
         $offset = ($this->getPage() - 1) * $this->perPage;
+
         return array_slice($filtered, $offset, $this->perPage);
     }
 

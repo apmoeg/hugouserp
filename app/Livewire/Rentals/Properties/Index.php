@@ -18,14 +18,19 @@ class Index extends Component
 
     #[Url]
     public string $search = '';
-    
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
 
     public bool $showModal = false;
+
     public ?int $editingId = null;
+
     public string $name = '';
+
     public string $address = '';
+
     public string $notes = '';
 
     public function updatingSearch(): void
@@ -50,9 +55,9 @@ class Index extends Component
         } else {
             $this->authorize('rentals.create');
         }
-        
+
         $this->resetForm();
-        
+
         if ($id) {
             $property = Property::findOrFail($id);
             $this->editingId = $id;
@@ -60,7 +65,7 @@ class Index extends Component
             $this->address = $property->address ?? '';
             $this->notes = $property->notes ?? '';
         }
-        
+
         $this->showModal = true;
     }
 
@@ -86,7 +91,7 @@ class Index extends Component
         } else {
             $this->authorize('rentals.create');
         }
-        
+
         $validated = $this->validate([
             'name' => 'required|string|max:255',
             'address' => 'nullable|string|max:500',
@@ -106,39 +111,39 @@ class Index extends Component
             session()->flash('success', __('Property created successfully'));
         }
 
-        Cache::forget('properties_stats_' . ($user->branch_id ?? 'all'));
+        Cache::forget('properties_stats_'.($user->branch_id ?? 'all'));
         $this->closeModal();
     }
 
     public function delete(int $id): void
     {
         $this->authorize('rentals.manage');
-        
+
         Property::findOrFail($id)->delete();
-        Cache::forget('properties_stats_' . (auth()->user()?->branch_id ?? 'all'));
+        Cache::forget('properties_stats_'.(auth()->user()?->branch_id ?? 'all'));
         session()->flash('success', __('Property deleted successfully'));
     }
 
     public function getStatistics(): array
     {
         $user = auth()->user();
-        $cacheKey = 'properties_stats_' . ($user?->branch_id ?? 'all');
-        
+        $cacheKey = 'properties_stats_'.($user?->branch_id ?? 'all');
+
         return Cache::remember($cacheKey, 300, function () use ($user) {
             $propertyQuery = Property::query();
-            
+
             if ($user && $user->branch_id) {
                 $propertyQuery->where('branch_id', $user->branch_id);
             }
-            
+
             $propertyIds = Property::query()
-                ->when($user && $user->branch_id, fn($q) => $q->where('branch_id', $user->branch_id))
+                ->when($user && $user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))
                 ->pluck('id');
-            
+
             $totalUnits = RentalUnit::whereIn('property_id', $propertyIds)->count();
             $availableUnits = RentalUnit::whereIn('property_id', $propertyIds)->where('status', 'available')->count();
             $occupiedUnits = RentalUnit::whereIn('property_id', $propertyIds)->where('status', 'occupied')->count();
-            
+
             return [
                 'total_properties' => $propertyQuery->count(),
                 'total_units' => $totalUnits,
@@ -152,13 +157,13 @@ class Index extends Component
     public function render()
     {
         $user = auth()->user();
-        
+
         $properties = Property::query()
             ->withCount('units')
-            ->when($user && $user->branch_id, fn($q) => $q->where('branch_id', $user->branch_id))
-            ->when($this->search, fn($q) => $q->where(function($query) {
+            ->when($user && $user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))
+            ->when($this->search, fn ($q) => $q->where(function ($query) {
                 $query->where('name', 'like', "%{$this->search}%")
-                      ->orWhere('address', 'like', "%{$this->search}%");
+                    ->orWhere('address', 'like', "%{$this->search}%");
             }))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(15);

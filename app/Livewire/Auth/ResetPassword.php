@@ -12,9 +12,13 @@ class ResetPassword extends Component
 {
     #[Layout('layouts.guest')]
     public string $token = '';
+
     public string $email = '';
+
     public string $password = '';
+
     public string $password_confirmation = '';
+
     public bool $resetSuccess = false;
 
     protected AuthService $authService;
@@ -54,7 +58,7 @@ class ResetPassword extends Component
 
         $result = $this->authService->resetPassword($this->email, $this->token, $this->password);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             match ($result['error']) {
                 'invalid_token' => $this->addError('email', __('Invalid reset token. Please request a new reset link.')),
                 'expired_token' => $this->addError('email', __('This reset link has expired. Please request a new one.')),
@@ -62,6 +66,7 @@ class ResetPassword extends Component
                 'reset_failed' => $this->addError('email', __('Password reset failed. Please try again.')),
                 default => $this->addError('email', __('An error occurred. Please try again.')),
             };
+
             return;
         }
 

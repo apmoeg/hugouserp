@@ -54,7 +54,7 @@ class ModuleSetting extends Model
     {
         return $query->where(function ($q) use ($branchId) {
             $q->where('branch_id', $branchId)
-              ->orWhereNull('branch_id');
+                ->orWhereNull('branch_id');
         });
     }
 
@@ -71,7 +71,7 @@ class ModuleSetting extends Model
         if ($branchId) {
             $query->where(function ($q) use ($branchId) {
                 $q->where('branch_id', $branchId)
-                  ->orWhereNull('branch_id');
+                    ->orWhereNull('branch_id');
             })->orderByRaw('CASE WHEN branch_id IS NULL THEN 1 ELSE 0 END');
         } else {
             $query->whereNull('branch_id');
@@ -97,17 +97,17 @@ class ModuleSetting extends Model
         );
     }
 
-public static function cachedValue(int $moduleId, string $key, ?int $branchId = null, $default = null, int $ttlSeconds = 1800)
-{
-    $cacheKey = sprintf(
-        'module_setting:%d:%s:%s',
-        $moduleId,
-        $key,
-        $branchId ?? 'global'
-    );
+    public static function cachedValue(int $moduleId, string $key, ?int $branchId = null, $default = null, int $ttlSeconds = 1800)
+    {
+        $cacheKey = sprintf(
+            'module_setting:%d:%s:%s',
+            $moduleId,
+            $key,
+            $branchId ?? 'global'
+        );
 
-    return Cache::remember($cacheKey, $ttlSeconds, function () use ($moduleId, $key, $branchId, $default) {
-        return static::getValue($moduleId, $key, $branchId, $default);
-    });
-}
+        return Cache::remember($cacheKey, $ttlSeconds, function () use ($moduleId, $key, $branchId, $default) {
+            return static::getValue($moduleId, $key, $branchId, $default);
+        });
+    }
 }

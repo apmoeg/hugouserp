@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -12,20 +13,18 @@ use App\Services\Contracts\InventoryServiceInterface;
 use App\Traits\HandlesServiceErrors;
 use App\Traits\HasRequestContext;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Factory as ValidatorFactory;
 
 class InventoryService implements InventoryServiceInterface
 {
-    use HasRequestContext;
     use HandlesServiceErrors;
+    use HasRequestContext;
 
     public function __construct(
         protected ValidatorFactory $validator,
         protected StockMovementRepositoryInterface $movements,
         protected StockLevelRepositoryInterface $stockLevels,
-    ) {
-    }
+    ) {}
 
     public function currentQty(int $productId, ?int $warehouseId = null): float
     {
@@ -35,7 +34,7 @@ class InventoryService implements InventoryServiceInterface
 
                 if ($branchId === null) {
                     $this->logServiceWarning('currentQty', 'Called without branch context', [
-                        'product_id'   => $productId,
+                        'product_id' => $productId,
                         'warehouse_id' => $warehouseId,
                     ]);
 
@@ -81,19 +80,19 @@ class InventoryService implements InventoryServiceInterface
                 }
 
                 $data = [
-                    'product_id'   => $productId,
+                    'product_id' => $productId,
                     'warehouse_id' => $warehouseId,
-                    'qty'          => $qty,
-                    'direction'    => $direction,
-                    'reason'       => $reason,
-                    'meta'         => $meta ?? [],
+                    'qty' => $qty,
+                    'direction' => $direction,
+                    'reason' => $reason,
+                    'meta' => $meta ?? [],
                 ];
 
                 $validator = $this->validator->make($data, [
-                    'product_id'   => ['required', 'integer', 'exists:products,id'],
+                    'product_id' => ['required', 'integer', 'exists:products,id'],
                     'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
-                    'qty'          => ['required', 'numeric'],
-                    'direction'    => ['required', 'in:in,out'],
+                    'qty' => ['required', 'numeric'],
+                    'direction' => ['required', 'in:in,out'],
                 ]);
 
                 $validator->validate();
@@ -117,14 +116,14 @@ class InventoryService implements InventoryServiceInterface
                     }
 
                     $movementData = [
-                        'branch_id'    => $branchId,
-                        'product_id'   => $product->getKey(),
+                        'branch_id' => $branchId,
+                        'product_id' => $product->getKey(),
                         'warehouse_id' => $warehouse->getKey(),
-                        'qty'          => abs($qty),
-                        'direction'    => $direction,
-                        'reason'       => $data['reason'],
-                        'meta'         => $data['meta'] ?? [],
-                        'created_by'   => $this->currentUser()?->getAuthIdentifier(),
+                        'qty' => abs($qty),
+                        'direction' => $direction,
+                        'reason' => $data['reason'],
+                        'meta' => $data['meta'] ?? [],
+                        'created_by' => $this->currentUser()?->getAuthIdentifier(),
                     ];
 
                     $this->movements->create($movementData);
@@ -134,7 +133,7 @@ class InventoryService implements InventoryServiceInterface
                     'product_id' => $productId,
                     'warehouse_id' => $warehouseId,
                     'qty' => $qty,
-                    'direction' => $direction
+                    'direction' => $direction,
                 ]);
             },
             operation: 'adjust',
@@ -143,7 +142,7 @@ class InventoryService implements InventoryServiceInterface
                 'warehouse_id' => $warehouseId,
                 'qty' => $qty,
                 'direction' => $direction,
-                'reason' => $reason
+                'reason' => $reason,
             ]
         );
     }
@@ -190,33 +189,33 @@ class InventoryService implements InventoryServiceInterface
                     $userId = $this->currentUser()?->getAuthIdentifier();
 
                     $this->movements->create([
-                        'branch_id'    => $branchId,
-                        'product_id'   => $product->getKey(),
+                        'branch_id' => $branchId,
+                        'product_id' => $product->getKey(),
                         'warehouse_id' => $fromWarehouse->getKey(),
-                        'qty'          => $qty,
-                        'direction'    => 'out',
-                        'reason'       => $reason ?? 'transfer',
-                        'meta'         => [
-                            'type'            => 'transfer',
+                        'qty' => $qty,
+                        'direction' => 'out',
+                        'reason' => $reason ?? 'transfer',
+                        'meta' => [
+                            'type' => 'transfer',
                             'direction_label' => 'from',
                             'to_warehouse_id' => $toWarehouse->getKey(),
                         ],
-                        'created_by'   => $userId,
+                        'created_by' => $userId,
                     ]);
 
                     $this->movements->create([
-                        'branch_id'    => $branchId,
-                        'product_id'   => $product->getKey(),
+                        'branch_id' => $branchId,
+                        'product_id' => $product->getKey(),
                         'warehouse_id' => $toWarehouse->getKey(),
-                        'qty'          => $qty,
-                        'direction'    => 'in',
-                        'reason'       => $reason ?? 'transfer',
-                        'meta'         => [
-                            'type'              => 'transfer',
-                            'direction_label'   => 'to',
+                        'qty' => $qty,
+                        'direction' => 'in',
+                        'reason' => $reason ?? 'transfer',
+                        'meta' => [
+                            'type' => 'transfer',
+                            'direction_label' => 'to',
                             'from_warehouse_id' => $fromWarehouse->getKey(),
                         ],
-                        'created_by'   => $userId,
+                        'created_by' => $userId,
                     ]);
                 });
 
@@ -224,7 +223,7 @@ class InventoryService implements InventoryServiceInterface
                     'product_id' => $productId,
                     'from_warehouse_id' => $fromWarehouseId,
                     'to_warehouse_id' => $toWarehouseId,
-                    'qty' => $qty
+                    'qty' => $qty,
                 ]);
             },
             operation: 'transfer',
@@ -233,7 +232,7 @@ class InventoryService implements InventoryServiceInterface
                 'from_warehouse_id' => $fromWarehouseId,
                 'to_warehouse_id' => $toWarehouseId,
                 'qty' => $qty,
-                'reason' => $reason
+                'reason' => $reason,
             ]
         );
     }

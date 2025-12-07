@@ -5,14 +5,10 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\ExportLayout;
-use App\Models\User;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Writer\Csv;
 
 class ExportService
 {
@@ -183,7 +179,7 @@ class ExportService
                 $availableColumns = $options['available_columns'] ?? [];
                 $dateFormat = $options['date_format'] ?? 'Y-m-d';
                 $includeHeaders = $options['include_headers'] ?? true;
-                $filename = $options['filename'] ?? 'export_' . date('Y-m-d_His');
+                $filename = $options['filename'] ?? 'export_'.date('Y-m-d_His');
 
                 $rows = $this->prepareDataRows($data, $columns, $availableColumns, $dateFormat);
 
@@ -204,26 +200,26 @@ class ExportService
         return $data->map(function ($item) use ($columns, $dateFormat) {
             $row = [];
             $itemArray = is_object($item) ? (array) $item : $item;
-            
+
             foreach ($columns as $column) {
                 $value = $itemArray[$column] ?? '';
-                
+
                 if ($value instanceof \DateTime || $value instanceof \Carbon\Carbon) {
                     $value = $value->format($dateFormat);
                 } elseif (is_array($value)) {
                     $value = json_encode($value);
                 }
-                
+
                 $row[$column] = $value;
             }
-            
+
             return $row;
         })->toArray();
     }
 
     protected function exportToExcel(array $rows, array $columns, array $availableColumns, bool $includeHeaders, string $filename): string
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
 
         $rowIndex = 1;
@@ -248,8 +244,8 @@ class ExportService
         }
 
         $filepath = storage_path("app/exports/{$filename}.xlsx");
-        
-        if (!is_dir(dirname($filepath))) {
+
+        if (! is_dir(dirname($filepath))) {
             mkdir(dirname($filepath), 0755, true);
         }
 
@@ -262,22 +258,22 @@ class ExportService
     protected function exportToCsv(array $rows, array $columns, array $availableColumns, bool $includeHeaders, string $filename): string
     {
         $filepath = storage_path("app/exports/{$filename}.csv");
-        
-        if (!is_dir(dirname($filepath))) {
+
+        if (! is_dir(dirname($filepath))) {
             mkdir(dirname($filepath), 0755, true);
         }
 
         $handle = fopen($filepath, 'w');
-        
+
         fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
 
         if ($includeHeaders) {
-            $headers = array_map(fn($col) => $availableColumns[$col] ?? $col, $columns);
+            $headers = array_map(fn ($col) => $availableColumns[$col] ?? $col, $columns);
             fputcsv($handle, $headers);
         }
 
         foreach ($rows as $row) {
-            $rowData = array_map(fn($col) => $row[$col] ?? '', $columns);
+            $rowData = array_map(fn ($col) => $row[$col] ?? '', $columns);
             fputcsv($handle, $rowData);
         }
 
@@ -288,7 +284,7 @@ class ExportService
 
     protected function exportToPdf(array $rows, array $columns, array $availableColumns, bool $includeHeaders, string $filename, array $options): string
     {
-        $html = '<html dir="' . (app()->getLocale() === 'ar' ? 'rtl' : 'ltr') . '"><head><meta charset="UTF-8">';
+        $html = '<html dir="'.(app()->getLocale() === 'ar' ? 'rtl' : 'ltr').'"><head><meta charset="UTF-8">';
         $html .= '<style>
             body { font-family: DejaVu Sans, sans-serif; font-size: 10px; }
             table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -298,25 +294,25 @@ class ExportService
             h1 { color: #10b981; font-size: 18px; }
         </style></head><body>';
 
-        if (!empty($options['title'])) {
-            $html .= '<h1>' . htmlspecialchars($options['title']) . '</h1>';
+        if (! empty($options['title'])) {
+            $html .= '<h1>'.htmlspecialchars($options['title']).'</h1>';
         }
 
         $html .= '<table><thead><tr>';
-        
+
         if ($includeHeaders) {
             foreach ($columns as $column) {
                 $label = $availableColumns[$column] ?? $column;
-                $html .= '<th>' . htmlspecialchars($label) . '</th>';
+                $html .= '<th>'.htmlspecialchars($label).'</th>';
             }
         }
-        
+
         $html .= '</tr></thead><tbody>';
 
         foreach ($rows as $row) {
             $html .= '<tr>';
             foreach ($columns as $column) {
-                $html .= '<td>' . htmlspecialchars($row[$column] ?? '') . '</td>';
+                $html .= '<td>'.htmlspecialchars($row[$column] ?? '').'</td>';
             }
             $html .= '</tr>';
         }
@@ -324,13 +320,13 @@ class ExportService
         $html .= '</tbody></table></body></html>';
 
         $filepath = storage_path("app/exports/{$filename}.pdf");
-        
-        if (!is_dir(dirname($filepath))) {
+
+        if (! is_dir(dirname($filepath))) {
             mkdir(dirname($filepath), 0755, true);
         }
 
         if (class_exists(\Dompdf\Dompdf::class)) {
-            $dompdf = new \Dompdf\Dompdf();
+            $dompdf = new \Dompdf\Dompdf;
             $dompdf->loadHtml($html);
             $dompdf->setPaper('A4', 'landscape');
             $dompdf->render();
@@ -346,7 +342,7 @@ class ExportService
     public function downloadAndCleanup(string $filepath): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
         $filename = basename($filepath);
-        
+
         return response()->download($filepath, $filename)->deleteFileAfterSend(true);
     }
 
@@ -356,8 +352,8 @@ class ExportService
             callback: function () use ($data, $layout, $options) {
                 $columns = $layout->getOrderedColumns();
                 $availableColumns = $this->getAvailableColumns($layout->entity_type);
-                
-                if (!empty($layout->column_labels)) {
+
+                if (! empty($layout->column_labels)) {
                     $availableColumns = array_merge($availableColumns, $layout->column_labels);
                 }
 

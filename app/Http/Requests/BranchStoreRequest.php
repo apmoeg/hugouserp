@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Requests;
@@ -15,10 +16,10 @@ class BranchStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => ['required', 'string', 'max:255', 'unique:branches,name'],
-            'code'        => ['nullable', 'string', 'max:50', 'unique:branches,code'],
-            'address'     => ['nullable', 'string', 'max:500'],
-            'is_active'   => ['boolean'],
+            'name' => ['required', 'string', 'max:255', 'unique:branches,name'],
+            'code' => ['nullable', 'string', 'max:50', 'unique:branches,code'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'is_active' => ['boolean'],
         ];
     }
 }

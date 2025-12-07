@@ -1,8 +1,7 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Exceptions;
 
-class InvalidQuantityException extends DomainException
-{
-}
+class InvalidQuantityException extends DomainException {}

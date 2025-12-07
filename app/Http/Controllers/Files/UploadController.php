@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Files;
@@ -17,9 +18,9 @@ class UploadController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-            'file'       => ['required', 'file', 'max:10240'], // 10MB
-            'disk'       => ['sometimes', 'string'],
-            'dir'        => ['sometimes', 'string'],
+            'file' => ['required', 'file', 'max:10240'], // 10MB
+            'disk' => ['sometimes', 'string'],
+            'dir' => ['sometimes', 'string'],
             'visibility' => ['sometimes', 'in:public,private'],
         ]);
 
@@ -43,7 +44,7 @@ class UploadController extends Controller
         return $this->ok([
             'disk' => $disk,
             'path' => $path,
-            'url'  => $url,
+            'url' => $url,
             'mime' => $uploaded->getClientMimeType(),
             'size' => $uploaded->getSize(),
         ], __('File uploaded successfully'));

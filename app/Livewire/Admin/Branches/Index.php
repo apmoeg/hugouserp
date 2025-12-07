@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin\Branches;
 
+use App\Models\Branch;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Livewire\Attributes\Layout;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Branch;
 
 #[Layout('layouts.app')]
 class Index extends Component
@@ -36,11 +36,11 @@ class Index extends Component
     {
         $query = Branch::query()
             ->when($this->search !== '', function ($q) {
-                $term = '%' . $this->search . '%';
+                $term = '%'.$this->search.'%';
 
                 $q->where(function ($inner) use ($term) {
                     $inner->where('name', 'like', $term)
-                          ->orWhere('code', 'like', $term);
+                        ->orWhere('code', 'like', $term);
                 });
             })
             ->orderBy('name');

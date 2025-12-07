@@ -14,6 +14,7 @@ use Livewire\Component;
 class Run extends Component
 {
     public ?string $period = null; // e.g. "2024-01"
+
     public ?int $branchId = null;
 
     /**
@@ -38,7 +39,7 @@ class Run extends Component
     protected function rules(): array
     {
         return [
-            'period'          => ['required', 'date_format:Y-m'],
+            'period' => ['required', 'date_format:Y-m'],
             'includeInactive' => ['boolean'],
         ];
     }
@@ -55,6 +56,7 @@ class Run extends Component
 
         if (! $this->branchId) {
             session()->flash('error', __('Branch is not set for current user.'));
+
             return;
         }
 
@@ -84,7 +86,7 @@ class Run extends Component
                 $deductions = 0.0;
                 $net = $basic + $allowances - $deductions;
 
-                $model = new Payroll();
+                $model = new Payroll;
                 $model->employee_id = $employee->id;
                 $model->period = $this->period;
                 $model->basic = $basic;

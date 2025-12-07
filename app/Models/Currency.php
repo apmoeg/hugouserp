@@ -64,23 +64,24 @@ class Currency extends Model
         if (app()->getLocale() === 'ar' && $this->name_ar) {
             return $this->name_ar;
         }
+
         return $this->name;
     }
 
-public static function cachedBaseCurrency()
-{
-    return Cache::rememberForever('currency:base', function () {
-        return static::getBaseCurrency();
-    });
-}
+    public static function cachedBaseCurrency()
+    {
+        return Cache::rememberForever('currency:base', function () {
+            return static::getBaseCurrency();
+        });
+    }
 
-public static function cachedByCode(string $code, int $ttlSeconds = 3600): ?self
-{
-    $normalized = strtoupper($code);
-    $cacheKey   = sprintf('currency:code:%s', $normalized);
+    public static function cachedByCode(string $code, int $ttlSeconds = 3600): ?self
+    {
+        $normalized = strtoupper($code);
+        $cacheKey = sprintf('currency:code:%s', $normalized);
 
-    return Cache::remember($cacheKey, $ttlSeconds, function () use ($normalized) {
-        return static::getCurrencyByCode($normalized);
-    });
-}
+        return Cache::remember($cacheKey, $ttlSeconds, function () use ($normalized) {
+            return static::getCurrencyByCode($normalized);
+        });
+    }
 }

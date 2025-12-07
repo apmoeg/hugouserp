@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Rental\Reports;
 
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class Dashboard extends Component
 {
@@ -12,9 +12,11 @@ class Dashboard extends Component
     ];
 
     public array $unitsChart = [];
+
     public array $contractsChart = [];
 
     public array $unitsSummary = [];
+
     public array $contractsSummary = [];
 
     public function mount(): void
@@ -24,7 +26,6 @@ class Dashboard extends Component
         if (! $user || ! $user->can('rental.view-reports')) {
             abort(403);
         }
-
 
         if (auth()->check()) {
             abort_unless(auth()->user()->can('rental.view-reports'), 403);
@@ -49,9 +50,10 @@ class Dashboard extends Component
     {
         $model = '\\App\\Models\\RentalUnit';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             $this->unitsChart = [];
             $this->unitsSummary = [];
+
             return;
         }
 
@@ -85,9 +87,10 @@ class Dashboard extends Component
     {
         $model = '\\App\\Models\\RentalContract';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             $this->contractsChart = [];
             $this->contractsSummary = [];
+
             return;
         }
 
@@ -115,10 +118,10 @@ class Dashboard extends Component
             ->get(['end_date']);
 
         $series = $contracts->groupBy(function ($contract) {
-                return $contract->end_date instanceof \Carbon\Carbon 
-                    ? $contract->end_date->toDateString() 
-                    : (string) $contract->end_date;
-            })
+            return $contract->end_date instanceof \Carbon\Carbon
+                ? $contract->end_date->toDateString()
+                : (string) $contract->end_date;
+        })
             ->sortKeys()
             ->take(30)
             ->map(function ($group, $day) {
@@ -140,7 +143,7 @@ class Dashboard extends Component
     {
         $model = '\\App\\Models\\RentalContract';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             return;
         }
 
@@ -160,7 +163,7 @@ class Dashboard extends Component
 
         $userModel = '\\App\\Models\\User';
 
-        if (!class_exists($userModel)) {
+        if (! class_exists($userModel)) {
             return;
         }
 
@@ -184,4 +187,3 @@ class Dashboard extends Component
         return view('livewire.rental.reports.dashboard');
     }
 }
-

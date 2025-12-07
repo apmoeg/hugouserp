@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
@@ -14,7 +15,9 @@ class ReportsController extends Controller
     public function finance(Request $request)
     {
         $branchId = (int) $request->integer('branch_id');
-        $from = $request->input('from'); $to = $request->input('to');
+        $from = $request->input('from');
+        $to = $request->input('to');
+
         return $this->ok($this->reports->financeSummary($branchId, $from, $to));
     }
 
@@ -22,6 +25,7 @@ class ReportsController extends Controller
     {
         $branchId = (int) $request->integer('branch_id');
         $limit = min(max((int) $request->integer('limit', 10), 1), 100);
+
         return $this->ok($this->reports->topProducts($branchId, $limit));
     }
 }

@@ -31,7 +31,7 @@ class InventoryChartsDashboard extends Component
         $products = $query->orderBy('current_stock')->get(['id', 'sku', 'name', 'current_stock']);
 
         $totalProducts = $products->count();
-        $totalStock    = (float) $products->sum('current_stock');
+        $totalStock = (float) $products->sum('current_stock');
 
         $lowStock = $products->sortBy('current_stock')->take(20);
 
@@ -54,7 +54,7 @@ class InventoryChartsDashboard extends Component
 
         return view('livewire.admin.reports.inventory-charts-dashboard', [
             'totalProducts' => $totalProducts,
-            'totalStock'    => $totalStock,
+            'totalStock' => $totalStock,
         ]);
     }
 }

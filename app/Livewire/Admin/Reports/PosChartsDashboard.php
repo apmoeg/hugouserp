@@ -42,7 +42,7 @@ class PosChartsDashboard extends Component
 
         $sales = $query->orderBy('created_at')->get();
 
-        $totalSales   = $sales->count();
+        $totalSales = $sales->count();
         $totalRevenue = (float) $sales->sum('total');
 
         $groupedByDay = $sales->groupBy(function (Sale $sale): string {
@@ -67,7 +67,7 @@ class PosChartsDashboard extends Component
         $branchValues = [];
 
         foreach ($groupedByBranch as $branchId => $items) {
-            $branchLabels[] = $branchId ? ('#' . $branchId) : __('N/A');
+            $branchLabels[] = $branchId ? ('#'.$branchId) : __('N/A');
             $branchValues[] = (float) $items->sum('total');
         }
 
@@ -82,12 +82,12 @@ class PosChartsDashboard extends Component
         ];
 
         $this->dispatch('pos-charts-update', chartData: [
-            'salesByDay'    => $chartSalesByDay,
+            'salesByDay' => $chartSalesByDay,
             'salesByBranch' => $chartSalesByBranch,
         ]);
 
         return view('livewire.admin.reports.pos-charts-dashboard', [
-            'totalSales'   => $totalSales,
+            'totalSales' => $totalSales,
             'totalRevenue' => $totalRevenue,
         ]);
     }

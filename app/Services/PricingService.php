@@ -1,14 +1,16 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\{Tax, PriceGroup, Product};
-use App\Services\Contracts\{PricingServiceInterface, DiscountServiceInterface, TaxServiceInterface};
+use App\Models\PriceGroup;
+use App\Models\Product;
+use App\Services\Contracts\DiscountServiceInterface;
+use App\Services\Contracts\PricingServiceInterface;
+use App\Services\Contracts\TaxServiceInterface;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class PricingService implements PricingServiceInterface
 {
@@ -51,11 +53,11 @@ class PricingService implements PricingServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($line) {
-                $qty     = max(0.0, (float) Arr::get($line, 'qty', 1));
-                $price   = max(0.0, (float) Arr::get($line, 'price', 0));
+                $qty = max(0.0, (float) Arr::get($line, 'qty', 1));
+                $price = max(0.0, (float) Arr::get($line, 'price', 0));
                 $percent = (bool) Arr::get($line, 'percent', true);
                 $discVal = (float) Arr::get($line, 'discount', 0);
-                $taxId   = Arr::get($line, 'tax_id');
+                $taxId = Arr::get($line, 'tax_id');
 
                 $subtotal = $qty * $price;
 
@@ -65,19 +67,19 @@ class PricingService implements PricingServiceInterface
                 $baseAfterDiscount = max(0.0, $subtotal - $discount);
 
                 $taxAmount = 0.0;
-                if (!empty($taxId)) {
+                if (! empty($taxId)) {
                     $taxAmount = $this->taxes->amountFor($baseAfterDiscount, (int) $taxId);
                 }
 
-                $total = !empty($taxId)
+                $total = ! empty($taxId)
                     ? $this->taxes->totalWithTax($baseAfterDiscount, (int) $taxId)
                     : $baseAfterDiscount;
 
                 return [
                     'subtotal' => round($subtotal, 2),
                     'discount' => round($discount, 2),
-                    'tax'      => round($taxAmount, 2),
-                    'total'    => round($total, 2),
+                    'tax' => round($taxAmount, 2),
+                    'total' => round($total, 2),
                 ];
             },
             operation: 'lineTotals',

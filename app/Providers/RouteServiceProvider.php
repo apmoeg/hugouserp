@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use App\Models\Branch;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
-use App\Models\Branch;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -18,7 +18,8 @@ class RouteServiceProvider extends ServiceProvider
         // API throttle
         RateLimiter::for('api', function (Request $request) {
             $key = optional($request->user())->getKey() ?: $request->ip();
-            return [ Limit::perMinute(120)->by($key) ];
+
+            return [Limit::perMinute(120)->by($key)];
         });
 
         // Parameter patterns

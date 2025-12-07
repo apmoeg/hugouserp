@@ -10,7 +10,6 @@ use App\Models\LoyaltyTransaction;
 use App\Models\Sale;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
 class LoyaltyService
@@ -22,8 +21,8 @@ class LoyaltyService
         return $this->handleServiceOperation(
             callback: function () use ($customer, $sale, $userId) {
                 $settings = LoyaltySetting::getForBranch($customer->branch_id);
-                
-                if (!$settings || !$settings->is_active) {
+
+                if (! $settings || ! $settings->is_active) {
                     return null;
                 }
 
@@ -33,7 +32,7 @@ class LoyaltyService
                 }
 
                 $points = (int) floor((float) $sale->total / $amountPerPoint * (float) $settings->points_per_amount);
-                
+
                 if ($points <= 0) {
                     return null;
                 }
@@ -67,8 +66,8 @@ class LoyaltyService
         return $this->handleServiceOperation(
             callback: function () use ($customer, $points, $saleId, $userId) {
                 $settings = LoyaltySetting::getForBranch($customer->branch_id);
-                
-                if (!$settings || !$settings->is_active) {
+
+                if (! $settings || ! $settings->is_active) {
                     return null;
                 }
 
@@ -198,8 +197,8 @@ class LoyaltyService
     public function calculateRedemptionValue(Customer $customer, int $points): float
     {
         $settings = LoyaltySetting::getForBranch($customer->branch_id);
-        
-        if (!$settings) {
+
+        if (! $settings) {
             return 0;
         }
 
@@ -210,7 +209,7 @@ class LoyaltyService
     {
         $totalPoints = (int) $customer->loyalty_points;
 
-        $tier = match(true) {
+        $tier = match (true) {
             $totalPoints >= 10000 => 'premium',
             $totalPoints >= 5000 => 'vip',
             $totalPoints >= 1000 => 'regular',

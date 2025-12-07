@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Livewire\Inventory;
 
 use App\Models\Product;
-use App\Models\VehicleModel;
 use App\Models\ProductCompatibility as ProductCompatibilityModel;
+use App\Models\VehicleModel;
 use App\Services\SparePartsService;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -16,26 +16,39 @@ class ProductCompatibility extends Component
     use WithPagination;
 
     public ?int $productId = null;
+
     public string $search = '';
+
     public string $brandFilter = '';
+
     public ?int $editingId = null;
-    
+
     public string $newBrand = '';
+
     public string $newModel = '';
+
     public ?int $newYearFrom = null;
+
     public ?int $newYearTo = null;
+
     public string $newCategory = '';
+
     public string $newEngineType = '';
-    
+
     public string $selectedVehicleId = '';
+
     public string $oemNumber = '';
+
     public string $position = '';
+
     public string $notes = '';
+
     public bool $isVerified = false;
-    
+
     public bool $showVehicleModal = false;
+
     public bool $showCompatibilityModal = false;
-    
+
     protected SparePartsService $sparePartsService;
 
     protected $queryString = ['search', 'brandFilter'];
@@ -59,17 +72,17 @@ class ProductCompatibility extends Component
     public function render()
     {
         $brands = $this->sparePartsService->getBrands();
-        
+
         $vehicleModelsQuery = VehicleModel::query()
-            ->when($this->search, fn($q) => $q->where('model', 'ilike', "%{$this->search}%")
+            ->when($this->search, fn ($q) => $q->where('model', 'ilike', "%{$this->search}%")
                 ->orWhere('brand', 'ilike', "%{$this->search}%"))
-            ->when($this->brandFilter, fn($q) => $q->where('brand', $this->brandFilter))
+            ->when($this->brandFilter, fn ($q) => $q->where('brand', $this->brandFilter))
             ->orderBy('brand')
             ->orderBy('model');
 
         $vehicleModels = $vehicleModelsQuery->paginate(15);
 
-        $compatibilities = $this->productId 
+        $compatibilities = $this->productId
             ? ProductCompatibilityModel::with('vehicleModel')
                 ->where('product_id', $this->productId)
                 ->get()
@@ -182,8 +195,9 @@ class ProductCompatibility extends Component
 
     public function addCompatibility(): void
     {
-        if (!$this->productId || !$this->selectedVehicleId) {
+        if (! $this->productId || ! $this->selectedVehicleId) {
             $this->dispatch('notify', type: 'error', message: __('Please select a vehicle model'));
+
             return;
         }
 
@@ -204,8 +218,9 @@ class ProductCompatibility extends Component
 
     public function quickAddCompatibility(int $vehicleModelId): void
     {
-        if (!$this->productId) {
+        if (! $this->productId) {
             $this->dispatch('notify', type: 'error', message: __('No product selected'));
+
             return;
         }
 
@@ -215,7 +230,7 @@ class ProductCompatibility extends Component
 
     public function removeCompatibility(int $vehicleModelId): void
     {
-        if (!$this->productId) {
+        if (! $this->productId) {
             return;
         }
 
@@ -227,7 +242,7 @@ class ProductCompatibility extends Component
     {
         $compatibility = ProductCompatibilityModel::find($compatibilityId);
         if ($compatibility) {
-            $compatibility->is_verified = !$compatibility->is_verified;
+            $compatibility->is_verified = ! $compatibility->is_verified;
             $compatibility->save();
         }
     }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Listeners;
@@ -15,7 +16,7 @@ class SendDueReminder implements ShouldQueue
         $tenant = $contract->tenant;
 
         $title = __('Rent due soon');
-        $body  = __('Your rent is due on :date for unit :unit', [
+        $body = __('Your rent is due on :date for unit :unit', [
             'date' => optional($contract->end_date)->toDateString(),
             'unit' => $contract->unit?->code,
         ]);

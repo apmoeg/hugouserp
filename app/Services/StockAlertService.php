@@ -8,8 +8,6 @@ use App\Models\LowStockAlert;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Traits\HandlesServiceErrors;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class StockAlertService
 {
@@ -19,7 +17,7 @@ class StockAlertService
     {
         return $this->handleServiceOperation(
             callback: function () use ($product, $warehouseId) {
-                if (!$product->track_stock_alerts || $product->min_stock_level <= 0) {
+                if (! $product->track_stock_alerts || $product->min_stock_level <= 0) {
                     return null;
                 }
 
@@ -27,6 +25,7 @@ class StockAlertService
 
                 if ($currentQty >= $product->min_stock_level) {
                     $this->resolveExistingAlerts($product, $warehouseId);
+
                     return null;
                 }
 
@@ -37,6 +36,7 @@ class StockAlertService
 
                 if ($existingAlert) {
                     $existingAlert->update(['current_qty' => $currentQty]);
+
                     return $existingAlert;
                 }
 
@@ -88,8 +88,8 @@ class StockAlertService
         return $this->handleServiceOperation(
             callback: fn () => LowStockAlert::with(['product', 'warehouse', 'branch'])
                 ->active()
-                ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
-                ->when($warehouseId, fn($q) => $q->where('warehouse_id', $warehouseId))
+                ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
+                ->when($warehouseId, fn ($q) => $q->where('warehouse_id', $warehouseId))
                 ->orderByDesc('created_at')
                 ->get(),
             operation: 'getActiveAlerts',
@@ -102,7 +102,7 @@ class StockAlertService
         return $this->handleServiceOperation(
             callback: fn () => LowStockAlert::with(['product', 'warehouse', 'branch'])
                 ->unresolved()
-                ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+                ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
                 ->orderByDesc('created_at')
                 ->get(),
             operation: 'getUnresolvedAlerts',
@@ -133,7 +133,7 @@ class StockAlertService
         return $this->handleServiceOperation(
             callback: function () use ($branchId) {
                 $query = LowStockAlert::query()
-                    ->when($branchId, fn($q) => $q->where('branch_id', $branchId));
+                    ->when($branchId, fn ($q) => $q->where('branch_id', $branchId));
 
                 return [
                     'total_active' => (clone $query)->where('status', 'active')->count(),

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Jobs;
@@ -16,6 +17,7 @@ class BackupDatabaseJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public $timeout = 900; // 15 min
 
     public function __construct(public bool $verify = true) {}
@@ -45,7 +47,7 @@ class BackupDatabaseJob implements ShouldQueue
             @exec($cmd);
         }
 
-        if ($this->verify && !$disk->exists($path)) {
+        if ($this->verify && ! $disk->exists($path)) {
             throw new \RuntimeException('Backup file was not generated.');
         }
     }

@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire\Notifications;
 
-use Livewire\Component;
 use Livewire\Attributes\On;
-
+use Livewire\Component;
 
 class Dropdown extends Component
 {
-
     public int $unreadCount = 0;
 
     /**
@@ -24,7 +22,7 @@ class Dropdown extends Component
         $this->unreadCount++;
 
         array_unshift($this->items, [
-            'type'    => $type,
+            'type' => $type,
             'message' => $message,
         ]);
 

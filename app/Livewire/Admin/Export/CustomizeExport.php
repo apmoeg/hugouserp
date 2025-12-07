@@ -12,14 +12,23 @@ class CustomizeExport extends Component
     use AuthorizesRequests;
 
     public string $entityType = 'products';
+
     public string $layoutName = '';
+
     public array $selectedColumns = [];
+
     public array $columnOrder = [];
+
     public string $exportFormat = 'xlsx';
+
     public bool $includeHeaders = true;
+
     public string $dateFormat = 'Y-m-d';
+
     public bool $isDefault = false;
+
     public bool $isShared = false;
+
     public ?int $editingLayoutId = null;
 
     protected ExportService $exportService;
@@ -97,10 +106,10 @@ class CustomizeExport extends Component
     public function deleteLayout(int $layoutId): void
     {
         $this->authorize('reports.export');
-        
+
         if ($this->exportService->deleteLayout($layoutId, auth()->id())) {
             session()->flash('success', __('Layout deleted successfully'));
-            
+
             if ($this->editingLayoutId === $layoutId) {
                 $this->editingLayoutId = null;
                 $this->layoutName = '';

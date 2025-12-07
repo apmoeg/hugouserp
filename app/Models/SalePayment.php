@@ -32,8 +32,11 @@ class SalePayment extends Model
     ];
 
     public const METHOD_CASH = 'cash';
+
     public const METHOD_CARD = 'card';
+
     public const METHOD_TRANSFER = 'transfer';
+
     public const METHOD_CHEQUE = 'cheque';
 
     public static function paymentMethods(): array

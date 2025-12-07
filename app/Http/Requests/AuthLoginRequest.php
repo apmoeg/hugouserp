@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Requests;
@@ -15,7 +16,7 @@ class AuthLoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email'    => ['required', 'email', 'exists:users,email'],
+            'email' => ['required', 'email', 'exists:users,email'],
             'password' => ['required', 'string', 'min:6'],
             'remember' => ['sometimes', 'boolean'],
         ];

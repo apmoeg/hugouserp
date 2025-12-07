@@ -6,33 +6,34 @@ namespace App\Livewire\Inventory\Products;
 
 use App\Models\Product;
 use App\Traits\HasExport;
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
-use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination;
     use HasExport;
+    use WithPagination;
 
     public string $search = '';
+
     public ?string $status = null;
+
     public ?string $type = null;
 
     #[Layout('layouts.app')]
-    
     public function mount(): void
     {
         $user = Auth::user();
         if (! $user || ! $user->can('inventory.products.view')) {
             abort(403);
         }
-        
+
         $this->initializeExport('products');
     }
 
-public function render()
+    public function render()
     {
         $user = auth()->user();
         $branchId = $user?->branch_id;
@@ -40,7 +41,7 @@ public function render()
         $query = Product::query()
             ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->when($this->search !== '', function ($q) {
-                $term = '%' . $this->search . '%';
+                $term = '%'.$this->search.'%';
 
                 $q->where(function ($inner) use ($term) {
                     $inner->where('name', 'like', $term)
@@ -84,7 +85,7 @@ public function render()
             ->leftJoin('branches', 'products.branch_id', '=', 'branches.id')
             ->when($branchId, fn ($q) => $q->where('products.branch_id', $branchId))
             ->when($this->search !== '', function ($q) {
-                $term = '%' . $this->search . '%';
+                $term = '%'.$this->search.'%';
                 $q->where(function ($inner) use ($term) {
                     $inner->where('products.name', 'like', $term)
                         ->orWhere('products.sku', 'like', $term)

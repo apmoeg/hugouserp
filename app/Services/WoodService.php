@@ -1,12 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
-use Illuminate\Support\Facades\Log;
 
 use App\Services\Contracts\WoodServiceInterface;
 use App\Traits\HandlesServiceErrors;
-
 use Illuminate\Support\Facades\DB;
 
 class WoodService implements WoodServiceInterface
@@ -19,7 +18,7 @@ class WoodService implements WoodServiceInterface
             callback: function () use ($branchId) {
                 return DB::table('wood_conversions')
                     ->where('branch_id', $branchId)
-                    ->orderByDesc('id')->get()->map(fn($r) => (array)$r)->all();
+                    ->orderByDesc('id')->get()->map(fn ($r) => (array) $r)->all();
             },
             operation: 'conversions',
             context: ['branch_id' => $branchId],
@@ -32,13 +31,13 @@ class WoodService implements WoodServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($payload) {
                 return (int) DB::table('wood_conversions')->insertGetId([
-                    'branch_id'   => request()->attributes->get('branch_id'),
-                    'input_uom'   => $payload['input_uom'],
-                    'input_qty'   => $payload['input_qty'],
-                    'output_uom'  => $payload['output_uom'],
-                    'output_qty'  => $payload['output_qty'],
-                    'efficiency'  => $this->efficiency((float)$payload['input_qty'], (float)$payload['output_qty']),
-                    'created_at'  => now(), 'updated_at'=>now(),
+                    'branch_id' => request()->attributes->get('branch_id'),
+                    'input_uom' => $payload['input_uom'],
+                    'input_qty' => $payload['input_qty'],
+                    'output_uom' => $payload['output_uom'],
+                    'output_qty' => $payload['output_qty'],
+                    'efficiency' => $this->efficiency((float) $payload['input_qty'], (float) $payload['output_qty']),
+                    'created_at' => now(), 'updated_at' => now(),
                 ]);
             },
             operation: 'createConversion',
@@ -51,9 +50,11 @@ class WoodService implements WoodServiceInterface
         $this->handleServiceOperation(
             callback: function () use ($conversionId) {
                 $row = DB::table('wood_conversions')->find($conversionId);
-                if (!$row) return;
-                $eff = $this->efficiency((float)$row->input_qty, (float)$row->output_qty);
-                DB::table('wood_conversions')->where('id', $conversionId)->update(['efficiency' => $eff, 'updated_at'=>now()]);
+                if (! $row) {
+                    return;
+                }
+                $eff = $this->efficiency((float) $row->input_qty, (float) $row->output_qty);
+                DB::table('wood_conversions')->where('id', $conversionId)->update(['efficiency' => $eff, 'updated_at' => now()]);
             },
             operation: 'recalc',
             context: ['conversion_id' => $conversionId]
@@ -64,7 +65,7 @@ class WoodService implements WoodServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($branchId) {
-                return DB::table('wood_waste')->where('branch_id', $branchId)->orderByDesc('id')->get()->map(fn($r)=>(array)$r)->all();
+                return DB::table('wood_waste')->where('branch_id', $branchId)->orderByDesc('id')->get()->map(fn ($r) => (array) $r)->all();
             },
             operation: 'listWaste',
             context: ['branch_id' => $branchId],
@@ -78,11 +79,11 @@ class WoodService implements WoodServiceInterface
             callback: function () use ($payload) {
                 return (int) DB::table('wood_waste')->insertGetId([
                     'branch_id' => request()->attributes->get('branch_id'),
-                    'type'      => $payload['type'] ?? 'general',
-                    'qty'       => (float) ($payload['qty'] ?? 0),
-                    'uom'       => $payload['uom'] ?? 'kg',
-                    'notes'     => $payload['notes'] ?? null,
-                    'created_at'=> now(), 'updated_at'=> now(),
+                    'type' => $payload['type'] ?? 'general',
+                    'qty' => (float) ($payload['qty'] ?? 0),
+                    'uom' => $payload['uom'] ?? 'kg',
+                    'notes' => $payload['notes'] ?? null,
+                    'created_at' => now(), 'updated_at' => now(),
                 ]);
             },
             operation: 'storeWaste',
@@ -92,7 +93,10 @@ class WoodService implements WoodServiceInterface
 
     protected function efficiency(float $in, float $out): float
     {
-        if ($in <= 0) return 0.0;
+        if ($in <= 0) {
+            return 0.0;
+        }
+
         return round(($out / $in) * 100, 2);
     }
 }

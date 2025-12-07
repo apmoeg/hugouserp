@@ -1,13 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 use App\Services\Contracts\BarcodeServiceInterface;
 use App\Traits\HandlesServiceErrors;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 class BarcodeService implements BarcodeServiceInterface
@@ -15,12 +13,13 @@ class BarcodeService implements BarcodeServiceInterface
     use HandlesServiceErrors;
 
     protected string $disk;
+
     protected string $dir;
 
     public function __construct()
     {
         $this->disk = (string) config('filesystems.default', 'public');
-        $this->dir  = (string) config('erp.barcodes.dir', 'barcodes');
+        $this->dir = (string) config('erp.barcodes.dir', 'barcodes');
     }
 
     public function ean13(string $seed): string

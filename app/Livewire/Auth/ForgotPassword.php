@@ -12,6 +12,7 @@ class ForgotPassword extends Component
 {
     #[Layout('layouts.guest')]
     public string $email = '';
+
     public bool $emailSent = false;
 
     protected AuthService $authService;
@@ -42,13 +43,14 @@ class ForgotPassword extends Component
 
         $result = $this->authService->initiatePasswordReset($this->email);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             match ($result['error']) {
                 'user_not_found' => $this->addError('email', __('No account found with this email address.')),
                 'account_inactive' => $this->addError('email', __('This account has been deactivated. Please contact support.')),
                 'email_failed' => $this->addError('email', __('Failed to send reset email. Please try again later.')),
                 default => $this->addError('email', __('An error occurred. Please try again.')),
             };
+
             return;
         }
 

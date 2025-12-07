@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Customer;
-use App\Models\InstallmentPlan;
 use App\Models\InstallmentPayment;
+use App\Models\InstallmentPlan;
 use App\Models\Sale;
 use App\Traits\HandlesServiceErrors;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
 class InstallmentService
@@ -52,10 +51,10 @@ class InstallmentService
                 }
 
                 $startDate = $startDate ?? now();
-                
+
                 $totalWithInterest = $totalAmount * (1 + ($interestRate / 100));
                 $remainingAmount = $totalWithInterest - $downPayment;
-                
+
                 if ($remainingAmount <= 0) {
                     throw new InvalidArgumentException(__('Remaining amount must be greater than zero'));
                 }
@@ -64,7 +63,7 @@ class InstallmentService
                 $endDate = $startDate->copy()->addMonths($numInstallments);
 
                 return DB::transaction(function () use (
-                    $sale, $customer, $numInstallments, $downPayment, 
+                    $sale, $customer, $numInstallments, $downPayment,
                     $totalWithInterest, $remainingAmount, $installmentAmount,
                     $interestRate, $startDate, $endDate, $userId
                 ) {
@@ -86,8 +85,8 @@ class InstallmentService
 
                     for ($i = 1; $i <= $numInstallments; $i++) {
                         $dueDate = $startDate->copy()->addMonths($i);
-                        
-                        $amount = ($i === $numInstallments) 
+
+                        $amount = ($i === $numInstallments)
                             ? $remainingAmount - ($installmentAmount * ($numInstallments - 1))
                             : $installmentAmount;
 
@@ -122,7 +121,7 @@ class InstallmentService
                 }
 
                 $remainingAmount = (float) $payment->remaining_amount;
-                
+
                 if ($remainingAmount <= 0) {
                     throw new InvalidArgumentException(__('This payment has already been fully paid'));
                 }
@@ -149,13 +148,13 @@ class InstallmentService
 
                     $totalPaid = $plan->payments()->sum('amount_paid');
                     $planRemainingAmount = max(0, (float) $plan->total_amount - (float) $plan->down_payment - $totalPaid);
-                    
+
                     $plan->update([
                         'remaining_amount' => $planRemainingAmount,
                     ]);
 
                     $allPaid = $plan->payments()->where('status', '!=', 'paid')->count() === 0;
-                    
+
                     if ($allPaid) {
                         $plan->update(['status' => 'completed']);
                     }
@@ -185,7 +184,7 @@ class InstallmentService
             callback: fn () => InstallmentPayment::with(['plan.customer', 'plan.sale'])
                 ->where('status', 'overdue')
                 ->when($branchId, function ($q) use ($branchId) {
-                    $q->whereHas('plan', fn($p) => $p->where('branch_id', $branchId));
+                    $q->whereHas('plan', fn ($p) => $p->where('branch_id', $branchId));
                 })
                 ->orderBy('due_date')
                 ->get(),
@@ -201,7 +200,7 @@ class InstallmentService
                 ->whereIn('status', ['pending', 'partial'])
                 ->whereBetween('due_date', [now(), now()->addDays($days)])
                 ->when($branchId, function ($q) use ($branchId) {
-                    $q->whereHas('plan', fn($p) => $p->where('branch_id', $branchId));
+                    $q->whereHas('plan', fn ($p) => $p->where('branch_id', $branchId));
                 })
                 ->orderBy('due_date')
                 ->get(),
@@ -227,13 +226,13 @@ class InstallmentService
         return $this->handleServiceOperation(
             callback: function () use ($customer) {
                 $plans = $this->getCustomerPlans($customer);
-                
+
                 $totalOwed = $plans->where('status', 'active')->sum('remaining_amount');
-                $totalPaid = $plans->sum(fn($plan) => $plan->payments->sum('amount_paid'));
+                $totalPaid = $plans->sum(fn ($plan) => $plan->payments->sum('amount_paid'));
                 $overdueAmount = $plans->where('status', 'active')
                     ->flatMap->payments
                     ->where('status', 'overdue')
-                    ->sum(fn($payment) => $payment->amount_due - ($payment->amount_paid ?? 0));
+                    ->sum(fn ($payment) => $payment->amount_due - ($payment->amount_paid ?? 0));
 
                 return [
                     'total_plans' => $plans->count(),
@@ -259,7 +258,7 @@ class InstallmentService
 
                 $plan->update([
                     'status' => 'cancelled',
-                    'notes' => $reason ? ($plan->notes . "\n" . __('Cancelled') . ': ' . $reason) : $plan->notes,
+                    'notes' => $reason ? ($plan->notes."\n".__('Cancelled').': '.$reason) : $plan->notes,
                 ]);
             },
             operation: 'cancelPlan',
@@ -287,7 +286,7 @@ class InstallmentService
         return $this->handleServiceOperation(
             callback: function () use ($branchId) {
                 $query = InstallmentPlan::query()
-                    ->when($branchId, fn($q) => $q->where('branch_id', $branchId));
+                    ->when($branchId, fn ($q) => $q->where('branch_id', $branchId));
 
                 return [
                     'total_active' => (clone $query)->where('status', 'active')->count(),
@@ -296,7 +295,7 @@ class InstallmentService
                     'total_outstanding' => max(0, (clone $query)->where('status', 'active')->sum('remaining_amount')),
                     'overdue_payments_count' => InstallmentPayment::where('status', 'overdue')
                         ->when($branchId, function ($q) use ($branchId) {
-                            $q->whereHas('plan', fn($p) => $p->where('branch_id', $branchId));
+                            $q->whereHas('plan', fn ($p) => $p->where('branch_id', $branchId));
                         })
                         ->count(),
                 ];

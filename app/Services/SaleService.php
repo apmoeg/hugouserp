@@ -1,15 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
 
 use App\Models\ReturnNote;
 use App\Models\Sale;
-use App\Models\SaleItem;
 use App\Services\Contracts\SaleServiceInterface;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class SaleService implements SaleServiceInterface
 {
@@ -18,7 +17,7 @@ class SaleService implements SaleServiceInterface
     public function show(int $id): Sale
     {
         return $this->handleServiceOperation(
-            callback: fn() => Sale::with('items')->findOrFail($id),
+            callback: fn () => Sale::with('items')->findOrFail($id),
             operation: 'show',
             context: ['sale_id' => $id]
         );
@@ -34,26 +33,28 @@ class SaleService implements SaleServiceInterface
                 return DB::transaction(function () use ($sale, $items, $reason) {
                     $note = ReturnNote::create([
                         'sale_id' => $sale->getKey(),
-                        'reason'  => $reason,
+                        'reason' => $reason,
                     ]);
 
                     $refund = 0.0;
                     foreach ($items as $it) {
                         $si = $sale->items->firstWhere('product_id', $it['product_id']);
-                        if (!$si) continue;
-                        $qty = min((float)$it['qty'], (float)$si->qty);
-                        $line = $qty * (float)$si->price;
+                        if (! $si) {
+                            continue;
+                        }
+                        $qty = min((float) $it['qty'], (float) $si->qty);
+                        $line = $qty * (float) $si->price;
                         $refund += $line;
                     }
 
                     $sale->status = 'returned';
-                    $sale->paid_total = max(0.0, (float)$sale->paid_total - $refund);
+                    $sale->paid_total = max(0.0, (float) $sale->paid_total - $refund);
                     $sale->save();
 
                     $this->logServiceInfo('handleReturn', 'Sale return processed', [
                         'sale_id' => $sale->getKey(),
                         'return_note_id' => $note->getKey(),
-                        'refund_amount' => $refund
+                        'refund_amount' => $refund,
                     ]);
 
                     return $note;
@@ -70,12 +71,12 @@ class SaleService implements SaleServiceInterface
             callback: function () use ($saleId, $reason) {
                 $sale = Sale::findOrFail($saleId);
                 $sale->status = 'void';
-                $sale->notes  = trim(($sale->notes ?? '')."\nVOID: ".$reason);
+                $sale->notes = trim(($sale->notes ?? '')."\nVOID: ".$reason);
                 $sale->save();
 
                 $this->logServiceInfo('voidSale', 'Sale voided', [
                     'sale_id' => $sale->getKey(),
-                    'reason' => $reason
+                    'reason' => $reason,
                 ]);
 
                 return $sale;
@@ -92,6 +93,7 @@ class SaleService implements SaleServiceInterface
             callback: function () use ($saleId) {
                 $sale = Sale::with('items')->findOrFail($saleId);
                 $printer = app(PrintingService::class);
+
                 return $printer->renderPdfOrHtml('prints.sale', ['sale' => $sale], 'sale_'.$sale->id);
             },
             operation: 'printInvoice',

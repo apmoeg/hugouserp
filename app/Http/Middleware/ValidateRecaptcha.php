@@ -19,20 +19,21 @@ class ValidateRecaptcha
     {
         $isEnabled = $this->settingsService->get('security.recaptcha_enabled', false);
 
-        if (!$isEnabled) {
+        if (! $isEnabled) {
             return $next($request);
         }
 
         $token = $request->input('g-recaptcha-response') ?? $request->input('recaptcha_token');
 
-        if (!$token) {
+        if (! $token) {
             return $this->failResponse($request, __('reCAPTCHA verification required'));
         }
 
         $secretKey = $this->settingsService->getDecrypted('security.recaptcha_secret_key');
 
-        if (!$secretKey) {
+        if (! $secretKey) {
             Log::error('reCAPTCHA enabled but secret key not configured - blocking request');
+
             return $this->failResponse($request, __('Security verification temporarily unavailable. Please try again later.'));
         }
 
@@ -45,11 +46,12 @@ class ValidateRecaptcha
 
             $result = $response->json();
 
-            if (!($result['success'] ?? false)) {
+            if (! ($result['success'] ?? false)) {
                 Log::warning('reCAPTCHA verification failed', [
                     'errors' => $result['error-codes'] ?? [],
                     'ip' => $request->ip(),
                 ]);
+
                 return $this->failResponse($request, __('reCAPTCHA verification failed'));
             }
 
@@ -58,6 +60,7 @@ class ValidateRecaptcha
                     'score' => $result['score'],
                     'ip' => $request->ip(),
                 ]);
+
                 return $this->failResponse($request, __('Security verification failed'));
             }
 
@@ -66,6 +69,7 @@ class ValidateRecaptcha
                 'error' => $e->getMessage(),
                 'ip' => $request->ip(),
             ]);
+
             return $this->failResponse($request, __('Security verification temporarily unavailable. Please try again later.'));
         }
 

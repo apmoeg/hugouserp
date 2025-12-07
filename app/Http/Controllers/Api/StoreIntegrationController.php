@@ -37,8 +37,8 @@ class StoreIntegrationController extends Controller
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search): void {
-                $q->where('sku', 'like', '%' . $search . '%')
-                    ->orWhere('name', 'like', '%' . $search . '%');
+                $q->where('sku', 'like', '%'.$search.'%')
+                    ->orWhere('name', 'like', '%'.$search.'%');
             });
         }
 
@@ -71,9 +71,9 @@ class StoreIntegrationController extends Controller
             ->get(['id', 'sku', 'name', 'current_stock'])
             ->map(static function (Product $product): array {
                 return [
-                    'id'            => $product->getKey(),
-                    'sku'           => $product->sku,
-                    'name'          => $product->name,
+                    'id' => $product->getKey(),
+                    'sku' => $product->sku,
+                    'name' => $product->name,
                     'current_stock' => (float) ($product->current_stock ?? 0),
                 ];
             })
@@ -92,37 +92,37 @@ class StoreIntegrationController extends Controller
         }
 
         $validated = $request->validate([
-            'items'                => ['required', 'array', 'min:1'],
-            'items.*.sku'          => ['nullable', 'string', 'max:191'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.sku' => ['nullable', 'string', 'max:191'],
             'items.*.variation_id' => ['nullable', 'integer'],
-            'items.*.variation_sku'=> ['nullable', 'string', 'max:191'],
-            'items.*.qty'          => ['required', 'numeric'],
+            'items.*.variation_sku' => ['nullable', 'string', 'max:191'],
+            'items.*.qty' => ['required', 'numeric'],
         ]);
 
         $updated = [];
-        $errors  = [];
+        $errors = [];
 
         foreach ($validated['items'] as $row) {
             $qty = (float) $row['qty'];
 
             try {
                 $target = null;
-                $type   = null;
+                $type = null;
 
                 if (! empty($row['variation_id'])) {
                     $target = ProductVariation::query()->find((int) $row['variation_id']);
-                    $type   = 'variation';
+                    $type = 'variation';
                 } elseif (! empty($row['variation_sku'])) {
                     $target = ProductVariation::query()->where('sku', $row['variation_sku'])->first();
-                    $type   = 'variation';
+                    $type = 'variation';
                 } elseif (! empty($row['sku'])) {
                     $target = Product::query()->where('sku', $row['sku'])->first();
-                    $type   = 'product';
+                    $type = 'product';
                 }
 
                 if (! $target) {
                     $errors[] = [
-                        'item'   => $row,
+                        'item' => $row,
                         'reason' => 'not_found',
                     ];
 
@@ -134,11 +134,11 @@ class StoreIntegrationController extends Controller
 
                 $updated[] = [
                     'type' => $type,
-                    'id'   => $target->getKey(),
+                    'id' => $target->getKey(),
                 ];
             } catch (\Throwable $e) {
                 $errors[] = [
-                    'item'   => $row,
+                    'item' => $row,
                     'reason' => 'exception',
                 ];
             }
@@ -146,7 +146,7 @@ class StoreIntegrationController extends Controller
 
         return response()->json([
             'updated' => $updated,
-            'errors'  => $errors,
+            'errors' => $errors,
         ]);
     }
 
@@ -159,36 +159,36 @@ class StoreIntegrationController extends Controller
         }
 
         $validated = $request->validate([
-            'external_id'          => ['required', 'string', 'max:191'],
-            'branch_id'            => ['nullable', 'integer'],
-            'currency'             => ['nullable', 'string', 'max:10'],
-            'total'                => ['nullable', 'numeric'],
-            'discount_total'       => ['nullable', 'numeric'],
-            'shipping_total'       => ['nullable', 'numeric'],
-            'tax_total'            => ['nullable', 'numeric'],
-            'items'                => ['required', 'array', 'min:1'],
-            'items.*.sku'          => ['nullable', 'string', 'max:191'],
+            'external_id' => ['required', 'string', 'max:191'],
+            'branch_id' => ['nullable', 'integer'],
+            'currency' => ['nullable', 'string', 'max:10'],
+            'total' => ['nullable', 'numeric'],
+            'discount_total' => ['nullable', 'numeric'],
+            'shipping_total' => ['nullable', 'numeric'],
+            'tax_total' => ['nullable', 'numeric'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.sku' => ['nullable', 'string', 'max:191'],
             'items.*.variation_id' => ['nullable', 'integer'],
-            'items.*.variation_sku'=> ['nullable', 'string', 'max:191'],
-            'items.*.qty'          => ['required', 'numeric', 'min:0.01'],
-            'items.*.price'        => ['nullable', 'numeric'],
-            'items.*.discount'     => ['nullable', 'numeric'],
-            'items.*.total'        => ['nullable', 'numeric'],
-            'customer'             => ['nullable', 'array'],
-            'meta'                 => ['nullable', 'array'],
+            'items.*.variation_sku' => ['nullable', 'string', 'max:191'],
+            'items.*.qty' => ['required', 'numeric', 'min:0.01'],
+            'items.*.price' => ['nullable', 'numeric'],
+            'items.*.discount' => ['nullable', 'numeric'],
+            'items.*.total' => ['nullable', 'numeric'],
+            'customer' => ['nullable', 'array'],
+            'meta' => ['nullable', 'array'],
         ]);
 
         $order = StoreOrder::query()->updateOrCreate(
             ['external_order_id' => $validated['external_id']],
             [
-                'status'         => 'pending',
-                'branch_id'      => $validated['branch_id'] ?? null,
-                'currency'       => $validated['currency'] ?? null,
-                'total'          => $validated['total'] ?? 0,
+                'status' => 'pending',
+                'branch_id' => $validated['branch_id'] ?? null,
+                'currency' => $validated['currency'] ?? null,
+                'total' => $validated['total'] ?? 0,
                 'discount_total' => $validated['discount_total'] ?? 0,
                 'shipping_total' => $validated['shipping_total'] ?? 0,
-                'tax_total'      => $validated['tax_total'] ?? 0,
-                'payload'        => $validated,
+                'tax_total' => $validated['tax_total'] ?? 0,
+                'payload' => $validated,
             ]
         );
 
@@ -235,8 +235,8 @@ class StoreIntegrationController extends Controller
         }
 
         return response()->json([
-            'id'          => $order->id,
-            'status'      => $order->status,
+            'id' => $order->id,
+            'status' => $order->status,
             'external_id' => $order->external_order_id,
         ], 201);
     }
@@ -260,8 +260,8 @@ class StoreIntegrationController extends Controller
         ]);
 
         return response()->json([
-            'id'          => $order->id,
-            'status'      => $order->status,
+            'id' => $order->id,
+            'status' => $order->status,
             'external_id' => $order->external_order_id,
         ]);
     }

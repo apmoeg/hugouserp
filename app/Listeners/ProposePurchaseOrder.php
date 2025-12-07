@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Listeners;
@@ -17,21 +18,21 @@ class ProposePurchaseOrder implements ShouldQueue
         $threshold = $event->threshold ?? 0.0;
 
         $title = __('Stock low: :name', ['name' => $product->name]);
-        $body  = __('Current :current below threshold :threshold in :wh', [
-            'current'   => number_format($current, 2),
+        $body = __('Current :current below threshold :threshold in :wh', [
+            'current' => number_format($current, 2),
             'threshold' => number_format($threshold, 2),
-            'wh'        => $warehouse?->name ?? 'N/A',
+            'wh' => $warehouse?->name ?? 'N/A',
         ]);
 
         // Notify branch managers (assumes a scope/role exists)
         $notifiables = \App\Models\User::query()
-            ->whereHas('roles', fn($q) => $q->where('name', 'Branch Manager'))
+            ->whereHas('roles', fn ($q) => $q->where('name', 'Branch Manager'))
             ->get();
 
         foreach ($notifiables as $user) {
             $user->notify(new GeneralNotification($title, $body, [
-                'product_id'  => $product->getKey(),
-                'warehouse_id'=> $warehouse?->getKey(),
+                'product_id' => $product->getKey(),
+                'warehouse_id' => $warehouse?->getKey(),
             ]));
         }
     }

@@ -28,7 +28,7 @@ class ProductResource extends JsonResource
             'is_service' => $this->is_service,
             'tax_rate' => (float) $this->tax_rate,
             'branch_id' => $this->branch_id,
-            'branch' => $this->whenLoaded('branch', fn() => new BranchResource($this->branch)),
+            'branch' => $this->whenLoaded('branch', fn () => new BranchResource($this->branch)),
             'warehouse' => $this->whenLoaded('warehouse'),
             'images' => $this->images,
             'created_at' => $this->created_at?->toIso8601String(),

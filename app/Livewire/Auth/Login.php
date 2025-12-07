@@ -15,7 +15,9 @@ class Login extends Component
 {
     #[Layout('layouts.guest')]
     public string $credential = '';
+
     public string $password = '';
+
     public bool $remember = true;
 
     protected AuthService $authService;
@@ -54,11 +56,12 @@ class Login extends Component
     {
         $this->validate();
 
-        $throttleKey = Str::transliterate(Str::lower($this->credential) . '|' . request()->ip());
+        $throttleKey = Str::transliterate(Str::lower($this->credential).'|'.request()->ip());
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
             $this->addError('credential', __('Too many login attempts. Please try again in :seconds seconds.', ['seconds' => $seconds]));
+
             return;
         }
 
@@ -68,16 +71,16 @@ class Login extends Component
             $this->remember
         );
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             RateLimiter::hit($throttleKey);
-            
+
             match ($result['error']) {
                 'user_not_found' => $this->addError('credential', __('No account found with this email, phone, or username.')),
                 'account_inactive' => $this->addError('credential', __('Your account has been deactivated. Please contact support.')),
                 'invalid_password' => $this->addError('password', __('The password you entered is incorrect.')),
                 default => $this->addError('credential', __('These credentials do not match our records.')),
             };
-            
+
             return;
         }
 

@@ -29,11 +29,12 @@ class ForceJsonResponse
         // Force JSON content-type when possible
         if ($response instanceof JsonResponse) {
             $response->headers->set('Content-Type', 'application/json; charset=utf-8');
+
             return $response;
         }
 
         // If response isn't JsonResponse, don't mutate body; just set header if empty
-        if (!$response->headers->has('Content-Type')) {
+        if (! $response->headers->has('Content-Type')) {
             $response->headers->set('Content-Type', 'application/json; charset=utf-8');
         }
 

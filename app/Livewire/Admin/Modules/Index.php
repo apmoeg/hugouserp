@@ -13,7 +13,9 @@ class Index extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $sortField = 'sort_order';
+
     public string $sortDirection = 'asc';
 
     protected $queryString = ['search'];
@@ -36,22 +38,23 @@ class Index extends Component
     public function toggleActive(int $id): void
     {
         $this->authorize('modules.manage');
-        
+
         $module = Module::findOrFail($id);
-        
+
         if ($module->is_core) {
             session()->flash('error', __('Cannot deactivate core module'));
+
             return;
         }
-        
-        $module->update(['is_active' => !$module->is_active]);
+
+        $module->update(['is_active' => ! $module->is_active]);
         session()->flash('success', __('Module status updated'));
     }
 
     public function render()
     {
         $modules = Module::query()
-            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")
+            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%")
                 ->orWhere('key', 'like', "%{$this->search}%"))
             ->withCount('branches')
             ->orderBy($this->sortField, $this->sortDirection)

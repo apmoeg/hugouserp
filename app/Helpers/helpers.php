@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Auth;
@@ -37,14 +38,14 @@ if (! function_exists('money')) {
     {
         $formatted = number_format($amount, 2, '.', ',');
 
-        return $formatted . ' ' . $currency;
+        return $formatted.' '.$currency;
     }
 }
 
 if (! function_exists('percent')) {
     function percent(float $value, int $decimals = 2): string
     {
-        return number_format($value, $decimals, '.', ',') . '%';
+        return number_format($value, $decimals, '.', ',').'%';
     }
 }
 
@@ -53,7 +54,7 @@ if (! function_exists('sanitize_svg_icon')) {
      * Sanitize SVG icon content using a strict allow-list approach.
      * Only allows safe SVG elements and attributes to prevent XSS.
      *
-     * @param string|null $svg The SVG content to sanitize
+     * @param  string|null  $svg  The SVG content to sanitize
      * @return string Sanitized SVG or empty string
      */
     function sanitize_svg_icon(?string $svg): string
@@ -66,7 +67,7 @@ if (! function_exists('sanitize_svg_icon')) {
         $allowedTags = [
             'svg', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon',
             'ellipse', 'g', 'defs', 'symbol', 'title', 'desc',
-            'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask'
+            'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask',
         ];
 
         // Define allowed attributes (strict subset - no event handlers, no href for safety)
@@ -76,35 +77,36 @@ if (! function_exists('sanitize_svg_icon')) {
             'd', 'cx', 'cy', 'r', 'rx', 'ry', 'x', 'x1', 'x2', 'y', 'y1', 'y2',
             'points', 'transform', 'opacity', 'fill-opacity', 'stroke-opacity',
             'clip-path', 'offset', 'stop-color', 'stop-opacity',
-            'xmlns', 'preserveaspectratio', 'fill-rule', 'clip-rule', 'vector-effect'
+            'xmlns', 'preserveaspectratio', 'fill-rule', 'clip-rule', 'vector-effect',
         ];
 
         // Use DOMDocument for proper parsing
         libxml_use_internal_errors(true);
-        $dom = new \DOMDocument();
-        
+        $dom = new \DOMDocument;
+
         // Wrap in HTML to ensure proper parsing
-        $wrapped = '<!DOCTYPE html><html><body>' . $svg . '</body></html>';
+        $wrapped = '<!DOCTYPE html><html><body>'.$svg.'</body></html>';
         $dom->loadHTML($wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NOERROR);
         libxml_clear_errors();
 
         // Collect elements to remove (cannot modify during iteration)
         $toRemove = [];
-        
+
         // Find and sanitize all elements
         $xpath = new \DOMXPath($dom);
         $allElements = $xpath->query('//*');
 
         foreach ($allElements as $element) {
-            if (!$element instanceof \DOMElement) {
+            if (! $element instanceof \DOMElement) {
                 continue;
             }
 
             $tagName = strtolower($element->tagName);
 
             // Only allow explicitly whitelisted elements
-            if (!in_array($tagName, array_merge($allowedTags, ['html', 'body']))) {
+            if (! in_array($tagName, array_merge($allowedTags, ['html', 'body']))) {
                 $toRemove[] = $element;
+
                 continue;
             }
 
@@ -112,7 +114,7 @@ if (! function_exists('sanitize_svg_icon')) {
             $attrsToRemove = [];
             foreach ($element->attributes as $attr) {
                 $attrName = strtolower($attr->name);
-                
+
                 // Normalize value: decode entities, remove control chars, collapse whitespace
                 $attrValue = html_entity_decode($attr->value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
                 $attrValue = preg_replace('/[\x00-\x1f\x7f]/u', '', $attrValue); // Remove control chars
@@ -122,29 +124,33 @@ if (! function_exists('sanitize_svg_icon')) {
                 // Remove any event handlers (on*)
                 if (preg_match('/^on[a-z]/i', $attrName)) {
                     $attrsToRemove[] = $attr->name;
+
                     continue;
                 }
 
                 // Block any href/xlink:href attributes (potential javascript: vectors)
                 if (in_array($attrName, ['href', 'xlink:href', 'src', 'data', 'action', 'formaction'])) {
                     $attrsToRemove[] = $attr->name;
+
                     continue;
                 }
 
                 // Remove dangerous attribute values (with normalized value check)
                 if (preg_match('/(javascript|data\s*:|expression|vbscript|behavior|binding)/i', $attrValue)) {
                     $attrsToRemove[] = $attr->name;
+
                     continue;
                 }
 
                 // Remove style attribute entirely for safety (CSS can contain exploits)
                 if ($attrName === 'style') {
                     $attrsToRemove[] = $attr->name;
+
                     continue;
                 }
 
                 // Only allow explicitly whitelisted attributes
-                if (!in_array($attrName, $allowedAttrs)) {
+                if (! in_array($attrName, $allowedAttrs)) {
                     $attrsToRemove[] = $attr->name;
                 }
             }
@@ -161,7 +167,7 @@ if (! function_exists('sanitize_svg_icon')) {
 
         // Extract content from body
         $body = $dom->getElementsByTagName('body')->item(0);
-        if (!$body) {
+        if (! $body) {
             return '';
         }
 

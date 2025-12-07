@@ -4,21 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\AuditLog;
-use App\Models\BranchModule;
-use App\Models\Module;
-use App\Models\User;
-use App\Models\Warehouse;
 
 class Branch extends BaseModel
 {
-
     protected $table = 'branches';
 
     protected $fillable = [
@@ -35,8 +26,8 @@ class Branch extends BaseModel
 
     protected $casts = [
         'is_active' => 'bool',
-        'is_main'   => 'bool',
-        'settings'  => 'array',
+        'is_main' => 'bool',
+        'settings' => 'array',
     ];
 
     public function warehouses(): HasMany

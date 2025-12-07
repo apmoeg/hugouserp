@@ -3,50 +3,49 @@
 declare(strict_types=1);
 
 namespace Database\Seeders;
-use App\Models\SystemSetting;
 
+use App\Models\SystemSetting;
 use Illuminate\Database\Seeder;
 
 class SystemSettingsSeeder extends Seeder
 {
-
     public function run(): void
     {
         $settings = [
             [
-                'key'   => 'app_name',
+                'key' => 'app_name',
                 'value' => 'Ghanem ERP',
-                'type'  => 'string',
+                'type' => 'string',
                 'group' => 'system',
             ],
             [
-                'key'   => 'company_name',
+                'key' => 'company_name',
                 'value' => 'Ghanem LVJU Egypt',
-                'type'  => 'string',
+                'type' => 'string',
                 'group' => 'system',
             ],
             [
-                'key'   => 'currency',
+                'key' => 'currency',
                 'value' => 'EGP',
-                'type'  => 'string',
+                'type' => 'string',
                 'group' => 'system',
             ],
             [
-                'key'   => 'barcodes_dir',
+                'key' => 'barcodes_dir',
                 'value' => 'barcodes',
-                'type'  => 'string',
+                'type' => 'string',
                 'group' => 'files',
             ],
             [
-                'key'   => 'backup_disk',
+                'key' => 'backup_disk',
                 'value' => 'local',
-                'type'  => 'string',
+                'type' => 'string',
                 'group' => 'backup',
             ],
             [
-                'key'   => 'backup_dir',
+                'key' => 'backup_dir',
                 'value' => 'backups',
-                'type'  => 'string',
+                'type' => 'string',
                 'group' => 'backup',
             ],
         ];
@@ -55,9 +54,9 @@ class SystemSettingsSeeder extends Seeder
             SystemSetting::updateOrCreate(
                 ['key' => $row['key']],
                 [
-                    'value'     => $row['value'],
-                    'type'      => $row['type'] ?? 'string',
-                    'group'     => $row['group'] ?? null,
+                    'value' => $row['value'],
+                    'type' => $row['type'] ?? 'string',
+                    'group' => $row['group'] ?? null,
                     'is_public' => $row['is_public'] ?? false,
                 ]
             );

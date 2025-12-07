@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -16,14 +17,14 @@ class Impersonate
         $actor = $request->user();
         $targetRef = $request->headers->get('X-Impersonate-User');
 
-        if (!$actor || !$targetRef) {
+        if (! $actor || ! $targetRef) {
             return $next($request);
         }
 
         $can = (method_exists($actor, 'hasPermissionTo') && $actor->hasPermissionTo('impersonate.users'))
             || (method_exists($actor, 'hasRole') && $actor->hasRole('Super Admin'));
 
-        if (!$can) {
+        if (! $can) {
             return response()->json(['success' => false, 'message' => 'Impersonation not allowed.'], 403);
         }
 
@@ -32,7 +33,7 @@ class Impersonate
             ? User::where('email', $targetRef)->first()
             : User::query()->find($targetRef);
 
-        if (!$target) {
+        if (! $target) {
             return response()->json(['success' => false, 'message' => 'Impersonation target not found.'], 404);
         }
 

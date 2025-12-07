@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -13,7 +14,6 @@ use App\Traits\HandlesServiceErrors;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class ReportService implements ReportServiceInterface
 {
@@ -23,7 +23,7 @@ class ReportService implements ReportServiceInterface
 
     public function __construct(?BranchAccessService $branchAccessService = null)
     {
-        $this->branchAccessService = $branchAccessService ?? new BranchAccessService();
+        $this->branchAccessService = $branchAccessService ?? new BranchAccessService;
     }
 
     public function financeSummary(int $branchId, ?string $from = null, ?string $to = null): array
@@ -31,7 +31,7 @@ class ReportService implements ReportServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($branchId, $from, $to) {
                 $from = $from ?: now()->startOfMonth()->toDateString();
-                $to   = $to   ?: now()->endOfMonth()->toDateString();
+                $to = $to ?: now()->endOfMonth()->toDateString();
 
                 $sales = DB::table('sales')
                     ->where('branch_id', $branchId)
@@ -48,10 +48,10 @@ class ReportService implements ReportServiceInterface
                     ->first();
 
                 return [
-                    'period'    => [$from, $to],
-                    'sales'     => ['total' => (float) ($sales->total ?? 0), 'paid' => (float) ($sales->paid ?? 0)],
+                    'period' => [$from, $to],
+                    'sales' => ['total' => (float) ($sales->total ?? 0), 'paid' => (float) ($sales->paid ?? 0)],
                     'purchases' => ['total' => (float) ($purchases->total ?? 0), 'paid' => (float) ($purchases->paid ?? 0)],
-                    'pnl'       => (float) ($sales->total ?? 0) - (float) ($purchases->total ?? 0),
+                    'pnl' => (float) ($sales->total ?? 0) - (float) ($purchases->total ?? 0),
                 ];
             },
             operation: 'financeSummary',
@@ -68,12 +68,12 @@ class ReportService implements ReportServiceInterface
                     ->join('products as p', 'p.id', '=', 'si.product_id')
                     ->where('s.branch_id', $branchId)
                     ->selectRaw('p.id, p.name, SUM(si.qty*si.price) as gross')
-                    ->groupBy('p.id','p.name')
+                    ->groupBy('p.id', 'p.name')
                     ->orderByDesc('gross')
                     ->limit($limit)
                     ->get();
 
-                return $rows->map(fn($r) => ['id'=>$r->id,'name'=>$r->name,'gross'=>(float)$r->gross])->all();
+                return $rows->map(fn ($r) => ['id' => $r->id, 'name' => $r->name, 'gross' => (float) $r->gross])->all();
             },
             operation: 'topProducts',
             context: ['branch_id' => $branchId, 'limit' => $limit]
@@ -83,14 +83,14 @@ class ReportService implements ReportServiceInterface
     public function getAvailableReports(?User $user = null, ?int $moduleId = null, ?int $branchId = null): Collection
     {
         return $this->handleServiceOperation(
-            callback: function () use ($user, $moduleId, $branchId) {
+            callback: function () use ($user, $moduleId) {
                 $query = ReportDefinition::active()->ordered();
 
                 if ($moduleId) {
                     $query->where('module_id', $moduleId);
                 }
 
-                if ($user && !$user->hasRole('Super Admin')) {
+                if ($user && ! $user->hasRole('Super Admin')) {
                     $query->where('is_branch_specific', true);
                 }
 
@@ -106,9 +106,9 @@ class ReportService implements ReportServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($reportKey, $filters, $user) {
                 $report = ReportDefinition::where('report_key', $reportKey)->first();
-                
+
                 $dataSource = $report?->data_source ?? $reportKey;
-                
+
                 $data = match (true) {
                     str_contains($dataSource, 'inventory'), str_contains($dataSource, 'products') => $this->getInventoryReportData($filters, $user),
                     str_contains($dataSource, 'sales') => $this->getSalesReportData($filters, $user),
@@ -141,27 +141,27 @@ class ReportService implements ReportServiceInterface
                     ->with(['module', 'branch', 'fieldValues.field'])
                     ->parentsOnly();
 
-                if ($user && !$user->hasRole('Super Admin')) {
+                if ($user && ! $user->hasRole('Super Admin')) {
                     $query = $this->branchAccessService->filterQueryByBranch($query, $user);
                 }
 
-                if (!empty($filters['branch_id'])) {
+                if (! empty($filters['branch_id'])) {
                     $query->where('branch_id', $filters['branch_id']);
                 }
 
-                if (!empty($filters['module_id'])) {
+                if (! empty($filters['module_id'])) {
                     $query->where('module_id', $filters['module_id']);
                 }
 
-                if (!empty($filters['status'])) {
+                if (! empty($filters['status'])) {
                     $query->where('status', $filters['status']);
                 }
 
-                if (!empty($filters['date_from'])) {
+                if (! empty($filters['date_from'])) {
                     $query->whereDate('created_at', '>=', $filters['date_from']);
                 }
 
-                if (!empty($filters['date_to'])) {
+                if (! empty($filters['date_to'])) {
                     $query->whereDate('created_at', '<=', $filters['date_to']);
                 }
 
@@ -169,10 +169,10 @@ class ReportService implements ReportServiceInterface
 
                 $summary = [
                     'total_products' => $items->count(),
-                    'total_value' => $items->sum(fn($p) => ($p->default_price ?? 0) * 1),
-                    'total_cost' => $items->sum(fn($p) => $p->standard_cost ?? 0),
-                    'by_module' => $items->groupBy('module_id')->map(fn($g) => $g->count()),
-                    'by_status' => $items->groupBy('status')->map(fn($g) => $g->count()),
+                    'total_value' => $items->sum(fn ($p) => ($p->default_price ?? 0) * 1),
+                    'total_cost' => $items->sum(fn ($p) => $p->standard_cost ?? 0),
+                    'by_module' => $items->groupBy('module_id')->map(fn ($g) => $g->count()),
+                    'by_status' => $items->groupBy('status')->map(fn ($g) => $g->count()),
                 ];
 
                 return ['items' => $items, 'summary' => $summary];
@@ -195,7 +195,7 @@ class ReportService implements ReportServiceInterface
                     ->leftJoin('customers', 'sales.customer_id', '=', 'customers.id')
                     ->leftJoin('branches', 'sales.branch_id', '=', 'branches.id');
 
-                if ($user && !$user->hasRole('Super Admin')) {
+                if ($user && ! $user->hasRole('Super Admin')) {
                     $branchIds = $this->branchAccessService->getUserBranches($user)->pluck('id');
                     $query->whereIn('sales.branch_id', $branchIds);
                 }
@@ -203,7 +203,7 @@ class ReportService implements ReportServiceInterface
                 $this->applyDateFilters($query, $filters, 'sales.sale_date');
                 $this->applyBranchFilter($query, $filters, 'sales.branch_id');
 
-                if (!empty($filters['status'])) {
+                if (! empty($filters['status'])) {
                     $query->where('sales.status', $filters['status']);
                 }
 
@@ -214,8 +214,8 @@ class ReportService implements ReportServiceInterface
                     'total_amount' => $items->sum('grand_total'),
                     'total_paid' => $items->sum('amount_paid'),
                     'total_due' => $items->sum('amount_due'),
-                    'by_status' => $items->groupBy('status')->map(fn($g) => ['count' => $g->count(), 'amount' => $g->sum('grand_total')]),
-                    'by_branch' => $items->groupBy('branch_name')->map(fn($g) => ['count' => $g->count(), 'amount' => $g->sum('grand_total')]),
+                    'by_status' => $items->groupBy('status')->map(fn ($g) => ['count' => $g->count(), 'amount' => $g->sum('grand_total')]),
+                    'by_branch' => $items->groupBy('branch_name')->map(fn ($g) => ['count' => $g->count(), 'amount' => $g->sum('grand_total')]),
                 ];
 
                 return ['items' => $items, 'summary' => $summary];
@@ -234,7 +234,7 @@ class ReportService implements ReportServiceInterface
                     ->leftJoin('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
                     ->leftJoin('branches', 'purchases.branch_id', '=', 'branches.id');
 
-                if ($user && !$user->hasRole('Super Admin')) {
+                if ($user && ! $user->hasRole('Super Admin')) {
                     $branchIds = $this->branchAccessService->getUserBranches($user)->pluck('id');
                     $query->whereIn('purchases.branch_id', $branchIds);
                 }
@@ -268,7 +268,7 @@ class ReportService implements ReportServiceInterface
                     ->leftJoin('expense_categories', 'expenses.expense_category_id', '=', 'expense_categories.id')
                     ->leftJoin('branches', 'expenses.branch_id', '=', 'branches.id');
 
-                if ($user && !$user->hasRole('Super Admin')) {
+                if ($user && ! $user->hasRole('Super Admin')) {
                     $branchIds = $this->branchAccessService->getUserBranches($user)->pluck('id');
                     $query->whereIn('expenses.branch_id', $branchIds);
                 }
@@ -276,7 +276,7 @@ class ReportService implements ReportServiceInterface
                 $this->applyDateFilters($query, $filters, 'expenses.expense_date');
                 $this->applyBranchFilter($query, $filters, 'expenses.branch_id');
 
-                if (!empty($filters['category_id'])) {
+                if (! empty($filters['category_id'])) {
                     $query->where('expenses.expense_category_id', $filters['category_id']);
                 }
 
@@ -287,8 +287,8 @@ class ReportService implements ReportServiceInterface
                     'summary' => [
                         'total_expenses' => $items->count(),
                         'total_amount' => $items->sum('amount'),
-                        'by_category' => $items->groupBy('category_name')->map(fn($g) => $g->sum('amount')),
-                        'by_branch' => $items->groupBy('branch_name')->map(fn($g) => $g->sum('amount')),
+                        'by_category' => $items->groupBy('category_name')->map(fn ($g) => $g->sum('amount')),
+                        'by_branch' => $items->groupBy('branch_name')->map(fn ($g) => $g->sum('amount')),
                     ],
                 ];
             },
@@ -306,7 +306,7 @@ class ReportService implements ReportServiceInterface
                     ->leftJoin('income_categories', 'incomes.income_category_id', '=', 'income_categories.id')
                     ->leftJoin('branches', 'incomes.branch_id', '=', 'branches.id');
 
-                if ($user && !$user->hasRole('Super Admin')) {
+                if ($user && ! $user->hasRole('Super Admin')) {
                     $branchIds = $this->branchAccessService->getUserBranches($user)->pluck('id');
                     $query->whereIn('incomes.branch_id', $branchIds);
                 }
@@ -321,7 +321,7 @@ class ReportService implements ReportServiceInterface
                     'summary' => [
                         'total_income' => $items->count(),
                         'total_amount' => $items->sum('amount'),
-                        'by_category' => $items->groupBy('category_name')->map(fn($g) => $g->sum('amount')),
+                        'by_category' => $items->groupBy('category_name')->map(fn ($g) => $g->sum('amount')),
                     ],
                 ];
             },
@@ -336,7 +336,7 @@ class ReportService implements ReportServiceInterface
             callback: function () use ($filters, $user) {
                 $query = DB::table('customers')->select('customers.*');
 
-                if ($user && !$user->hasRole('Super Admin')) {
+                if ($user && ! $user->hasRole('Super Admin')) {
                     $branchIds = $this->branchAccessService->getUserBranches($user)->pluck('id');
                     $query->whereIn('customers.branch_id', $branchIds);
                 }
@@ -361,7 +361,7 @@ class ReportService implements ReportServiceInterface
             callback: function () use ($filters, $user) {
                 $query = DB::table('suppliers')->select('suppliers.*');
 
-                if ($user && !$user->hasRole('Super Admin')) {
+                if ($user && ! $user->hasRole('Super Admin')) {
                     $branchIds = $this->branchAccessService->getUserBranches($user)->pluck('id');
                     $query->whereIn('suppliers.branch_id', $branchIds);
                 }
@@ -384,8 +384,8 @@ class ReportService implements ReportServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($filters, $user) {
-                $branches = $user->hasRole('Super Admin') 
-                    ? Branch::active()->get() 
+                $branches = $user->hasRole('Super Admin')
+                    ? Branch::active()->get()
                     : $this->branchAccessService->getUserBranches($user);
 
                 $dateFrom = $filters['date_from'] ?? Carbon::now()->startOfMonth();
@@ -461,17 +461,17 @@ class ReportService implements ReportServiceInterface
 
     protected function applyDateFilters($query, array $filters, string $dateColumn): void
     {
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->whereDate($dateColumn, '>=', $filters['date_from']);
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->whereDate($dateColumn, '<=', $filters['date_to']);
         }
     }
 
     protected function applyBranchFilter($query, array $filters, string $branchColumn): void
     {
-        if (!empty($filters['branch_id'])) {
+        if (! empty($filters['branch_id'])) {
             $query->where($branchColumn, $filters['branch_id']);
         }
     }

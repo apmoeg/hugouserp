@@ -30,8 +30,11 @@ class Store extends BaseModel
     ];
 
     public const TYPE_SHOPIFY = 'shopify';
+
     public const TYPE_WOOCOMMERCE = 'woocommerce';
+
     public const TYPE_LARAVEL = 'laravel';
+
     public const TYPE_CUSTOM = 'custom';
 
     public function branch(): BelongsTo

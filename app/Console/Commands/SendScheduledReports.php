@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Events\UserNotificationCreated;
 use App\Mail\ScheduledReportMail;
-use App\Models\ScheduledReport;
 use App\Models\Notification;
+use App\Models\ScheduledReport;
 use Cron\CronExpression;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use App\Events\UserNotificationCreated;
 use Illuminate\Support\Facades\Mail;
 
 class SendScheduledReports extends Command
@@ -40,9 +40,9 @@ class SendScheduledReports extends Command
                     }
                 }
 
-                $filters   = $report->filters ?? [];
-                $template  = $report->template;
-                $url       = null;
+                $filters = $report->filters ?? [];
+                $template = $report->template;
+                $url = null;
 
                 // Template-aware export routing
                 if ($template && in_array($template->output_type, ['excel', 'pdf'], true)) {
@@ -60,7 +60,7 @@ class SendScheduledReports extends Command
                         } catch (\Throwable $e) {
                             Log::warning('ScheduledReports: export route failed, falling back to base route', [
                                 'report_id' => $report->id,
-                                'message'   => $e->getMessage(),
+                                'message' => $e->getMessage(),
                             ]);
                         }
                     }
@@ -72,7 +72,7 @@ class SendScheduledReports extends Command
                     } catch (\Throwable $e) {
                         Log::warning('ScheduledReports: route not found', [
                             'route_name' => $report->route_name,
-                            'id'         => $report->id,
+                            'id' => $report->id,
                         ]);
 
                         continue;
@@ -111,7 +111,7 @@ class SendScheduledReports extends Command
 
             } catch (\Throwable $e) {
                 Log::error('Failed to send scheduled report', [
-                    'id'      => $report->id,
+                    'id' => $report->id,
                     'message' => $e->getMessage(),
                 ]);
                 $this->markScheduledReportFailure($report, $e->getMessage());
@@ -124,40 +124,39 @@ class SendScheduledReports extends Command
         return self::SUCCESS;
     }
 
-
     protected function markScheduledReportSuccess(ScheduledReport $report): void
     {
         $report->forceFill([
-            'last_status'    => 'success',
-            'last_run_at'    => now(),
-            'last_error'     => null,
-            'runs_count'     => ($report->runs_count ?? 0) + 1,
+            'last_status' => 'success',
+            'last_run_at' => now(),
+            'last_error' => null,
+            'runs_count' => ($report->runs_count ?? 0) + 1,
         ])->save();
     }
 
     protected function markScheduledReportFailure(ScheduledReport $report, string $message): void
     {
         $report->forceFill([
-            'last_status'     => 'failed',
-            'last_run_at'     => now(),
-            'last_error'      => $message,
-            'runs_count'      => ($report->runs_count ?? 0) + 1,
-            'failures_count'  => ($report->failures_count ?? 0) + 1,
+            'last_status' => 'failed',
+            'last_run_at' => now(),
+            'last_error' => $message,
+            'runs_count' => ($report->runs_count ?? 0) + 1,
+            'failures_count' => ($report->failures_count ?? 0) + 1,
         ])->save();
 
         if ($report->user) {
             $notification = Notification::create([
                 'user_id' => $report->user_id,
-                'title'   => __('Scheduled report failed'),
-                'body'    => __('Report ":name" failed: :message', [
-                    'name'    => $report->template?->name ?? $report->route_name,
+                'title' => __('Scheduled report failed'),
+                'body' => __('Report ":name" failed: :message', [
+                    'name' => $report->template?->name ?? $report->route_name,
                     'message' => $message,
                 ]),
-                'data'    => [
-                    'type'                => 'reports',
+                'data' => [
+                    'type' => 'reports',
                     'scheduled_report_id' => $report->id,
-                    'template_id'         => $report->report_template_id,
-                    'route_name'          => $report->route_name,
+                    'template_id' => $report->report_template_id,
+                    'route_name' => $report->route_name,
                 ],
             ]);
 
@@ -167,5 +166,4 @@ class SendScheduledReports extends Command
             ));
         }
     }
-
 }

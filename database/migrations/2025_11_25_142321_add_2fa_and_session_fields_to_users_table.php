@@ -12,35 +12,35 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             // Add discount-related columns first if they don't exist
-            if (!Schema::hasColumn('users', 'max_discount_percent')) {
+            if (! Schema::hasColumn('users', 'max_discount_percent')) {
                 $table->decimal('max_discount_percent', 5, 2)->nullable();
             }
-            if (!Schema::hasColumn('users', 'daily_discount_limit')) {
+            if (! Schema::hasColumn('users', 'daily_discount_limit')) {
                 $table->decimal('daily_discount_limit', 12, 2)->nullable();
             }
-            if (!Schema::hasColumn('users', 'can_modify_price')) {
+            if (! Schema::hasColumn('users', 'can_modify_price')) {
                 $table->boolean('can_modify_price')->default(true);
             }
-            
+
             // Add session management columns
-            if (!Schema::hasColumn('users', 'max_sessions')) {
+            if (! Schema::hasColumn('users', 'max_sessions')) {
                 $table->unsignedInteger('max_sessions')->default(3);
             }
-            
+
             // Add 2FA columns
-            if (!Schema::hasColumn('users', 'two_factor_enabled')) {
+            if (! Schema::hasColumn('users', 'two_factor_enabled')) {
                 $table->boolean('two_factor_enabled')->default(false);
             }
-            if (!Schema::hasColumn('users', 'two_factor_secret')) {
+            if (! Schema::hasColumn('users', 'two_factor_secret')) {
                 $table->text('two_factor_secret')->nullable();
             }
-            if (!Schema::hasColumn('users', 'two_factor_recovery_codes')) {
+            if (! Schema::hasColumn('users', 'two_factor_recovery_codes')) {
                 $table->text('two_factor_recovery_codes')->nullable();
             }
-            if (!Schema::hasColumn('users', 'two_factor_confirmed_at')) {
+            if (! Schema::hasColumn('users', 'two_factor_confirmed_at')) {
                 $table->timestamp('two_factor_confirmed_at')->nullable();
             }
-            if (!Schema::hasColumn('users', 'password_changed_at')) {
+            if (! Schema::hasColumn('users', 'password_changed_at')) {
                 $table->timestamp('password_changed_at')->nullable();
             }
         });
@@ -49,7 +49,7 @@ return new class extends Migration
     public function down(): void
     {
         // Note: Only drop columns that are NOT defined in the base users migration.
-        // The columns max_discount_percent, daily_discount_limit, can_modify_price, 
+        // The columns max_discount_percent, daily_discount_limit, can_modify_price,
         // and max_sessions are defined in 2025_11_15_000002_create_users_table.php
         // and should NOT be dropped here to maintain rollback safety.
         Schema::table('users', function (Blueprint $table) {

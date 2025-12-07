@@ -40,11 +40,11 @@ class InAppMessage extends Notification implements ShouldQueue
     public function toArray($notifiable): array
     {
         return [
-            'title'       => $this->title,
-            'message'     => $this->message,
-            'data'        => $this->data,
-            'read'        => false,
-            'created_at'  => now()->toISOString(),
+            'title' => $this->title,
+            'message' => $this->message,
+            'data' => $this->data,
+            'read' => false,
+            'created_at' => now()->toISOString(),
         ];
     }
 
@@ -54,13 +54,13 @@ class InAppMessage extends Notification implements ShouldQueue
     public function toBroadcast($notifiable): BroadcastMessage
     {
         return new BroadcastMessage([
-            'id'          => $this->id,
-            'title'       => $this->title,
-            'message'     => $this->message,
-            'data'        => $this->data,
-            'read'        => false,
-            'created_at'  => now()->toISOString(),
-            'type'        => 'in_app',
+            'id' => $this->id,
+            'title' => $this->title,
+            'message' => $this->message,
+            'data' => $this->data,
+            'read' => false,
+            'created_at' => now()->toISOString(),
+            'type' => 'in_app',
         ]);
     }
 
@@ -90,7 +90,7 @@ class InAppMessage extends Notification implements ShouldQueue
     public function broadcastOn(): array
     {
         return [
-            new \Illuminate\Notifications\Channels\BroadcastChannel('private-App.Models.User.' . $this->notifiable->id),
+            new \Illuminate\Notifications\Channels\BroadcastChannel('private-App.Models.User.'.$this->notifiable->id),
         ];
     }
 }

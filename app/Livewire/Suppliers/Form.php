@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Suppliers;
 
-use App\Models\Supplier;
 use App\Livewire\Concerns\HandlesErrors;
+use App\Models\Supplier;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -16,18 +16,29 @@ class Form extends Component
     use HandlesErrors;
 
     public ?Supplier $supplier = null;
+
     public bool $editMode = false;
 
     public string $name = '';
+
     public string $email = '';
+
     public string $phone = '';
+
     public string $address = '';
+
     public string $city = '';
+
     public string $country = '';
+
     public string $tax_number = '';
+
     public string $company_name = '';
+
     public string $contact_person = '';
+
     public string $notes = '';
+
     public bool $is_active = true;
 
     protected function rules(): array
@@ -67,7 +78,7 @@ class Form extends Component
     public function mount(?Supplier $supplier = null): void
     {
         $this->authorize('suppliers.manage');
-        
+
         if ($supplier && $supplier->exists) {
             $this->supplier = $supplier;
             $this->editMode = true;

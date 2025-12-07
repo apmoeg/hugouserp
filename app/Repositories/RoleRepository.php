@@ -6,9 +6,7 @@ namespace App\Repositories;
 
 use App\Repositories\Contracts\RoleRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
 use Spatie\Permission\Models\Role;
 
 class RoleRepository extends EloquentBaseRepository implements RoleRepositoryInterface
@@ -43,12 +41,12 @@ class RoleRepository extends EloquentBaseRepository implements RoleRepositoryInt
     {
         $query = $this->query()->with('permissions');
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where('name', 'ilike', "%{$search}%");
         }
 
-        if (!empty($filters['guard_name'])) {
+        if (! empty($filters['guard_name'])) {
             $query->where('guard_name', $filters['guard_name']);
         }
 
@@ -62,6 +60,7 @@ class RoleRepository extends EloquentBaseRepository implements RoleRepositoryInt
     public function syncPermissions(Role $role, array $permissions): Role
     {
         $role->syncPermissions($permissions);
+
         return $role->fresh(['permissions']);
     }
 
@@ -74,11 +73,11 @@ class RoleRepository extends EloquentBaseRepository implements RoleRepositoryInt
     {
         /** @var Role $role */
         $role = $this->create($data);
-        
-        if (!empty($permissions)) {
+
+        if (! empty($permissions)) {
             $role->syncPermissions($permissions);
         }
-        
+
         return $role->fresh(['permissions']);
     }
 
@@ -86,7 +85,7 @@ class RoleRepository extends EloquentBaseRepository implements RoleRepositoryInt
     {
         $this->update($role, $data);
         $role->syncPermissions($permissions);
-        
+
         return $role->fresh(['permissions']);
     }
 }

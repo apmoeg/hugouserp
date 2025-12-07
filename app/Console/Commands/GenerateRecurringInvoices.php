@@ -1,14 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use App\Models\Branch;
 use App\Services\RentalService;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class GenerateRecurringInvoices extends Command
 {
@@ -29,14 +30,14 @@ class GenerateRecurringInvoices extends Command
     public function handle(): int
     {
         $dateStr = $this->option('date') ?: Carbon::today()->toDateString();
-        $date    = Carbon::parse($dateStr)->startOfDay();
+        $date = Carbon::parse($dateStr)->startOfDay();
         $targets = (array) $this->option('branch');
 
-        $this->info("Recurring Invoices generation for {$dateStr}" . (count($targets) ? ' | targeted branches supplied' : ' | all eligible branches'));
+        $this->info("Recurring Invoices generation for {$dateStr}".(count($targets) ? ' | targeted branches supplied' : ' | all eligible branches'));
 
         // Resolve branches
         $branches = Branch::query()->where('active', true);
-        if (!empty($targets)) {
+        if (! empty($targets)) {
             $branches->where(function ($q) use ($targets) {
                 $q->whereIn('id', $targets)->orWhereIn('code', $targets);
             });
@@ -49,32 +50,33 @@ class GenerateRecurringInvoices extends Command
             $lockKey = "cmd:rental:recurring:{$branch->id}:{$date->toDateString()}";
             $lock = Cache::lock($lockKey, 600);
 
-            if (!$lock->get()) {
+            if (! $lock->get()) {
                 $this->warn("Skipped (locked) branch={$branch->id} {$branch->name}");
+
                 continue;
             }
 
             try {
                 Log::info('Recurring invoices generation started', [
                     'branch_id' => $branch->id,
-                    'date'      => $date->toDateString(),
+                    'date' => $date->toDateString(),
                 ]);
 
                 $result = $this->rentalService->generateRecurringInvoices($branch, $date);
-                $count  = (int) ($result['generated'] ?? 0);
+                $count = (int) ($result['generated'] ?? 0);
                 $totalInvoices += $count;
 
                 $this->line("✔ Branch={$branch->code} ({$branch->name}) | generated={$count}");
                 Log::info('Recurring invoices generation finished', [
                     'branch_id' => $branch->id,
-                    'date'      => $date->toDateString(),
+                    'date' => $date->toDateString(),
                     'generated' => $count,
                 ]);
             } catch (\Throwable $e) {
                 Log::error('Recurring invoices error', [
                     'branch_id' => $branch->id,
-                    'date'      => $date->toDateString(),
-                    'error'     => $e->getMessage(),
+                    'date' => $date->toDateString(),
+                    'error' => $e->getMessage(),
                 ]);
                 $this->error("✖ Error on branch={$branch->code}: ".$e->getMessage());
             } finally {
@@ -83,6 +85,7 @@ class GenerateRecurringInvoices extends Command
         }
 
         $this->info("Done. Total generated invoices: {$totalInvoices}");
+
         return self::SUCCESS;
     }
 }

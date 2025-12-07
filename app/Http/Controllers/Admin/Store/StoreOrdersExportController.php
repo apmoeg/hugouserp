@@ -23,13 +23,13 @@ class StoreOrdersExportController extends Controller
         }
 
         $validated = $request->validate([
-            'from'         => ['nullable', 'date'],
-            'to'           => ['nullable', 'date'],
-            'status'       => ['nullable', 'string', 'max:50'],
-            'source'       => ['nullable', 'string', 'max:191'],
-            'format'       => ['required', 'string', 'in:web,excel,pdf'],
-            'columns'      => ['nullable', 'array'],
-            'columns.*'    => ['string', 'max:50'],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date'],
+            'status' => ['nullable', 'string', 'max:50'],
+            'source' => ['nullable', 'string', 'max:191'],
+            'format' => ['required', 'string', 'in:web,excel,pdf'],
+            'columns' => ['nullable', 'array'],
+            'columns.*' => ['string', 'max:50'],
         ]);
 
         $columns = $validated['columns'] ?? [];
@@ -99,12 +99,12 @@ class StoreOrdersExportController extends Controller
         if ($format === 'web') {
             return view('admin.store.orders-export-web', [
                 'columns' => $columns,
-                'rows'    => $rows,
+                'rows' => $rows,
             ]);
         }
 
         if ($format === 'excel') {
-            $filename = 'store_orders_' . now()->format('Ymd_His') . '.csv';
+            $filename = 'store_orders_'.now()->format('Ymd_His').'.csv';
 
             $response = new StreamedResponse(function () use ($columns, $rows): void {
                 $handle = fopen('php://output', 'wb');
@@ -122,7 +122,7 @@ class StoreOrdersExportController extends Controller
             });
 
             $response->headers->set('Content-Type', 'text/csv');
-            $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
 
             return $response;
         }
@@ -131,16 +131,16 @@ class StoreOrdersExportController extends Controller
         if (class_exists(Pdf::class)) {
             $pdf = Pdf::loadView('admin.store.orders-export-pdf', [
                 'columns' => $columns,
-                'rows'    => $rows,
+                'rows' => $rows,
             ]);
 
-            return $pdf->download('store_orders_' . now()->format('Ymd_His') . '.pdf');
+            return $pdf->download('store_orders_'.now()->format('Ymd_His').'.pdf');
         }
 
         // Fallback: web view if PDF library is not installed
         return view('admin.store.orders-export-web', [
             'columns' => $columns,
-            'rows'    => $rows,
+            'rows' => $rows,
         ]);
     }
 }

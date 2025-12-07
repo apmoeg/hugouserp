@@ -1,10 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Branch, BranchModule};
+use App\Models\Branch;
+use App\Models\BranchModule;
 use App\Services\Contracts\ModuleServiceInterface as ModuleService;
 use Illuminate\Http\Request;
 
@@ -17,7 +19,7 @@ class BranchModuleController extends Controller
         $data = $this->modules->allForBranch($branch->id);
 
         return $this->ok([
-            'branch'  => $branch,
+            'branch' => $branch,
             'modules' => $data,
         ]);
     }
@@ -25,7 +27,7 @@ class BranchModuleController extends Controller
     public function update(Request $request, Branch $branch)
     {
         $data = $this->validate($request, [
-            'key'     => ['required', 'string'],
+            'key' => ['required', 'string'],
             'enabled' => ['required', 'boolean'],
         ]);
 

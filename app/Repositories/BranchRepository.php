@@ -36,7 +36,7 @@ class BranchRepository extends EloquentBaseRepository implements BranchRepositor
     {
         $query = $this->query()->with('modules');
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function (Builder $q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
@@ -59,6 +59,7 @@ class BranchRepository extends EloquentBaseRepository implements BranchRepositor
     public function syncModules(Branch $branch, array $moduleIds): Branch
     {
         $branch->modules()->sync($moduleIds);
+
         return $branch->fresh(['modules']);
     }
 
@@ -71,6 +72,7 @@ class BranchRepository extends EloquentBaseRepository implements BranchRepositor
     {
         $branch->is_active = false;
         $branch->save();
+
         return $branch;
     }
 
@@ -78,6 +80,7 @@ class BranchRepository extends EloquentBaseRepository implements BranchRepositor
     {
         $branch->is_active = true;
         $branch->save();
+
         return $branch;
     }
 
@@ -90,6 +93,7 @@ class BranchRepository extends EloquentBaseRepository implements BranchRepositor
     {
         $branch->settings = array_merge($branch->settings ?? [], $settings);
         $branch->save();
+
         return $branch;
     }
 }

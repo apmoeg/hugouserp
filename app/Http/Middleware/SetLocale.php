@@ -28,6 +28,7 @@ class SetLocale
         if ($lang = $request->query('lang')) {
             if ($this->isValidLocale($lang)) {
                 Session::put('locale', $lang);
+
                 return $lang;
             }
         }

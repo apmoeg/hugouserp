@@ -3,13 +3,12 @@
 declare(strict_types=1);
 
 namespace Database\Seeders;
-use App\Models\Branch;
 
+use App\Models\Branch;
 use Illuminate\Database\Seeder;
 
 class BranchesSeeder extends Seeder
 {
-
     public function run(): void
     {
         if (Branch::query()->count() > 0) {
@@ -17,15 +16,15 @@ class BranchesSeeder extends Seeder
         }
 
         Branch::query()->create([
-            'name'      => 'Main Branch',
-            'code'      => 'MAIN',
+            'name' => 'Main Branch',
+            'code' => 'MAIN',
             'is_active' => true,
-            'address'   => 'Head Office',
-            'phone'     => '01000000000',
-            'timezone'  => config('app.timezone'),
-            'currency'  => 'EGP',
-            'is_main'   => true,
-            'settings'  => [],
+            'address' => 'Head Office',
+            'phone' => '01000000000',
+            'timezone' => config('app.timezone'),
+            'currency' => 'EGP',
+            'is_main' => true,
+            'settings' => [],
         ]);
     }
 }

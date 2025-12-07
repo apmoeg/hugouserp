@@ -32,16 +32,23 @@ class StoreSyncLog extends BaseModel
     ];
 
     public const TYPE_PRODUCTS = 'products';
+
     public const TYPE_ORDERS = 'orders';
+
     public const TYPE_CUSTOMERS = 'customers';
+
     public const TYPE_INVENTORY = 'inventory';
 
     public const DIRECTION_PULL = 'pull';
+
     public const DIRECTION_PUSH = 'push';
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_RUNNING = 'running';
+
     public const STATUS_COMPLETED = 'completed';
+
     public const STATUS_FAILED = 'failed';
 
     public function store(): BelongsTo

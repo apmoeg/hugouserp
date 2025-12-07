@@ -16,12 +16,13 @@ class LowStockAlerts extends Component
     use WithPagination;
 
     public string $status = 'active';
+
     public string $search = '';
 
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('inventory.stock.alerts.view')) {
+        if (! $user || ! $user->can('inventory.stock.alerts.view')) {
             abort(403);
         }
     }
@@ -30,7 +31,7 @@ class LowStockAlerts extends Component
     {
         $alert = LowStockAlert::findOrFail($alertId);
         $alert->acknowledge(Auth::id());
-        
+
         $this->dispatch('alert-acknowledged');
         session()->flash('success', __('Alert acknowledged'));
     }
@@ -39,7 +40,7 @@ class LowStockAlerts extends Component
     {
         $alert = LowStockAlert::findOrFail($alertId);
         $alert->resolve(Auth::id());
-        
+
         $this->dispatch('alert-resolved');
         session()->flash('success', __('Alert resolved'));
     }
@@ -48,7 +49,7 @@ class LowStockAlerts extends Component
     {
         $service = app(StockAlertService::class);
         $service->checkAllProducts(Auth::user()?->branch_id);
-        
+
         session()->flash('success', __('Stock alerts refreshed'));
     }
 
@@ -59,10 +60,10 @@ class LowStockAlerts extends Component
         $branchId = $user?->branch_id;
 
         $query = LowStockAlert::with(['product', 'warehouse', 'branch'])
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
-            ->when($this->status !== 'all', fn($q) => $q->where('status', $this->status))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
+            ->when($this->status !== 'all', fn ($q) => $q->where('status', $this->status))
             ->when($this->search, function ($q) {
-                $q->whereHas('product', fn($p) => $p->where('name', 'like', "%{$this->search}%"));
+                $q->whereHas('product', fn ($p) => $p->where('name', 'like', "%{$this->search}%"));
             })
             ->orderByDesc('created_at');
 

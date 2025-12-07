@@ -1,12 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
-use Illuminate\Support\Facades\Log;
 
 use App\Services\Contracts\SparesServiceInterface;
 use App\Traits\HandlesServiceErrors;
-
 use Illuminate\Support\Facades\DB;
 
 class SparesService implements SparesServiceInterface
@@ -20,8 +19,8 @@ class SparesService implements SparesServiceInterface
                 return DB::table('product_compatibility')
                     ->where('product_id', $productId)
                     ->orderByDesc('id')
-                    ->get(['id','product_id','compatible_with_id'])
-                    ->map(fn($r) => ['id'=>$r->id,'product_id'=>$r->product_id,'compatible_with_id'=>$r->compatible_with_id])
+                    ->get(['id', 'product_id', 'compatible_with_id'])
+                    ->map(fn ($r) => ['id' => $r->id, 'product_id' => $r->product_id, 'compatible_with_id' => $r->compatible_with_id])
                     ->all();
             },
             operation: 'listCompatibility',
@@ -35,8 +34,8 @@ class SparesService implements SparesServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($productId, $compatibleWithId) {
                 return (int) DB::table('product_compatibility')->updateOrInsert(
-                    ['product_id'=>$productId, 'compatible_with_id'=>$compatibleWithId],
-                    ['created_at'=>now(), 'updated_at'=>now()]
+                    ['product_id' => $productId, 'compatible_with_id' => $compatibleWithId],
+                    ['created_at' => now(), 'updated_at' => now()]
                 );
             },
             operation: 'attach',

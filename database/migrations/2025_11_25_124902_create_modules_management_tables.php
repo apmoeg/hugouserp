@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('module_branch')) {
+        if (! Schema::hasTable('module_branch')) {
             Schema::create('module_branch', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('module_id')->constrained('modules')->cascadeOnDelete();
@@ -20,7 +20,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('module_custom_fields')) {
+        if (! Schema::hasTable('module_custom_fields')) {
             Schema::create('module_custom_fields', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('module_id')->constrained('modules')->cascadeOnDelete();
@@ -40,7 +40,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('customers')) {
+        if (! Schema::hasTable('customers')) {
             Schema::create('customers', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete();
@@ -64,7 +64,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('suppliers')) {
+        if (! Schema::hasTable('suppliers')) {
             Schema::create('suppliers', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete();
@@ -86,7 +86,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('sales')) {
+        if (! Schema::hasTable('sales')) {
             Schema::create('sales', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('branch_id')->constrained('branches');
@@ -109,7 +109,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('sale_items')) {
+        if (! Schema::hasTable('sale_items')) {
             Schema::create('sale_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('sale_id')->constrained('sales')->cascadeOnDelete();
@@ -124,7 +124,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('purchases')) {
+        if (! Schema::hasTable('purchases')) {
             Schema::create('purchases', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('branch_id')->constrained('branches');
@@ -147,7 +147,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('purchase_items')) {
+        if (! Schema::hasTable('purchase_items')) {
             Schema::create('purchase_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('purchase_id')->constrained('purchases')->cascadeOnDelete();
@@ -160,7 +160,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('expense_categories')) {
+        if (! Schema::hasTable('expense_categories')) {
             Schema::create('expense_categories', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete();
@@ -172,7 +172,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('expenses')) {
+        if (! Schema::hasTable('expenses')) {
             Schema::create('expenses', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('branch_id')->constrained('branches');
@@ -191,7 +191,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('income_categories')) {
+        if (! Schema::hasTable('income_categories')) {
             Schema::create('income_categories', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete();
@@ -203,7 +203,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('incomes')) {
+        if (! Schema::hasTable('incomes')) {
             Schema::create('incomes', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('branch_id')->constrained('branches');
@@ -220,7 +220,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('accounts')) {
+        if (! Schema::hasTable('accounts')) {
             Schema::create('accounts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete();
@@ -236,7 +236,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('journal_entries')) {
+        if (! Schema::hasTable('journal_entries')) {
             Schema::create('journal_entries', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('branch_id')->constrained('branches');
@@ -249,7 +249,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('journal_entry_lines')) {
+        if (! Schema::hasTable('journal_entry_lines')) {
             Schema::create('journal_entry_lines', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('journal_entry_id')->constrained('journal_entries')->cascadeOnDelete();

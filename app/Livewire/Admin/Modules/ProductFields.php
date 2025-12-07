@@ -13,32 +13,52 @@ use Livewire\Component;
 class ProductFields extends Component
 {
     #[Layout('layouts.app')]
-
     public ?int $moduleId = null;
+
     public ?Module $module = null;
+
     public array $fields = [];
+
     public array $modules = [];
 
     public bool $showModal = false;
+
     public ?int $editingId = null;
-    
+
     public string $field_key = '';
+
     public string $field_label = '';
+
     public string $field_label_ar = '';
+
     public string $field_type = 'text';
+
     public array $field_options = [];
+
     public string $optionsText = '';
+
     public string $placeholder = '';
+
     public string $placeholder_ar = '';
+
     public string $default_value = '';
+
     public string $validation_rules = '';
+
     public bool $is_required = false;
+
     public bool $is_searchable = false;
+
     public bool $is_filterable = false;
+
     public bool $show_in_list = true;
+
     public bool $show_in_form = true;
+
     public bool $is_active = true;
+
     public int $sort_order = 0;
+
     public string $field_group = 'general';
 
     protected array $fieldTypes = [
@@ -90,9 +110,10 @@ class ProductFields extends Component
 
     protected function loadModule(): void
     {
-        if (!$this->moduleId) {
+        if (! $this->moduleId) {
             $this->module = null;
             $this->fields = [];
+
             return;
         }
 
@@ -102,8 +123,9 @@ class ProductFields extends Component
 
     protected function loadFields(): void
     {
-        if (!$this->moduleId) {
+        if (! $this->moduleId) {
             $this->fields = [];
+
             return;
         }
 
@@ -117,7 +139,7 @@ class ProductFields extends Component
     public function openModal(?int $fieldId = null): void
     {
         $this->resetForm();
-        
+
         if ($fieldId) {
             $field = ModuleProductField::findOrFail($fieldId);
             $this->editingId = $fieldId;
@@ -143,7 +165,7 @@ class ProductFields extends Component
             $maxSort = ModuleProductField::where('module_id', $this->moduleId)->max('sort_order') ?? 0;
             $this->sort_order = $maxSort + 10;
         }
-        
+
         $this->showModal = true;
     }
 
@@ -180,14 +202,14 @@ class ProductFields extends Component
     protected function rules(): array
     {
         $keyRule = $this->editingId
-            ? 'required|string|max:100|unique:module_product_fields,field_key,' . $this->editingId . ',id,module_id,' . $this->moduleId
-            : 'required|string|max:100|unique:module_product_fields,field_key,NULL,id,module_id,' . $this->moduleId;
+            ? 'required|string|max:100|unique:module_product_fields,field_key,'.$this->editingId.',id,module_id,'.$this->moduleId
+            : 'required|string|max:100|unique:module_product_fields,field_key,NULL,id,module_id,'.$this->moduleId;
 
         return [
             'field_key' => $keyRule,
             'field_label' => 'required|string|max:255',
             'field_label_ar' => 'nullable|string|max:255',
-            'field_type' => 'required|string|in:' . implode(',', array_keys($this->fieldTypes)),
+            'field_type' => 'required|string|in:'.implode(',', array_keys($this->fieldTypes)),
             'optionsText' => 'nullable|string',
             'placeholder' => 'nullable|string|max:255',
             'placeholder_ar' => 'nullable|string|max:255',
@@ -216,7 +238,7 @@ class ProductFields extends Component
             'field_label' => $this->field_label,
             'field_label_ar' => $this->field_label_ar ?: null,
             'field_type' => $this->field_type,
-            'field_options' => !empty($options) ? $options : null,
+            'field_options' => ! empty($options) ? $options : null,
             'placeholder' => $this->placeholder ?: null,
             'placeholder_ar' => $this->placeholder_ar ?: null,
             'default_value' => $this->default_value ?: null,
@@ -246,7 +268,7 @@ class ProductFields extends Component
     public function toggleActive(int $fieldId): void
     {
         $field = ModuleProductField::findOrFail($fieldId);
-        $field->update(['is_active' => !$field->is_active]);
+        $field->update(['is_active' => ! $field->is_active]);
         $this->loadFields();
     }
 

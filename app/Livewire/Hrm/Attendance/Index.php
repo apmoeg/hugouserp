@@ -15,9 +15,13 @@ class Index extends Component
     use WithPagination;
 
     public ?string $search = '';
+
     public ?string $status = null;
+
     public ?string $fromDate = null;
+
     public ?string $toDate = null;
+
     public ?int $branchId = null;
 
     public function mount(): void
@@ -66,7 +70,7 @@ class Index extends Component
                 $q->where('branch_id', $this->branchId);
             })
             ->when($this->search !== null && $this->search !== '', function ($q) {
-                $term = '%' . $this->search . '%';
+                $term = '%'.$this->search.'%';
 
                 $q->whereHas('employee', function ($employeeQuery) use ($term) {
                     $employeeQuery->where('name', 'like', $term)

@@ -17,7 +17,7 @@ return new class extends Migration
         // stock_movements: partition by month on moved_at
         if (Schema::hasTable('stock_movements') && Schema::hasColumn('stock_movements', 'moved_at')) {
             try {
-                DB::statement(<<<SQL
+                DB::statement(<<<'SQL'
 ALTER TABLE `stock_movements`
 PARTITION BY RANGE (YEAR(`moved_at`) * 100 + MONTH(`moved_at`)) (
     PARTITION p2025m01 VALUES LESS THAN (202502),
@@ -32,7 +32,7 @@ SQL);
         // login_activities: partition by year of created_at
         if (Schema::hasTable('login_activities') && Schema::hasColumn('login_activities', 'created_at')) {
             try {
-                DB::statement(<<<SQL
+                DB::statement(<<<'SQL'
 ALTER TABLE `login_activities`
 PARTITION BY RANGE (YEAR(`created_at`)) (
     PARTITION p2025 VALUES LESS THAN (2026),
@@ -47,7 +47,7 @@ SQL);
         // loyalty_transactions: partition by year of created_at
         if (Schema::hasTable('loyalty_transactions') && Schema::hasColumn('loyalty_transactions', 'created_at')) {
             try {
-                DB::statement(<<<SQL
+                DB::statement(<<<'SQL'
 ALTER TABLE `loyalty_transactions`
 PARTITION BY RANGE (YEAR(`created_at`)) (
     PARTITION p2025 VALUES LESS THAN (2026),

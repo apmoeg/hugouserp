@@ -49,7 +49,7 @@ class GeneralNotification extends Notification implements ShouldQueue
             ->subject($this->title)
             ->greeting(__('notifications.greeting'))
             ->line($this->body)
-            ->when(!empty($this->data['action_url'] ?? ''), function (MailMessage $mail) {
+            ->when(! empty($this->data['action_url'] ?? ''), function (MailMessage $mail) {
                 $mail->action(__('notifications.view_details'), $this->data['action_url']);
             })
             ->salutation(config('app.name'));
@@ -61,12 +61,12 @@ class GeneralNotification extends Notification implements ShouldQueue
     public function toArray($notifiable): array
     {
         return [
-            'title'       => $this->title,
-            'body'        => $this->body,
-            'data'        => $this->data,
-            'read'        => false,
-            'created_at'  => now()->toISOString(),
-            'type'        => 'general',
+            'title' => $this->title,
+            'body' => $this->body,
+            'data' => $this->data,
+            'read' => false,
+            'created_at' => now()->toISOString(),
+            'type' => 'general',
         ];
     }
 
@@ -76,13 +76,13 @@ class GeneralNotification extends Notification implements ShouldQueue
     public function toBroadcast($notifiable): BroadcastMessage
     {
         return new BroadcastMessage([
-            'id'          => $this->id,
-            'title'       => $this->title,
-            'body'        => $this->body,
-            'data'        => $this->data,
-            'read'        => false,
-            'created_at'  => now()->toISOString(),
-            'type'        => 'general',
+            'id' => $this->id,
+            'title' => $this->title,
+            'body' => $this->body,
+            'data' => $this->data,
+            'read' => false,
+            'created_at' => now()->toISOString(),
+            'type' => 'general',
         ]);
     }
 
@@ -112,7 +112,7 @@ class GeneralNotification extends Notification implements ShouldQueue
     public function broadcastOn(): array
     {
         return [
-            new \Illuminate\Notifications\Channels\BroadcastChannel('private-App.Models.User.' . $this->notifiable->id),
+            new \Illuminate\Notifications\Channels\BroadcastChannel('private-App.Models.User.'.$this->notifiable->id),
         ];
     }
 }

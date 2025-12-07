@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Branch\Motorcycle;
@@ -10,32 +11,41 @@ use Illuminate\Http\Request;
 
 class ContractController extends Controller
 {
-    public function __construct(protected Motos $motos){}
+    public function __construct(protected Motos $motos) {}
 
     public function index()
     {
         $per = min(max(request()->integer('per_page', 20), 1), 100);
+
         return $this->ok(VehicleContract::query()->orderByDesc('id')->paginate($per));
     }
 
     public function store(Request $request)
     {
         $data = $this->validate($request, [
-            'vehicle_id'=>['required','exists:vehicles,id'],
-            'customer_id'=>['required','exists:customers,id'],
-            'start_date'=>['required','date'],
-            'end_date'=>['required','date','after:start_date'],
+            'vehicle_id' => ['required', 'exists:vehicles,id'],
+            'customer_id' => ['required', 'exists:customers,id'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after:start_date'],
         ]);
-        return $this->ok($this->motos->createContract($data['vehicle_id'],$data['customer_id'],$data['start_date'],$data['end_date']), __('Created'), 201);
+
+        return $this->ok($this->motos->createContract($data['vehicle_id'], $data['customer_id'], $data['start_date'], $data['end_date']), __('Created'), 201);
     }
 
-    public function show(VehicleContract $contract){ return $this->ok($contract); }
-
-    public function update(Request $request, VehicleContract $contract)
+    public function show(VehicleContract $contract)
     {
-        $contract->fill($request->only(['start_date','end_date','status']))->save();
         return $this->ok($contract);
     }
 
-    public function deliver(VehicleContract $contract){ return $this->ok($this->motos->deliverContract($contract->id), __('Delivered')); }
+    public function update(Request $request, VehicleContract $contract)
+    {
+        $contract->fill($request->only(['start_date', 'end_date', 'status']))->save();
+
+        return $this->ok($contract);
+    }
+
+    public function deliver(VehicleContract $contract)
+    {
+        return $this->ok($this->motos->deliverContract($contract->id), __('Delivered'));
+    }
 }

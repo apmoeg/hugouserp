@@ -21,14 +21,14 @@ class EnsureBranchAccess
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $user   = $request->user();
+        $user = $request->user();
         /** @var Branch|null $branch */
         $branch = $request->attributes->get('branch') ?? null;
 
-        if (!$user) {
+        if (! $user) {
             return $this->error('Unauthenticated.', 401);
         }
-        if (!$branch instanceof Branch) {
+        if (! $branch instanceof Branch) {
             return $this->error('Branch context missing.', 422);
         }
 
@@ -46,11 +46,11 @@ class EnsureBranchAccess
         }
 
         // 2) fallback: check user->branches relation or pivot
-        if (!$can && method_exists($user, 'branches')) {
+        if (! $can && method_exists($user, 'branches')) {
             $can = $user->branches()->whereKey($branch->getKey())->exists();
         }
 
-        if (!$can) {
+        if (! $can) {
             return $this->error('You are not allowed to access this branch.', 403);
         }
 

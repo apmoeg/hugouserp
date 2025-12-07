@@ -15,7 +15,9 @@ class Terminal extends Component
 {
     #[Layout('layouts.app')]
     public int $branchId;
+
     public string $branchName = '';
+
     public bool $isSuperAdmin = false;
 
     protected CurrencyService $currencyService;
@@ -34,8 +36,8 @@ class Terminal extends Component
 
         $this->branchId = (int) ($user->branch_id ?? 1);
         $this->isSuperAdmin = $user->hasRole('super-admin');
-        
-        if ($this->isSuperAdmin && !$user->branch_id) {
+
+        if ($this->isSuperAdmin && ! $user->branch_id) {
             $this->branchName = __('Super Admin');
         } else {
             $branch = Branch::find($this->branchId);
@@ -48,11 +50,11 @@ class Terminal extends Component
         $currencies = Currency::active()->ordered()->get();
         $baseCurrencyModel = $currencies->firstWhere('is_base', true);
         $baseCurrency = $baseCurrencyModel?->code ?? 'EGP';
-        
+
         $currencyData = [];
         $currencySymbols = [];
         $currencyRates = [$baseCurrency => 1.0];
-        
+
         foreach ($currencies as $currency) {
             $currencyData[$currency->code] = [
                 'name' => $currency->name,
@@ -61,8 +63,8 @@ class Terminal extends Component
                 'is_base' => $currency->is_base,
             ];
             $currencySymbols[$currency->code] = $currency->symbol;
-            
-            if (!$currency->is_base) {
+
+            if (! $currency->is_base) {
                 $rate = $this->currencyService->getRate($baseCurrency, $currency->code);
                 $currencyRates[$currency->code] = $rate ?? 1.0;
             }

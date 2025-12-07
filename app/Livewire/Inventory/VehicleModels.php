@@ -6,8 +6,8 @@ namespace App\Livewire\Inventory;
 
 use App\Models\VehicleModel;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Component;
 use Livewire\WithPagination;
 
 class VehicleModels extends Component
@@ -16,11 +16,13 @@ class VehicleModels extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $brandFilter = '';
-    
+
     public bool $showForm = false;
+
     public ?int $editingId = null;
-    
+
     public array $form = [
         'brand' => '',
         'model' => '',
@@ -62,7 +64,7 @@ class VehicleModels extends Component
     public function openForm(?int $id = null): void
     {
         $this->resetValidation();
-        
+
         if ($id) {
             $model = VehicleModel::findOrFail($id);
             $this->editingId = $id;
@@ -87,7 +89,7 @@ class VehicleModels extends Component
                 'is_active' => true,
             ];
         }
-        
+
         $this->showForm = true;
     }
 
@@ -132,7 +134,7 @@ class VehicleModels extends Component
     public function toggleActive(int $id): void
     {
         $model = VehicleModel::findOrFail($id);
-        $model->is_active = !$model->is_active;
+        $model->is_active = ! $model->is_active;
         $model->save();
     }
 
@@ -145,7 +147,7 @@ class VehicleModels extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('brand', 'like', "%{$this->search}%")
-                  ->orWhere('model', 'like', "%{$this->search}%");
+                    ->orWhere('model', 'like', "%{$this->search}%");
             });
         }
 

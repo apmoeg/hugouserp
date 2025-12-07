@@ -6,8 +6,8 @@ namespace App\Livewire\Sales;
 
 use App\Models\Sale;
 use App\Traits\HasExport;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -15,9 +15,9 @@ use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination;
     use AuthorizesRequests;
     use HasExport;
+    use WithPagination;
 
     #[Url]
     public string $search = '';
@@ -27,17 +27,18 @@ class Index extends Component
         $this->authorize('sales.view');
         $this->initializeExport('sales');
     }
-    
+
     #[Url]
     public string $status = '';
-    
+
     #[Url]
     public string $dateFrom = '';
-    
+
     #[Url]
     public string $dateTo = '';
-    
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
 
     public function updatingSearch(): void
@@ -58,15 +59,15 @@ class Index extends Component
     public function getStatistics(): array
     {
         $user = auth()->user();
-        $cacheKey = 'sales_stats_' . ($user?->branch_id ?? 'all');
-        
+        $cacheKey = 'sales_stats_'.($user?->branch_id ?? 'all');
+
         return Cache::remember($cacheKey, 300, function () use ($user) {
             $query = Sale::query();
-            
+
             if ($user && $user->branch_id) {
                 $query->where('branch_id', $user->branch_id);
             }
-            
+
             return [
                 'total_sales' => $query->count(),
                 'total_revenue' => $query->sum('grand_total'),
@@ -80,18 +81,18 @@ class Index extends Component
     public function render()
     {
         $user = auth()->user();
-        
+
         $sales = Sale::query()
             ->with(['customer', 'branch', 'warehouse', 'createdBy'])
-            ->when($user && $user->branch_id, fn($q) => $q->where('branch_id', $user->branch_id))
-            ->when($this->search, fn($q) => $q->where(function($query) {
+            ->when($user && $user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))
+            ->when($this->search, fn ($q) => $q->where(function ($query) {
                 $query->where('code', 'like', "%{$this->search}%")
-                      ->orWhere('reference_no', 'like', "%{$this->search}%")
-                      ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%{$this->search}%"));
+                    ->orWhere('reference_no', 'like', "%{$this->search}%")
+                    ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', "%{$this->search}%"));
             }))
-            ->when($this->status, fn($q) => $q->where('status', $this->status))
-            ->when($this->dateFrom, fn($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
-            ->when($this->dateTo, fn($q) => $q->whereDate('created_at', '<=', $this->dateTo))
+            ->when($this->status, fn ($q) => $q->where('status', $this->status))
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('created_at', '<=', $this->dateTo))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(15);
 
@@ -106,20 +107,20 @@ class Index extends Component
     public function export()
     {
         $user = auth()->user();
-        
+
         $data = Sale::query()
             ->leftJoin('customers', 'sales.customer_id', '=', 'customers.id')
             ->leftJoin('branches', 'sales.branch_id', '=', 'branches.id')
-            ->when($user && $user->branch_id, fn($q) => $q->where('sales.branch_id', $user->branch_id))
-            ->when($this->search, fn($q) => $q->where(function($query) {
+            ->when($user && $user->branch_id, fn ($q) => $q->where('sales.branch_id', $user->branch_id))
+            ->when($this->search, fn ($q) => $q->where(function ($query) {
                 $query->where('sales.code', 'like', "%{$this->search}%")
-                      ->orWhere('sales.reference_no', 'like', "%{$this->search}%")
-                      ->orWhere('customers.name', 'like', "%{$this->search}%");
+                    ->orWhere('sales.reference_no', 'like', "%{$this->search}%")
+                    ->orWhere('customers.name', 'like', "%{$this->search}%");
             }))
-            ->when($this->status, fn($q) => $q->where('sales.status', $this->status))
-            ->when($this->dateFrom, fn($q) => $q->whereDate('sales.created_at', '>=', $this->dateFrom))
-            ->when($this->dateTo, fn($q) => $q->whereDate('sales.created_at', '<=', $this->dateTo))
-            ->orderBy('sales.' . $this->sortField, $this->sortDirection)
+            ->when($this->status, fn ($q) => $q->where('sales.status', $this->status))
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('sales.created_at', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('sales.created_at', '<=', $this->dateTo))
+            ->orderBy('sales.'.$this->sortField, $this->sortDirection)
             ->select([
                 'sales.id',
                 'sales.code as reference',

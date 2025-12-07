@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Requests;
@@ -15,14 +16,14 @@ class ProductStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => ['required', 'string', 'max:255'],
-            'sku'         => ['nullable', 'string', 'max:100', 'unique:products,sku'],
-            'barcode'     => ['nullable', 'string', 'max:100', 'unique:products,barcode'],
-            'price'       => ['required', 'numeric', 'min:0'],
-            'cost'        => ['nullable', 'numeric', 'min:0'],
+            'name' => ['required', 'string', 'max:255'],
+            'sku' => ['nullable', 'string', 'max:100', 'unique:products,sku'],
+            'barcode' => ['nullable', 'string', 'max:100', 'unique:products,barcode'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'cost' => ['nullable', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
             'category_id' => ['nullable', 'exists:categories,id'],
-            'tax_id'      => ['nullable', 'exists:taxes,id'],
+            'tax_id' => ['nullable', 'exists:taxes,id'],
         ];
     }
 }

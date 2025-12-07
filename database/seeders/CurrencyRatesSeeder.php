@@ -41,13 +41,13 @@ class CurrencyRatesSeeder extends Seeder
             CurrencyRate::query()->updateOrCreate(
                 [
                     'from_currency' => $data['from_currency'],
-                    'to_currency'   => $data['to_currency'],
-                    'effective_date'=> $effectiveDate,
+                    'to_currency' => $data['to_currency'],
+                    'effective_date' => $effectiveDate,
                 ],
                 [
-                    'rate'      => $data['rate'],
+                    'rate' => $data['rate'],
                     'is_active' => true,
-                    'created_by'=> 1,
+                    'created_by' => 1,
                 ]
             );
         }

@@ -6,8 +6,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AuditLog extends Model
 {
@@ -83,36 +83,48 @@ class AuditLog extends Model
     {
         $old = $this->old_values ?? [];
         $new = $this->new_values ?? [];
-        
+
         return array_unique(array_merge(array_keys($old), array_keys($new)));
     }
 
     public function getFormattedActionAttribute(): string
     {
         $parts = explode(':', $this->action);
-        return count($parts) === 2 
-            ? __($parts[0]) . ' - ' . __($parts[1])
+
+        return count($parts) === 2
+            ? __($parts[0]).' - '.__($parts[1])
             : __($this->action);
     }
 
     public function getUserAgentSummaryAttribute(): array
     {
         $ua = $this->user_agent ?? '';
-        
+
         $browser = 'Unknown';
         $os = 'Unknown';
-        
-        if (str_contains($ua, 'Chrome')) $browser = 'Chrome';
-        elseif (str_contains($ua, 'Firefox')) $browser = 'Firefox';
-        elseif (str_contains($ua, 'Safari')) $browser = 'Safari';
-        elseif (str_contains($ua, 'Edge')) $browser = 'Edge';
-        
-        if (str_contains($ua, 'Windows')) $os = 'Windows';
-        elseif (str_contains($ua, 'Mac')) $os = 'macOS';
-        elseif (str_contains($ua, 'Linux')) $os = 'Linux';
-        elseif (str_contains($ua, 'Android')) $os = 'Android';
-        elseif (str_contains($ua, 'iOS') || str_contains($ua, 'iPhone')) $os = 'iOS';
-        
+
+        if (str_contains($ua, 'Chrome')) {
+            $browser = 'Chrome';
+        } elseif (str_contains($ua, 'Firefox')) {
+            $browser = 'Firefox';
+        } elseif (str_contains($ua, 'Safari')) {
+            $browser = 'Safari';
+        } elseif (str_contains($ua, 'Edge')) {
+            $browser = 'Edge';
+        }
+
+        if (str_contains($ua, 'Windows')) {
+            $os = 'Windows';
+        } elseif (str_contains($ua, 'Mac')) {
+            $os = 'macOS';
+        } elseif (str_contains($ua, 'Linux')) {
+            $os = 'Linux';
+        } elseif (str_contains($ua, 'Android')) {
+            $os = 'Android';
+        } elseif (str_contains($ua, 'iOS') || str_contains($ua, 'iPhone')) {
+            $os = 'iOS';
+        }
+
         return [
             'browser' => $browser,
             'os' => $os,

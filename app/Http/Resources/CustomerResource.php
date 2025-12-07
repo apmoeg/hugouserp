@@ -31,14 +31,14 @@ class CustomerResource extends JsonResource
             ),
             'is_active' => $this->is_active,
             'branch_id' => $this->branch_id,
-            'branch' => $this->whenLoaded('branch', fn() => new BranchResource($this->branch)),
+            'branch' => $this->whenLoaded('branch', fn () => new BranchResource($this->branch)),
             'sales_count' => $this->when(
                 $request->user()?->can('customers.view-sales'),
                 $this->whenCounted('sales')
             ),
             'total_purchases' => $this->when(
                 $request->user()?->can('customers.view-financial') && $this->relationLoaded('sales'),
-                fn() => $this->sales->sum('total')
+                fn () => $this->sales->sum('total')
             ),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

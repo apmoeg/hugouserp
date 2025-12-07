@@ -73,6 +73,7 @@ class UnitOfMeasure extends Model
     public function getLocalizedNameAttribute(): string
     {
         $locale = app()->getLocale();
+
         return $locale === 'ar' && $this->name_ar ? $this->name_ar : $this->name;
     }
 
@@ -83,7 +84,7 @@ class UnitOfMeasure extends Model
         }
 
         $baseValue = $value * (float) $this->conversion_factor;
-        
+
         return $baseValue / (float) $targetUnit->conversion_factor;
     }
 }

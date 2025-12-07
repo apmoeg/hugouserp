@@ -37,7 +37,7 @@ class UserRepository extends EloquentBaseRepository implements UserRepositoryInt
         return $this->query()
             ->where(function (Builder $q) use ($branchId) {
                 $q->where('branch_id', $branchId)
-                    ->orWhereHas('branches', fn($q) => $q->where('branches.id', $branchId));
+                    ->orWhereHas('branches', fn ($q) => $q->where('branches.id', $branchId));
             })
             ->get();
     }
@@ -51,7 +51,7 @@ class UserRepository extends EloquentBaseRepository implements UserRepositoryInt
     {
         $query = $this->query()->with(['roles', 'branch']);
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function (Builder $q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
@@ -64,12 +64,12 @@ class UserRepository extends EloquentBaseRepository implements UserRepositoryInt
             $query->where('is_active', $filters['is_active']);
         }
 
-        if (!empty($filters['branch_id'])) {
+        if (! empty($filters['branch_id'])) {
             $query->where('branch_id', $filters['branch_id']);
         }
 
-        if (!empty($filters['role'])) {
-            $query->whereHas('roles', fn($q) => $q->where('name', $filters['role']));
+        if (! empty($filters['role'])) {
+            $query->whereHas('roles', fn ($q) => $q->where('name', $filters['role']));
         }
 
         $sortField = $filters['sort_field'] ?? 'created_at';
@@ -82,12 +82,14 @@ class UserRepository extends EloquentBaseRepository implements UserRepositoryInt
     public function syncRoles(User $user, array $roles): User
     {
         $user->syncRoles($roles);
+
         return $user->fresh(['roles']);
     }
 
     public function syncBranches(User $user, array $branchIds): User
     {
         $user->branches()->sync($branchIds);
+
         return $user->fresh(['branches']);
     }
 
@@ -95,6 +97,7 @@ class UserRepository extends EloquentBaseRepository implements UserRepositoryInt
     {
         $user->last_login_at = now();
         $user->save();
+
         return $user;
     }
 
@@ -102,6 +105,7 @@ class UserRepository extends EloquentBaseRepository implements UserRepositoryInt
     {
         $user->is_active = false;
         $user->save();
+
         return $user;
     }
 
@@ -109,6 +113,7 @@ class UserRepository extends EloquentBaseRepository implements UserRepositoryInt
     {
         $user->is_active = true;
         $user->save();
+
         return $user;
     }
 }

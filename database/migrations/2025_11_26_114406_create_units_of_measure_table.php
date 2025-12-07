@@ -23,12 +23,12 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
-            
+
             $table->foreign('base_unit_id')->references('id')->on('units_of_measure')->nullOnDelete();
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
             $table->foreign('updated_by')->references('id')->on('users')->nullOnDelete();
         });
-        
+
         Schema::table('products', function (Blueprint $table) {
             $table->unsignedBigInteger('unit_id')->nullable()->after('uom_factor');
             $table->foreign('unit_id')->references('id')->on('units_of_measure')->nullOnDelete();

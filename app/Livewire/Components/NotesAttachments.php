@@ -16,19 +16,27 @@ class NotesAttachments extends Component
     use WithFileUploads;
 
     public string $modelType;
+
     public int $modelId;
-    
+
     public array $notes = [];
+
     public array $attachments = [];
-    
+
     public string $newNote = '';
+
     public string $noteType = 'general';
+
     public $newFiles = [];
+
     public string $fileDescription = '';
-    
+
     public bool $showNoteModal = false;
+
     public bool $showFileModal = false;
+
     public ?int $editingNoteId = null;
+
     public string $editingNoteContent = '';
 
     protected $listeners = ['refreshNotesAttachments' => 'loadData'];
@@ -128,7 +136,7 @@ class NotesAttachments extends Component
     public function togglePin(int $noteId): void
     {
         $note = Note::findOrFail($noteId);
-        $note->update(['is_pinned' => !$note->is_pinned]);
+        $note->update(['is_pinned' => ! $note->is_pinned]);
         $this->loadData();
     }
 
@@ -154,8 +162,8 @@ class NotesAttachments extends Component
         $user = Auth::user();
 
         foreach ($this->newFiles as $file) {
-            $path = $file->store('attachments/' . strtolower(class_basename($this->modelType)), 'public');
-            
+            $path = $file->store('attachments/'.strtolower(class_basename($this->modelType)), 'public');
+
             Attachment::create([
                 'attachable_type' => $this->modelType,
                 'attachable_id' => $this->modelId,
@@ -180,11 +188,11 @@ class NotesAttachments extends Component
     public function deleteAttachment(int $attachmentId): void
     {
         $attachment = Attachment::findOrFail($attachmentId);
-        
+
         Storage::disk($attachment->disk)->delete($attachment->path);
-        
+
         $attachment->delete();
-        
+
         session()->flash('success', __('File deleted successfully'));
         $this->loadData();
     }
@@ -203,6 +211,7 @@ class NotesAttachments extends Component
         if (str_contains($mimeType, 'word') || str_contains($mimeType, 'document')) {
             return 'document';
         }
+
         return 'other';
     }
 

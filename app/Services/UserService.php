@@ -12,7 +12,6 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 
 class UserService implements UserServiceInterface
 {
@@ -25,7 +24,7 @@ class UserService implements UserServiceInterface
     public function getAllUsers(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
         return $this->handleServiceOperation(
-            callback: fn() => $this->userRepository->paginateWithFilters($filters, $perPage),
+            callback: fn () => $this->userRepository->paginateWithFilters($filters, $perPage),
             operation: 'getAllUsers',
             context: ['filters' => $filters, 'per_page' => $perPage]
         );
@@ -34,7 +33,7 @@ class UserService implements UserServiceInterface
     public function getUserById(int $id): ?User
     {
         return $this->handleServiceOperation(
-            callback: fn() => $this->userRepository->find($id),
+            callback: fn () => $this->userRepository->find($id),
             operation: 'getUserById',
             context: ['user_id' => $id],
             defaultValue: null
@@ -61,17 +60,17 @@ class UserService implements UserServiceInterface
                     /** @var User $user */
                     $user = $this->userRepository->create($userData);
 
-                    if (!empty($data['roles'])) {
+                    if (! empty($data['roles'])) {
                         $this->userRepository->syncRoles($user, $data['roles']);
                     }
 
-                    if (!empty($data['branches'])) {
+                    if (! empty($data['branches'])) {
                         $this->userRepository->syncBranches($user, $data['branches']);
                     }
 
                     $this->logServiceInfo('createUser', 'User created successfully', [
                         'user_id' => $user->id,
-                        'email' => $user->email
+                        'email' => $user->email,
                     ]);
 
                     return $user->fresh(['roles', 'branches', 'branch']);
@@ -96,9 +95,9 @@ class UserService implements UserServiceInterface
                         'is_active' => $data['is_active'] ?? null,
                         'locale' => $data['locale'] ?? null,
                         'timezone' => $data['timezone'] ?? null,
-                    ], fn($value) => $value !== null);
+                    ], fn ($value) => $value !== null);
 
-                    if (!empty($data['password'])) {
+                    if (! empty($data['password'])) {
                         $userData['password'] = Hash::make($data['password']);
                     }
 
@@ -128,7 +127,7 @@ class UserService implements UserServiceInterface
             callback: function () use ($user) {
                 $this->logServiceInfo('deleteUser', 'User deleted', [
                     'user_id' => $user->id,
-                    'email' => $user->email
+                    'email' => $user->email,
                 ]);
                 $this->userRepository->delete($user);
             },
@@ -157,7 +156,7 @@ class UserService implements UserServiceInterface
     public function assignRoles(User $user, array $roles): User
     {
         return $this->handleServiceOperation(
-            callback: fn() => $this->userRepository->syncRoles($user, $roles),
+            callback: fn () => $this->userRepository->syncRoles($user, $roles),
             operation: 'assignRoles',
             context: ['user_id' => $user->id, 'roles' => $roles]
         );
@@ -166,7 +165,7 @@ class UserService implements UserServiceInterface
     public function assignBranches(User $user, array $branchIds): User
     {
         return $this->handleServiceOperation(
-            callback: fn() => $this->userRepository->syncBranches($user, $branchIds),
+            callback: fn () => $this->userRepository->syncBranches($user, $branchIds),
             operation: 'assignBranches',
             context: ['user_id' => $user->id, 'branch_count' => count($branchIds)]
         );
@@ -177,6 +176,7 @@ class UserService implements UserServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($user) {
                 $this->logServiceInfo('activateUser', 'User activated', ['user_id' => $user->id]);
+
                 return $this->userRepository->activate($user);
             },
             operation: 'activateUser',
@@ -189,6 +189,7 @@ class UserService implements UserServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($user) {
                 $this->logServiceInfo('deactivateUser', 'User deactivated', ['user_id' => $user->id]);
+
                 return $this->userRepository->deactivate($user);
             },
             operation: 'deactivateUser',
@@ -199,7 +200,7 @@ class UserService implements UserServiceInterface
     public function getUsersByBranch(int $branchId): Collection
     {
         return $this->handleServiceOperation(
-            callback: fn() => $this->userRepository->getUsersByBranch($branchId),
+            callback: fn () => $this->userRepository->getUsersByBranch($branchId),
             operation: 'getUsersByBranch',
             context: ['branch_id' => $branchId]
         );
@@ -208,7 +209,7 @@ class UserService implements UserServiceInterface
     public function searchUsers(string $query, int $limit = 10): Collection
     {
         return $this->handleServiceOperation(
-            callback: fn() => $this->userRepository->paginateWithFilters([
+            callback: fn () => $this->userRepository->paginateWithFilters([
                 'search' => $query,
             ], $limit)->getCollection(),
             operation: 'searchUsers',

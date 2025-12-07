@@ -1,14 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Traits\HandlesServiceErrors;
+use App\Models\Branch;
+use App\Models\BranchModule;
+use App\Models\Module;
 use App\Services\Contracts\ModuleServiceInterface;
-use App\Models\{Module, Branch, BranchModule};
+use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class ModuleService implements ModuleServiceInterface
 {
@@ -20,7 +21,7 @@ class ModuleService implements ModuleServiceInterface
         $branchId = $branchId ?? request()->attributes->get('branch_id');
 
         return Cache::remember('modules:b:'.$branchId, 600, function () use ($branchId) {
-            if (!$branchId) {
+            if (! $branchId) {
                 return [];
             }
 
@@ -33,13 +34,13 @@ class ModuleService implements ModuleServiceInterface
 
             return $mods->map(function (BranchModule $bm) use ($definitions) {
                 $def = $definitions->get($bm->module_key, [
-                    'key'  => $bm->module_key,
+                    'key' => $bm->module_key,
                     'name' => ucfirst($bm->module_key),
                 ]);
 
                 return [
-                    'key'     => $bm->module_key,
-                    'name'    => (string) ($def['name'] ?? ucfirst($bm->module_key)),
+                    'key' => $bm->module_key,
+                    'name' => (string) ($def['name'] ?? ucfirst($bm->module_key)),
                     'enabled' => (bool) $bm->is_enabled,
                 ];
             })->all();
@@ -86,8 +87,8 @@ class ModuleService implements ModuleServiceInterface
                 $branch->modules()->syncWithoutDetaching([
                     $module->id => [
                         'module_key' => $moduleKey,
-                        'enabled'    => true,
-                        'settings'   => $settings,
+                        'enabled' => true,
+                        'settings' => $settings,
                     ],
                 ]);
             },
@@ -102,7 +103,7 @@ class ModuleService implements ModuleServiceInterface
             callback: function () use ($branch, $moduleKey) {
                 $module = Module::where('key', $moduleKey)->first();
 
-                if (!$module) {
+                if (! $module) {
                     return;
                 }
 
@@ -128,7 +129,7 @@ class ModuleService implements ModuleServiceInterface
             ->mapWithKeys(function (BranchModule $bm) {
                 return [
                     $bm->module_key => [
-                        'enabled'  => $bm->enabled,
+                        'enabled' => $bm->enabled,
                         'settings' => $bm->settings ?? [],
                     ],
                 ];

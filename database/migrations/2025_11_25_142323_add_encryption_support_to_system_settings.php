@@ -11,16 +11,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('system_settings', function (Blueprint $table) {
-            if (!Schema::hasColumn('system_settings', 'is_encrypted')) {
+            if (! Schema::hasColumn('system_settings', 'is_encrypted')) {
                 $table->boolean('is_encrypted')->default(false);
             }
-            if (!Schema::hasColumn('system_settings', 'category')) {
+            if (! Schema::hasColumn('system_settings', 'category')) {
                 $table->string('category')->nullable();
             }
-            if (!Schema::hasColumn('system_settings', 'description')) {
+            if (! Schema::hasColumn('system_settings', 'description')) {
                 $table->text('description')->nullable();
             }
-            if (!Schema::hasColumn('system_settings', 'sort_order')) {
+            if (! Schema::hasColumn('system_settings', 'sort_order')) {
                 $table->integer('sort_order')->default(0);
             }
         });

@@ -15,19 +15,29 @@ class ScheduledReports extends Component
     use WithPagination;
 
     public ?int $editingId = null;
+
     public bool $showModal = false;
-    
+
     public ?int $templateId = null;
+
     public string $scheduleName = '';
+
     public string $frequency = 'daily';
+
     public string $dayOfWeek = '1';
+
     public string $dayOfMonth = '1';
+
     public string $timeOfDay = '08:00';
+
     public string $recipientEmails = '';
+
     public string $format = 'pdf';
+
     public bool $isActive = true;
+
     public array $filters = [];
-    
+
     protected $listeners = ['refreshComponent' => '$refresh'];
 
     protected ScheduledReportService $reportService;
@@ -40,7 +50,7 @@ class ScheduledReports extends Component
     public function render()
     {
         $templates = ReportTemplate::active()->orderBy('name')->get();
-        
+
         $schedules = DB::table('report_schedules')
             ->leftJoin('report_templates', 'report_schedules.report_template_id', '=', 'report_templates.id')
             ->leftJoin('users', 'report_schedules.created_by', '=', 'users.id')
@@ -157,14 +167,14 @@ class ScheduledReports extends Component
         if ($schedule) {
             DB::table('report_schedules')
                 ->where('id', $id)
-                ->update(['is_active' => !$schedule->is_active, 'updated_at' => now()]);
+                ->update(['is_active' => ! $schedule->is_active, 'updated_at' => now()]);
         }
     }
 
     public function runNow(int $id): void
     {
         $result = $this->reportService->runNow($id);
-        
+
         if ($result['success']) {
             $sentCount = count($result['sent_to'] ?? []);
             $this->dispatch('notify', type: 'success', message: __('Report generated and sent to :count recipient(s)', ['count' => $sentCount]));

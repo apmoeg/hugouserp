@@ -1,13 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Traits\HandlesServiceErrors;
+use App\Models\Purchase;
+use App\Models\PurchaseItem;
 use App\Services\Contracts\PurchaseServiceInterface;
-use App\Models\{Purchase, PurchaseItem, Supplier};
+use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class PurchaseService implements PurchaseServiceInterface
 {
@@ -18,24 +19,25 @@ class PurchaseService implements PurchaseServiceInterface
         return $this->handleServiceOperation(
             callback: fn () => DB::transaction(function () use ($payload) {
                 $p = Purchase::create([
-                    'branch_id'   => request()->attributes->get('branch_id'),
-                    'warehouse_id'=> $payload['warehouse_id'] ?? null,
+                    'branch_id' => request()->attributes->get('branch_id'),
+                    'warehouse_id' => $payload['warehouse_id'] ?? null,
                     'supplier_id' => $payload['supplier_id'] ?? null,
-                    'status'      => 'draft',
-                    'subtotal'    => 0, 'tax_total'=>0, 'discount_total'=>0, 'total'=>0,
+                    'status' => 'draft',
+                    'subtotal' => 0, 'tax_total' => 0, 'discount_total' => 0, 'total' => 0,
                 ]);
                 foreach ($payload['items'] ?? [] as $it) {
                     PurchaseItem::create([
-                        'purchase_id'=> $p->getKey(),
+                        'purchase_id' => $p->getKey(),
                         'product_id' => $it['product_id'],
-                        'qty'        => (float)$it['qty'],
-                        'price'      => (float)($it['price'] ?? 0),
-                        'total'      => (float)($it['qty'] * ($it['price'] ?? 0)),
+                        'qty' => (float) $it['qty'],
+                        'price' => (float) ($it['price'] ?? 0),
+                        'total' => (float) ($it['qty'] * ($it['price'] ?? 0)),
                     ]);
                 }
                 $p->subtotal = (float) $p->items()->sum('total');
                 $p->total = $p->subtotal;
                 $p->save();
+
                 return $p;
             }),
             operation: 'create',
@@ -51,6 +53,7 @@ class PurchaseService implements PurchaseServiceInterface
                 $p->status = 'approved';
                 $p->approved_at = now();
                 $p->save();
+
                 return $p;
             },
             operation: 'approve',
@@ -67,6 +70,7 @@ class PurchaseService implements PurchaseServiceInterface
                 $p->received_at = now();
                 $p->save();
                 event(new \App\Events\PurchaseReceived($p));
+
                 return $p;
             },
             operation: 'receive',
@@ -80,8 +84,11 @@ class PurchaseService implements PurchaseServiceInterface
             callback: function () use ($id, $amount) {
                 $p = Purchase::findOrFail($id);
                 $p->paid_total = round((float) $p->paid_total + $amount, 2);
-                if ($p->paid_total >= $p->total) $p->status = 'paid';
+                if ($p->paid_total >= $p->total) {
+                    $p->status = 'paid';
+                }
                 $p->save();
+
                 return $p;
             },
             operation: 'pay',
@@ -96,6 +103,7 @@ class PurchaseService implements PurchaseServiceInterface
                 $p = Purchase::findOrFail($id);
                 $p->status = 'cancelled';
                 $p->save();
+
                 return $p;
             },
             operation: 'cancel',

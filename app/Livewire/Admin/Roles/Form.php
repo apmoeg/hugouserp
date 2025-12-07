@@ -5,25 +5,28 @@ declare(strict_types=1);
 namespace App\Livewire\Admin\Roles;
 
 use App\Livewire\Concerns\HandlesErrors;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Livewire\Component;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class Form extends Component
 {
     use HandlesErrors;
 
     public ?Role $role = null;
+
     public bool $editMode = false;
 
     public string $name = '';
+
     public array $selectedPermissions = [];
 
     protected function rules(): array
     {
-        $unique = $this->editMode ? '|unique:roles,name,' . $this->role->id : '|unique:roles,name';
+        $unique = $this->editMode ? '|unique:roles,name,'.$this->role->id : '|unique:roles,name';
+
         return [
-            'name' => 'required|string|max:255' . $unique,
+            'name' => 'required|string|max:255'.$unique,
             'selectedPermissions' => 'array',
         ];
     }
@@ -34,7 +37,7 @@ class Form extends Component
             $this->role = $role;
             $this->editMode = true;
             $this->name = $role->name;
-            $this->selectedPermissions = $role->permissions->pluck('id')->map(fn($id) => (string) $id)->toArray();
+            $this->selectedPermissions = $role->permissions->pluck('id')->map(fn ($id) => (string) $id)->toArray();
         }
     }
 
@@ -47,6 +50,7 @@ class Form extends Component
 
         if ($editMode && $role->name === 'Super Admin') {
             session()->flash('error', __('Cannot modify Super Admin role'));
+
             return;
         }
 
@@ -70,7 +74,7 @@ class Form extends Component
         $permissions = Permission::where('guard_name', 'web')
             ->orderBy('name')
             ->get()
-            ->groupBy(fn($p) => explode('.', $p->name)[0] ?? 'general');
+            ->groupBy(fn ($p) => explode('.', $p->name)[0] ?? 'general');
 
         return view('livewire.admin.roles.form', [
             'permissions' => $permissions,

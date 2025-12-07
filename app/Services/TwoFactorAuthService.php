@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use PragmaRX\Google2FA\Google2FA;
 
@@ -20,7 +19,7 @@ class TwoFactorAuthService
 
     public function __construct()
     {
-        $this->google2fa = new Google2FA();
+        $this->google2fa = new Google2FA;
     }
 
     public function generateSecretKey(): string
@@ -38,7 +37,7 @@ class TwoFactorAuthService
             callback: function () use ($user, $secret) {
                 $appName = config('app.name', 'GhanemERP');
                 $appName = str_replace(' ', '', $appName);
-                
+
                 return $this->google2fa->getQRCodeUrl(
                     $appName,
                     $user->email,
@@ -70,7 +69,7 @@ class TwoFactorAuthService
                 );
                 $user->two_factor_enabled = true;
                 $user->two_factor_confirmed_at = now();
-                
+
                 return $user->save();
             },
             operation: 'enableTwoFactor',
@@ -87,7 +86,7 @@ class TwoFactorAuthService
                 $user->two_factor_recovery_codes = null;
                 $user->two_factor_enabled = false;
                 $user->two_factor_confirmed_at = null;
-                
+
                 return $user->save();
             },
             operation: 'disableTwoFactor',
@@ -100,7 +99,7 @@ class TwoFactorAuthService
     {
         return $this->handleServiceOperation(
             callback: function () use ($user) {
-                if (!$user->two_factor_secret) {
+                if (! $user->two_factor_secret) {
                     return null;
                 }
 
@@ -116,7 +115,7 @@ class TwoFactorAuthService
     {
         return $this->handleServiceOperation(
             callback: function () use ($user) {
-                if (!$user->two_factor_recovery_codes) {
+                if (! $user->two_factor_recovery_codes) {
                     return [];
                 }
 
@@ -136,10 +135,10 @@ class TwoFactorAuthService
         return $this->handleServiceOperation(
             callback: function () use ($user) {
                 $codes = $this->generateRecoveryCodes();
-                
+
                 $user->two_factor_recovery_codes = Crypt::encryptString(json_encode($codes));
                 $user->save();
-                
+
                 return $codes;
             },
             operation: 'regenerateRecoveryCodes',
@@ -153,16 +152,16 @@ class TwoFactorAuthService
         return $this->handleServiceOperation(
             callback: function () use ($user, $code) {
                 $codes = $this->getRecoveryCodes($user);
-                
-                if (!in_array($code, $codes)) {
+
+                if (! in_array($code, $codes)) {
                     return false;
                 }
 
-                $codes = array_values(array_filter($codes, fn($c) => $c !== $code));
-                
+                $codes = array_values(array_filter($codes, fn ($c) => $c !== $code));
+
                 $user->two_factor_recovery_codes = Crypt::encryptString(json_encode($codes));
                 $user->save();
-                
+
                 return true;
             },
             operation: 'verifyRecoveryCode',
@@ -174,7 +173,7 @@ class TwoFactorAuthService
     protected function generateRecoveryCodes(int $count = 8): array
     {
         return Collection::times($count, function () {
-            return Str::random(10) . '-' . Str::random(10);
+            return Str::random(10).'-'.Str::random(10);
         })->all();
     }
 

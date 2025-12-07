@@ -48,15 +48,16 @@ class PermissionRepository extends EloquentBaseRepository implements PermissionR
         foreach ($permissions as $permission) {
             $parts = explode('.', $permission->name);
             $module = $parts[0] ?? 'general';
-            
-            if (!isset($grouped[$module])) {
+
+            if (! isset($grouped[$module])) {
                 $grouped[$module] = [];
             }
-            
+
             $grouped[$module][] = $permission;
         }
 
         ksort($grouped);
+
         return $grouped;
     }
 
@@ -64,16 +65,16 @@ class PermissionRepository extends EloquentBaseRepository implements PermissionR
     {
         $query = $this->query()->with('roles');
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where('name', 'ilike', "%{$search}%");
         }
 
-        if (!empty($filters['guard_name'])) {
+        if (! empty($filters['guard_name'])) {
             $query->where('guard_name', $filters['guard_name']);
         }
 
-        if (!empty($filters['module'])) {
+        if (! empty($filters['module'])) {
             $query->where('name', 'like', "{$filters['module']}.%");
         }
 
@@ -87,22 +88,23 @@ class PermissionRepository extends EloquentBaseRepository implements PermissionR
     public function syncToRole(Permission $permission, array $roleIds): Permission
     {
         $permission->roles()->sync($roleIds);
+
         return $permission->fresh(['roles']);
     }
 
     public function createForModule(string $module, array $actions = ['view', 'create', 'edit', 'delete']): Collection
     {
-        $permissions = new Collection();
+        $permissions = new Collection;
 
         foreach ($actions as $action) {
             $name = "{$module}.{$action}";
-            
+
             $permission = $this->query()
                 ->firstOrCreate(
                     ['name' => $name, 'guard_name' => 'web'],
                     ['name' => $name, 'guard_name' => 'web']
                 );
-            
+
             $permissions->push($permission);
         }
 

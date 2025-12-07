@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin\HrmCentral;
@@ -13,14 +14,22 @@ class AttendanceController extends Controller
     {
         $per = min(max($request->integer('per_page', 20), 1), 100);
         $q = Attendance::query()->orderByDesc('logged_at');
-        if ($request->filled('employee_id')) $q->where('employee_id', $request->integer('employee_id'));
-        if ($request->filled('status')) $q->where('status', $request->input('status'));
+        if ($request->filled('employee_id')) {
+            $q->where('employee_id', $request->integer('employee_id'));
+        }
+        if ($request->filled('status')) {
+            $q->where('status', $request->input('status'));
+        }
+
         return $this->ok($q->paginate($per));
     }
 
     public function approve(Attendance $record)
     {
-        $record->status = 'approved'; $record->approved_at = now(); $record->save();
+        $record->status = 'approved';
+        $record->approved_at = now();
+        $record->save();
+
         return $this->ok($record, __('Approved'));
     }
 }

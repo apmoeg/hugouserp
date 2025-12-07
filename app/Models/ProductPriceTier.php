@@ -45,6 +45,7 @@ class ProductPriceTier extends Model
     public function getLocalizedNameAttribute(): string
     {
         $locale = app()->getLocale();
+
         return $locale === 'ar' && $this->tier_name_ar ? $this->tier_name_ar : $this->tier_name;
     }
 
@@ -57,7 +58,7 @@ class ProductPriceTier extends Model
     {
         return $query->where(function ($q) use ($branchId) {
             $q->where('branch_id', $branchId)
-              ->orWhereNull('branch_id');
+                ->orWhereNull('branch_id');
         });
     }
 
@@ -66,7 +67,7 @@ class ProductPriceTier extends Model
         return $query->where('min_quantity', '<=', $quantity)
             ->where(function ($q) use ($quantity) {
                 $q->whereNull('max_quantity')
-                  ->orWhere('max_quantity', '>=', $quantity);
+                    ->orWhere('max_quantity', '>=', $quantity);
             });
     }
 }

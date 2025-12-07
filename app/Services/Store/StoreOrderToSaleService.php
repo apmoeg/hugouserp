@@ -25,7 +25,7 @@ class StoreOrderToSaleService
                 return null;
             }
 
-            $saleModel = new Sale();
+            $saleModel = new Sale;
 
             $fillable = method_exists($saleModel, 'getFillable')
                 ? $saleModel->getFillable()
@@ -90,7 +90,7 @@ class StoreOrderToSaleService
             } catch (\Throwable $e) {
                 Log::warning('StoreOrderToSaleService: items sync failed', [
                     'order_id' => $order->getKey(),
-                    'message'  => $e->getMessage(),
+                    'message' => $e->getMessage(),
                 ]);
             }
 
@@ -104,7 +104,7 @@ class StoreOrderToSaleService
         } catch (\Throwable $e) {
             Log::error('StoreOrderToSaleService: convert failed', [
                 'order_id' => $order->getKey(),
-                'message'  => $e->getMessage(),
+                'message' => $e->getMessage(),
             ]);
 
             return null;
@@ -119,7 +119,7 @@ class StoreOrderToSaleService
             return;
         }
 
-        $saleItemModel = new SaleItem();
+        $saleItemModel = new SaleItem;
 
         $fillable = method_exists($saleItemModel, 'getFillable')
             ? $saleItemModel->getFillable()
@@ -144,15 +144,15 @@ class StoreOrderToSaleService
                 continue;
             }
 
-            $price    = (float) Arr::get($item, 'price', 0);
+            $price = (float) Arr::get($item, 'price', 0);
             $discount = (float) Arr::get($item, 'discount', 0);
-            $total    = Arr::get($item, 'total');
+            $total = Arr::get($item, 'total');
 
             if ($total === null) {
                 $total = ($qty * $price) - $discount;
             }
 
-            $productId   = null;
+            $productId = null;
             $variationId = null;
 
             try {
@@ -160,13 +160,13 @@ class StoreOrderToSaleService
                     $variation = ProductVariation::query()->find((int) $item['variation_id']);
                     if ($variation) {
                         $variationId = $variation->getKey();
-                        $productId   = $variation->product_id;
+                        $productId = $variation->product_id;
                     }
                 } elseif (! empty($item['variation_sku'])) {
                     $variation = ProductVariation::query()->where('sku', $item['variation_sku'])->first();
                     if ($variation) {
                         $variationId = $variation->getKey();
-                        $productId   = $variation->product_id;
+                        $productId = $variation->product_id;
                     }
                 } elseif (! empty($item['sku'])) {
                     $product = Product::query()->where('sku', $item['sku'])->first();

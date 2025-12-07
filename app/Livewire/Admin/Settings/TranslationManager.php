@@ -15,18 +15,28 @@ class TranslationManager extends Component
     use WithPagination;
 
     #[Layout('layouts.app')]
-
     public string $search = '';
+
     public string $selectedLang = 'ar';
+
     public string $newKey = '';
+
     public string $newValueAr = '';
+
     public string $newValueEn = '';
+
     public array $translations = [];
+
     public array $editingTranslations = [];
+
     public bool $showAddModal = false;
+
     public bool $showEditModal = false;
+
     public string $editKey = '';
+
     public string $editValueAr = '';
+
     public string $editValueEn = '';
 
     protected function rules(): array
@@ -48,10 +58,10 @@ class TranslationManager extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('settings.translations.manage')) {
+        if (! $user || ! $user->can('settings.translations.manage')) {
             abort(403, 'Unauthorized');
         }
-        
+
         $this->loadTranslations();
     }
 
@@ -61,7 +71,7 @@ class TranslationManager extends Component
         $key = preg_replace('/[^\p{L}\p{N}\s\.\-\_\:\,\!\?\(\)\'\"]/u', '', $key);
         $key = preg_replace('/\.{2,}/', '.', $key);
         $key = preg_replace('/[\/\\\\]/', '', $key);
-        
+
         return mb_substr($key, 0, 255);
     }
 
@@ -70,11 +80,11 @@ class TranslationManager extends Component
         if (empty($key) || mb_strlen($key) < 2 || mb_strlen($key) > 255) {
             return false;
         }
-        
+
         if (preg_match('/[\/\\\\]|\.\./', $key)) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -105,6 +115,7 @@ class TranslationManager extends Component
         }
 
         $search = mb_strtolower($this->search);
+
         return array_filter($this->translations, function ($values, $key) use ($search) {
             return str_contains(mb_strtolower($key), $search)
                 || str_contains(mb_strtolower($values['ar']), $search)
@@ -129,21 +140,23 @@ class TranslationManager extends Component
         $this->validate();
 
         $sanitizedKey = $this->sanitizeKey($this->newKey);
-        
-        if (!$this->isValidKey($sanitizedKey)) {
+
+        if (! $this->isValidKey($sanitizedKey)) {
             $this->addError('newKey', __('Invalid translation key. Please use only letters, numbers, spaces, and basic punctuation.'));
+
             return;
         }
 
         if (isset($this->translations[$sanitizedKey])) {
             $this->addError('newKey', __('This translation key already exists.'));
+
             return;
         }
 
         $this->saveTranslation($sanitizedKey, $this->newValueAr, $this->newValueEn);
         $this->closeAddModal();
         $this->loadTranslations();
-        
+
         session()->flash('success', __('Translation added successfully.'));
     }
 
@@ -168,32 +181,36 @@ class TranslationManager extends Component
             'editValueEn' => ['required', 'string', 'max:1000'],
         ]);
 
-        if (!$this->isValidKey($this->editKey)) {
+        if (! $this->isValidKey($this->editKey)) {
             $this->addError('editValueAr', __('Invalid translation key.'));
+
             return;
         }
 
-        if (!isset($this->translations[$this->editKey])) {
+        if (! isset($this->translations[$this->editKey])) {
             $this->addError('editValueAr', __('Translation key not found.'));
+
             return;
         }
 
         $this->saveTranslation($this->editKey, $this->editValueAr, $this->editValueEn);
         $this->closeEditModal();
         $this->loadTranslations();
-        
+
         session()->flash('success', __('Translation updated successfully.'));
     }
 
     public function deleteTranslation(string $key): void
     {
-        if (!$this->isValidKey($key)) {
+        if (! $this->isValidKey($key)) {
             session()->flash('error', __('Invalid translation key.'));
+
             return;
         }
 
-        if (!isset($this->translations[$key])) {
+        if (! isset($this->translations[$key])) {
             session()->flash('error', __('Translation key not found.'));
+
             return;
         }
 
@@ -209,15 +226,15 @@ class TranslationManager extends Component
         File::put($enPath, json_encode($enTranslations, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
         $this->loadTranslations();
-        
+
         session()->flash('success', __('Translation deleted successfully.'));
     }
 
     protected function saveTranslation(string $key, string $arValue, string $enValue): void
     {
         $sanitizedKey = $this->sanitizeKey($key);
-        
-        if (!$this->isValidKey($sanitizedKey)) {
+
+        if (! $this->isValidKey($sanitizedKey)) {
             throw new \InvalidArgumentException('Invalid translation key');
         }
 

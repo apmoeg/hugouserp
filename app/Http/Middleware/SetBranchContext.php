@@ -25,18 +25,18 @@ class SetBranchContext
     {
         $branchId = $request->route('branch') ?? $request->headers->get('X-Branch-Id');
 
-        if (!$branchId) {
+        if (! $branchId) {
             return $this->error('Branch context is required.', 422);
         }
 
         /** @var Branch $branch */
         $branch = Branch::query()->whereKey($branchId)->first();
 
-        if (!$branch) {
+        if (! $branch) {
             throw new ModelNotFoundException('Branch not found.');
         }
 
-        if (method_exists($branch, 'isActive') && !$branch->isActive()) {
+        if (method_exists($branch, 'isActive') && ! $branch->isActive()) {
             return $this->error('Branch is inactive.', 423);
         }
 

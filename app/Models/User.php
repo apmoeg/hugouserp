@@ -5,27 +5,27 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
-use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
-use Illuminate\Foundation\Auth\Access\Authorizable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends BaseModel implements AuthenticatableContract, AuthorizableContract
 {
-    use HasApiTokens;
-    use HasFactory;
-    use Notifiable;
-    use HasRoles;
-    use SoftDeletes;
     use AuthenticatableTrait;
     use Authorizable;
+    use HasApiTokens;
+    use HasFactory;
+    use HasRoles;
+    use Notifiable;
+    use SoftDeletes;
 
     protected $table = 'users';
 
@@ -59,13 +59,13 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     ];
 
     protected $casts = [
-        'email_verified_at'       => 'datetime',
-        'is_active'               => 'bool',
-        'last_login_at'           => 'datetime',
-        'two_factor_enabled'      => 'bool',
+        'email_verified_at' => 'datetime',
+        'is_active' => 'bool',
+        'last_login_at' => 'datetime',
+        'two_factor_enabled' => 'bool',
         'two_factor_confirmed_at' => 'datetime',
-        'can_modify_price'        => 'bool',
-        'password_changed_at'     => 'datetime',
+        'can_modify_price' => 'bool',
+        'password_changed_at' => 'datetime',
     ];
 
     public function branch(): BelongsTo
@@ -100,7 +100,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
 
     public function routeNotificationForBroadcast()
     {
-        return 'private-App.Models.User.' . $this->id;
+        return 'private-App.Models.User.'.$this->id;
     }
 
     public function scopeActive($q)

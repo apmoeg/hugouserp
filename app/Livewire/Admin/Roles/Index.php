@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin\Roles;
 
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Spatie\Permission\Models\Role;
 
 class Index extends Component
 {
     use WithPagination;
 
     public string $search = '';
+
     public string $sortField = 'name';
+
     public string $sortDirection = 'asc';
 
     protected $queryString = ['search'];
@@ -37,14 +38,15 @@ class Index extends Component
     public function delete(int $id): void
     {
         $this->authorize('roles.manage');
-        
+
         $role = Role::findOrFail($id);
-        
+
         if ($role->name === 'Super Admin') {
             session()->flash('error', __('Cannot delete Super Admin role'));
+
             return;
         }
-        
+
         $role->delete();
         session()->flash('success', __('Role deleted successfully'));
     }
@@ -53,7 +55,7 @@ class Index extends Component
     {
         $roles = Role::query()
             ->where('guard_name', 'web')
-            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%"))
+            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
             ->withCount('permissions', 'users')
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(15);

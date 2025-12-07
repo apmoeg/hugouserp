@@ -16,16 +16,13 @@ class ProductsController extends BaseApiController
         $store = $this->getStore($request);
 
         $query = Product::query()
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
-            ->when($request->filled('search'), fn($q) => 
-                $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('sku', 'like', '%' . $request->search . '%')
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
+            ->when($request->filled('search'), fn ($q) => $q->where('name', 'like', '%'.$request->search.'%')
+                ->orWhere('sku', 'like', '%'.$request->search.'%')
             )
-            ->when($request->filled('category_id'), fn($q) => 
-                $q->where('category_id', $request->category_id)
+            ->when($request->filled('category_id'), fn ($q) => $q->where('category_id', $request->category_id)
             )
-            ->when($request->boolean('in_stock'), fn($q) => 
-                $q->where('quantity', '>', 0)
+            ->when($request->boolean('in_stock'), fn ($q) => $q->where('quantity', '>', 0)
             )
             ->orderBy($request->get('sort_by', 'created_at'), $request->get('sort_dir', 'desc'));
 
@@ -39,10 +36,10 @@ class ProductsController extends BaseApiController
         $store = $this->getStore($request);
 
         $product = Product::query()
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
             ->find($id);
 
-        if (!$product) {
+        if (! $product) {
             return $this->errorResponse(__('Product not found'), 404);
         }
 
@@ -101,16 +98,16 @@ class ProductsController extends BaseApiController
         $store = $this->getStore($request);
 
         $product = Product::query()
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
             ->find($id);
 
-        if (!$product) {
+        if (! $product) {
             return $this->errorResponse(__('Product not found'), 404);
         }
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'sku' => 'sometimes|string|max:100|unique:products,sku,' . $product->id,
+            'sku' => 'sometimes|string|max:100|unique:products,sku,'.$product->id,
             'description' => 'nullable|string',
             'price' => 'sometimes|numeric|min:0',
             'cost_price' => 'nullable|numeric|min:0',
@@ -132,10 +129,10 @@ class ProductsController extends BaseApiController
         $store = $this->getStore($request);
 
         $product = Product::query()
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
             ->find($id);
 
-        if (!$product) {
+        if (! $product) {
             return $this->errorResponse(__('Product not found'), 404);
         }
 
@@ -148,7 +145,7 @@ class ProductsController extends BaseApiController
     {
         $store = $this->getStore($request);
 
-        if (!$store) {
+        if (! $store) {
             return $this->errorResponse(__('Store authentication required'), 401);
         }
 
@@ -157,7 +154,7 @@ class ProductsController extends BaseApiController
             ->with('product')
             ->first();
 
-        if (!$mapping || !$mapping->product) {
+        if (! $mapping || ! $mapping->product) {
             return $this->errorResponse(__('Product not found'), 404);
         }
 

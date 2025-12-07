@@ -4,28 +4,35 @@ declare(strict_types=1);
 
 namespace App\Livewire\Income;
 
+use App\Livewire\Concerns\HandlesErrors;
 use App\Models\Income;
 use App\Models\IncomeCategory;
-use App\Livewire\Concerns\HandlesErrors;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class Form extends Component
 {
-    use WithFileUploads;
     use AuthorizesRequests;
     use HandlesErrors;
+    use WithFileUploads;
 
     public ?Income $income = null;
+
     public bool $editMode = false;
 
     public string $category_id = '';
+
     public string $reference_number = '';
+
     public string $income_date = '';
+
     public float $amount = 0;
+
     public string $payment_method = 'cash';
+
     public string $description = '';
+
     public $attachment;
 
     protected function rules(): array
@@ -44,9 +51,9 @@ class Form extends Component
     public function mount(?Income $income = null): void
     {
         $this->authorize('income.manage');
-        
+
         $this->income_date = now()->format('Y-m-d');
-        
+
         if ($income && $income->exists) {
             $this->income = $income;
             $this->editMode = true;
@@ -85,7 +92,7 @@ class Form extends Component
     public function render()
     {
         $categories = IncomeCategory::active()->get();
-        
+
         return view('livewire.income.form', [
             'categories' => $categories,
         ])->layout('layouts.app', ['title' => $this->editMode ? __('Edit Income') : __('Add Income')]);

@@ -1,9 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 use App\Models\ModuleField;
 use App\Services\Contracts\ModuleFieldServiceInterface;
@@ -82,36 +81,36 @@ class ModuleFieldService implements ModuleFieldServiceInterface
     protected function normalizeModelField(ModuleField $field): array
     {
         return [
-            'name'           => $field->name,
-            'label'          => $field->label ?: $field->name,
-            'type'           => $field->type ?: 'text',
-            'options'        => $field->options ?? [],
-            'rules'          => $field->rules ?? [],
-            'required'       => (bool) $field->is_required,
-            'visible'        => (bool) $field->is_visible,
-            'show_in_list'   => (bool) $field->show_in_list,
+            'name' => $field->name,
+            'label' => $field->label ?: $field->name,
+            'type' => $field->type ?: 'text',
+            'options' => $field->options ?? [],
+            'rules' => $field->rules ?? [],
+            'required' => (bool) $field->is_required,
+            'visible' => (bool) $field->is_visible,
+            'show_in_list' => (bool) $field->show_in_list,
             'show_in_export' => (bool) $field->show_in_export,
-            'order'          => $field->order ?? 0,
-            'default'        => $field->default ?? null,
-            'meta'           => $field->meta ?? [],
+            'order' => $field->order ?? 0,
+            'default' => $field->default ?? null,
+            'meta' => $field->meta ?? [],
         ];
     }
 
     protected function normalizeConfigField(array $field): array
     {
         return [
-            'name'           => $field['name'] ?? '',
-            'label'          => $field['label'] ?? ($field['name'] ?? ''),
-            'type'           => $field['type'] ?? 'text',
-            'options'        => $field['options'] ?? [],
-            'rules'          => $field['rules'] ?? [],
-            'required'       => (bool) ($field['required'] ?? false),
-            'visible'        => (bool) ($field['visible'] ?? true),
-            'show_in_list'   => (bool) ($field['show_in_list'] ?? false),
+            'name' => $field['name'] ?? '',
+            'label' => $field['label'] ?? ($field['name'] ?? ''),
+            'type' => $field['type'] ?? 'text',
+            'options' => $field['options'] ?? [],
+            'rules' => $field['rules'] ?? [],
+            'required' => (bool) ($field['required'] ?? false),
+            'visible' => (bool) ($field['visible'] ?? true),
+            'show_in_list' => (bool) ($field['show_in_list'] ?? false),
             'show_in_export' => (bool) ($field['show_in_export'] ?? true),
-            'order'          => (int) ($field['order'] ?? 0),
-            'default'        => $field['default'] ?? null,
-            'meta'           => $field['meta'] ?? [],
+            'order' => (int) ($field['order'] ?? 0),
+            'default' => $field['default'] ?? null,
+            'meta' => $field['meta'] ?? [],
         ];
     }
 }

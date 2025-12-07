@@ -32,7 +32,7 @@ abstract class BaseApiController extends Controller
             'message' => $message,
         ];
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $response['errors'] = $errors;
         }
 

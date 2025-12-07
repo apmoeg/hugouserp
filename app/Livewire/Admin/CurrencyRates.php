@@ -14,18 +14,25 @@ class CurrencyRates extends Component
     use WithPagination;
 
     public string $fromCurrency = 'EGP';
+
     public string $toCurrency = 'USD';
+
     public float $rate = 0;
+
     public string $effectiveDate = '';
-    
+
     public ?int $editingId = null;
+
     public bool $showModal = false;
-    
+
     public string $baseCurrency = 'EGP';
+
     public float $convertAmount = 100;
+
     public string $convertTo = 'USD';
+
     public ?float $convertedResult = null;
-    
+
     protected CurrencyService $currencyService;
 
     public function boot(CurrencyService $currencyService): void
@@ -98,6 +105,7 @@ class CurrencyRates extends Component
 
         if ($this->fromCurrency === $this->toCurrency) {
             $this->dispatch('notify', type: 'error', message: __('From and To currencies must be different'));
+
             return;
         }
 
@@ -108,10 +116,10 @@ class CurrencyRates extends Component
             $this->effectiveDate
         );
 
-        $this->dispatch('notify', type: 'success', message: $this->editingId 
-            ? __('Currency rate updated successfully') 
+        $this->dispatch('notify', type: 'success', message: $this->editingId
+            ? __('Currency rate updated successfully')
             : __('Currency rate added successfully'));
-        
+
         $this->closeModal();
     }
 
@@ -151,7 +159,7 @@ class CurrencyRates extends Component
     {
         if ($this->rate > 0) {
             $reverseRate = 1 / $this->rate;
-            
+
             $this->currencyService->setRate(
                 $this->toCurrency,
                 $this->fromCurrency,

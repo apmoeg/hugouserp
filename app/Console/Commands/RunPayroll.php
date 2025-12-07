@@ -1,14 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use App\Models\Branch;
 use App\Services\HRMService;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class RunPayroll extends Command
 {
@@ -31,24 +32,25 @@ class RunPayroll extends Command
     public function handle(): int
     {
         $periodInput = $this->option('period') ?: Carbon::now()->format('Y-m');
-        $approve     = (bool) $this->option('approve');
-        $pay         = (bool) $this->option('pay');
-        $targets     = (array) $this->option('branch');
+        $approve = (bool) $this->option('approve');
+        $pay = (bool) $this->option('pay');
+        $targets = (array) $this->option('branch');
 
         // Validate period
-        if (!preg_match('/^\d{4}\-\d{2}$/', $periodInput)) {
+        if (! preg_match('/^\d{4}\-\d{2}$/', $periodInput)) {
             $this->error('Invalid --period. Expected YYYY-MM.');
+
             return self::FAILURE;
         }
         $periodStart = Carbon::createFromFormat('Y-m-d', "{$periodInput}-01")->startOfDay();
 
-        $this->info("Payroll run for period: {$periodInput}" . (count($targets) ? ' | targeted branches' : ' | all active branches'));
+        $this->info("Payroll run for period: {$periodInput}".(count($targets) ? ' | targeted branches' : ' | all active branches'));
         $this->line($approve ? 'Approval: ON' : 'Approval: OFF');
         $this->line($pay ? 'Payment: ON' : 'Payment: OFF');
 
         // Resolve branches
         $branches = Branch::query()->where('active', true);
-        if (!empty($targets)) {
+        if (! empty($targets)) {
             $branches->where(function ($q) use ($targets) {
                 $q->whereIn('id', $targets)->orWhereIn('code', $targets);
             });
@@ -61,19 +63,20 @@ class RunPayroll extends Command
             $lockKey = "cmd:hrm:payroll:{$branch->id}:{$periodInput}";
             $lock = Cache::lock($lockKey, 900); // 15 minutes
 
-            if (!$lock->get()) {
+            if (! $lock->get()) {
                 $this->warn("Skipped (locked) branch={$branch->id} {$branch->name}");
+
                 continue;
             }
 
             try {
                 Log::info('Payroll run started', [
                     'branch_id' => $branch->id,
-                    'period'    => $periodInput,
+                    'period' => $periodInput,
                 ]);
 
                 $result = $this->hrmService->runPayroll($branch, $periodStart);
-                $count  = (int) ($result['employees'] ?? 0);
+                $count = (int) ($result['employees'] ?? 0);
                 $this->line("✔ Branch={$branch->code} ({$branch->name}) | employees={$count}");
                 $totalRuns++;
 
@@ -88,16 +91,16 @@ class RunPayroll extends Command
 
                 Log::info('Payroll run finished', [
                     'branch_id' => $branch->id,
-                    'period'    => $periodInput,
+                    'period' => $periodInput,
                     'employees' => $count,
-                    'approved'  => $approve,
-                    'paid'      => $pay,
+                    'approved' => $approve,
+                    'paid' => $pay,
                 ]);
             } catch (\Throwable $e) {
                 Log::error('Payroll run error', [
                     'branch_id' => $branch->id,
-                    'period'    => $periodInput,
-                    'error'     => $e->getMessage(),
+                    'period' => $periodInput,
+                    'error' => $e->getMessage(),
                 ]);
                 $this->error("✖ Error on branch={$branch->code}: ".$e->getMessage());
             } finally {
@@ -106,6 +109,7 @@ class RunPayroll extends Command
         }
 
         $this->info("Payroll completed for {$totalRuns} branch(es).");
+
         return self::SUCCESS;
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -8,7 +9,6 @@ use App\Services\Contracts\ModuleFieldServiceInterface;
 use App\Services\Contracts\ProductServiceInterface;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ProductService implements ProductServiceInterface
@@ -17,8 +17,7 @@ class ProductService implements ProductServiceInterface
 
     public function __construct(
         protected ModuleFieldServiceInterface $moduleFields,
-    ) {
-    }
+    ) {}
 
     /** @return \Illuminate\Contracts\Pagination\LengthAwarePaginator */
     public function search(string $q = '', int $perPage = 15)
@@ -28,7 +27,7 @@ class ProductService implements ProductServiceInterface
                 $query = Product::query();
 
                 if ($q !== '') {
-                    $like = '%' . $q . '%';
+                    $like = '%'.$q.'%';
                     $query->where(function ($inner) use ($like) {
                         $inner->where('name', 'like', $like)
                             ->orWhere('sku', 'like', $like)
@@ -59,6 +58,7 @@ class ProductService implements ProductServiceInterface
                 $header = fgetcsv($stream);
                 if (! $header) {
                     fclose($stream);
+
                     return 0;
                 }
 
@@ -105,8 +105,8 @@ class ProductService implements ProductServiceInterface
 
                         /** @var Product $product */
                         $product = $sku
-                            ? Product::query()->where('sku', $sku)->first() ?? new Product()
-                            : new Product();
+                            ? Product::query()->where('sku', $sku)->first() ?? new Product
+                            : new Product;
 
                         if ($sku !== null) {
                             $product->sku = $sku;
@@ -147,7 +147,7 @@ class ProductService implements ProductServiceInterface
                     $this->logServiceInfo('importCsv', 'CSV import completed', [
                         'disk' => $disk,
                         'path' => $path,
-                        'imported_count' => $imported
+                        'imported_count' => $imported,
                     ]);
                 } catch (\Throwable $e) {
                     fclose($stream);
@@ -207,7 +207,7 @@ class ProductService implements ProductServiceInterface
 
                 $this->logServiceInfo('exportCsv', 'CSV export completed', [
                     'disk' => $disk,
-                    'path' => $path
+                    'path' => $path,
                 ]);
 
                 return $path;

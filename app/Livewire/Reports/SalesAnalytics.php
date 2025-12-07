@@ -6,42 +6,49 @@ namespace App\Livewire\Reports;
 
 use App\Models\Sale;
 use App\Models\SaleItem;
-use App\Models\Product;
-use App\Models\Customer;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Carbon\Carbon;
 
 class SalesAnalytics extends Component
 {
     #[Layout('layouts.app')]
-
     public string $dateRange = 'month';
+
     public ?string $dateFrom = null;
+
     public ?string $dateTo = null;
+
     public ?int $branchId = null;
+
     public bool $isAdmin = false;
 
     public array $summaryStats = [];
+
     public array $salesTrend = [];
+
     public array $topProducts = [];
+
     public array $topCustomers = [];
+
     public array $paymentBreakdown = [];
+
     public array $hourlyDistribution = [];
+
     public array $categoryPerformance = [];
 
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('reports.sales.view')) {
+        if (! $user || ! $user->can('reports.sales.view')) {
             abort(403);
         }
 
         $this->branchId = $user->branch_id;
         $this->isAdmin = $user->hasRole('super-admin') || $user->hasRole('admin');
-        
+
         $this->setDateRange();
         $this->loadAllData();
     }
@@ -72,7 +79,7 @@ class SalesAnalytics extends Component
                 $this->dateTo = $now->copy()->endOfYear()->toDateString();
                 break;
             case 'custom':
-                if (!$this->dateFrom || !$this->dateTo) {
+                if (! $this->dateFrom || ! $this->dateTo) {
                     $this->dateFrom = $now->copy()->startOfMonth()->toDateString();
                     $this->dateTo = $now->copy()->endOfMonth()->toDateString();
                 }
@@ -106,9 +113,9 @@ class SalesAnalytics extends Component
     protected function scopedQuery()
     {
         $query = Sale::query()
-            ->whereBetween('created_at', [$this->dateFrom . ' 00:00:00', $this->dateTo . ' 23:59:59']);
+            ->whereBetween('created_at', [$this->dateFrom.' 00:00:00', $this->dateTo.' 23:59:59']);
 
-        if (!$this->isAdmin && $this->branchId) {
+        if (! $this->isAdmin && $this->branchId) {
             $query->where('branch_id', $this->branchId);
         }
 
@@ -140,17 +147,17 @@ class SalesAnalytics extends Component
 
         $prevPeriodQuery = Sale::query()
             ->whereBetween('created_at', [
-                Carbon::parse($this->dateFrom)->subDays(Carbon::parse($this->dateFrom)->diffInDays(Carbon::parse($this->dateTo)) + 1)->toDateString() . ' 00:00:00',
-                Carbon::parse($this->dateFrom)->subDay()->toDateString() . ' 23:59:59'
+                Carbon::parse($this->dateFrom)->subDays(Carbon::parse($this->dateFrom)->diffInDays(Carbon::parse($this->dateTo)) + 1)->toDateString().' 00:00:00',
+                Carbon::parse($this->dateFrom)->subDay()->toDateString().' 23:59:59',
             ]);
 
-        if (!$this->isAdmin && $this->branchId) {
+        if (! $this->isAdmin && $this->branchId) {
             $prevPeriodQuery->where('branch_id', $this->branchId);
         }
 
         $prevTotalSales = $prevPeriodQuery->sum('grand_total') ?? 0;
-        $salesGrowth = $prevTotalSales > 0 
-            ? (($totalSales - $prevTotalSales) / $prevTotalSales) * 100 
+        $salesGrowth = $prevTotalSales > 0
+            ? (($totalSales - $prevTotalSales) / $prevTotalSales) * 100
             : ($totalSales > 0 ? 100 : 0);
 
         $this->summaryStats = [
@@ -174,39 +181,40 @@ class SalesAnalytics extends Component
         $driver = DB::getDriverName();
         $isPostgres = $driver === 'pgsql';
 
-        $dateFormat = match($groupBy) {
+        $dateFormat = match ($groupBy) {
             'month' => $isPostgres ? "DATE_TRUNC('month', created_at)" : "DATE_FORMAT(created_at, '%Y-%m-01')",
-            'week' => $isPostgres ? "DATE_TRUNC('week', created_at)" : "DATE(DATE_SUB(created_at, INTERVAL WEEKDAY(created_at) DAY))",
-            default => "DATE(created_at)",
+            'week' => $isPostgres ? "DATE_TRUNC('week', created_at)" : 'DATE(DATE_SUB(created_at, INTERVAL WEEKDAY(created_at) DAY))',
+            default => 'DATE(created_at)',
         };
 
         $query = Sale::query()
             ->selectRaw("{$dateFormat} as period")
             ->selectRaw('SUM(grand_total) as revenue')
             ->selectRaw('COUNT(*) as orders')
-            ->whereBetween('created_at', [$this->dateFrom . ' 00:00:00', $this->dateTo . ' 23:59:59']);
+            ->whereBetween('created_at', [$this->dateFrom.' 00:00:00', $this->dateTo.' 23:59:59']);
 
-        if (!$this->isAdmin && $this->branchId) {
+        if (! $this->isAdmin && $this->branchId) {
             $query->where('branch_id', $this->branchId);
         }
 
         $results = $query->groupBy('period')->orderBy('period')->get();
 
         $this->salesTrend = [
-            'labels' => $results->pluck('period')->map(function($p) use ($groupBy) {
+            'labels' => $results->pluck('period')->map(function ($p) use ($groupBy) {
                 try {
                     $date = Carbon::parse($p);
-                    return match($groupBy) {
+
+                    return match ($groupBy) {
                         'month' => $date->format('M Y'),
-                        'week' => 'Week ' . $date->format('W'),
+                        'week' => 'Week '.$date->format('W'),
                         default => $date->format('M d'),
                     };
                 } catch (\Exception $e) {
                     return (string) $p;
                 }
             })->toArray(),
-            'revenue' => $results->pluck('revenue')->map(fn($v) => (float) $v)->toArray(),
-            'orders' => $results->pluck('orders')->map(fn($v) => (int) $v)->toArray(),
+            'revenue' => $results->pluck('revenue')->map(fn ($v) => (float) $v)->toArray(),
+            'orders' => $results->pluck('orders')->map(fn ($v) => (int) $v)->toArray(),
         ];
     }
 
@@ -222,9 +230,9 @@ class SalesAnalytics extends Component
             ])
             ->selectRaw('SUM(sale_items.qty) as total_qty')
             ->selectRaw('SUM(sale_items.line_total) as total_revenue')
-            ->whereBetween('sales.created_at', [$this->dateFrom . ' 00:00:00', $this->dateTo . ' 23:59:59']);
+            ->whereBetween('sales.created_at', [$this->dateFrom.' 00:00:00', $this->dateTo.' 23:59:59']);
 
-        if (!$this->isAdmin && $this->branchId) {
+        if (! $this->isAdmin && $this->branchId) {
             $query->where('sales.branch_id', $this->branchId);
         }
 
@@ -233,7 +241,7 @@ class SalesAnalytics extends Component
             ->orderByDesc('total_revenue')
             ->limit(10)
             ->get()
-            ->map(fn($p) => [
+            ->map(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->name,
                 'sku' => $p->sku,
@@ -254,10 +262,10 @@ class SalesAnalytics extends Component
             ])
             ->selectRaw('COUNT(sales.id) as total_orders')
             ->selectRaw('SUM(sales.grand_total) as total_spent')
-            ->whereBetween('sales.created_at', [$this->dateFrom . ' 00:00:00', $this->dateTo . ' 23:59:59'])
+            ->whereBetween('sales.created_at', [$this->dateFrom.' 00:00:00', $this->dateTo.' 23:59:59'])
             ->whereNotNull('sales.customer_id');
 
-        if (!$this->isAdmin && $this->branchId) {
+        if (! $this->isAdmin && $this->branchId) {
             $query->where('sales.branch_id', $this->branchId);
         }
 
@@ -266,7 +274,7 @@ class SalesAnalytics extends Component
             ->orderByDesc('total_spent')
             ->limit(10)
             ->get()
-            ->map(fn($c) => [
+            ->map(fn ($c) => [
                 'id' => $c->id,
                 'name' => $c->name,
                 'email' => $c->email,
@@ -283,19 +291,19 @@ class SalesAnalytics extends Component
             ->select('sale_payments.method')
             ->selectRaw('COUNT(*) as count')
             ->selectRaw('SUM(sale_payments.amount) as total')
-            ->whereBetween('sales.created_at', [$this->dateFrom . ' 00:00:00', $this->dateTo . ' 23:59:59'])
+            ->whereBetween('sales.created_at', [$this->dateFrom.' 00:00:00', $this->dateTo.' 23:59:59'])
             ->whereNull('sales.deleted_at');
 
-        if (!$this->isAdmin && $this->branchId) {
+        if (! $this->isAdmin && $this->branchId) {
             $query->where('sales.branch_id', $this->branchId);
         }
 
         $results = $query->groupBy('sale_payments.method')->get();
 
         $this->paymentBreakdown = [
-            'labels' => $results->pluck('method')->map(fn($m) => ucfirst($m ?? 'cash'))->toArray(),
-            'counts' => $results->pluck('count')->map(fn($v) => (int) $v)->toArray(),
-            'totals' => $results->pluck('total')->map(fn($v) => (float) $v)->toArray(),
+            'labels' => $results->pluck('method')->map(fn ($m) => ucfirst($m ?? 'cash'))->toArray(),
+            'counts' => $results->pluck('count')->map(fn ($v) => (int) $v)->toArray(),
+            'totals' => $results->pluck('total')->map(fn ($v) => (float) $v)->toArray(),
         ];
     }
 
@@ -303,14 +311,14 @@ class SalesAnalytics extends Component
     {
         $driver = DB::getDriverName();
         $isPostgres = $driver === 'pgsql';
-        $hourExpr = $isPostgres ? "EXTRACT(HOUR FROM created_at)::integer" : "HOUR(created_at)";
+        $hourExpr = $isPostgres ? 'EXTRACT(HOUR FROM created_at)::integer' : 'HOUR(created_at)';
 
         $query = Sale::query()
             ->selectRaw("{$hourExpr} as hour")
             ->selectRaw('COUNT(*) as count')
-            ->whereBetween('created_at', [$this->dateFrom . ' 00:00:00', $this->dateTo . ' 23:59:59']);
+            ->whereBetween('created_at', [$this->dateFrom.' 00:00:00', $this->dateTo.' 23:59:59']);
 
-        if (!$this->isAdmin && $this->branchId) {
+        if (! $this->isAdmin && $this->branchId) {
             $query->where('branch_id', $this->branchId);
         }
 
@@ -340,9 +348,9 @@ class SalesAnalytics extends Component
             ])
             ->selectRaw('SUM(sale_items.qty) as total_qty')
             ->selectRaw('SUM(sale_items.line_total) as total_revenue')
-            ->whereBetween('sales.created_at', [$this->dateFrom . ' 00:00:00', $this->dateTo . ' 23:59:59']);
+            ->whereBetween('sales.created_at', [$this->dateFrom.' 00:00:00', $this->dateTo.' 23:59:59']);
 
-        if (!$this->isAdmin && $this->branchId) {
+        if (! $this->isAdmin && $this->branchId) {
             $query->where('sales.branch_id', $this->branchId);
         }
 
@@ -353,9 +361,9 @@ class SalesAnalytics extends Component
             ->get();
 
         $this->categoryPerformance = [
-            'labels' => $results->pluck('category_name')->map(fn($c) => $c ?? 'Uncategorized')->toArray(),
-            'quantities' => $results->pluck('total_qty')->map(fn($v) => (int) $v)->toArray(),
-            'revenues' => $results->pluck('total_revenue')->map(fn($v) => (float) $v)->toArray(),
+            'labels' => $results->pluck('category_name')->map(fn ($c) => $c ?? 'Uncategorized')->toArray(),
+            'quantities' => $results->pluck('total_qty')->map(fn ($v) => (int) $v)->toArray(),
+            'revenues' => $results->pluck('total_revenue')->map(fn ($v) => (float) $v)->toArray(),
         ];
     }
 

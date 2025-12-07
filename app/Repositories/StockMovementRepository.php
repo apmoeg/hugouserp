@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Repositories;
@@ -26,23 +27,23 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
     {
         $query = $this->baseBranchQuery($branchId);
 
-        if (!empty($filters['product_id'])) {
+        if (! empty($filters['product_id'])) {
             $query->where('product_id', (int) $filters['product_id']);
         }
 
-        if (!empty($filters['warehouse_id'])) {
+        if (! empty($filters['warehouse_id'])) {
             $query->where('warehouse_id', (int) $filters['warehouse_id']);
         }
 
-        if (!empty($filters['direction'])) {
+        if (! empty($filters['direction'])) {
             $query->where('direction', $filters['direction']);
         }
 
-        if (!empty($filters['from_date'])) {
+        if (! empty($filters['from_date'])) {
             $query->whereDate('created_at', '>=', $filters['from_date']);
         }
 
-        if (!empty($filters['to_date'])) {
+        if (! empty($filters['to_date'])) {
             $query->whereDate('created_at', '<=', $filters['to_date']);
         }
 
@@ -64,7 +65,7 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
         $out = (float) (clone $baseQuery)->where('direction', 'out')->sum('qty');
 
         return [
-            'in'  => $in,
+            'in' => $in,
             'out' => $out,
             'net' => $in - $out,
         ];
@@ -90,6 +91,7 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
             ->map(function ($group) {
                 $in = $group->where('direction', 'in')->sum('qty');
                 $out = $group->where('direction', 'out')->sum('qty');
+
                 return (float) ($in - $out);
             });
 

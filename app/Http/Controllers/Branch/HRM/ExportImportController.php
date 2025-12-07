@@ -13,13 +13,13 @@ class ExportImportController extends Controller
     {
         $model = '\\App\\Models\\HREmployee';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             abort(500, 'HREmployee model not found');
         }
 
         $query = $model::query()->with(['branch', 'user']);
 
-        $filename = 'hrm_employees_' . now()->format('Ymd_His') . '.csv';
+        $filename = 'hrm_employees_'.now()->format('Ymd_His').'.csv';
 
         $callback = function () use ($query) {
             $handle = fopen('php://output', 'w');
@@ -62,7 +62,7 @@ class ExportImportController extends Controller
 
         $model = '\\App\\Models\\HREmployee';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             abort(500, 'HREmployee model not found');
         }
 
@@ -92,4 +92,3 @@ class ExportImportController extends Controller
         return back()->with('status', 'Employees imported successfully');
     }
 }
-

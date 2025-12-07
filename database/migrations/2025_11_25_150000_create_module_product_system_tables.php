@@ -29,7 +29,7 @@ return new class extends Migration
             $table->integer('sort_order')->default(0);
             $table->string('field_group')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['module_id', 'field_key']);
         });
 
@@ -39,7 +39,7 @@ return new class extends Migration
             $table->foreignId('module_product_field_id')->constrained('module_product_fields')->onDelete('cascade');
             $table->text('value')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['product_id', 'module_product_field_id']);
         });
 
@@ -72,7 +72,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->integer('sort_order')->default(0);
             $table->timestamps();
-            
+
             $table->unique(['module_id', 'period_key']);
         });
 
@@ -88,7 +88,7 @@ return new class extends Migration
             $table->boolean('is_primary')->default(false);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
+
             $table->unique(['branch_id', 'user_id']);
         });
 
@@ -145,59 +145,59 @@ return new class extends Migration
             $table->text('setting_value')->nullable();
             $table->string('setting_type', 50)->default('string');
             $table->timestamps();
-            
+
             $table->unique(['module_id', 'branch_id', 'setting_key']);
         });
 
         // Add module-specific columns to modules table if not exists
         Schema::table('modules', function (Blueprint $table) {
-            if (!Schema::hasColumn('modules', 'pricing_type')) {
+            if (! Schema::hasColumn('modules', 'pricing_type')) {
                 $table->enum('pricing_type', ['buy_sell', 'sell_only', 'cost_only', 'no_pricing'])->default('buy_sell');
             }
-            if (!Schema::hasColumn('modules', 'has_variations')) {
+            if (! Schema::hasColumn('modules', 'has_variations')) {
                 $table->boolean('has_variations')->default(false);
             }
-            if (!Schema::hasColumn('modules', 'has_inventory')) {
+            if (! Schema::hasColumn('modules', 'has_inventory')) {
                 $table->boolean('has_inventory')->default(true);
             }
-            if (!Schema::hasColumn('modules', 'has_serial_numbers')) {
+            if (! Schema::hasColumn('modules', 'has_serial_numbers')) {
                 $table->boolean('has_serial_numbers')->default(false);
             }
-            if (!Schema::hasColumn('modules', 'has_expiry_dates')) {
+            if (! Schema::hasColumn('modules', 'has_expiry_dates')) {
                 $table->boolean('has_expiry_dates')->default(false);
             }
-            if (!Schema::hasColumn('modules', 'has_batch_numbers')) {
+            if (! Schema::hasColumn('modules', 'has_batch_numbers')) {
                 $table->boolean('has_batch_numbers')->default(false);
             }
-            if (!Schema::hasColumn('modules', 'is_rental')) {
+            if (! Schema::hasColumn('modules', 'is_rental')) {
                 $table->boolean('is_rental')->default(false);
             }
-            if (!Schema::hasColumn('modules', 'is_service')) {
+            if (! Schema::hasColumn('modules', 'is_service')) {
                 $table->boolean('is_service')->default(false);
             }
-            if (!Schema::hasColumn('modules', 'category')) {
+            if (! Schema::hasColumn('modules', 'category')) {
                 $table->string('category', 50)->nullable();
             }
         });
 
         // Add product-module columns to products table if not exists
         Schema::table('products', function (Blueprint $table) {
-            if (!Schema::hasColumn('products', 'module_id')) {
+            if (! Schema::hasColumn('products', 'module_id')) {
                 $table->unsignedBigInteger('module_id')->nullable();
             }
-            if (!Schema::hasColumn('products', 'product_type')) {
+            if (! Schema::hasColumn('products', 'product_type')) {
                 $table->enum('product_type', ['physical', 'service', 'rental', 'digital'])->default('physical');
             }
-            if (!Schema::hasColumn('products', 'has_variations')) {
+            if (! Schema::hasColumn('products', 'has_variations')) {
                 $table->boolean('has_variations')->default(false);
             }
-            if (!Schema::hasColumn('products', 'parent_product_id')) {
+            if (! Schema::hasColumn('products', 'parent_product_id')) {
                 $table->unsignedBigInteger('parent_product_id')->nullable();
             }
-            if (!Schema::hasColumn('products', 'variation_attributes')) {
+            if (! Schema::hasColumn('products', 'variation_attributes')) {
                 $table->json('variation_attributes')->nullable();
             }
-            if (!Schema::hasColumn('products', 'custom_fields')) {
+            if (! Schema::hasColumn('products', 'custom_fields')) {
                 $table->json('custom_fields')->nullable();
             }
         });

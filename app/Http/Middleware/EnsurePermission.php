@@ -25,7 +25,7 @@ class EnsurePermission
     public function handle(Request $request, Closure $next, string $abilities, string $mode = 'any'): Response
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return $this->error('Unauthenticated.', 401);
         }
 
@@ -58,6 +58,7 @@ class EnsurePermission
             if (method_exists($user, 'can') && $user->can($ability)) {
                 return true;
             }
+
             return false;
         };
 
@@ -66,13 +67,13 @@ class EnsurePermission
             : collect($ops)->contains($checker);
 
         // apply negation if requested
-        $result = $negated ? !$result : $result;
+        $result = $negated ? ! $result : $result;
 
-        if (!$result) {
+        if (! $result) {
             return $this->error('You do not have the required permission(s).', 403, [
                 'required' => $ops,
-                'mode'     => $mode,
-                'negated'  => $negated,
+                'mode' => $mode,
+                'negated' => $negated,
             ]);
         }
 

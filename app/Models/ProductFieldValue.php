@@ -29,8 +29,8 @@ class ProductFieldValue extends Model
     public function getTypedValueAttribute()
     {
         $field = $this->field;
-        
-        if (!$field) {
+
+        if (! $field) {
             return $this->value;
         }
 

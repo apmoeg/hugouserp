@@ -3,15 +3,14 @@
 declare(strict_types=1);
 
 namespace Database\Seeders;
-use App\Models\Module;
+
 use App\Models\Branch;
 use App\Models\BranchModule;
-
+use App\Models\Module;
 use Illuminate\Database\Seeder;
 
 class ModulesSeeder extends Seeder
 {
-
     public function run(): void
     {
         $modules = [
@@ -33,11 +32,11 @@ class ModulesSeeder extends Seeder
             $module = Module::query()->updateOrCreate(
                 ['key' => $row['key']],
                 [
-                    'name'        => $row['name'],
-                    'version'     => $row['version'],
-                    'is_core'     => $row['is_core'],
-                    'is_active'   => true,
-                    'description' => $row['name'] . ' module',
+                    'name' => $row['name'],
+                    'version' => $row['version'],
+                    'is_core' => $row['is_core'],
+                    'is_active' => true,
+                    'description' => $row['name'].' module',
                 ]
             );
 
@@ -54,13 +53,13 @@ class ModulesSeeder extends Seeder
         foreach ($createdModules as $key => $module) {
             BranchModule::query()->updateOrCreate(
                 [
-                    'branch_id'  => $branch->id,
+                    'branch_id' => $branch->id,
                     'module_key' => $key,
                 ],
                 [
-                    'module_id'  => $module->id,
-                    'enabled'    => true,
-                    'settings'   => [],
+                    'module_id' => $module->id,
+                    'enabled' => true,
+                    'settings' => [],
                 ]
             );
         }

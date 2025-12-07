@@ -35,7 +35,7 @@ class ReportsHub extends Component
         }
 
         if ($this->search !== '') {
-            $term = '%' . $this->search . '%';
+            $term = '%'.$this->search.'%';
 
             $query->where(function ($q) use ($term) {
                 $q->where('name', 'like', $term)
@@ -47,12 +47,12 @@ class ReportsHub extends Component
         // Cache user permissions for 5 minutes to avoid repeated DB queries
         $userPermissions = [];
         if ($user) {
-            $cacheKey = 'user_permissions_' . $user->id;
+            $cacheKey = 'user_permissions_'.$user->id;
             $userPermissions = Cache::remember($cacheKey, 300, function () use ($user) {
                 return $user->getAllPermissions()->pluck('name')->toArray();
             });
         }
-        
+
         $templates = $query
             ->orderBy('module')
             ->orderBy('name')
@@ -74,8 +74,8 @@ class ReportsHub extends Component
 
         return view('livewire.admin.reports.reports-hub', [
             'templatesByModule' => $templates,
-            'scheduledCount'    => $scheduledCount,
-            'failedCount'       => $failedCount,
+            'scheduledCount' => $scheduledCount,
+            'failedCount' => $failedCount,
         ]);
     }
 }

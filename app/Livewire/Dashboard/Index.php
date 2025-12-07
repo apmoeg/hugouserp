@@ -17,14 +17,20 @@ use Livewire\Component;
 class Index extends Component
 {
     #[Layout('layouts.app')]
-
     public array $stats = [];
+
     public array $salesChartData = [];
+
     public array $inventoryChartData = [];
+
     public array $paymentMethodsData = [];
+
     public array $lowStockProducts = [];
+
     public array $recentSales = [];
+
     public ?int $branchId = null;
+
     public bool $isAdmin = false;
 
     protected int $cacheTtl = 300;
@@ -32,7 +38,7 @@ class Index extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('dashboard.view')) {
+        if (! $user || ! $user->can('dashboard.view')) {
             abort(403);
         }
 
@@ -52,7 +58,7 @@ class Index extends Component
         Cache::forget("{$cacheKey}:chart_data");
         Cache::forget("{$cacheKey}:low_stock");
         Cache::forget("{$cacheKey}:recent_sales");
-        
+
         $this->loadStats();
         $this->loadChartData();
         $this->loadLowStockProducts();
@@ -66,24 +72,26 @@ class Index extends Component
 
     protected function scopeSalesQuery($query)
     {
-        if (!$this->isAdmin && $this->branchId) {
+        if (! $this->isAdmin && $this->branchId) {
             return $query->where('branch_id', $this->branchId);
         }
+
         return $query;
     }
 
     protected function scopeProductsQuery($query)
     {
-        if (!$this->isAdmin && $this->branchId) {
+        if (! $this->isAdmin && $this->branchId) {
             return $query->where('branch_id', $this->branchId);
         }
+
         return $query;
     }
 
     protected function loadStats(): void
     {
         $cacheKey = "{$this->getCachePrefix()}:stats";
-        
+
         $this->stats = Cache::remember($cacheKey, $this->cacheTtl, function () {
             $today = now()->startOfDay();
             $startOfMonth = now()->startOfMonth();
@@ -94,15 +102,15 @@ class Index extends Component
             $todaySales = (clone $salesQuery)->whereDate('created_at', $today)->sum('grand_total') ?? 0;
             $monthSales = (clone $salesQuery)->where('created_at', '>=', $startOfMonth)->sum('grand_total') ?? 0;
             $openInvoices = (clone $salesQuery)->where('status', 'pending')->count();
-            
-            $activeBranches = $this->isAdmin 
+
+            $activeBranches = $this->isAdmin
                 ? Branch::where('is_active', true)->count()
                 : 1;
-            
-            $activeUsers = $this->isAdmin 
+
+            $activeUsers = $this->isAdmin
                 ? User::where('is_active', true)->count()
                 : User::where('is_active', true)->where('branch_id', $this->branchId)->count();
-            
+
             $totalProducts = (clone $productsQuery)->count();
             $lowStockCount = (clone $productsQuery)
                 ->whereNotNull('min_stock')
@@ -125,7 +133,7 @@ class Index extends Component
     protected function loadChartData(): void
     {
         $cacheKey = "{$this->getCachePrefix()}:chart_data";
-        
+
         $chartData = Cache::remember($cacheKey, $this->cacheTtl, function () {
             $labels = [];
             $salesData = [];
@@ -144,14 +152,14 @@ class Index extends Component
             $paymentMethodsRaw = DB::table('sale_payments')
                 ->join('sales', 'sale_payments.sale_id', '=', 'sales.id')
                 ->whereMonth('sales.created_at', now()->month)
-                ->when(!$this->isAdmin && $this->branchId, fn($q) => $q->where('sales.branch_id', $this->branchId))
+                ->when(! $this->isAdmin && $this->branchId, fn ($q) => $q->where('sales.branch_id', $this->branchId))
                 ->whereNull('sales.deleted_at')
                 ->select('sale_payments.method', DB::raw('COUNT(*) as count'), DB::raw('SUM(sale_payments.amount) as total'))
                 ->groupBy('sale_payments.method')
                 ->get();
 
             $paymentMethodsData = [
-                'labels' => $paymentMethodsRaw->pluck('method')->map(fn($m) => ucfirst($m ?? 'cash'))->toArray(),
+                'labels' => $paymentMethodsRaw->pluck('method')->map(fn ($m) => ucfirst($m ?? 'cash'))->toArray(),
                 'data' => $paymentMethodsRaw->pluck('count')->toArray(),
                 'totals' => $paymentMethodsRaw->pluck('total')->toArray(),
             ];
@@ -163,12 +171,12 @@ class Index extends Component
                 'data' => [
                     DB::table('products')
                         ->whereNull('deleted_at')
-                        ->when(!$this->isAdmin && $this->branchId, fn($q) => $q->where('branch_id', $this->branchId))
+                        ->when(! $this->isAdmin && $this->branchId, fn ($q) => $q->where('branch_id', $this->branchId))
                         ->whereRaw('COALESCE((SELECT SUM(CASE WHEN direction = \'in\' THEN qty ELSE -qty END) FROM stock_movements WHERE stock_movements.product_id = products.id), 0) > COALESCE(min_stock, 0)')
                         ->count(),
                     DB::table('products')
                         ->whereNull('deleted_at')
-                        ->when(!$this->isAdmin && $this->branchId, fn($q) => $q->where('branch_id', $this->branchId))
+                        ->when(! $this->isAdmin && $this->branchId, fn ($q) => $q->where('branch_id', $this->branchId))
                         ->whereNotNull('min_stock')
                         ->where('min_stock', '>', 0)
                         ->whereRaw('COALESCE((SELECT SUM(CASE WHEN direction = \'in\' THEN qty ELSE -qty END) FROM stock_movements WHERE stock_movements.product_id = products.id), 0) <= min_stock')
@@ -176,7 +184,7 @@ class Index extends Component
                         ->count(),
                     DB::table('products')
                         ->whereNull('deleted_at')
-                        ->when(!$this->isAdmin && $this->branchId, fn($q) => $q->where('branch_id', $this->branchId))
+                        ->when(! $this->isAdmin && $this->branchId, fn ($q) => $q->where('branch_id', $this->branchId))
                         ->whereRaw('COALESCE((SELECT SUM(CASE WHEN direction = \'in\' THEN qty ELSE -qty END) FROM stock_movements WHERE stock_movements.product_id = products.id), 0) <= 0')
                         ->count(),
                 ],
@@ -197,7 +205,7 @@ class Index extends Component
     protected function loadLowStockProducts(): void
     {
         $cacheKey = "{$this->getCachePrefix()}:low_stock";
-        
+
         $this->lowStockProducts = Cache::remember($cacheKey, $this->cacheTtl, function () {
             return $this->scopeProductsQuery(Product::query())
                 ->with('category')
@@ -205,7 +213,7 @@ class Index extends Component
                 ->orderBy('quantity')
                 ->limit(5)
                 ->get()
-                ->map(fn($p) => [
+                ->map(fn ($p) => [
                     'id' => $p->id,
                     'name' => $p->name,
                     'quantity' => $p->quantity,
@@ -219,14 +227,14 @@ class Index extends Component
     protected function loadRecentSales(): void
     {
         $cacheKey = "{$this->getCachePrefix()}:recent_sales";
-        
+
         $this->recentSales = Cache::remember($cacheKey, 60, function () {
             return $this->scopeSalesQuery(Sale::query())
                 ->with(['user', 'customer'])
                 ->latest()
                 ->limit(5)
                 ->get()
-                ->map(fn($s) => [
+                ->map(fn ($s) => [
                     'id' => $s->id,
                     'reference' => $s->reference_number ?? "#{$s->id}",
                     'customer' => $s->customer?->name ?? __('Walk-in'),

@@ -23,13 +23,13 @@ class Form extends Component
      * @var array{code:string,name:string,position:?string,salary:float,is_active:bool,branch_id:int,user_id:?int}
      */
     public array $form = [
-        'code'       => '',
-        'name'       => '',
-        'position'   => '',
-        'salary'     => 0.0,
-        'is_active'  => true,
-        'branch_id'  => 0,
-        'user_id'    => null,
+        'code' => '',
+        'name' => '',
+        'position' => '',
+        'salary' => 0.0,
+        'is_active' => true,
+        'branch_id' => 0,
+        'user_id' => null,
     ];
 
     /**
@@ -77,7 +77,7 @@ class Form extends Component
                 $label = $u->name ?: $u->email;
 
                 return [
-                    'id'    => $u->id,
+                    'id' => $u->id,
                     'label' => $label,
                 ];
             })
@@ -87,13 +87,13 @@ class Form extends Component
             /** @var HREmployee $employeeModel */
             $employeeModel = HREmployee::query()->with('user')->findOrFail($this->employeeId);
 
-            $this->form['code']      = (string) $employeeModel->code;
-            $this->form['name']      = (string) $employeeModel->name;
-            $this->form['position']  = $employeeModel->position ?? '';
-            $this->form['salary']    = (float) ($employeeModel->salary ?? 0);
+            $this->form['code'] = (string) $employeeModel->code;
+            $this->form['name'] = (string) $employeeModel->name;
+            $this->form['position'] = $employeeModel->position ?? '';
+            $this->form['salary'] = (float) ($employeeModel->salary ?? 0);
             $this->form['is_active'] = (bool) ($employeeModel->is_active ?? true);
             $this->form['branch_id'] = (int) ($employeeModel->branch_id ?? $this->form['branch_id']);
-            $this->form['user_id']   = $employeeModel->user_id ? (int) $employeeModel->user_id : null;
+            $this->form['user_id'] = $employeeModel->user_id ? (int) $employeeModel->user_id : null;
 
             $this->dynamicData = (array) ($employeeModel->extra_attributes ?? []);
         } else {
@@ -116,13 +116,13 @@ class Form extends Component
     protected function rules(): array
     {
         return [
-            'form.code'      => ['required', 'string', 'max:50'],
-            'form.name'      => ['required', 'string', 'max:255'],
-            'form.position'  => ['nullable', 'string', 'max:255'],
-            'form.salary'    => ['required', 'numeric', 'min:0'],
+            'form.code' => ['required', 'string', 'max:50'],
+            'form.name' => ['required', 'string', 'max:255'],
+            'form.position' => ['nullable', 'string', 'max:255'],
+            'form.salary' => ['required', 'numeric', 'min:0'],
             'form.is_active' => ['boolean'],
             'form.branch_id' => ['required', 'integer', 'exists:branches,id'],
-            'form.user_id'   => ['nullable', 'integer', 'exists:users,id'],
+            'form.user_id' => ['nullable', 'integer', 'exists:users,id'],
         ];
     }
 
@@ -145,16 +145,16 @@ class Form extends Component
             /** @var HREmployee $employee */
             $employee = HREmployee::query()->findOrFail($this->employeeId);
         } else {
-            $employee = new HREmployee();
+            $employee = new HREmployee;
         }
 
         $employee->branch_id = (int) $this->form['branch_id'];
-        $employee->code      = (string) $this->form['code'];
-        $employee->name      = (string) $this->form['name'];
-        $employee->position  = $this->form['position'] !== '' ? (string) $this->form['position'] : null;
-        $employee->salary    = (float) $this->form['salary'];
+        $employee->code = (string) $this->form['code'];
+        $employee->name = (string) $this->form['name'];
+        $employee->position = $this->form['position'] !== '' ? (string) $this->form['position'] : null;
+        $employee->salary = (float) $this->form['salary'];
         $employee->is_active = (bool) $this->form['is_active'];
-        $employee->user_id   = $this->form['user_id'] ? (int) $this->form['user_id'] : null;
+        $employee->user_id = $this->form['user_id'] ? (int) $this->form['user_id'] : null;
 
         $employee->extra_attributes = $this->dynamicData;
 

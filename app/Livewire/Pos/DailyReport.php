@@ -17,7 +17,9 @@ class DailyReport extends Component
     use AuthorizesRequests, WithPagination;
 
     public ?int $branchId = null;
+
     public string $date = '';
+
     public array $summary = [];
 
     protected BranchAccessService $branchAccessService;
@@ -31,13 +33,13 @@ class DailyReport extends Component
     {
         $this->authorize('pos.daily-report.view');
         $this->date = now()->format('Y-m-d');
-        
+
         $user = auth()->user();
-        if (!$user->hasRole('Super Admin')) {
+        if (! $user->hasRole('Super Admin')) {
             $branches = $this->branchAccessService->getUserBranches($user);
             $this->branchId = $branches->first()?->id;
         }
-        
+
         $this->generateReport();
     }
 
@@ -89,7 +91,7 @@ class DailyReport extends Component
             'total_tax' => $sales->sum('tax_total'),
             'average_sale' => $sales->count() > 0 ? $sales->sum('grand_total') / $sales->count() : 0,
             'payment_breakdown' => $paymentBreakdown,
-            'sessions' => $sessions->map(fn($s) => [
+            'sessions' => $sessions->map(fn ($s) => [
                 'id' => $s->id,
                 'user_name' => $s->user?->name ?? '-',
                 'opening_cash' => $s->opening_cash,

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Jobs;
@@ -16,6 +17,7 @@ class GenerateRecurringInvoicesJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 1;
+
     public $timeout = 300;
 
     public function __construct(public ?string $forDate = null) {}
@@ -35,21 +37,23 @@ class GenerateRecurringInvoicesJob implements ShouldQueue
                 ->where('contract_id', $contract->getKey())
                 ->where('period', $period)
                 ->exists();
-            if ($exists) continue;
+            if ($exists) {
+                continue;
+            }
 
             RentalInvoice::query()->create([
                 'contract_id' => $contract->getKey(),
-                'code'        => 'INV-'.strtoupper(uniqid()),
-                'period'      => $period,
-                'due_date'    => $target->copy()->endOfMonth()->toDateString(),
-                'amount'      => $contract->rent,
-                'status'      => 'unpaid',
+                'code' => 'INV-'.strtoupper(uniqid()),
+                'period' => $period,
+                'due_date' => $target->copy()->endOfMonth()->toDateString(),
+                'amount' => $contract->rent,
+                'status' => 'unpaid',
             ]);
         }
     }
 
     public function tags(): array
     {
-        return ['rental','recurring','period:'.($this->forDate ?? now()->format('Y-m'))];
+        return ['rental', 'recurring', 'period:'.($this->forDate ?? now()->format('Y-m'))];
     }
 }

@@ -15,7 +15,7 @@ trait Searchable
         }
 
         $searchColumns = $columns ?? $this->getSearchableColumns();
-        
+
         if (empty($searchColumns)) {
             return $query;
         }
@@ -72,8 +72,8 @@ trait Searchable
         $sortDirection = strtolower($sortDirection) === 'desc' ? 'desc' : 'asc';
 
         $allowedSortFields = $this->getSortableColumns();
-        
-        if (!in_array($sortField, $allowedSortFields)) {
+
+        if (! in_array($sortField, $allowedSortFields)) {
             $sortField = $this->getDefaultSortField();
         }
 

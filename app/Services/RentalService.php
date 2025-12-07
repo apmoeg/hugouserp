@@ -1,13 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Traits\HandlesServiceErrors;
+use App\Models\Property;
+use App\Models\RentalContract;
+use App\Models\RentalInvoice;
+use App\Models\RentalUnit;
+use App\Models\Tenant;
 use App\Services\Contracts\RentalServiceInterface;
-use App\Models\{Property, RentalUnit, Tenant, RentalContract, RentalInvoice};
+use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class RentalService implements RentalServiceInterface
 {
@@ -18,9 +22,9 @@ class RentalService implements RentalServiceInterface
         return $this->handleServiceOperation(
             callback: fn () => Property::create([
                 'branch_id' => request()->attributes->get('branch_id'),
-                'name'      => $payload['name'],
-                'address'   => $payload['address'] ?? null,
-                'notes'     => $payload['notes'] ?? null,
+                'name' => $payload['name'],
+                'address' => $payload['address'] ?? null,
+                'notes' => $payload['notes'] ?? null,
             ]),
             operation: 'createProperty',
             context: ['payload' => $payload]
@@ -32,9 +36,9 @@ class RentalService implements RentalServiceInterface
         return $this->handleServiceOperation(
             callback: fn () => RentalUnit::create([
                 'property_id' => $propertyId,
-                'code'        => $payload['code'],
-                'status'      => $payload['status'] ?? 'vacant',
-                'area'        => $payload['area'] ?? null,
+                'code' => $payload['code'],
+                'status' => $payload['status'] ?? 'vacant',
+                'area' => $payload['area'] ?? null,
             ]),
             operation: 'createUnit',
             context: ['property_id' => $propertyId, 'payload' => $payload]
@@ -48,6 +52,7 @@ class RentalService implements RentalServiceInterface
                 $u = RentalUnit::findOrFail($unitId);
                 $u->status = $status;
                 $u->save();
+
                 return $u;
             },
             operation: 'setUnitStatus',
@@ -59,7 +64,7 @@ class RentalService implements RentalServiceInterface
     {
         return $this->handleServiceOperation(
             callback: fn () => Tenant::create([
-                'name'  => $payload['name'],
+                'name' => $payload['name'],
                 'phone' => $payload['phone'] ?? null,
                 'email' => $payload['email'] ?? null,
             ]),
@@ -75,6 +80,7 @@ class RentalService implements RentalServiceInterface
                 $t = Tenant::findOrFail($tenantId);
                 $t->is_archived = true;
                 $t->save();
+
                 return $t;
             },
             operation: 'archiveTenant',
@@ -87,13 +93,14 @@ class RentalService implements RentalServiceInterface
         return $this->handleServiceOperation(
             callback: fn () => DB::transaction(function () use ($unitId, $tenantId, $payload) {
                 $c = RentalContract::create([
-                    'unit_id'   => $unitId,
+                    'unit_id' => $unitId,
                     'tenant_id' => $tenantId,
-                    'start_date'=> $payload['start_date'],
-                    'end_date'  => $payload['end_date'],
-                    'rent'      => (float)$payload['rent'],
-                    'status'    => 'active',
+                    'start_date' => $payload['start_date'],
+                    'end_date' => $payload['end_date'],
+                    'rent' => (float) $payload['rent'],
+                    'status' => 'active',
                 ]);
+
                 return $c;
             }),
             operation: 'createContract',
@@ -107,8 +114,9 @@ class RentalService implements RentalServiceInterface
             callback: function () use ($contractId, $payload) {
                 $c = RentalContract::findOrFail($contractId);
                 $c->end_date = $payload['end_date'];
-                $c->rent     = (float) $payload['rent'];
+                $c->rent = (float) $payload['rent'];
                 $c->save();
+
                 return $c;
             },
             operation: 'renewContract',
@@ -123,6 +131,7 @@ class RentalService implements RentalServiceInterface
                 $c = RentalContract::findOrFail($contractId);
                 $c->status = 'terminated';
                 $c->save();
+
                 return $c;
             },
             operation: 'terminateContract',
@@ -136,6 +145,7 @@ class RentalService implements RentalServiceInterface
             callback: function () use ($forDate) {
                 $forDate = $forDate ?: now()->toDateString();
                 dispatch_sync(new \App\Jobs\GenerateRecurringInvoicesJob($forDate));
+
                 return 1;
             },
             operation: 'runRecurring',
@@ -151,6 +161,7 @@ class RentalService implements RentalServiceInterface
                 $i->paid_total = round(($i->paid_total ?? 0) + $amount, 2);
                 $i->status = $i->paid_total >= $i->amount ? 'paid' : 'unpaid';
                 $i->save();
+
                 return $i;
             },
             operation: 'collectPayment',
@@ -165,6 +176,7 @@ class RentalService implements RentalServiceInterface
                 $i = RentalInvoice::findOrFail($invoiceId);
                 $i->amount = round($i->amount + max($penalty, 0.0), 2);
                 $i->save();
+
                 return $i;
             },
             operation: 'applyPenalty',

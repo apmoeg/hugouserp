@@ -1,16 +1,14 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 use App\Services\Contracts\FieldSchemaServiceInterface;
 use App\Traits\HandlesServiceErrors;
-
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Factory as ValidatorFactory;
-use Illuminate\Contracts\Validation\Validator;
 
 class FieldSchemaService implements FieldSchemaServiceInterface
 {
@@ -24,12 +22,15 @@ class FieldSchemaService implements FieldSchemaServiceInterface
             callback: function () use ($module, $branchId) {
                 if (class_exists(\App\Models\FieldSchema::class)) {
                     $q = \App\Models\FieldSchema::query()->where('module_key', $module);
-                    if ($branchId) $q->where('branch_id', $branchId);
-                    return $q->orderBy('position')->get(['name','type','rules','options'])->map(function ($row) {
+                    if ($branchId) {
+                        $q->where('branch_id', $branchId);
+                    }
+
+                    return $q->orderBy('position')->get(['name', 'type', 'rules', 'options'])->map(function ($row) {
                         return [
                             'name' => (string) $row->name,
                             'type' => (string) $row->type,
-                            'rules'=> (array) ($row->rules ?? []),
+                            'rules' => (array) ($row->rules ?? []),
                             'options' => (array) ($row->options ?? []),
                         ];
                     })->all();
@@ -52,6 +53,7 @@ class FieldSchemaService implements FieldSchemaServiceInterface
                 foreach ($schema as $f) {
                     $rules[$f['name']] = $f['rules'] ?? [];
                 }
+
                 return $this->validator->make($payload, $rules);
             },
             operation: 'validate',
@@ -65,6 +67,7 @@ class FieldSchemaService implements FieldSchemaServiceInterface
             callback: function () use ($module, $payload, $branchId) {
                 $schema = $this->for($module, $branchId);
                 $names = array_column($schema, 'name');
+
                 return Arr::only($payload, $names);
             },
             operation: 'filter',

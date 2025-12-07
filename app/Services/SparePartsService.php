@@ -20,8 +20,8 @@ class SparePartsService
         return $this->handleServiceOperation(
             callback: function () use ($brand, $activeOnly) {
                 $query = VehicleModel::query()
-                    ->when($activeOnly, fn($q) => $q->active())
-                    ->when($brand, fn($q) => $q->forBrand($brand))
+                    ->when($activeOnly, fn ($q) => $q->active())
+                    ->when($brand, fn ($q) => $q->forBrand($brand))
                     ->orderBy('brand')
                     ->orderBy('model')
                     ->orderBy('year_from');
@@ -30,14 +30,14 @@ class SparePartsService
             },
             operation: 'getVehicleModels',
             context: ['brand' => $brand, 'active_only' => $activeOnly],
-            defaultValue: new Collection()
+            defaultValue: new Collection
         );
     }
 
     public function getBrands(): array
     {
         return $this->handleServiceOperation(
-            callback: fn() => VehicleModel::query()
+            callback: fn () => VehicleModel::query()
                 ->active()
                 ->distinct()
                 ->pluck('brand')
@@ -53,7 +53,7 @@ class SparePartsService
     public function createVehicleModel(array $data): VehicleModel
     {
         return $this->handleServiceOperation(
-            callback: fn() => VehicleModel::create($data),
+            callback: fn () => VehicleModel::create($data),
             operation: 'createVehicleModel',
             context: ['data' => $data]
         );
@@ -65,6 +65,7 @@ class SparePartsService
             callback: function () use ($id, $data) {
                 $model = VehicleModel::findOrFail($id);
                 $model->update($data);
+
                 return $model->fresh();
             },
             operation: 'updateVehicleModel',
@@ -77,6 +78,7 @@ class SparePartsService
         return $this->handleServiceOperation(
             callback: function () use ($id) {
                 $model = VehicleModel::findOrFail($id);
+
                 return $model->delete();
             },
             operation: 'deleteVehicleModel',
@@ -88,31 +90,31 @@ class SparePartsService
     public function getProductCompatibilities(int $productId): Collection
     {
         return $this->handleServiceOperation(
-            callback: fn() => ProductCompatibility::with('vehicleModel')
+            callback: fn () => ProductCompatibility::with('vehicleModel')
                 ->forProduct($productId)
                 ->get(),
             operation: 'getProductCompatibilities',
             context: ['product_id' => $productId],
-            defaultValue: new Collection()
+            defaultValue: new Collection
         );
     }
 
     public function getCompatibleProducts(int $vehicleModelId): Collection
     {
         return $this->handleServiceOperation(
-            callback: fn() => ProductCompatibility::with('product')
+            callback: fn () => ProductCompatibility::with('product')
                 ->forVehicle($vehicleModelId)
                 ->get(),
             operation: 'getCompatibleProducts',
             context: ['vehicle_model_id' => $vehicleModelId],
-            defaultValue: new Collection()
+            defaultValue: new Collection
         );
     }
 
     public function addCompatibility(int $productId, int $vehicleModelId, array $data = []): ProductCompatibility
     {
         return $this->handleServiceOperation(
-            callback: fn() => ProductCompatibility::updateOrCreate(
+            callback: fn () => ProductCompatibility::updateOrCreate(
                 [
                     'product_id' => $productId,
                     'vehicle_model_id' => $vehicleModelId,
@@ -132,7 +134,7 @@ class SparePartsService
     public function removeCompatibility(int $productId, int $vehicleModelId): bool
     {
         return $this->handleServiceOperation(
-            callback: fn() => ProductCompatibility::where('product_id', $productId)
+            callback: fn () => ProductCompatibility::where('product_id', $productId)
                 ->where('vehicle_model_id', $vehicleModelId)
                 ->delete() > 0,
             operation: 'removeCompatibility',
@@ -146,7 +148,7 @@ class SparePartsService
         return $this->handleServiceOperation(
             callback: function () use ($productId, $vehicleModelIds, $commonData) {
                 $count = 0;
-                
+
                 DB::transaction(function () use ($productId, $vehicleModelIds, $commonData, &$count) {
                     foreach ($vehicleModelIds as $vehicleModelId) {
                         ProductCompatibility::updateOrCreate(
@@ -176,12 +178,12 @@ class SparePartsService
     public function searchByOem(string $oemNumber): Collection
     {
         return $this->handleServiceOperation(
-            callback: fn() => ProductCompatibility::with(['product', 'vehicleModel'])
+            callback: fn () => ProductCompatibility::with(['product', 'vehicleModel'])
                 ->byOem($oemNumber)
                 ->get(),
             operation: 'searchByOem',
             context: ['oem_number' => $oemNumber],
-            defaultValue: new Collection()
+            defaultValue: new Collection
         );
     }
 
@@ -193,7 +195,7 @@ class SparePartsService
                     ->active()
                     ->forBrand($brand)
                     ->where('model', $model)
-                    ->when($year, fn($q) => $q->forYear($year))
+                    ->when($year, fn ($q) => $q->forYear($year))
                     ->pluck('id');
 
                 return Product::query()
@@ -207,7 +209,7 @@ class SparePartsService
             },
             operation: 'findCompatibleParts',
             context: ['brand' => $brand, 'model' => $model, 'year' => $year],
-            defaultValue: new Collection()
+            defaultValue: new Collection
         );
     }
 }

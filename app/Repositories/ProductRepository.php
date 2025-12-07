@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Repositories;
@@ -24,16 +25,16 @@ final class ProductRepository extends EloquentBaseRepository implements ProductR
     {
         $query = $this->baseBranchQuery($branchId);
 
-        if (!empty($filters['q'])) {
+        if (! empty($filters['q'])) {
             $q = (string) $filters['q'];
             $query->where(function (Builder $qq) use ($q): void {
-                $qq->where('name', 'like', '%' . $q . '%')
-                    ->orWhere('sku', 'like', '%' . $q . '%')
-                    ->orWhere('barcode', 'like', '%' . $q . '%');
+                $qq->where('name', 'like', '%'.$q.'%')
+                    ->orWhere('sku', 'like', '%'.$q.'%')
+                    ->orWhere('barcode', 'like', '%'.$q.'%');
             });
         }
 
-        if (!empty($filters['type'])) {
+        if (! empty($filters['type'])) {
             $query->where('type', $filters['type']);
         }
 

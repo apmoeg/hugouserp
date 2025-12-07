@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use App\Models\Branch;
 use App\Services\POSService;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class ClosePosDay extends Command
 {
@@ -28,7 +28,7 @@ class ClosePosDay extends Command
         $force = (bool) $this->option('force');
         $branchOpt = $this->option('branch');
 
-        $this->info("POS Close Day started for date: {$dateStr}" . ($branchOpt ? " | branch: {$branchOpt}" : ' | all eligible branches'));
+        $this->info("POS Close Day started for date: {$dateStr}".($branchOpt ? " | branch: {$branchOpt}" : ' | all eligible branches'));
 
         // Resolve branches
         $branches = collect();
@@ -41,6 +41,7 @@ class ClosePosDay extends Command
 
             if ($branches->isEmpty()) {
                 $this->error("Branch not found by id/code: {$branchOpt}");
+
                 return self::FAILURE;
             }
         } else {
@@ -56,8 +57,9 @@ class ClosePosDay extends Command
             $lockKey = "cmd:pos:close-day:{$branch->id}:{$date->toDateString()}";
             $lock = Cache::lock($lockKey, 600); // 10 minutes
 
-            if (!$lock->get()) {
+            if (! $lock->get()) {
                 $this->warn("Skipped (locked) branch={$branch->id} {$branch->name}");
+
                 continue;
             }
 
@@ -95,7 +97,7 @@ class ClosePosDay extends Command
                     'trace' => $e->getTraceAsString(),
                 ]);
 
-                $this->error("Error on branch={$branch->code}: " . $e->getMessage());
+                $this->error("Error on branch={$branch->code}: ".$e->getMessage());
             } finally {
                 optional($lock)->release();
             }

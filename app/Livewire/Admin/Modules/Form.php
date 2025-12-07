@@ -14,25 +14,35 @@ class Form extends Component
     use HandlesErrors;
 
     public ?Module $module = null;
+
     public bool $editMode = false;
 
     public string $key = '';
+
     public string $name = '';
+
     public string $name_ar = '';
+
     public string $description = '';
+
     public string $description_ar = '';
+
     public string $icon = '📦';
+
     public string $color = 'emerald';
+
     public bool $is_active = true;
+
     public int $sort_order = 0;
 
     public array $customFields = [];
 
     protected function rules(): array
     {
-        $unique = $this->editMode ? '|unique:modules,key,' . $this->module->id : '|unique:modules,key';
+        $unique = $this->editMode ? '|unique:modules,key,'.$this->module->id : '|unique:modules,key';
+
         return [
-            'key' => 'required|string|max:50' . $unique,
+            'key' => 'required|string|max:50'.$unique,
             'name' => 'required|string|max:255',
             'name_ar' => 'nullable|string|max:255',
             'description' => 'nullable|string',
@@ -59,7 +69,7 @@ class Form extends Component
             $this->color = $module->color ?? 'emerald';
             $this->is_active = $module->is_active;
             $this->sort_order = $module->sort_order ?? 0;
-            $this->customFields = $module->customFields->map(fn($f) => [
+            $this->customFields = $module->customFields->map(fn ($f) => [
                 'id' => $f->id,
                 'field_key' => $f->field_key,
                 'field_label' => $f->field_label,
@@ -109,7 +119,7 @@ class Form extends Component
 
                 $existingIds = [];
                 foreach ($customFields as $field) {
-                    if (!empty($field['field_key']) && !empty($field['field_label'])) {
+                    if (! empty($field['field_key']) && ! empty($field['field_label'])) {
                         if ($field['id']) {
                             ModuleCustomField::where('id', $field['id'])->update([
                                 'field_key' => $field['field_key'],

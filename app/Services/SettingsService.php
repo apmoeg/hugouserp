@@ -15,6 +15,7 @@ class SettingsService
     use HandlesServiceErrors;
 
     protected const CACHE_KEY = 'system_settings';
+
     protected const CACHE_TTL = 3600;
 
     public function get(string $key, mixed $default = null): mixed
@@ -22,6 +23,7 @@ class SettingsService
         return $this->handleServiceOperation(
             callback: function () use ($key, $default) {
                 $settings = $this->all();
+
                 return $settings[$key] ?? $default;
             },
             operation: 'get',
@@ -35,18 +37,19 @@ class SettingsService
         return $this->handleServiceOperation(
             callback: function () use ($key, $default) {
                 $setting = SystemSetting::where('key', $key)->first();
-                
-                if (!$setting) {
+
+                if (! $setting) {
                     return $default;
                 }
 
                 $value = $setting->value;
-                
+
                 if ($setting->is_encrypted && $value) {
                     try {
                         return Crypt::decryptString(is_array($value) ? ($value[0] ?? '') : $value);
                     } catch (\Exception $e) {
                         Log::error('Failed to decrypt setting', ['key' => $key, 'error' => $e->getMessage()]);
+
                         return $default;
                     }
                 }
@@ -76,12 +79,12 @@ class SettingsService
                 ];
 
                 if ($data['is_encrypted'] && $value) {
-                    $data['value'] = [Crypt::encryptString(is_array($value) ? json_encode($value) : (string)$value)];
+                    $data['value'] = [Crypt::encryptString(is_array($value) ? json_encode($value) : (string) $value)];
                 }
 
                 SystemSetting::updateOrCreate(['key' => $key], $data);
                 $this->clearCache();
-                
+
                 return true;
             },
             operation: 'set',
@@ -101,6 +104,7 @@ class SettingsService
                         $this->set($key, $value);
                     }
                 }
+
                 return true;
             },
             operation: 'setMany',
@@ -115,7 +119,7 @@ class SettingsService
             callback: function () {
                 return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
                     return SystemSetting::pluck('value', 'key')
-                        ->map(fn($v) => is_array($v) ? ($v[0] ?? $v) : $v)
+                        ->map(fn ($v) => is_array($v) ? ($v[0] ?? $v) : $v)
                         ->toArray();
                 });
             },
@@ -137,11 +141,13 @@ class SettingsService
                         if ($setting->is_encrypted && $value) {
                             try {
                                 $decrypted = Crypt::decryptString(is_array($value) ? ($value[0] ?? '') : $value);
+
                                 return [$setting->key => $decrypted];
                             } catch (\Exception $e) {
                                 return [$setting->key => null];
                             }
                         }
+
                         return [$setting->key => is_array($value) ? ($value[0] ?? $value) : $value];
                     })
                     ->toArray();
@@ -173,6 +179,7 @@ class SettingsService
             callback: function () use ($key) {
                 SystemSetting::where('key', $key)->delete();
                 $this->clearCache();
+
                 return true;
             },
             operation: 'delete',
@@ -189,7 +196,7 @@ class SettingsService
     public function getSmsProvider(): string
     {
         return $this->handleServiceOperation(
-            callback: fn() => $this->get('sms.provider', 'none'),
+            callback: fn () => $this->get('sms.provider', 'none'),
             operation: 'getSmsProvider',
             context: [],
             defaultValue: 'none'
@@ -199,7 +206,7 @@ class SettingsService
     public function getSmsConfig(string $provider): array
     {
         return $this->handleServiceOperation(
-            callback: fn() => [
+            callback: fn () => [
                 'enabled' => (bool) $this->get("sms.{$provider}.enabled", false),
                 'appkey' => $this->getDecrypted("sms.{$provider}.appkey"),
                 'authkey' => $this->getDecrypted("sms.{$provider}.authkey"),
@@ -217,7 +224,7 @@ class SettingsService
     public function getSecurityConfig(): array
     {
         return $this->handleServiceOperation(
-            callback: fn() => [
+            callback: fn () => [
                 '2fa_enabled' => (bool) $this->get('security.2fa_enabled', false),
                 '2fa_required' => (bool) $this->get('security.2fa_required', false),
                 'recaptcha_enabled' => (bool) $this->get('security.recaptcha_enabled', false),
@@ -236,7 +243,7 @@ class SettingsService
     public function getBackupConfig(): array
     {
         return $this->handleServiceOperation(
-            callback: fn() => [
+            callback: fn () => [
                 'enabled' => (bool) $this->get('backup.enabled', false),
                 'frequency' => $this->get('backup.frequency', 'daily'),
                 'time' => $this->get('backup.time', '02:00'),

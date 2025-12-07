@@ -19,15 +19,12 @@ class InventoryController extends BaseApiController
 
         $query = Product::query()
             ->select('id', 'name', 'sku', 'quantity', 'min_stock', 'warehouse_id')
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
-            ->when($request->filled('sku'), fn($q) => 
-                $q->where('sku', $request->sku)
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
+            ->when($request->filled('sku'), fn ($q) => $q->where('sku', $request->sku)
             )
-            ->when($request->filled('warehouse_id'), fn($q) => 
-                $q->where('warehouse_id', $request->warehouse_id)
+            ->when($request->filled('warehouse_id'), fn ($q) => $q->where('warehouse_id', $request->warehouse_id)
             )
-            ->when($request->boolean('low_stock'), fn($q) => 
-                $q->whereColumn('quantity', '<=', 'min_stock')
+            ->when($request->boolean('low_stock'), fn ($q) => $q->whereColumn('quantity', '<=', 'min_stock')
             );
 
         $products = $query->paginate($request->get('per_page', 100));
@@ -51,24 +48,24 @@ class InventoryController extends BaseApiController
 
         if ($request->filled('product_id')) {
             $product = Product::query()
-                ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
+                ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
                 ->find($validated['product_id']);
         } elseif ($request->filled('external_id') && $store) {
             $mapping = ProductStoreMapping::where('store_id', $store->id)
                 ->where('external_id', $validated['external_id'])
                 ->first();
-            
+
             if ($mapping) {
                 $product = $mapping->product;
             }
         }
 
-        if (!$product) {
+        if (! $product) {
             return $this->errorResponse(__('Product not found'), 404);
         }
 
         $oldQuantity = $product->quantity;
-        $newQuantity = $validated['type'] === 'set' 
+        $newQuantity = $validated['type'] === 'set'
             ? $validated['quantity']
             : $product->quantity + $validated['quantity'];
 
@@ -116,29 +113,30 @@ class InventoryController extends BaseApiController
 
             if (isset($item['product_id'])) {
                 $product = Product::query()
-                    ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
+                    ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
                     ->find($item['product_id']);
             } elseif (isset($item['external_id']) && $store) {
                 $mapping = ProductStoreMapping::where('store_id', $store->id)
                     ->where('external_id', $item['external_id'])
                     ->first();
-                
+
                 if ($mapping) {
                     $product = $mapping->product;
                 }
             }
 
-            if (!$product) {
+            if (! $product) {
                 $results['failed'][] = [
                     'identifier' => $item['product_id'] ?? $item['external_id'],
                     'error' => __('Product not found'),
                 ];
+
                 continue;
             }
 
             try {
                 $oldQuantity = $product->quantity;
-                $newQuantity = $item['type'] === 'set' 
+                $newQuantity = $item['type'] === 'set'
                     ? $item['quantity']
                     : $product->quantity + $item['quantity'];
 
@@ -167,20 +165,15 @@ class InventoryController extends BaseApiController
 
         $query = StockMovement::query()
             ->with(['product:id,name,sku'])
-            ->when($store?->branch_id, fn($q) => 
-                $q->whereHas('product', fn($pq) => $pq->where('branch_id', $store->branch_id))
+            ->when($store?->branch_id, fn ($q) => $q->whereHas('product', fn ($pq) => $pq->where('branch_id', $store->branch_id))
             )
-            ->when($request->filled('product_id'), fn($q) => 
-                $q->where('product_id', $request->product_id)
+            ->when($request->filled('product_id'), fn ($q) => $q->where('product_id', $request->product_id)
             )
-            ->when($request->filled('type'), fn($q) => 
-                $q->where('type', $request->type)
+            ->when($request->filled('type'), fn ($q) => $q->where('type', $request->type)
             )
-            ->when($request->filled('from_date'), fn($q) => 
-                $q->whereDate('created_at', '>=', $request->from_date)
+            ->when($request->filled('from_date'), fn ($q) => $q->whereDate('created_at', '>=', $request->from_date)
             )
-            ->when($request->filled('to_date'), fn($q) => 
-                $q->whereDate('created_at', '<=', $request->to_date)
+            ->when($request->filled('to_date'), fn ($q) => $q->whereDate('created_at', '<=', $request->to_date)
             )
             ->orderBy('created_at', 'desc');
 

@@ -67,7 +67,7 @@ class Index extends Component
                 $q->where('branch_id', $this->branchId);
             })
             ->when($this->search !== null && $this->search !== '', function ($q) {
-                $term = '%' . $this->search . '%';
+                $term = '%'.$this->search.'%';
 
                 $q->where(function ($inner) use ($term) {
                     $inner->where('name', 'like', $term)

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
@@ -14,6 +15,7 @@ class ModuleFieldController extends Controller
     public function index(Request $request, string $module)
     {
         $branchId = $request->integer('branch_id') ?: null;
+
         return $this->ok($this->fields->for($module, $branchId));
     }
 
@@ -22,6 +24,7 @@ class ModuleFieldController extends Controller
         $branchId = $request->integer('branch_id') ?: null;
         $validator = $this->fields->validate($module, $request->all(), $branchId);
         $validator->validate();
+
         return $this->ok(['valid' => true]);
     }
 }

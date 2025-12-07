@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Requests;
@@ -17,9 +18,9 @@ class BranchUpdateRequest extends FormRequest
         $branch = $this->route('branch'); // Model binding
 
         return [
-            'name'      => ['sometimes', 'string', 'max:255', 'unique:branches,name,' . $branch?->id],
-            'code'      => ['sometimes', 'string', 'max:50', 'unique:branches,code,' . $branch?->id],
-            'address'   => ['nullable', 'string', 'max:500'],
+            'name' => ['sometimes', 'string', 'max:255', 'unique:branches,name,'.$branch?->id],
+            'code' => ['sometimes', 'string', 'max:50', 'unique:branches,code,'.$branch?->id],
+            'address' => ['nullable', 'string', 'max:500'],
             'is_active' => ['boolean'],
         ];
     }

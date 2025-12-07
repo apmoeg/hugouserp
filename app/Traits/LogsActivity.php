@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Traits;
@@ -30,30 +31,30 @@ trait LogsActivity
         try {
             $req = app('request');
             $user = auth()->user();
-            
+
             $branchId = null;
             if (method_exists($this, 'branch') && $this->branch_id) {
                 $branchId = $this->branch_id;
             } elseif ($user && property_exists($user, 'branch_id')) {
                 $branchId = $user->branch_id;
             }
-            
+
             $moduleKey = null;
             if (method_exists($this, 'module') && $this->module_id) {
                 $moduleKey = $this->module?->key;
             }
 
             \App\Models\AuditLog::query()->create([
-                'user_id'      => $user?->getKey(),
-                'branch_id'    => $branchId,
-                'module_key'   => $moduleKey,
-                'action'       => sprintf('%s:%s', class_basename(static::class), $action),
+                'user_id' => $user?->getKey(),
+                'branch_id' => $branchId,
+                'module_key' => $moduleKey,
+                'action' => sprintf('%s:%s', class_basename(static::class), $action),
                 'subject_type' => static::class,
-                'subject_id'   => $this->getKey(),
-                'ip'           => $req->ip(),
-                'user_agent'   => (string) $req->userAgent(),
-                'old_values'   => $old,
-                'new_values'   => $new,
+                'subject_id' => $this->getKey(),
+                'ip' => $req->ip(),
+                'user_agent' => (string) $req->userAgent(),
+                'old_values' => $old,
+                'new_values' => $new,
             ]);
         } catch (\Throwable) {
         }

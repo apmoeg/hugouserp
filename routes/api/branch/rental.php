@@ -1,11 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Branch\Rental\PropertyController;
-use App\Http\Controllers\Branch\Rental\UnitController;
-use App\Http\Controllers\Branch\Rental\TenantController;
 use App\Http\Controllers\Branch\Rental\ContractController;
 use App\Http\Controllers\Branch\Rental\InvoiceController;
+use App\Http\Controllers\Branch\Rental\PropertyController;
+use App\Http\Controllers\Branch\Rental\TenantController;
+use App\Http\Controllers\Branch\Rental\UnitController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,7 +28,7 @@ Route::prefix('modules/rental')->middleware(['module.enabled:rental'])->group(fu
         Route::get('{property}', [PropertyController::class, 'show'])
             ->middleware('perm:rental.properties.view');
 
-        Route::match(['put','patch'], '{property}', [PropertyController::class, 'update'])
+        Route::match(['put', 'patch'], '{property}', [PropertyController::class, 'update'])
             ->middleware('perm:rental.properties.update');
     });
 
@@ -43,7 +43,7 @@ Route::prefix('modules/rental')->middleware(['module.enabled:rental'])->group(fu
         Route::get('{unit}', [UnitController::class, 'show'])
             ->middleware('perm:rental.units.view');
 
-        Route::match(['put','patch'], '{unit}', [UnitController::class, 'update'])
+        Route::match(['put', 'patch'], '{unit}', [UnitController::class, 'update'])
             ->middleware('perm:rental.units.update');
 
         Route::post('{unit}/status', [UnitController::class, 'setStatus'])
@@ -61,7 +61,7 @@ Route::prefix('modules/rental')->middleware(['module.enabled:rental'])->group(fu
         Route::get('{tenant}', [TenantController::class, 'show'])
             ->middleware('perm:rental.tenants.view');
 
-        Route::match(['put','patch'], '{tenant}', [TenantController::class, 'update'])
+        Route::match(['put', 'patch'], '{tenant}', [TenantController::class, 'update'])
             ->middleware('perm:rental.tenants.update');
 
         Route::post('{tenant}/archive', [TenantController::class, 'archive'])
@@ -79,7 +79,7 @@ Route::prefix('modules/rental')->middleware(['module.enabled:rental'])->group(fu
         Route::get('{contract}', [ContractController::class, 'show'])
             ->middleware('perm:rental.contracts.view');
 
-        Route::match(['put','patch'], '{contract}', [ContractController::class, 'update'])
+        Route::match(['put', 'patch'], '{contract}', [ContractController::class, 'update'])
             ->middleware('perm:rental.contracts.update');
 
         Route::post('{contract}/renew', [ContractController::class, 'renew'])

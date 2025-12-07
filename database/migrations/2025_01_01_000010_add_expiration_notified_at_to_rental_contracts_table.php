@@ -8,12 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('rental_contracts')) {
+        if (! Schema::hasTable('rental_contracts')) {
             return;
         }
 
         Schema::table('rental_contracts', function (Blueprint $table) {
-            if (!Schema::hasColumn('rental_contracts', 'expiration_notified_at')) {
+            if (! Schema::hasColumn('rental_contracts', 'expiration_notified_at')) {
                 $table->timestamp('expiration_notified_at')->nullable();
             }
         });
@@ -21,7 +21,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (!Schema::hasTable('rental_contracts')) {
+        if (! Schema::hasTable('rental_contracts')) {
             return;
         }
 

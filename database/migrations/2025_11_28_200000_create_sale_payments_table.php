@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('sale_payments')) {
+        if (! Schema::hasTable('sale_payments')) {
             Schema::create('sale_payments', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('sale_id')->constrained('sales')->onDelete('cascade');
@@ -27,13 +27,13 @@ return new class extends Migration
                 $table->string('status', 20)->default('completed');
                 $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
                 $table->timestamps();
-                
+
                 $table->index(['sale_id', 'payment_method'], 'sp_sale_method_idx');
                 $table->index(['branch_id', 'created_at'], 'sp_br_created_idx');
             });
         }
 
-        if (!Schema::hasTable('pos_sessions')) {
+        if (! Schema::hasTable('pos_sessions')) {
             Schema::create('pos_sessions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('branch_id')->constrained('branches')->onDelete('cascade');
@@ -52,7 +52,7 @@ return new class extends Migration
                 $table->text('closing_notes')->nullable();
                 $table->foreignId('closed_by')->nullable()->constrained('users')->nullOnDelete();
                 $table->timestamps();
-                
+
                 $table->index(['branch_id', 'status'], 'pos_br_status_idx');
                 $table->index(['user_id', 'status'], 'pos_user_status_idx');
             });
@@ -60,10 +60,10 @@ return new class extends Migration
 
         // Add user discount/price fields if not exists (safe for fresh or existing databases)
         Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'max_discount_percent')) {
+            if (! Schema::hasColumn('users', 'max_discount_percent')) {
                 $table->decimal('max_discount_percent', 5, 2)->nullable();
             }
-            if (!Schema::hasColumn('users', 'can_modify_price')) {
+            if (! Schema::hasColumn('users', 'can_modify_price')) {
                 $table->boolean('can_modify_price')->default(true);
             }
         });
@@ -73,9 +73,9 @@ return new class extends Migration
     {
         Schema::dropIfExists('pos_sessions');
         Schema::dropIfExists('sale_payments');
-        
-        // Note: max_discount_percent and can_modify_price are now defined in the base 
-        // users migration (2025_11_15_000002_create_users_table.php), so we do NOT 
+
+        // Note: max_discount_percent and can_modify_price are now defined in the base
+        // users migration (2025_11_15_000002_create_users_table.php), so we do NOT
         // drop them here to maintain rollback safety and prevent data loss.
     }
 };

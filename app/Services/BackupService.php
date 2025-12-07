@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -6,22 +7,20 @@ namespace App\Services;
 use App\Services\Contracts\BackupServiceInterface;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\Finder\SplFileInfo;
 
 class BackupService implements BackupServiceInterface
 {
     use HandlesServiceErrors;
 
     protected string $disk;
+
     protected string $dir;
 
     public function __construct()
     {
         $this->disk = (string) config('backup.disk', 'local');
-        $this->dir  = (string) config('backup.dir', 'backups');
+        $this->dir = (string) config('backup.dir', 'backups');
     }
 
     public function run(bool $verify = true): string
@@ -37,9 +36,10 @@ class BackupService implements BackupServiceInterface
                     dispatch_sync(new \App\Jobs\BackupDatabaseJob(verify: $verify));
                 }
 
-                if ($verify && !Storage::disk($this->disk)->exists($path)) {
+                if ($verify && ! Storage::disk($this->disk)->exists($path)) {
                     throw new \RuntimeException('Backup file missing after run.');
                 }
+
                 return $path;
             },
             operation: 'run',
@@ -61,7 +61,8 @@ class BackupService implements BackupServiceInterface
                         'modified' => (int) $disk->lastModified($f),
                     ];
                 }
-                usort($out, fn($a,$b) => $b['modified'] <=> $a['modified']);
+                usort($out, fn ($a, $b) => $b['modified'] <=> $a['modified']);
+
                 return $out;
             },
             operation: 'list',

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Requests;
@@ -18,7 +19,7 @@ class VehicleUpdateRequest extends FormRequest
 
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'vin' => ['sometimes', 'string', 'max:190', 'unique:vehicles,vin,' . $vehicle?->id],
+            'vin' => ['sometimes', 'string', 'max:190', 'unique:vehicles,vin,'.$vehicle?->id],
             'price' => ['sometimes', 'numeric', 'gte:0'],
             'cost' => ['sometimes', 'numeric', 'gte:0'],
         ];

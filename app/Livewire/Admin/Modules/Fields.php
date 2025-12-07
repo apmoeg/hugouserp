@@ -13,28 +13,49 @@ class Fields extends Component
     use AuthorizesRequests;
 
     public Module $module;
+
     public bool $showModal = false;
+
     public bool $isEditing = false;
+
     public ?int $editingFieldId = null;
 
     public string $field_key = '';
+
     public string $field_label = '';
+
     public string $field_label_ar = '';
+
     public string $field_type = 'text';
+
     public array $field_options = [];
+
     public string $placeholder = '';
+
     public string $placeholder_ar = '';
+
     public string $default_value = '';
+
     public string $validation_rules = '';
+
     public bool $is_required = false;
+
     public bool $is_searchable = false;
+
     public bool $is_filterable = false;
+
     public bool $show_in_list = true;
+
     public bool $show_in_form = true;
+
     public bool $is_active = true;
+
     public int $sort_order = 0;
+
     public string $field_group = '';
+
     public string $newOptionKey = '';
+
     public string $newOptionValue = '';
 
     protected ModuleProductService $productService;
@@ -74,7 +95,7 @@ class Fields extends Component
     public function openEditModal(int $fieldId): void
     {
         $field = ModuleProductField::findOrFail($fieldId);
-        
+
         $this->editingFieldId = $field->id;
         $this->field_key = $field->field_key;
         $this->field_label = $field->field_label;
@@ -93,7 +114,7 @@ class Fields extends Component
         $this->is_active = $field->is_active;
         $this->sort_order = $field->sort_order;
         $this->field_group = $field->field_group ?? '';
-        
+
         $this->isEditing = true;
         $this->showModal = true;
     }
@@ -130,7 +151,7 @@ class Fields extends Component
 
     public function addOption(): void
     {
-        if (!empty($this->newOptionKey) && !empty($this->newOptionValue)) {
+        if (! empty($this->newOptionKey) && ! empty($this->newOptionValue)) {
             $this->field_options[$this->newOptionKey] = $this->newOptionValue;
             $this->newOptionKey = '';
             $this->newOptionValue = '';
@@ -189,7 +210,7 @@ class Fields extends Component
     {
         $this->authorize('modules.manage');
         $field = ModuleProductField::findOrFail($fieldId);
-        $field->update(['is_active' => !$field->is_active]);
+        $field->update(['is_active' => ! $field->is_active]);
     }
 
     public function updateOrder(array $orderedIds): void

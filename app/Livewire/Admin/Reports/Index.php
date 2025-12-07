@@ -3,11 +3,9 @@
 namespace App\Livewire\Admin\Reports;
 
 use App\Models\Branch;
-use App\Models\Module;
-use App\Models\ReportDefinition;
 use App\Services\BranchAccessService;
-use App\Services\ReportService;
 use App\Services\ExportService;
+use App\Services\ReportService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
 
@@ -16,18 +14,29 @@ class Index extends Component
     use AuthorizesRequests;
 
     public ?int $selectedBranchId = null;
+
     public ?int $selectedModuleId = null;
+
     public string $selectedReport = '';
+
     public string $dateFrom = '';
+
     public string $dateTo = '';
+
     public array $reportData = [];
+
     public array $summary = [];
+
     public bool $showExportModal = false;
+
     public array $selectedColumns = [];
+
     public string $exportFormat = 'xlsx';
 
     protected ReportService $reportService;
+
     protected BranchAccessService $branchAccessService;
+
     protected ExportService $exportService;
 
     public function boot(ReportService $reportService, BranchAccessService $branchAccessService, ExportService $exportService): void
@@ -40,12 +49,12 @@ class Index extends Component
     public function mount(): void
     {
         $this->authorize('reports.view');
-        
+
         $this->dateFrom = now()->startOfMonth()->format('Y-m-d');
         $this->dateTo = now()->format('Y-m-d');
-        
+
         $user = auth()->user();
-        if (!$user->hasRole('Super Admin')) {
+        if (! $user->hasRole('Super Admin')) {
             $branches = $this->branchAccessService->getUserBranches($user);
             $this->selectedBranchId = $branches->first()?->id;
         }
@@ -61,9 +70,10 @@ class Index extends Component
     public function generateReport(): void
     {
         $this->authorize('reports.view');
-        
+
         if (empty($this->selectedReport)) {
             session()->flash('error', __('Please select a report'));
+
             return;
         }
 
@@ -75,7 +85,7 @@ class Index extends Component
         ];
 
         $result = $this->reportService->generateReport($this->selectedReport, $filters, auth()->user());
-        
+
         $this->reportData = $result['data']->toArray();
         $this->summary = $result['summary'] ?? [];
     }
@@ -83,9 +93,10 @@ class Index extends Component
     public function openExportModal(): void
     {
         $this->authorize('reports.export');
-        
+
         if (empty($this->reportData)) {
             session()->flash('error', __('Please generate a report first'));
+
             return;
         }
 
@@ -102,16 +113,17 @@ class Index extends Component
     public function export()
     {
         $this->authorize('reports.export');
-        
+
         if (empty($this->selectedColumns)) {
             session()->flash('error', __('Please select at least one column'));
+
             return;
         }
 
         $entityType = $this->getEntityTypeFromReport();
         $availableColumns = $this->exportService->getAvailableColumns($entityType);
 
-        $filename = 'report_' . date('Y-m-d_His');
+        $filename = 'report_'.date('Y-m-d_His');
 
         $filepath = $this->exportService->export(
             collect($this->reportData),
@@ -125,9 +137,9 @@ class Index extends Component
         );
 
         $this->closeExportModal();
-        
-        $downloadName = $filename . '.' . $this->exportFormat;
-        
+
+        $downloadName = $filename.'.'.$this->exportFormat;
+
         return response()->download($filepath, $downloadName)->deleteFileAfterSend(true);
     }
 
@@ -148,13 +160,13 @@ class Index extends Component
     public function render()
     {
         $user = auth()->user();
-        
+
         $branches = $user->hasRole('Super Admin')
             ? Branch::active()->get()
             : $this->branchAccessService->getUserBranches($user);
 
         $modules = $this->branchAccessService->getAccessibleModulesForUser($user);
-        
+
         $reports = $this->reportService->getAvailableReports($user, $this->selectedModuleId);
 
         $entityType = $this->getEntityTypeFromReport();

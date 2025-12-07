@@ -11,11 +11,13 @@ use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination;
     use HasExport;
+    use WithPagination;
 
     public string $search = '';
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
 
     protected $queryString = ['search'];
@@ -50,7 +52,7 @@ class Index extends Component
     public function render()
     {
         $suppliers = Supplier::query()
-            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")
+            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%")
                 ->orWhere('email', 'like', "%{$this->search}%")
                 ->orWhere('phone', 'like', "%{$this->search}%"))
             ->orderBy($this->sortField, $this->sortDirection)
@@ -64,7 +66,7 @@ class Index extends Component
     public function export()
     {
         $data = Supplier::query()
-            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")
+            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%")
                 ->orWhere('email', 'like', "%{$this->search}%")
                 ->orWhere('phone', 'like', "%{$this->search}%"))
             ->orderBy($this->sortField, $this->sortDirection)

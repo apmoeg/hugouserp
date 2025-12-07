@@ -29,9 +29,9 @@ class ProductVariation extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'attributes'     => 'array',
-        'current_stock'  => 'float',
-        'is_active'      => 'bool',
+        'attributes' => 'array',
+        'current_stock' => 'float',
+        'is_active' => 'bool',
     ];
 
     public function product()

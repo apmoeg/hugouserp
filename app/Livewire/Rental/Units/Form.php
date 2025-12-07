@@ -23,11 +23,11 @@ class Form extends Component
      */
     public array $form = [
         'property_id' => 0,
-        'code'        => '',
-        'type'        => '',
-        'status'      => 'available',
-        'rent'        => 0.0,
-        'deposit'     => 0.0,
+        'code' => '',
+        'type' => '',
+        'status' => 'available',
+        'rent' => 0.0,
+        'deposit' => 0.0,
     ];
 
     /**
@@ -69,7 +69,7 @@ class Form extends Component
             ->get(['id', 'name'])
             ->map(function (Property $p): array {
                 return [
-                    'id'    => $p->id,
+                    'id' => $p->id,
                     'label' => $p->name,
                 ];
             })
@@ -87,11 +87,11 @@ class Form extends Component
             $unitModel = RentalUnit::query()->with('property')->findOrFail($this->unitId);
 
             $this->form['property_id'] = (int) $unitModel->property_id;
-            $this->form['code']        = (string) $unitModel->code;
-            $this->form['type']        = $unitModel->type ?? '';
-            $this->form['status']      = (string) $unitModel->status;
-            $this->form['rent']        = (float) $unitModel->rent;
-            $this->form['deposit']     = (float) $unitModel->deposit;
+            $this->form['code'] = (string) $unitModel->code;
+            $this->form['type'] = $unitModel->type ?? '';
+            $this->form['status'] = (string) $unitModel->status;
+            $this->form['rent'] = (float) $unitModel->rent;
+            $this->form['deposit'] = (float) $unitModel->deposit;
 
             $this->dynamicData = (array) ($unitModel->extra_attributes ?? []);
         } else {
@@ -115,11 +115,11 @@ class Form extends Component
     {
         return [
             'form.property_id' => ['required', 'integer', 'exists:properties,id'],
-            'form.code'        => ['required', 'string', 'max:100'],
-            'form.type'        => ['nullable', 'string', 'max:100'],
-            'form.status'      => ['required', 'string', 'max:50'],
-            'form.rent'        => ['required', 'numeric', 'min:0'],
-            'form.deposit'     => ['required', 'numeric', 'min:0'],
+            'form.code' => ['required', 'string', 'max:100'],
+            'form.type' => ['nullable', 'string', 'max:100'],
+            'form.status' => ['required', 'string', 'max:50'],
+            'form.rent' => ['required', 'numeric', 'min:0'],
+            'form.deposit' => ['required', 'numeric', 'min:0'],
         ];
     }
 
@@ -142,15 +142,15 @@ class Form extends Component
             /** @var RentalUnit $unit */
             $unit = RentalUnit::query()->findOrFail($this->unitId);
         } else {
-            $unit = new RentalUnit();
+            $unit = new RentalUnit;
         }
 
         $unit->property_id = (int) $this->form['property_id'];
-        $unit->code        = (string) $this->form['code'];
-        $unit->type        = $this->form['type'] !== '' ? (string) $this->form['type'] : null;
-        $unit->status      = (string) $this->form['status'];
-        $unit->rent        = (float) $this->form['rent'];
-        $unit->deposit     = (float) $this->form['deposit'];
+        $unit->code = (string) $this->form['code'];
+        $unit->type = $this->form['type'] !== '' ? (string) $this->form['type'] : null;
+        $unit->status = (string) $this->form['status'];
+        $unit->rent = (float) $this->form['rent'];
+        $unit->deposit = (float) $this->form['deposit'];
         $unit->extra_attributes = $this->dynamicData;
 
         $unit->save();

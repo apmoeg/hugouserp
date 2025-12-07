@@ -37,7 +37,7 @@ class LoyaltySetting extends Model
 
     public static function getForBranch(?int $branchId): ?self
     {
-        if (!$branchId) {
+        if (! $branchId) {
             return self::whereNull('branch_id')->first() ?? self::first();
         }
 
@@ -45,12 +45,12 @@ class LoyaltySetting extends Model
             ?? self::whereNull('branch_id')->first();
     }
 
-public static function cachedForBranch(?int $branchId, int $ttlSeconds = 3600): ?self
-{
-    $cacheKey = sprintf('loyalty_settings:%s', $branchId ?? 'global');
+    public static function cachedForBranch(?int $branchId, int $ttlSeconds = 3600): ?self
+    {
+        $cacheKey = sprintf('loyalty_settings:%s', $branchId ?? 'global');
 
-    return Cache::remember($cacheKey, $ttlSeconds, function () use ($branchId) {
-        return static::getForBranch($branchId);
-    });
-}
+        return Cache::remember($cacheKey, $ttlSeconds, function () use ($branchId) {
+            return static::getForBranch($branchId);
+        });
+    }
 }

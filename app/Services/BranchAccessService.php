@@ -8,7 +8,6 @@ use App\Models\Module;
 use App\Models\User;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
 
 class BranchAccessService
 {
@@ -34,6 +33,7 @@ class BranchAccessService
         return $this->handleServiceOperation(
             callback: function () use ($user) {
                 $branches = $this->getUserBranches($user);
+
                 return $branches->first();
             },
             operation: 'getUserActiveBranch',
@@ -203,6 +203,7 @@ class BranchAccessService
         return $this->handleServiceOperation(
             callback: function () use ($branchId) {
                 $branch = Branch::findOrFail($branchId);
+
                 return $branch->enabledModules()->get();
             },
             operation: 'getBranchModules',
@@ -218,11 +219,12 @@ class BranchAccessService
                     return true;
                 }
 
-                if (!$this->canAccessBranch($user, $branchId)) {
+                if (! $this->canAccessBranch($user, $branchId)) {
                     return false;
                 }
 
                 $branch = Branch::find($branchId);
+
                 return $branch?->hasModule($moduleKey) ?? false;
             },
             operation: 'canAccessModule',
@@ -243,7 +245,7 @@ class BranchAccessService
                         'enabled' => true,
                         'settings' => json_encode($settings),
                         'module_key' => $module->key,
-                    ]
+                    ],
                 ]);
             },
             operation: 'enableModuleForBranch',
@@ -269,7 +271,7 @@ class BranchAccessService
             callback: function () use ($branchId, $moduleId, $settings) {
                 $branch = Branch::findOrFail($branchId);
                 $branch->modules()->updateExistingPivot($moduleId, [
-                    'settings' => json_encode($settings)
+                    'settings' => json_encode($settings),
                 ]);
             },
             operation: 'updateBranchModuleSettings',
@@ -295,7 +297,7 @@ class BranchAccessService
             callback: function () use ($userId, $branchId) {
                 $user = User::findOrFail($userId);
                 $user->branches()->detach($branchId);
-                
+
                 BranchAdmin::where('user_id', $userId)
                     ->where('branch_id', $branchId)
                     ->delete();
@@ -310,6 +312,7 @@ class BranchAccessService
         return $this->handleServiceOperation(
             callback: function () use ($branchId) {
                 $branch = Branch::findOrFail($branchId);
+
                 return $branch->users;
             },
             operation: 'getUsersInBranch',
@@ -326,7 +329,7 @@ class BranchAccessService
                 }
 
                 $branchIds = $this->getUserBranches($user)->pluck('id')->toArray();
-                
+
                 return $query->whereIn($branchColumn, $branchIds);
             },
             operation: 'filterQueryByBranch',

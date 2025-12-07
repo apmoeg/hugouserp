@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Notifications;
 
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 use Livewire\WithPagination;
 
 class Center extends Component
@@ -23,7 +23,7 @@ class Center extends Component
 
     public function markAsRead(string $id): void
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return;
         }
 
@@ -36,7 +36,7 @@ class Center extends Component
 
     public function markAllAsRead(): void
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return;
         }
 
@@ -45,7 +45,7 @@ class Center extends Component
 
     protected function getNotificationsProperty()
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return collect();
         }
 
@@ -58,7 +58,6 @@ class Center extends Component
         return $query->paginate(15);
     }
 
-    
     public function mount(): void
     {
         $user = Auth::user();
@@ -67,11 +66,10 @@ class Center extends Component
         }
     }
 
-public function render()
+    public function render()
     {
         return view('livewire.notifications.center', [
             'items' => $this->notifications,
         ]);
     }
 }
-

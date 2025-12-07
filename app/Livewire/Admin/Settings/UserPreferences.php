@@ -12,18 +12,23 @@ use Livewire\Component;
 class UserPreferences extends Component
 {
     public string $theme = 'light';
+
     public int $session_timeout = 30;
+
     public bool $auto_logout = true;
+
     public ?string $default_printer = null;
-    
+
     public array $dashboard_widgets = [];
+
     public array $pos_shortcuts = [];
+
     public array $notification_settings = [];
 
     public function mount(): void
     {
         $preferences = UserPreference::getForUser(Auth::id());
-        
+
         $this->theme = $preferences->theme;
         $this->session_timeout = $preferences->session_timeout;
         $this->auto_logout = $preferences->auto_logout;
@@ -54,13 +59,13 @@ class UserPreferences extends Component
 
         $this->dispatch('preferences-saved');
         $this->dispatch('theme-changed', theme: $this->theme);
-        
+
         session()->flash('success', __('Preferences saved successfully'));
     }
 
     public function toggleWidget(string $widget): void
     {
-        $this->dashboard_widgets[$widget] = !($this->dashboard_widgets[$widget] ?? false);
+        $this->dashboard_widgets[$widget] = ! ($this->dashboard_widgets[$widget] ?? false);
     }
 
     public function updateShortcut(string $key, string $action): void
@@ -70,20 +75,20 @@ class UserPreferences extends Component
 
     public function toggleNotification(string $type): void
     {
-        $this->notification_settings[$type] = !($this->notification_settings[$type] ?? false);
+        $this->notification_settings[$type] = ! ($this->notification_settings[$type] ?? false);
     }
 
     public function resetToDefaults(): void
     {
         $defaults = UserPreference::getDefaults();
-        
+
         $this->theme = $defaults['theme'];
         $this->session_timeout = $defaults['session_timeout'];
         $this->auto_logout = $defaults['auto_logout'];
         $this->dashboard_widgets = $defaults['dashboard_widgets'];
         $this->pos_shortcuts = $defaults['pos_shortcuts'];
         $this->notification_settings = $defaults['notification_settings'];
-        
+
         $this->save();
     }
 

@@ -1,21 +1,23 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Branch\Wood;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ConversionRecalcRequest;
+use App\Http\Requests\ConversionStoreRequest;
 use App\Services\Contracts\WoodServiceInterface as Wood;
 use Illuminate\Http\Request;
-use App\Http\Requests\ConversionStoreRequest;
-use App\Http\Requests\ConversionRecalcRequest;
 
 class ConversionController extends Controller
 {
-    public function __construct(protected Wood $wood){}
+    public function __construct(protected Wood $wood) {}
 
     public function index(Request $request)
     {
         $b = (int) $request->attributes->get('branch_id');
+
         return $this->ok($this->wood->conversions($b));
     }
 
@@ -23,6 +25,7 @@ class ConversionController extends Controller
     {
         $data = $request->validated();
         $id = $this->wood->createConversion($data);
+
         return $this->ok(['id' => $id], __('Created'), 201);
     }
 
@@ -30,6 +33,7 @@ class ConversionController extends Controller
     {
         $data = $request->validated();
         $this->wood->recalc((int) $data['id']);
+
         return $this->ok(null, __('Recalculated'));
     }
 }

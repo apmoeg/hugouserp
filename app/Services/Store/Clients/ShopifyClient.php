@@ -10,13 +10,15 @@ use Illuminate\Support\Facades\Http;
 class ShopifyClient
 {
     protected Store $store;
+
     protected string $baseUrl;
+
     protected string $accessToken;
 
     public function __construct(Store $store)
     {
         $this->store = $store;
-        $this->baseUrl = rtrim($store->url, '/') . '/admin/api/2024-01';
+        $this->baseUrl = rtrim($store->url, '/').'/admin/api/2024-01';
         $this->accessToken = $store->integration?->access_token ?? '';
     }
 
@@ -32,8 +34,8 @@ class ShopifyClient
             }
 
             $response = $this->request('GET', '/products.json', $params);
-            
-            if (!$response->successful()) {
+
+            if (! $response->successful()) {
                 break;
             }
 
@@ -51,7 +53,7 @@ class ShopifyClient
     public function getProduct(string $productId): ?array
     {
         $response = $this->request('GET', "/products/{$productId}.json");
-        
+
         if ($response->successful()) {
             return $response->json()['product'] ?? null;
         }
@@ -70,11 +72,11 @@ class ShopifyClient
 
     public function updateInventory(string $inventoryItemId, int $quantity, ?string $locationId = null): bool
     {
-        if (!$locationId) {
+        if (! $locationId) {
             $locationId = $this->getDefaultLocationId();
         }
 
-        if (!$locationId) {
+        if (! $locationId) {
             return false;
         }
 
@@ -102,8 +104,8 @@ class ShopifyClient
             }
 
             $response = $this->request('GET', '/orders.json', $params);
-            
-            if (!$response->successful()) {
+
+            if (! $response->successful()) {
                 break;
             }
 
@@ -121,7 +123,7 @@ class ShopifyClient
     public function getOrder(string $orderId): ?array
     {
         $response = $this->request('GET', "/orders/{$orderId}.json");
-        
+
         if ($response->successful()) {
             return $response->json()['order'] ?? null;
         }
@@ -132,7 +134,7 @@ class ShopifyClient
     public function getLocations(): array
     {
         $response = $this->request('GET', '/locations.json');
-        
+
         if ($response->successful()) {
             return $response->json()['locations'] ?? [];
         }
@@ -143,7 +145,7 @@ class ShopifyClient
     public function getDefaultLocationId(): ?string
     {
         $locations = $this->getLocations();
-        
+
         foreach ($locations as $location) {
             if ($location['active'] ?? false) {
                 return (string) $location['id'];
@@ -175,7 +177,7 @@ class ShopifyClient
 
     protected function request(string $method, string $endpoint, array $data = [])
     {
-        $url = $this->baseUrl . $endpoint;
+        $url = $this->baseUrl.$endpoint;
 
         $http = Http::withHeaders([
             'X-Shopify-Access-Token' => $this->accessToken,
@@ -193,7 +195,7 @@ class ShopifyClient
 
     protected function extractNextPageInfo(?string $linkHeader): ?string
     {
-        if (!$linkHeader) {
+        if (! $linkHeader) {
             return null;
         }
 

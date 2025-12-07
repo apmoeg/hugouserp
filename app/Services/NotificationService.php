@@ -1,15 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Events\{NotificationRead, NotificationsMarkedAsRead, UpdateNotificationCounters};
+use App\Events\NotificationRead;
+use App\Events\NotificationsMarkedAsRead;
+use App\Events\UpdateNotificationCounters;
 use App\Models\User;
-use App\Notifications\{InAppMessage, GeneralNotification};
+use App\Notifications\InAppMessage;
 use App\Services\Contracts\NotificationServiceInterface;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class NotificationService implements NotificationServiceInterface
 {
@@ -20,7 +22,9 @@ class NotificationService implements NotificationServiceInterface
         $this->handleServiceOperation(
             callback: function () use ($userId, $title, $message, $data) {
                 $user = User::find($userId);
-                if ($user) $user->notify(new InAppMessage($title, $message, $data));
+                if ($user) {
+                    $user->notify(new InAppMessage($title, $message, $data));
+                }
                 event(new UpdateNotificationCounters($userId));
             },
             operation: 'inApp',
@@ -72,6 +76,7 @@ class NotificationService implements NotificationServiceInterface
                     ->update(['read_at' => now()]);
                 event(new NotificationsMarkedAsRead($userId, $ids));
                 event(new UpdateNotificationCounters($userId));
+
                 return (int) $count;
             },
             operation: 'markManyRead',

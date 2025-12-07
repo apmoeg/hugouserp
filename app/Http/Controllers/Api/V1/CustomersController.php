@@ -15,11 +15,10 @@ class CustomersController extends BaseApiController
         $store = $this->getStore($request);
 
         $query = Customer::query()
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
-            ->when($request->filled('search'), fn($q) => 
-                $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%')
-                  ->orWhere('phone', 'like', '%' . $request->search . '%')
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
+            ->when($request->filled('search'), fn ($q) => $q->where('name', 'like', '%'.$request->search.'%')
+                ->orWhere('email', 'like', '%'.$request->search.'%')
+                ->orWhere('phone', 'like', '%'.$request->search.'%')
             )
             ->orderBy($request->get('sort_by', 'created_at'), $request->get('sort_dir', 'desc'));
 
@@ -33,14 +32,14 @@ class CustomersController extends BaseApiController
         $store = $this->getStore($request);
 
         $customer = Customer::query()
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
             ->find($id);
 
-        if (!$customer) {
+        if (! $customer) {
             return $this->errorResponse(__('Customer not found'), 404);
         }
 
-        $customer->load(['sales' => fn($q) => $q->latest()->take(10)]);
+        $customer->load(['sales' => fn ($q) => $q->latest()->take(10)]);
 
         return $this->successResponse($customer, __('Customer retrieved successfully'));
     }
@@ -73,16 +72,16 @@ class CustomersController extends BaseApiController
         $store = $this->getStore($request);
 
         $customer = Customer::query()
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
             ->find($id);
 
-        if (!$customer) {
+        if (! $customer) {
             return $this->errorResponse(__('Customer not found'), 404);
         }
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'email' => 'nullable|email|max:255|unique:customers,email,' . $customer->id,
+            'email' => 'nullable|email|max:255|unique:customers,email,'.$customer->id,
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:500',
             'city' => 'nullable|string|max:100',
@@ -102,10 +101,10 @@ class CustomersController extends BaseApiController
         $store = $this->getStore($request);
 
         $customer = Customer::query()
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
             ->find($id);
 
-        if (!$customer) {
+        if (! $customer) {
             return $this->errorResponse(__('Customer not found'), 404);
         }
 
@@ -119,11 +118,11 @@ class CustomersController extends BaseApiController
         $store = $this->getStore($request);
 
         $customer = Customer::query()
-            ->when($store?->branch_id, fn($q) => $q->where('branch_id', $store->branch_id))
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
             ->where('email', $email)
             ->first();
 
-        if (!$customer) {
+        if (! $customer) {
             return $this->errorResponse(__('Customer not found'), 404);
         }
 

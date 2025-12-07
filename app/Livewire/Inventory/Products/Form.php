@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Livewire\Inventory\Products;
 
+use App\Livewire\Concerns\HandlesErrors;
 use App\Models\Module;
 use App\Models\Product;
 use App\Models\ProductFieldValue;
 use App\Services\ModuleProductService;
-use App\Livewire\Concerns\HandlesErrors;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
+use Livewire\Component;
 
 class Form extends Component
 {
@@ -23,6 +23,7 @@ class Form extends Component
     use HandlesErrors;
 
     public ?int $productId = null;
+
     public ?int $selectedModuleId = null;
 
     public array $form = [
@@ -48,6 +49,7 @@ class Form extends Component
     ];
 
     public array $dynamicSchema = [];
+
     public array $dynamicData = [];
 
     protected ModuleProductService $moduleProductService;
@@ -83,7 +85,7 @@ class Form extends Component
 
             if ($p->module_id) {
                 $this->loadModuleFields($p->module_id);
-                
+
                 foreach ($p->fieldValues as $fv) {
                     if ($fv->field) {
                         $this->dynamicData[$fv->field->field_key] = $fv->field_value;
@@ -99,7 +101,7 @@ class Form extends Component
     public function updatedSelectedModuleId($value): void
     {
         $this->form['module_id'] = $value ? (int) $value : null;
-        
+
         if ($value) {
             $this->loadModuleFields((int) $value);
             $module = Module::find($value);
@@ -115,20 +117,20 @@ class Form extends Component
     protected function loadModuleFields(int $moduleId): void
     {
         $fields = $this->moduleProductService->getModuleFields($moduleId, true);
-        
+
         $this->dynamicSchema = $fields->map(function ($field) {
             return [
                 'id' => $field->id,
                 'key' => $field->field_key,
                 'name' => $field->field_key,
-                'label' => app()->getLocale() === 'ar' && $field->field_label_ar 
-                    ? $field->field_label_ar 
+                'label' => app()->getLocale() === 'ar' && $field->field_label_ar
+                    ? $field->field_label_ar
                     : $field->field_label,
                 'type' => $this->mapFieldType($field->field_type),
                 'options' => $field->field_options ?? [],
                 'required' => $field->is_required,
-                'placeholder' => app()->getLocale() === 'ar' && $field->placeholder_ar 
-                    ? $field->placeholder_ar 
+                'placeholder' => app()->getLocale() === 'ar' && $field->placeholder_ar
+                    ? $field->placeholder_ar
                     : $field->placeholder,
                 'default' => $field->default_value,
                 'validation' => $field->validation_rules,
@@ -137,7 +139,7 @@ class Form extends Component
         })->toArray();
 
         foreach ($this->dynamicSchema as $field) {
-            if (!isset($this->dynamicData[$field['key']])) {
+            if (! isset($this->dynamicData[$field['key']])) {
                 $this->dynamicData[$field['key']] = $field['default'] ?? null;
             }
         }
@@ -194,14 +196,14 @@ class Form extends Component
 
         foreach ($this->dynamicSchema as $field) {
             $fieldRules = [];
-            
+
             if ($field['required']) {
                 $fieldRules[] = 'required';
             } else {
                 $fieldRules[] = 'nullable';
             }
 
-            if (!empty($field['validation'])) {
+            if (! empty($field['validation'])) {
                 $fieldRules = array_merge($fieldRules, explode('|', $field['validation']));
             }
 
@@ -225,7 +227,7 @@ class Form extends Component
             if ($this->productId) {
                 $product = Product::findOrFail($this->productId);
             } else {
-                $product = new Product();
+                $product = new Product;
             }
 
             $product->name = $this->form['name'];
@@ -243,7 +245,7 @@ class Form extends Component
 
             if (Auth::check()) {
                 $userId = Auth::id();
-                if (!$this->productId) {
+                if (! $this->productId) {
                     $product->created_by = $userId;
                 }
                 $product->updated_by = $userId;
@@ -251,14 +253,14 @@ class Form extends Component
 
             $product->save();
 
-            if ($this->form['module_id'] && !empty($this->dynamicData)) {
+            if ($this->form['module_id'] && ! empty($this->dynamicData)) {
                 ProductFieldValue::where('product_id', $product->id)->delete();
 
                 $fields = $this->moduleProductService->getModuleFields((int) $this->form['module_id'], true);
-                
+
                 foreach ($fields as $field) {
                     $value = $this->dynamicData[$field->field_key] ?? null;
-                    
+
                     if ($value !== null && $value !== '') {
                         ProductFieldValue::create([
                             'product_id' => $product->id,
@@ -291,12 +293,12 @@ class Form extends Component
                 ->where('enabled', true)
                 ->pluck('module_id')
                 ->toArray();
-            
-            if (!empty($enabledModuleIds)) {
+
+            if (! empty($enabledModuleIds)) {
                 $modules = Module::where('is_active', true)
                     ->where(function ($q) {
                         $q->where('has_inventory', true)
-                          ->orWhere('is_service', true);
+                            ->orWhere('is_service', true);
                     })
                     ->whereIn('id', $enabledModuleIds)
                     ->orderBy('sort_order')
@@ -306,7 +308,7 @@ class Form extends Component
             $modules = Module::where('is_active', true)
                 ->where(function ($q) {
                     $q->where('has_inventory', true)
-                      ->orWhere('is_service', true);
+                        ->orWhere('is_service', true);
                 })
                 ->orderBy('sort_order')
                 ->get();

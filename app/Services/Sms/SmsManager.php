@@ -17,8 +17,8 @@ class SmsManager
     public function __construct(protected SettingsService $settings)
     {
         $this->providers = [
-            '3shm' => fn() => new ThreeShmService($settings),
-            'smsmisr' => fn() => new SmsMisrService($settings),
+            '3shm' => fn () => new ThreeShmService($settings),
+            'smsmisr' => fn () => new SmsMisrService($settings),
         ];
     }
 
@@ -27,9 +27,10 @@ class SmsManager
         return $this->handleServiceOperation(
             callback: function () use ($to, $message, $filePath) {
                 $providerName = $this->settings->getSmsProvider();
-                
-                if ($providerName === 'none' || !isset($this->providers[$providerName])) {
+
+                if ($providerName === 'none' || ! isset($this->providers[$providerName])) {
                     Log::warning('SMS provider not set or invalid', ['provider' => $providerName]);
+
                     return [
                         'success' => false,
                         'error' => 'SMS provider not configured',
@@ -37,7 +38,7 @@ class SmsManager
                 }
 
                 $provider = $this->getProvider($providerName);
-                
+
                 if ($providerName === 'smsmisr' && $filePath) {
                     Log::warning('SMSMISR does not support file attachments, sending text only');
                     $filePath = null;
@@ -55,7 +56,7 @@ class SmsManager
     {
         return $this->handleServiceOperation(
             callback: function () use ($providerName, $to, $message, $filePath) {
-                if (!isset($this->providers[$providerName])) {
+                if (! isset($this->providers[$providerName])) {
                     return [
                         'success' => false,
                         'error' => "Unknown provider: {$providerName}",
@@ -63,7 +64,7 @@ class SmsManager
                 }
 
                 $provider = $this->getProvider($providerName);
-                
+
                 if ($providerName === 'smsmisr' && $filePath) {
                     $filePath = null;
                 }
@@ -80,7 +81,7 @@ class SmsManager
     {
         return $this->handleServiceOperation(
             callback: function () use ($name) {
-                if (!isset($this->providers[$name])) {
+                if (! isset($this->providers[$name])) {
                     throw new \InvalidArgumentException("Unknown SMS provider: {$name}");
                 }
 
@@ -117,8 +118,8 @@ class SmsManager
         return $this->handleServiceOperation(
             callback: function () use ($providerName) {
                 $providerName = $providerName ?? $this->settings->getSmsProvider();
-                
-                if ($providerName === 'none' || !isset($this->providers[$providerName])) {
+
+                if ($providerName === 'none' || ! isset($this->providers[$providerName])) {
                     return false;
                 }
 
@@ -135,8 +136,8 @@ class SmsManager
         return $this->handleServiceOperation(
             callback: function () use ($providerName) {
                 $providerName = $providerName ?? $this->settings->getSmsProvider();
-                
-                if (!$this->isConfigured($providerName)) {
+
+                if (! $this->isConfigured($providerName)) {
                     return [
                         'success' => false,
                         'error' => 'Provider not configured',

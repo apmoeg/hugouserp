@@ -52,15 +52,15 @@ return new class extends Migration
         });
 
         // Add service product columns if not exists (safe, no after())
-        if (Schema::hasTable('products') && !Schema::hasColumn('products', 'service_duration')) {
+        if (Schema::hasTable('products') && ! Schema::hasColumn('products', 'service_duration')) {
             Schema::table('products', function (Blueprint $table) {
-                if (!Schema::hasColumn('products', 'hourly_rate')) {
+                if (! Schema::hasColumn('products', 'hourly_rate')) {
                     $table->decimal('hourly_rate', 12, 2)->nullable();
                 }
-                if (!Schema::hasColumn('products', 'service_duration')) {
+                if (! Schema::hasColumn('products', 'service_duration')) {
                     $table->integer('service_duration')->nullable();
                 }
-                if (!Schema::hasColumn('products', 'duration_unit')) {
+                if (! Schema::hasColumn('products', 'duration_unit')) {
                     $table->string('duration_unit', 20)->nullable();
                 }
             });

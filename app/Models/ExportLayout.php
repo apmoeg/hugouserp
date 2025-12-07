@@ -49,7 +49,7 @@ class ExportLayout extends Model
     {
         return $query->where(function ($q) use ($userId) {
             $q->where('user_id', $userId)
-              ->orWhere('is_shared', true);
+                ->orWhere('is_shared', true);
         });
     }
 
@@ -75,6 +75,7 @@ class ExportLayout extends Model
         usort($columns, function ($a, $b) use ($order) {
             $posA = array_search($a, $order);
             $posB = array_search($b, $order);
+
             return ($posA === false ? PHP_INT_MAX : $posA) <=> ($posB === false ? PHP_INT_MAX : $posB);
         });
 

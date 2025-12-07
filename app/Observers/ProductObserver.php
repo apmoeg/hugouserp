@@ -1,21 +1,22 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Observers;
 
-use App\Models\Product;
 use App\Models\AuditLog;
+use App\Models\Product;
 use Illuminate\Support\Str;
 
 class ProductObserver
 {
     public function creating(Product $product): void
     {
-        if (!$product->getAttribute('sku')) {
+        if (! $product->getAttribute('sku')) {
             $product->sku = strtoupper(Str::random(8));
         }
-        if (!$product->getAttribute('barcode')) {
-            $product->barcode = 'P' . strtoupper(Str::random(11));
+        if (! $product->getAttribute('barcode')) {
+            $product->barcode = 'P'.strtoupper(Str::random(11));
         }
         if ($product->getAttribute('name')) {
             $product->name = trim((string) $product->name);
@@ -58,14 +59,14 @@ class ProductObserver
         try {
             $req = request();
             AuditLog::create([
-                'user_id'      => optional(auth()->user())->getKey(),
-                'action'       => "Product:{$action}",
+                'user_id' => optional(auth()->user())->getKey(),
+                'action' => "Product:{$action}",
                 'subject_type' => Product::class,
-                'subject_id'   => $product->getKey(),
-                'ip'           => $req?->ip(),
-                'user_agent'   => (string) $req?->userAgent(),
-                'old_values'   => [],
-                'new_values'   => $changes ?: $product->attributesToArray(),
+                'subject_id' => $product->getKey(),
+                'ip' => $req?->ip(),
+                'user_agent' => (string) $req?->userAgent(),
+                'old_values' => [],
+                'new_values' => $changes ?: $product->attributesToArray(),
             ]);
         } catch (\Throwable $e) {
             // ignore audit failures

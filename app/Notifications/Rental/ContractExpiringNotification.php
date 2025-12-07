@@ -2,10 +2,10 @@
 
 namespace App\Notifications\Rental;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\BroadcastMessage;
 use App\Models\RentalContract;
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Notification;
 
 class ContractExpiringNotification extends Notification
 {
@@ -54,4 +54,3 @@ class ContractExpiringNotification extends Notification
         return new BroadcastMessage($this->toArray($notifiable));
     }
 }
-

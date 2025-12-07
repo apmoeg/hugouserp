@@ -48,7 +48,7 @@ class POSController extends Controller
                     'paid_total' => $sale->paid_total,
                     'due_total' => $sale->due_total,
                     'status' => $sale->status,
-                    'items' => $sale->items->map(fn($item) => [
+                    'items' => $sale->items->map(fn ($item) => [
                         'product_id' => $item->product_id,
                         'product_name' => $item->product?->name,
                         'qty' => $item->qty,
@@ -56,13 +56,13 @@ class POSController extends Controller
                         'discount' => $item->discount,
                         'total' => $item->total,
                     ]),
-                    'payments' => $sale->payments->map(fn($p) => [
+                    'payments' => $sale->payments->map(fn ($p) => [
                         'method' => $p->payment_method,
                         'amount' => $p->amount,
                         'reference_no' => $p->reference_no,
                     ]),
                     'created_at' => $sale->created_at?->toIso8601String(),
-                ]
+                ],
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -79,7 +79,7 @@ class POSController extends Controller
         $branchId = $request->query('branch_id');
         $userId = auth()->id();
 
-        if (!$branchId || !$userId) {
+        if (! $branchId || ! $userId) {
             return response()->json([
                 'success' => false,
                 'message' => __('Branch ID is required'),
@@ -114,7 +114,7 @@ class POSController extends Controller
         ]);
 
         $userId = auth()->id();
-        if (!$userId) {
+        if (! $userId) {
             return response()->json([
                 'success' => false,
                 'message' => __('Unauthorized'),

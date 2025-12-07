@@ -17,15 +17,23 @@ class CurrencyManager extends Component
     use WithPagination;
 
     public ?int $editingId = null;
+
     public bool $showModal = false;
-    
+
     public string $code = '';
+
     public string $name = '';
+
     public string $nameAr = '';
+
     public string $symbol = '';
+
     public int $decimalPlaces = 2;
+
     public int $sortOrder = 0;
+
     public bool $isActive = true;
+
     public bool $isBase = false;
 
     protected CurrencyService $currencyService;
@@ -38,7 +46,7 @@ class CurrencyManager extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('settings.currency.manage')) {
+        if (! $user || ! $user->can('settings.currency.manage')) {
             abort(403);
         }
     }
@@ -99,7 +107,7 @@ class CurrencyManager extends Component
     public function save(): void
     {
         $rules = [
-            'code' => ['required', 'string', 'size:3', 'alpha', $this->editingId ? 'unique:currencies,code,' . $this->editingId : 'unique:currencies,code'],
+            'code' => ['required', 'string', 'size:3', 'alpha', $this->editingId ? 'unique:currencies,code,'.$this->editingId : 'unique:currencies,code'],
             'name' => ['required', 'string', 'max:100'],
             'nameAr' => ['nullable', 'string', 'max:100'],
             'symbol' => ['required', 'string', 'max:10'],
@@ -122,25 +130,26 @@ class CurrencyManager extends Component
         if ($this->editingId) {
             $currency = Currency::find($this->editingId);
             if ($currency) {
-                if ($this->isBase && !$currency->is_base) {
+                if ($this->isBase && ! $currency->is_base) {
                     Currency::where('is_base', true)->update(['is_base' => false]);
                     $data['is_base'] = true;
-                } elseif (!$this->isBase && $currency->is_base) {
+                } elseif (! $this->isBase && $currency->is_base) {
                     $this->dispatch('notify', type: 'error', message: __('Cannot unset base currency. Set another currency as base first.'));
+
                     return;
                 }
-                
+
                 $currency->update($data);
                 $this->dispatch('notify', type: 'success', message: __('Currency updated successfully'));
             }
         } else {
             $data['created_by'] = auth()->id();
-            
+
             if ($this->isBase) {
                 Currency::where('is_base', true)->update(['is_base' => false]);
                 $data['is_base'] = true;
             }
-            
+
             Currency::create($data);
             $this->dispatch('notify', type: 'success', message: __('Currency created successfully'));
         }
@@ -155,12 +164,13 @@ class CurrencyManager extends Component
         if ($currency) {
             if ($currency->is_base && $currency->is_active) {
                 $this->dispatch('notify', type: 'error', message: __('Cannot deactivate base currency'));
+
                 return;
             }
-            
-            $currency->is_active = !$currency->is_active;
+
+            $currency->is_active = ! $currency->is_active;
             $currency->save();
-            
+
             $this->currencyService->clearCurrencyCache();
             $this->dispatch('notify', type: 'success', message: $currency->is_active ? __('Currency activated') : __('Currency deactivated'));
         }
@@ -174,7 +184,7 @@ class CurrencyManager extends Component
             $currency->is_base = true;
             $currency->is_active = true;
             $currency->save();
-            
+
             $this->currencyService->clearCurrencyCache();
             $this->dispatch('notify', type: 'success', message: __(':currency is now the base currency', ['currency' => $currency->code]));
         }
@@ -186,9 +196,10 @@ class CurrencyManager extends Component
         if ($currency) {
             if ($currency->is_base) {
                 $this->dispatch('notify', type: 'error', message: __('Cannot delete base currency'));
+
                 return;
             }
-            
+
             $currency->delete();
             $this->currencyService->clearCurrencyCache();
             $this->dispatch('notify', type: 'success', message: __('Currency deleted successfully'));

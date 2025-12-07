@@ -2,11 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
-use App\Traits\HasBranch;
-use App\Traits\LogsActivity;
 
 class Warehouse extends BaseModel
 {
@@ -15,8 +11,8 @@ class Warehouse extends BaseModel
     protected $table = 'warehouses';
 
     protected $fillable = [
-        'uuid','code','name','type','status','address',
-        'notes','extra_attributes','branch_id','created_by','updated_by'
+        'uuid', 'code', 'name', 'type', 'status', 'address',
+        'notes', 'extra_attributes', 'branch_id', 'created_by', 'updated_by',
     ];
 
     protected $casts = [
@@ -26,23 +22,55 @@ class Warehouse extends BaseModel
     protected static function booted(): void
     {
         parent::booted();
-        
+
         static::creating(function ($m) {
             $m->uuid = $m->uuid ?: (string) Str::uuid();
             $m->code = $m->code ?: 'WH-'.Str::upper(Str::random(6));
         });
     }
 
-    public function branch()        { return $this->belongsTo(Branch::class); }
-    public function stockMovements(){ return $this->hasMany(StockMovement::class); }
-    public function products()      { return $this->hasManyThrough(Product::class, StockMovement::class, 'warehouse_id', 'id', 'id', 'product_id')->distinct(); }
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
-    public function transfersFrom(){ return $this->hasMany(Transfer::class, 'from_warehouse_id'); }
-    public function transfersTo()  { return $this->hasMany(Transfer::class, 'to_warehouse_id'); }
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class);
+    }
 
-    public function createdBy()     { return $this->belongsTo(User::class, 'created_by'); }
-    public function updatedBy()     { return $this->belongsTo(User::class, 'updated_by'); }
+    public function products()
+    {
+        return $this->hasManyThrough(Product::class, StockMovement::class, 'warehouse_id', 'id', 'id', 'product_id')->distinct();
+    }
 
-    public function scopeActive($q) { return $q->where('status','active'); }
-    public function scopeSearch($q,$t){ return $q->where('name','like',"%$t%")->orWhere('code','like',"%$t%"); }
+    public function transfersFrom()
+    {
+        return $this->hasMany(Transfer::class, 'from_warehouse_id');
+    }
+
+    public function transfersTo()
+    {
+        return $this->hasMany(Transfer::class, 'to_warehouse_id');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function scopeActive($q)
+    {
+        return $q->where('status', 'active');
+    }
+
+    public function scopeSearch($q, $t)
+    {
+        return $q->where('name', 'like', "%$t%")->orWhere('code', 'like', "%$t%");
+    }
 }

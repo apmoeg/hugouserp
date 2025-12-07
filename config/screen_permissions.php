@@ -38,7 +38,6 @@ return [
         ],
     ],
 
-
     // POS
     'pos' => [
         'terminal' => 'pos.use',

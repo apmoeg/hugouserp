@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Models\UserSession;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Jenssegers\Agent\Agent;
 
 class SessionManagementService
@@ -19,7 +18,7 @@ class SessionManagementService
     {
         return $this->handleServiceOperation(
             callback: function () use ($user, $sessionId, $ip, $userAgent) {
-                $agent = new Agent();
+                $agent = new Agent;
                 $agent->setUserAgent($userAgent ?? '');
 
                 UserSession::where('user_id', $user->id)
@@ -86,12 +85,12 @@ class SessionManagementService
                     ->where('session_id', $sessionId)
                     ->first();
 
-                if (!$session) {
+                if (! $session) {
                     return false;
                 }
 
                 DB::table('sessions')->where('id', $sessionId)->delete();
-                
+
                 $session->delete();
 
                 $this->logServiceInfo('terminateSession', 'Session terminated', [
@@ -140,9 +139,9 @@ class SessionManagementService
         return $this->handleServiceOperation(
             callback: function () use ($user) {
                 $count = UserSession::where('user_id', $user->id)->count();
-                
+
                 DB::table('sessions')->where('user_id', $user->id)->delete();
-                
+
                 UserSession::where('user_id', $user->id)->delete();
 
                 $user->tokens()->delete();
@@ -219,6 +218,7 @@ class SessionManagementService
         if ($agent->isDesktop()) {
             return 'desktop';
         }
+
         return 'unknown';
     }
 }

@@ -22,8 +22,8 @@ class SmsMisrService implements SmsServiceInterface
     public function send(string $to, string $message, ?string $filePath = null): array
     {
         return $this->handleServiceOperation(
-            callback: function () use ($to, $message, $filePath) {
-                if (!$this->isConfigured()) {
+            callback: function () use ($to, $message) {
+                if (! $this->isConfigured()) {
                     return [
                         'success' => false,
                         'error' => 'SMS provider not configured',
@@ -52,11 +52,11 @@ class SmsMisrService implements SmsServiceInterface
 
                 $response = curl_exec($ch);
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                
+
                 if (curl_errno($ch)) {
                     $error = curl_error($ch);
                     curl_close($ch);
-                    throw new \RuntimeException('cURL Error: ' . $error);
+                    throw new \RuntimeException('cURL Error: '.$error);
                 }
 
                 curl_close($ch);
@@ -84,9 +84,9 @@ class SmsMisrService implements SmsServiceInterface
     public function isConfigured(): bool
     {
         return $this->config['enabled']
-            && !empty($this->config['username'])
-            && !empty($this->config['password'])
-            && !empty($this->config['sender_id']);
+            && ! empty($this->config['username'])
+            && ! empty($this->config['password'])
+            && ! empty($this->config['sender_id']);
     }
 
     public function getProviderName(): string
@@ -97,13 +97,13 @@ class SmsMisrService implements SmsServiceInterface
     protected function formatPhone(string $phone): string
     {
         $phone = preg_replace('/[^0-9]/', '', $phone);
-        
+
         if (str_starts_with($phone, '0')) {
-            $phone = '2' . $phone;
+            $phone = '2'.$phone;
         }
-        
-        if (!str_starts_with($phone, '20')) {
-            $phone = '20' . $phone;
+
+        if (! str_starts_with($phone, '20')) {
+            $phone = '20'.$phone;
         }
 
         return $phone;
@@ -117,6 +117,7 @@ class SmsMisrService implements SmsServiceInterface
             $unicodePoint = unpack('N', mb_convert_encoding($char, 'UCS-4BE', 'UTF-8'));
             $unicodeHex .= sprintf('%04x', $unicodePoint[1]);
         }
+
         return strtoupper($unicodeHex);
     }
 }

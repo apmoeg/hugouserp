@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Requests;
@@ -19,7 +20,7 @@ class CustomerUpdateRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'phone' => ['sometimes', 'string', 'max:100'],
-            'email' => ['sometimes', 'nullable', 'email', 'max:190', 'unique:customers,email,' . $customer?->id],
+            'email' => ['sometimes', 'nullable', 'email', 'max:190', 'unique:customers,email,'.$customer?->id],
         ];
     }
 }

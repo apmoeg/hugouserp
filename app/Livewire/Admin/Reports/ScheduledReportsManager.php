@@ -48,10 +48,10 @@ class ScheduledReportsManager extends Component
             ->paginate(25);
 
         return view('livewire.admin.reports.scheduled-manager', [
-            'reports'         => $reports,
+            'reports' => $reports,
             'availableRoutes' => $this->availableRoutes,
-            'users'           => User::query()->orderBy('name')->get(['id', 'name']),
-            'templates'       => $this->templates,
+            'users' => User::query()->orderBy('name')->get(['id', 'name']),
+            'templates' => $this->templates,
         ]);
     }
 
@@ -71,12 +71,12 @@ class ScheduledReportsManager extends Component
     protected function rules(): array
     {
         return [
-            'userId'         => ['nullable', 'integer'],
-            'templateId'     => ['nullable', 'integer'],
-            'routeName'      => ['required', 'string', 'max:191'],
+            'userId' => ['nullable', 'integer'],
+            'templateId' => ['nullable', 'integer'],
+            'routeName' => ['required', 'string', 'max:191'],
             'cronExpression' => ['required', 'string', 'max:191'],
             'recipientEmail' => ['nullable', 'email', 'max:191'],
-            'filtersJson'    => ['nullable', 'string'],
+            'filtersJson' => ['nullable', 'string'],
         ];
     }
 
@@ -91,13 +91,13 @@ class ScheduledReportsManager extends Component
     {
         $report = ScheduledReport::query()->findOrFail($id);
 
-        $this->editingId      = $report->id;
-        $this->userId         = $report->user_id;
-        $this->routeName      = $report->route_name;
+        $this->editingId = $report->id;
+        $this->userId = $report->user_id;
+        $this->routeName = $report->route_name;
         $this->cronExpression = $report->cron_expression;
         $this->recipientEmail = $report->recipient_email;
-        $this->filtersJson    = json_encode($report->filters ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        $this->templateId     = $report->report_template_id;
+        $this->filtersJson = json_encode($report->filters ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $this->templateId = $report->report_template_id;
 
         if (! $this->templateId && $report->route_name) {
             foreach ($this->templates as $template) {
@@ -147,12 +147,12 @@ class ScheduledReportsManager extends Component
         ScheduledReport::query()->updateOrCreate(
             ['id' => $this->editingId],
             [
-                'user_id'           => $userId,
-                'report_template_id'=> $template?->id,
-                'route_name'        => $this->routeName,
-                'cron_expression'   => $this->cronExpression,
-                'recipient_email'   => $this->recipientEmail,
-                'filters'           => $filters,
+                'user_id' => $userId,
+                'report_template_id' => $template?->id,
+                'route_name' => $this->routeName,
+                'cron_expression' => $this->cronExpression,
+                'recipient_email' => $this->recipientEmail,
+                'filters' => $filters,
             ]
         );
 
@@ -178,7 +178,7 @@ class ScheduledReportsManager extends Component
             return;
         }
 
-        $this->routeName   = $template->route_name;
+        $this->routeName = $template->route_name;
         $this->filtersJson = json_encode($template->default_filters ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 
@@ -191,7 +191,7 @@ class ScheduledReportsManager extends Component
             ->map(static function ($route): array {
                 return [
                     'name' => $route->getName(),
-                    'uri'  => $route->uri(),
+                    'uri' => $route->uri(),
                 ];
             })
             ->filter(static function (array $route): bool {

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Store;
 
-use App\Models\Store;
+use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductStoreMapping;
-use App\Models\StoreSyncLog;
-use App\Models\Customer;
 use App\Models\Sale;
+use App\Models\Store;
+use App\Models\StoreSyncLog;
 use App\Services\Store\Clients\ShopifyClient;
 use App\Services\Store\Clients\WooCommerceClient;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +20,7 @@ class StoreSyncService
     public function pullProductsFromShopify(Store $store): StoreSyncLog
     {
         $log = $this->createSyncLog($store, StoreSyncLog::TYPE_PRODUCTS, StoreSyncLog::DIRECTION_PULL);
-        
+
         try {
             $client = new ShopifyClient($store);
             $products = $client->getProducts();
@@ -31,7 +31,7 @@ class StoreSyncService
                     $log->incrementSuccess();
                 } catch (\Exception $e) {
                     $log->incrementFailed();
-                    Log::error("Failed to sync Shopify product: " . $e->getMessage());
+                    Log::error('Failed to sync Shopify product: '.$e->getMessage());
                 }
             }
 
@@ -46,7 +46,7 @@ class StoreSyncService
     public function pushStockToShopify(Store $store): StoreSyncLog
     {
         $log = $this->createSyncLog($store, StoreSyncLog::TYPE_INVENTORY, StoreSyncLog::DIRECTION_PUSH);
-        
+
         try {
             $client = new ShopifyClient($store);
             $mappings = ProductStoreMapping::where('store_id', $store->id)->with('product')->get();
@@ -61,7 +61,7 @@ class StoreSyncService
                     }
                 } catch (\Exception $e) {
                     $log->incrementFailed();
-                    Log::error("Failed to push stock to Shopify: " . $e->getMessage());
+                    Log::error('Failed to push stock to Shopify: '.$e->getMessage());
                 }
             }
 
@@ -76,7 +76,7 @@ class StoreSyncService
     public function pullOrdersFromShopify(Store $store): StoreSyncLog
     {
         $log = $this->createSyncLog($store, StoreSyncLog::TYPE_ORDERS, StoreSyncLog::DIRECTION_PULL);
-        
+
         try {
             $client = new ShopifyClient($store);
             $orders = $client->getOrders();
@@ -87,7 +87,7 @@ class StoreSyncService
                     $log->incrementSuccess();
                 } catch (\Exception $e) {
                     $log->incrementFailed();
-                    Log::error("Failed to sync Shopify order: " . $e->getMessage());
+                    Log::error('Failed to sync Shopify order: '.$e->getMessage());
                 }
             }
 
@@ -102,7 +102,7 @@ class StoreSyncService
     public function pullProductsFromWooCommerce(Store $store): StoreSyncLog
     {
         $log = $this->createSyncLog($store, StoreSyncLog::TYPE_PRODUCTS, StoreSyncLog::DIRECTION_PULL);
-        
+
         try {
             $client = new WooCommerceClient($store);
             $products = $client->getProducts();
@@ -113,7 +113,7 @@ class StoreSyncService
                     $log->incrementSuccess();
                 } catch (\Exception $e) {
                     $log->incrementFailed();
-                    Log::error("Failed to sync WooCommerce product: " . $e->getMessage());
+                    Log::error('Failed to sync WooCommerce product: '.$e->getMessage());
                 }
             }
 
@@ -128,7 +128,7 @@ class StoreSyncService
     public function pushStockToWooCommerce(Store $store): StoreSyncLog
     {
         $log = $this->createSyncLog($store, StoreSyncLog::TYPE_INVENTORY, StoreSyncLog::DIRECTION_PUSH);
-        
+
         try {
             $client = new WooCommerceClient($store);
             $mappings = ProductStoreMapping::where('store_id', $store->id)->with('product')->get();
@@ -143,7 +143,7 @@ class StoreSyncService
                     }
                 } catch (\Exception $e) {
                     $log->incrementFailed();
-                    Log::error("Failed to push stock to WooCommerce: " . $e->getMessage());
+                    Log::error('Failed to push stock to WooCommerce: '.$e->getMessage());
                 }
             }
 
@@ -158,7 +158,7 @@ class StoreSyncService
     public function pullOrdersFromWooCommerce(Store $store): StoreSyncLog
     {
         $log = $this->createSyncLog($store, StoreSyncLog::TYPE_ORDERS, StoreSyncLog::DIRECTION_PULL);
-        
+
         try {
             $client = new WooCommerceClient($store);
             $orders = $client->getOrders();
@@ -169,7 +169,7 @@ class StoreSyncService
                     $log->incrementSuccess();
                 } catch (\Exception $e) {
                     $log->incrementFailed();
-                    Log::error("Failed to sync WooCommerce order: " . $e->getMessage());
+                    Log::error('Failed to sync WooCommerce order: '.$e->getMessage());
                 }
             }
 
@@ -250,7 +250,7 @@ class StoreSyncService
     protected function syncShopifyProductToERP(Store $store, array $data): void
     {
         $externalId = (string) ($data['id'] ?? '');
-        if (!$externalId) {
+        if (! $externalId) {
             return;
         }
 
@@ -262,7 +262,7 @@ class StoreSyncService
             $productData = [
                 'name' => $data['title'] ?? 'Unknown Product',
                 'description' => strip_tags($data['body_html'] ?? ''),
-                'sku' => $data['variants'][0]['sku'] ?? 'SHOP-' . $externalId,
+                'sku' => $data['variants'][0]['sku'] ?? 'SHOP-'.$externalId,
                 'price' => (float) ($data['variants'][0]['price'] ?? 0),
                 'quantity' => (int) ($data['variants'][0]['inventory_quantity'] ?? 0),
                 'branch_id' => $store->branch_id,
@@ -291,7 +291,7 @@ class StoreSyncService
     protected function syncShopifyOrderToERP(Store $store, array $data): void
     {
         $externalId = (string) ($data['id'] ?? '');
-        if (!$externalId) {
+        if (! $externalId) {
             return;
         }
 
@@ -303,6 +303,7 @@ class StoreSyncService
             $existingOrder->update([
                 'status' => $this->mapShopifyOrderStatus($data['financial_status'] ?? 'pending'),
             ]);
+
             return;
         }
 
@@ -312,9 +313,9 @@ class StoreSyncService
 
             if ($customerData) {
                 $customer = Customer::firstOrCreate(
-                    ['email' => $customerData['email'] ?? 'shopify-' . ($customerData['id'] ?? '') . '@unknown.com'],
+                    ['email' => $customerData['email'] ?? 'shopify-'.($customerData['id'] ?? '').'@unknown.com'],
                     [
-                        'name' => trim(($customerData['first_name'] ?? '') . ' ' . ($customerData['last_name'] ?? '')),
+                        'name' => trim(($customerData['first_name'] ?? '').' '.($customerData['last_name'] ?? '')),
                         'phone' => $customerData['phone'] ?? null,
                         'branch_id' => $store->branch_id,
                     ]
@@ -353,7 +354,7 @@ class StoreSyncService
     protected function syncWooProductToERP(Store $store, array $data): void
     {
         $externalId = (string) ($data['id'] ?? '');
-        if (!$externalId) {
+        if (! $externalId) {
             return;
         }
 
@@ -365,7 +366,7 @@ class StoreSyncService
             $productData = [
                 'name' => $data['name'] ?? 'Unknown Product',
                 'description' => strip_tags($data['description'] ?? ''),
-                'sku' => $data['sku'] ?? 'WOO-' . $externalId,
+                'sku' => $data['sku'] ?? 'WOO-'.$externalId,
                 'price' => (float) ($data['price'] ?? 0),
                 'quantity' => (int) ($data['stock_quantity'] ?? 0),
                 'branch_id' => $store->branch_id,
@@ -394,7 +395,7 @@ class StoreSyncService
     protected function syncWooOrderToERP(Store $store, array $data): void
     {
         $externalId = (string) ($data['id'] ?? '');
-        if (!$externalId) {
+        if (! $externalId) {
             return;
         }
 
@@ -406,6 +407,7 @@ class StoreSyncService
             $existingOrder->update([
                 'status' => $this->mapWooOrderStatus($data['status'] ?? 'pending'),
             ]);
+
             return;
         }
 
@@ -413,13 +415,13 @@ class StoreSyncService
             $billing = $data['billing'] ?? [];
             $customerId = null;
 
-            if (!empty($billing['email'])) {
+            if (! empty($billing['email'])) {
                 $customer = Customer::firstOrCreate(
                     ['email' => $billing['email']],
                     [
-                        'name' => trim(($billing['first_name'] ?? '') . ' ' . ($billing['last_name'] ?? '')),
+                        'name' => trim(($billing['first_name'] ?? '').' '.($billing['last_name'] ?? '')),
                         'phone' => $billing['phone'] ?? null,
-                        'address' => ($billing['address_1'] ?? '') . ' ' . ($billing['address_2'] ?? ''),
+                        'address' => ($billing['address_1'] ?? '').' '.($billing['address_2'] ?? ''),
                         'city' => $billing['city'] ?? null,
                         'country' => $billing['country'] ?? null,
                         'branch_id' => $store->branch_id,

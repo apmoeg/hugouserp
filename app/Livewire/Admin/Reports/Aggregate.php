@@ -12,11 +12,15 @@ class Aggregate extends Component
     use AuthorizesRequests;
 
     public string $dateFrom = '';
+
     public string $dateTo = '';
+
     public array $aggregateData = [];
+
     public array $totals = [];
 
     protected ReportService $reportService;
+
     protected BranchAccessService $branchAccessService;
 
     public function boot(ReportService $reportService, BranchAccessService $branchAccessService): void
@@ -28,10 +32,10 @@ class Aggregate extends Component
     public function mount(): void
     {
         $this->authorize('reports.aggregate');
-        
+
         $this->dateFrom = now()->startOfMonth()->format('Y-m-d');
         $this->dateTo = now()->format('Y-m-d');
-        
+
         $this->generateReport();
     }
 
@@ -43,7 +47,7 @@ class Aggregate extends Component
         ];
 
         $result = $this->reportService->getAggregateReport($filters, auth()->user());
-        
+
         $this->aggregateData = $result['branches']->toArray();
         $this->totals = $result['totals'];
     }

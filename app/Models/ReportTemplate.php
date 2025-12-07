@@ -30,7 +30,7 @@ class ReportTemplate extends Model
         'is_active',
         'module',
         'category',
-        'required_permission'
+        'required_permission',
     ];
 
     /**
@@ -38,7 +38,7 @@ class ReportTemplate extends Model
      */
     protected $casts = [
         'default_filters' => 'array',
-        'export_columns'  => 'array',
-        'is_active'       => 'bool',
+        'export_columns' => 'array',
+        'is_active' => 'bool',
     ];
 }

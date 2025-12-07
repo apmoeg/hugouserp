@@ -33,14 +33,13 @@ class BranchModule extends Pivot
     ];
 
     protected $casts = [
-        'enabled'  => 'bool',
+        'enabled' => 'bool',
         'settings' => 'array',
     ];
 
     public $timestamps = true;
 
     /** Relationships */
-
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
@@ -52,7 +51,6 @@ class BranchModule extends Pivot
     }
 
     /** Accessors / Mutators for backwards compatibility */
-
     public function getIsEnabledAttribute(): bool
     {
         return (bool) ($this->attributes['enabled'] ?? false);

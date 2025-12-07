@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Repositories;
@@ -26,8 +27,8 @@ final class WarehouseRepository extends EloquentBaseRepository implements Wareho
 
         if ($search !== null && $search !== '') {
             $query->where(function (Builder $q) use ($search): void {
-                $q->where('name', 'like', '%' . $search . '%')
-                    ->orWhere('code', 'like', '%' . $search . '%');
+                $q->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('code', 'like', '%'.$search.'%');
             });
         }
 

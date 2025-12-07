@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Listeners;
@@ -17,15 +18,15 @@ class UpdateStockOnSale implements ShouldQueue
 
         foreach ($sale->items as $item) {
             StockMovement::create([
-                'branch_id'   => $branchId,
-                'warehouse_id'=> $warehouseId,
-                'product_id'  => $item->product_id,
-                'ref_type'    => 'sale',
-                'ref_id'      => $sale->getKey(),
-                'qty'         => -1 * abs((float) $item->qty),
-                'direction'   => 'out',
-                'note'        => 'Sale completed',
-                'created_by'  => $sale->created_by,
+                'branch_id' => $branchId,
+                'warehouse_id' => $warehouseId,
+                'product_id' => $item->product_id,
+                'ref_type' => 'sale',
+                'ref_id' => $sale->getKey(),
+                'qty' => -1 * abs((float) $item->qty),
+                'direction' => 'out',
+                'note' => 'Sale completed',
+                'created_by' => $sale->created_by,
             ]);
         }
     }

@@ -33,16 +33,16 @@ class ModuleField extends Model
     ];
 
     protected $casts = [
-        'options'       => 'array',
-        'rules'         => 'array',
-        'is_required'   => 'bool',
-        'is_visible'    => 'bool',
-        'show_in_list'  => 'bool',
-        'show_in_export'=> 'bool',
-        'order'         => 'int',
-        'default'       => 'array',
-        'meta'          => 'array',
-        'branch_id'     => 'int',
+        'options' => 'array',
+        'rules' => 'array',
+        'is_required' => 'bool',
+        'is_visible' => 'bool',
+        'show_in_list' => 'bool',
+        'show_in_export' => 'bool',
+        'order' => 'int',
+        'default' => 'array',
+        'meta' => 'array',
+        'branch_id' => 'int',
     ];
 
     public function branch(): BelongsTo

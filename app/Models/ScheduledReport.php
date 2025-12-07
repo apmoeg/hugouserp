@@ -25,7 +25,7 @@ class ScheduledReport extends Model
         'last_run_at',
         'last_error',
         'runs_count',
-        'failures_count'
+        'failures_count',
     ];
 
     /**

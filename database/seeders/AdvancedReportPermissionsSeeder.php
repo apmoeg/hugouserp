@@ -13,7 +13,7 @@ class AdvancedReportPermissionsSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
-        
+
             'store.api',
             'store.api.products',
             'store.api.orders',
@@ -28,7 +28,7 @@ class AdvancedReportPermissionsSeeder extends Seeder
 
         foreach ($permissions as $name) {
             Permission::firstOrCreate([
-                'name'       => $name,
+                'name' => $name,
                 'guard_name' => 'web',
             ]);
         }

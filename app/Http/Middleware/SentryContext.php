@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -19,7 +20,7 @@ class SentryContext
                 $user = $request->user();
                 if ($user) {
                     $scope->setUser([
-                        'id'    => (string) $user->getKey(),
+                        'id' => (string) $user->getKey(),
                         'email' => $user->email ?? null,
                     ]);
                 }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Models\Branch;
-use App\Models\Module;
 use App\Models\BranchModule;
+use App\Models\Module;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,9 +26,9 @@ class EnsureModuleEnabled
     {
         /** @var Branch|null $branch */
         $branch = $request->attributes->get('branch');
-        $key    = $moduleKey ?: (string) $request->attributes->get('module.key', '');
+        $key = $moduleKey ?: (string) $request->attributes->get('module.key', '');
 
-        if (!$branch) {
+        if (! $branch) {
             return $this->error('Branch context missing.', 422);
         }
         if ($key === '') {
@@ -39,12 +39,12 @@ class EnsureModuleEnabled
         $exists = class_exists(BranchModule::class)
             ? BranchModule::query()
                 ->where('branch_id', $branch->getKey())
-                ->when(class_exists(Module::class), fn($q) => $q->whereHas('module', fn($w) => $w->where('key', $key)))
-                ->when(!class_exists(Module::class), fn($q) => $q->where('module_key', $key)) // fallback schema
+                ->when(class_exists(Module::class), fn ($q) => $q->whereHas('module', fn ($w) => $w->where('key', $key)))
+                ->when(! class_exists(Module::class), fn ($q) => $q->where('module_key', $key)) // fallback schema
                 ->exists()
             : true; // If schema absent, don't block development flows
 
-        if (!$exists) {
+        if (! $exists) {
             return $this->error("Module [$key] is not enabled for this branch.", 403);
         }
 

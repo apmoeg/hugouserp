@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -6,8 +7,6 @@ namespace App\Services;
 use App\Rules\ValidDiscount;
 use App\Services\Contracts\DiscountServiceInterface;
 use App\Traits\HandlesServiceErrors;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class DiscountService implements DiscountServiceInterface
 {
@@ -31,8 +30,7 @@ class DiscountService implements DiscountServiceInterface
                     $rule = ValidDiscount::amount($cap);
                 }
 
-                $rule->validate('discount', $value, function (string $message): void {
-                });
+                $rule->validate('discount', $value, function (string $message): void {});
 
                 return min($value, $cap);
             },
@@ -46,7 +44,7 @@ class DiscountService implements DiscountServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($qty, $price, $discount, $percent) {
-                $qty   = max(0.0, $qty);
+                $qty = max(0.0, $qty);
                 $price = max(0.0, $price);
 
                 $subtotal = $qty * $price;

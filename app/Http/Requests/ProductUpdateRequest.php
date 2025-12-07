@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Requests;
@@ -17,14 +18,14 @@ class ProductUpdateRequest extends FormRequest
         $product = $this->route('product'); // Model binding
 
         return [
-            'name'        => ['sometimes', 'string', 'max:255'],
-            'sku'         => ['sometimes', 'string', 'max:100', 'unique:products,sku,' . $product?->id],
-            'barcode'     => ['sometimes', 'string', 'max:100', 'unique:products,barcode,' . $product?->id],
-            'price'       => ['sometimes', 'numeric', 'min:0'],
-            'cost'        => ['sometimes', 'numeric', 'min:0'],
+            'name' => ['sometimes', 'string', 'max:255'],
+            'sku' => ['sometimes', 'string', 'max:100', 'unique:products,sku,'.$product?->id],
+            'barcode' => ['sometimes', 'string', 'max:100', 'unique:products,barcode,'.$product?->id],
+            'price' => ['sometimes', 'numeric', 'min:0'],
+            'cost' => ['sometimes', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
             'category_id' => ['nullable', 'exists:categories,id'],
-            'tax_id'      => ['nullable', 'exists:taxes,id'],
+            'tax_id' => ['nullable', 'exists:taxes,id'],
         ];
     }
 }

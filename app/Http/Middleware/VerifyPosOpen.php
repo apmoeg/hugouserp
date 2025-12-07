@@ -27,10 +27,10 @@ class VerifyPosOpen
         /** @var Branch|null $branch */
         $branch = $request->attributes->get('branch');
 
-        if (!$user) {
+        if (! $user) {
             return $this->error('Unauthenticated.', 401);
         }
-        if (!$branch instanceof Branch) {
+        if (! $branch instanceof Branch) {
             return $this->error('Branch context missing.', 422);
         }
 
@@ -42,7 +42,7 @@ class VerifyPosOpen
                 ->exists()
             : true; // if schema not ready, don't block dev flows
 
-        if (!$ok) {
+        if (! $ok) {
             return $this->error('No open POS session. Please open a session first.', 409);
         }
 

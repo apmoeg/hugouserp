@@ -1,21 +1,20 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Branch;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use App\Http\Requests\ProductImportRequest;
 use App\Http\Requests\ProductImageRequest;
+use App\Http\Requests\ProductImportRequest;
 use App\Models\Product;
 use App\Services\Contracts\ProductServiceInterface as Products;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
-    public function __construct(protected Products $products)
-    {
-    }
+    public function __construct(protected Products $products) {}
 
     public function search(Request $request)
     {
@@ -43,14 +42,14 @@ class ProductController extends Controller
 
         return $this->ok([
             'path' => $path,
-            'url'  => Storage::disk('local')->url($path),
+            'url' => Storage::disk('local')->url($path),
         ], __('Export generated'));
     }
 
     public function uploadImage(ProductImageRequest $request, Product $product)
     {
         $this->authorize('products.manage');
-        
+
         $path = $request->file('image')->store('product-images', 'public');
         $product->image_path = $path;
         $product->save();
@@ -61,9 +60,9 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $this->authorize('products.delete');
-        
+
         $product->delete();
-        
+
         return $this->ok(null, __('Product deleted successfully'));
     }
 }

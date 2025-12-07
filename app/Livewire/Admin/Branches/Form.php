@@ -61,14 +61,14 @@ class Form extends Component
             /** @var Branch $b */
             $b = Branch::findOrFail($this->branchId);
 
-            $this->form['name']       = $b->name;
-            $this->form['code']       = $b->code ?? '';
-            $this->form['address']    = $b->address ?? '';
-            $this->form['phone']      = $b->phone ?? '';
-            $this->form['timezone']   = $b->timezone ?? config('app.timezone');
-            $this->form['currency']   = $b->currency ?? 'EGP';
-            $this->form['is_active']  = (bool) $b->is_active;
-            $this->form['is_main']    = (bool) $b->is_main;
+            $this->form['name'] = $b->name;
+            $this->form['code'] = $b->code ?? '';
+            $this->form['address'] = $b->address ?? '';
+            $this->form['phone'] = $b->phone ?? '';
+            $this->form['timezone'] = $b->timezone ?? config('app.timezone');
+            $this->form['currency'] = $b->currency ?? 'EGP';
+            $this->form['is_active'] = (bool) $b->is_active;
+            $this->form['is_main'] = (bool) $b->is_main;
         } else {
             $this->form['timezone'] = config('app.timezone');
         }
@@ -94,12 +94,12 @@ class Form extends Component
                 'max:50',
                 Rule::unique('branches', 'code')->ignore($this->branchId),
             ],
-            'form.address'   => ['nullable', 'string', 'max:500'],
-            'form.phone'     => ['nullable', 'string', 'max:50'],
-            'form.timezone'  => ['required', 'string', 'max:64'],
-            'form.currency'  => ['required', 'string', 'max:10'],
+            'form.address' => ['nullable', 'string', 'max:500'],
+            'form.phone' => ['nullable', 'string', 'max:50'],
+            'form.timezone' => ['required', 'string', 'max:64'],
+            'form.currency' => ['required', 'string', 'max:10'],
             'form.is_active' => ['boolean'],
-            'form.is_main'   => ['boolean'],
+            'form.is_main' => ['boolean'],
         ];
     }
 
@@ -114,17 +114,17 @@ class Form extends Component
                 if ($branchId) {
                     $branch = Branch::findOrFail($branchId);
                 } else {
-                    $branch = new Branch();
+                    $branch = new Branch;
                 }
 
-                $branch->name       = $data['name'];
-                $branch->code       = $data['code'];
-                $branch->address    = $data['address'] ?: null;
-                $branch->phone      = $data['phone'] ?: null;
-                $branch->timezone   = $data['timezone'];
-                $branch->currency   = $data['currency'];
-                $branch->is_active  = (bool) $data['is_active'];
-                $branch->is_main    = (bool) $data['is_main'];
+                $branch->name = $data['name'];
+                $branch->code = $data['code'];
+                $branch->address = $data['address'] ?: null;
+                $branch->phone = $data['phone'] ?: null;
+                $branch->timezone = $data['timezone'];
+                $branch->currency = $data['currency'];
+                $branch->is_active = (bool) $data['is_active'];
+                $branch->is_main = (bool) $data['is_main'];
 
                 $branch->save();
             },

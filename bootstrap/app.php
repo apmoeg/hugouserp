@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Foundation\Application;
-use Illuminate\Console\Scheduling\Schedule;
-use App\Console\Commands\SendScheduledReports;
 use App\Console\Commands\ClosePosDay;
+use App\Console\Commands\SendScheduledReports;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
-        
+
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\AutoLogout::class,
@@ -59,19 +59,19 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'impersonate'  => \App\Http\Middleware\Impersonate::class,
-            'api-branch'   => \App\Http\Middleware\SetBranchContext::class,
-            'module'       => \App\Http\Middleware\SetModuleContext::class,
-            'perm'         => \App\Http\Middleware\EnsurePermission::class,
+            'impersonate' => \App\Http\Middleware\Impersonate::class,
+            'api-branch' => \App\Http\Middleware\SetBranchContext::class,
+            'module' => \App\Http\Middleware\SetModuleContext::class,
+            'perm' => \App\Http\Middleware\EnsurePermission::class,
             'assign.guard' => \App\Http\Middleware\AssignGuard::class,
-            'store.token'  => \App\Http\Middleware\AuthenticateStoreToken::class,
-            'throttle'     => \Illuminate\Routing\Middleware\ThrottleRequests::class,
-            'auth'         => \App\Http\Middleware\Authenticate::class,
-            'guest'        => \Illuminate\Auth\Middleware\RedirectIfAuthenticated::class,
-            'verified'     => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-            '2fa'          => \App\Http\Middleware\Require2FA::class,
+            'store.token' => \App\Http\Middleware\AuthenticateStoreToken::class,
+            'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+            'auth' => \App\Http\Middleware\Authenticate::class,
+            'guest' => \Illuminate\Auth\Middleware\RedirectIfAuthenticated::class,
+            'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+            '2fa' => \App\Http\Middleware\Require2FA::class,
             'track.session' => \App\Http\Middleware\TrackUserSession::class,
-            'recaptcha'    => \App\Http\Middleware\ValidateRecaptcha::class,
+            'recaptcha' => \App\Http\Middleware\ValidateRecaptcha::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

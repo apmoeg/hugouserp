@@ -39,7 +39,7 @@ class ApiRateLimiter
     {
         $userId = $request->user()?->id ?? 'guest';
         $ip = $request->ip();
-        
+
         return sha1("{$key}|{$userId}|{$ip}");
     }
 

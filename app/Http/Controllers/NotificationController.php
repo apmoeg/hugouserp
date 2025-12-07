@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\Contracts\NotificationServiceInterface as Notifier;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class NotificationController extends Controller
@@ -38,6 +39,7 @@ class NotificationController extends Controller
     public function markRead(Request $request, string $id)
     {
         $this->notify->markRead($request->user()->getKey(), $id);
+
         return $this->ok(['id' => $id], __('Notification marked as read'));
     }
 
@@ -45,6 +47,7 @@ class NotificationController extends Controller
     {
         $ids = (array) $request->input('ids', []);
         $count = $this->notify->markManyRead($request->user()->getKey(), $ids);
+
         return $this->ok(['updated' => $count], __('Notifications updated'));
     }
 
@@ -53,6 +56,7 @@ class NotificationController extends Controller
         $userId = $request->user()->getKey();
         $ids = DB::table('notifications')->where('notifiable_id', $userId)->pluck('id')->all();
         $count = $this->notify->markManyRead($userId, $ids);
+
         return $this->ok(['updated' => $count], __('All notifications marked as read'));
     }
 }

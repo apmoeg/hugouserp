@@ -12,7 +12,7 @@ class ReportsController extends Controller
     {
         $model = '\\App\\Models\\Attendance';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             abort(500, 'Attendance model not found');
         }
 
@@ -39,7 +39,7 @@ class ReportsController extends Controller
             $query->whereDate('date', '<=', $request->get('to'));
         }
 
-        $filename = 'hrm_attendance_' . now()->format('Ymd_His') . '.csv';
+        $filename = 'hrm_attendance_'.now()->format('Ymd_His').'.csv';
 
         $callback = function () use ($query) {
             $handle = fopen('php://output', 'w');
@@ -70,7 +70,7 @@ class ReportsController extends Controller
     {
         $model = '\\App\\Models\\Payroll';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             abort(500, 'Payroll model not found');
         }
 
@@ -89,7 +89,7 @@ class ReportsController extends Controller
             $query->where('status', $request->get('status'));
         }
 
-        $filename = 'hrm_payroll_' . now()->format('Ymd_His') . '.csv';
+        $filename = 'hrm_payroll_'.now()->format('Ymd_His').'.csv';
 
         $callback = function () use ($query) {
             $handle = fopen('php://output', 'w');
@@ -118,4 +118,3 @@ class ReportsController extends Controller
         ]);
     }
 }
-

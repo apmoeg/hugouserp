@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
@@ -14,54 +15,83 @@ class UserController extends Controller
     {
         $per = min(max($request->integer('per_page', 20), 1), 100);
         $rows = User::query()
-            ->when($request->filled('q'), fn($q) => $q->where('name','like','%'.$request->q.'%')->orWhere('email','like','%'.$request->q.'%'))
+            ->when($request->filled('q'), fn ($q) => $q->where('name', 'like', '%'.$request->q.'%')->orWhere('email', 'like', '%'.$request->q.'%'))
             ->orderByDesc('id')->paginate($per);
+
         return $this->ok($rows);
     }
 
     public function store(Request $request)
     {
         $data = $this->validate($request, [
-            'name' => ['required','string','max:255'],
-            'email' => ['required','email','max:255','unique:users,email'],
-            'password' => ['required','string','min:6'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:6'],
             'is_active' => ['boolean'],
-            'roles' => ['sometimes','array'],
+            'roles' => ['sometimes', 'array'],
         ]);
         $user = User::create([
             'name' => $data['name'],
-            'email'=> $data['email'],
+            'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'is_active'=> $data['is_active'] ?? true,
+            'is_active' => $data['is_active'] ?? true,
         ]);
-        if (!empty($data['roles']) && method_exists($user, 'syncRoles')) $user->syncRoles($data['roles']);
+        if (! empty($data['roles']) && method_exists($user, 'syncRoles')) {
+            $user->syncRoles($data['roles']);
+        }
+
         return $this->ok($user, __('Created'), 201);
     }
 
-    public function show(User $user) { return $this->ok($user); }
+    public function show(User $user)
+    {
+        return $this->ok($user);
+    }
 
     public function update(Request $request, User $user)
     {
         $data = $this->validate($request, [
-            'name' => ['sometimes','string','max:255'],
-            'email'=> ['sometimes','email','max:255','unique:users,email,'.$user->id],
-            'password' => ['sometimes','nullable','string','min:6'],
+            'name' => ['sometimes', 'string', 'max:255'],
+            'email' => ['sometimes', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'password' => ['sometimes', 'nullable', 'string', 'min:6'],
             'is_active' => ['boolean'],
-            'roles' => ['sometimes','array'],
+            'roles' => ['sometimes', 'array'],
         ]);
-        if (isset($data['password'])) $data['password'] = Hash::make($data['password']);
-        $user->fill($data); $user->save();
-        if (array_key_exists('roles',$data) && method_exists($user, 'syncRoles')) $user->syncRoles($data['roles']);
+        if (isset($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        }
+        $user->fill($data);
+        $user->save();
+        if (array_key_exists('roles', $data) && method_exists($user, 'syncRoles')) {
+            $user->syncRoles($data['roles']);
+        }
+
         return $this->ok($user, __('Updated'));
     }
 
-    public function activate(User $user)  { $user->is_active = true; $user->save(); return $this->ok($user, __('Activated')); }
-    public function deactivate(User $user){ $user->is_active = false; $user->save(); event(new \App\Events\UserDisabled($user)); return $this->ok($user, __('Deactivated')); }
+    public function activate(User $user)
+    {
+        $user->is_active = true;
+        $user->save();
+
+        return $this->ok($user, __('Activated'));
+    }
+
+    public function deactivate(User $user)
+    {
+        $user->is_active = false;
+        $user->save();
+        event(new \App\Events\UserDisabled($user));
+
+        return $this->ok($user, __('Deactivated'));
+    }
 
     public function resetPassword(Request $request, User $user)
     {
-        $this->validate($request, ['password'=>['required','string','min:6']]);
-        $user->password = Hash::make($request->input('password')); $user->save();
+        $this->validate($request, ['password' => ['required', 'string', 'min:6']]);
+        $user->password = Hash::make($request->input('password'));
+        $user->save();
+
         return $this->ok(null, __('Password reset'));
     }
 }

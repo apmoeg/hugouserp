@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Pos\Reports;
 
-use App\Models\Sale;
 use App\Models\Branch;
+use App\Models\Sale;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -16,9 +16,10 @@ class OfflineSales extends Component
     use WithPagination;
 
     public ?int $branchId = null;
-    public ?string $dateFrom = null;
-    public ?string $dateTo = null;
 
+    public ?string $dateFrom = null;
+
+    public ?string $dateTo = null;
 
     #[Layout('layouts.app')]
     public function mount(): void
@@ -28,7 +29,6 @@ class OfflineSales extends Component
             abort(403);
         }
     }
-
 
     public function updating($name, $value): void
     {
@@ -61,7 +61,7 @@ class OfflineSales extends Component
             ->get(['id', 'name']);
 
         return view('livewire.pos.reports.offline-sales', [
-            'sales'    => $sales,
+            'sales' => $sales,
             'branches' => $branches,
         ]);
     }

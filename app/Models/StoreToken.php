@@ -34,7 +34,7 @@ class StoreToken extends BaseModel
 
     public function isExpired(): bool
     {
-        if (!$this->expires_at) {
+        if (! $this->expires_at) {
             return false;
         }
 
@@ -43,7 +43,7 @@ class StoreToken extends BaseModel
 
     public function hasAbility(string $ability): bool
     {
-        if (!$this->abilities || in_array('*', $this->abilities, true)) {
+        if (! $this->abilities || in_array('*', $this->abilities, true)) {
             return true;
         }
 

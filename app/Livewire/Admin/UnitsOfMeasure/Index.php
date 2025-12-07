@@ -16,18 +16,29 @@ class Index extends Component
     use WithPagination;
 
     public string $search = '';
+
     public bool $showModal = false;
+
     public ?int $editingId = null;
-    
+
     public string $name = '';
+
     public string $nameAr = '';
+
     public string $symbol = '';
+
     public string $type = 'unit';
+
     public ?int $baseUnitId = null;
+
     public float $conversionFactor = 1;
+
     public int $decimalPlaces = 2;
+
     public bool $isBaseUnit = false;
+
     public bool $isActive = true;
+
     public int $sortOrder = 0;
 
     protected $queryString = ['search'];
@@ -35,7 +46,7 @@ class Index extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('inventory.units.view')) {
+        if (! $user || ! $user->can('inventory.units.view')) {
             abort(403);
         }
     }
@@ -56,7 +67,7 @@ class Index extends Component
     public function render()
     {
         $units = UnitOfMeasure::query()
-            ->when($this->search, fn($q) => $q->where('name', 'ilike', "%{$this->search}%")
+            ->when($this->search, fn ($q) => $q->where('name', 'ilike', "%{$this->search}%")
                 ->orWhere('name_ar', 'ilike', "%{$this->search}%")
                 ->orWhere('symbol', 'ilike', "%{$this->search}%"))
             ->with('baseUnit')
@@ -182,10 +193,12 @@ class Index extends Component
         if ($unit) {
             if ($unit->products()->count() > 0) {
                 session()->flash('error', __('Cannot delete unit with products'));
+
                 return;
             }
             if ($unit->derivedUnits()->count() > 0) {
                 session()->flash('error', __('Cannot delete base unit with derived units'));
+
                 return;
             }
             $unit->delete();
@@ -197,7 +210,7 @@ class Index extends Component
     {
         $unit = UnitOfMeasure::find($id);
         if ($unit) {
-            $unit->update(['is_active' => !$unit->is_active]);
+            $unit->update(['is_active' => ! $unit->is_active]);
         }
     }
 }

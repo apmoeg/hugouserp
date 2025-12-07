@@ -15,14 +15,17 @@ class Index extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $event = '';
+
     public string $dateFrom = '';
+
     public string $dateTo = '';
 
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('logs.login.view')) {
+        if (! $user || ! $user->can('logs.login.view')) {
             abort(403);
         }
 
@@ -38,12 +41,12 @@ class Index extends Component
                 $q->where(function ($inner) {
                     $inner->where('email', 'like', "%{$this->search}%")
                         ->orWhere('ip_address', 'like', "%{$this->search}%")
-                        ->orWhereHas('user', fn($u) => $u->where('name', 'like', "%{$this->search}%"));
+                        ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$this->search}%"));
                 });
             })
-            ->when($this->event, fn($q) => $q->where('event', $this->event))
-            ->when($this->dateFrom, fn($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
-            ->when($this->dateTo, fn($q) => $q->whereDate('created_at', '<=', $this->dateTo))
+            ->when($this->event, fn ($q) => $q->where('event', $this->event))
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('created_at', '<=', $this->dateTo))
             ->orderByDesc('created_at');
 
         $stats = [

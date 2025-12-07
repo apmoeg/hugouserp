@@ -16,7 +16,7 @@ class Require2FA
 
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return $next($request);
         }
 
@@ -25,19 +25,19 @@ class Require2FA
         $is2FAEnabled = $this->settingsService->get('security.2fa_enabled', false);
         $is2FARequired = $this->settingsService->get('security.2fa_required', false);
 
-        if (!$is2FAEnabled) {
+        if (! $is2FAEnabled) {
             return $next($request);
         }
 
-        if ($is2FARequired && !$user->hasTwoFactorEnabled()) {
-            if (!$request->routeIs('2fa.setup', '2fa.setup.*', 'logout')) {
+        if ($is2FARequired && ! $user->hasTwoFactorEnabled()) {
+            if (! $request->routeIs('2fa.setup', '2fa.setup.*', 'logout')) {
                 return redirect()->route('2fa.setup')
                     ->with('warning', __('Two-factor authentication is required. Please set it up to continue.'));
             }
         }
 
-        if ($user->hasTwoFactorEnabled() && !session('2fa_verified')) {
-            if (!$request->routeIs('2fa.challenge', '2fa.challenge.*', 'logout')) {
+        if ($user->hasTwoFactorEnabled() && ! session('2fa_verified')) {
+            if (! $request->routeIs('2fa.challenge', '2fa.challenge.*', 'logout')) {
                 return redirect()->route('2fa.challenge');
             }
         }

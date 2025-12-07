@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Exceptions;
@@ -19,9 +20,10 @@ class Handler extends ExceptionHandler
         $this->renderable(function (Throwable $e, $request) {
             if ($request->is('api/*')) {
                 $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
+
                 return response()->json([
                     'success' => false,
-                    'error'   => class_basename($e),
+                    'error' => class_basename($e),
                     'message' => $e->getMessage(),
                 ], $status);
             }

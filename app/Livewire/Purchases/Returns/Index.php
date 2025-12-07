@@ -18,14 +18,21 @@ class Index extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $dateFrom = '';
+
     public string $dateTo = '';
+
     public int $perPage = 15;
 
     public bool $showReturnModal = false;
+
     public ?int $selectedPurchaseId = null;
+
     public ?Purchase $selectedPurchase = null;
+
     public array $returnItems = [];
+
     public string $returnReason = '';
 
     protected $queryString = ['search', 'dateFrom', 'dateTo'];
@@ -34,6 +41,7 @@ class Index extends Component
     {
         /** @var User|null $user */
         $user = Auth::user();
+
         return $user?->branch_id;
     }
 
@@ -46,8 +54,9 @@ class Index extends Component
     {
         /** @var User|null $user */
         $user = Auth::user();
-        if (!$user?->can('purchases.return')) {
+        if (! $user?->can('purchases.return')) {
             $this->dispatch('notify', type: 'error', message: __('Unauthorized'));
+
             return;
         }
 
@@ -55,35 +64,36 @@ class Index extends Component
         $this->selectedPurchase = null;
         $this->returnItems = [];
         $this->returnReason = '';
-        
+
         if ($purchaseId) {
             $this->loadPurchase();
         }
-        
+
         $this->showReturnModal = true;
     }
 
     public function loadPurchase(): void
     {
-        if (!$this->selectedPurchaseId) {
+        if (! $this->selectedPurchaseId) {
             return;
         }
 
         $branchId = $this->getUserBranchId();
 
         $this->selectedPurchase = Purchase::with(['items.product', 'supplier'])
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->where('id', $this->selectedPurchaseId)
             ->whereNotIn('status', ['returned', 'cancelled'])
             ->first();
 
-        if (!$this->selectedPurchase) {
+        if (! $this->selectedPurchase) {
             $this->dispatch('notify', type: 'error', message: __('Purchase not found or already returned'));
             $this->selectedPurchaseId = null;
+
             return;
         }
 
-        $this->returnItems = $this->selectedPurchase->items->map(fn($item) => [
+        $this->returnItems = $this->selectedPurchase->items->map(fn ($item) => [
             'product_id' => $item->product_id,
             'product_name' => $item->product?->name ?? 'Unknown',
             'max_qty' => (float) $item->qty,
@@ -96,36 +106,40 @@ class Index extends Component
     {
         /** @var User|null $user */
         $user = Auth::user();
-        if (!$user?->can('purchases.return')) {
+        if (! $user?->can('purchases.return')) {
             $this->dispatch('notify', type: 'error', message: __('Unauthorized'));
+
             return;
         }
 
-        if (!$this->selectedPurchaseId || !$this->selectedPurchase) {
+        if (! $this->selectedPurchaseId || ! $this->selectedPurchase) {
             $this->dispatch('notify', type: 'error', message: __('Please select a valid purchase'));
+
             return;
         }
 
         $branchId = $this->getUserBranchId();
         $purchase = Purchase::query()
             ->with('items')
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->where('id', $this->selectedPurchaseId)
             ->whereNotIn('status', ['returned', 'cancelled'])
             ->first();
 
-        if (!$purchase) {
+        if (! $purchase) {
             $this->dispatch('notify', type: 'error', message: __('Purchase not found or already processed'));
+
             return;
         }
 
         $itemsToReturn = collect($this->returnItems)
-            ->filter(fn($item) => $item['qty'] > 0)
+            ->filter(fn ($item) => $item['qty'] > 0)
             ->values()
             ->toArray();
 
         if (empty($itemsToReturn)) {
             $this->dispatch('notify', type: 'error', message: __('Please select at least one item to return'));
+
             return;
         }
 
@@ -134,9 +148,11 @@ class Index extends Component
                 $refund = 0.0;
                 foreach ($itemsToReturn as $it) {
                     $pi = $purchase->items->firstWhere('product_id', $it['product_id']);
-                    if (!$pi) continue;
-                    $qty = min((float)$it['qty'], (float)$pi->qty);
-                    $line = $qty * (float)$pi->cost;
+                    if (! $pi) {
+                        continue;
+                    }
+                    $qty = min((float) $it['qty'], (float) $pi->qty);
+                    $line = $qty * (float) $pi->cost;
                     $refund += $line;
                 }
 
@@ -176,14 +192,15 @@ class Index extends Component
     {
         /** @var User|null $user */
         $user = Auth::user();
-        if (!$user?->can('purchases.return')) {
+        if (! $user?->can('purchases.return')) {
             $this->dispatch('notify', type: 'error', message: __('Unauthorized'));
+
             return;
         }
 
         $branchId = $this->getUserBranchId();
         $returnNote = ReturnNote::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->where('id', $id)
             ->first();
 
@@ -202,20 +219,20 @@ class Index extends Component
         $returns = ReturnNote::query()
             ->with(['purchase.supplier'])
             ->whereNotNull('purchase_id')
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->when($this->search, function ($query) {
                 $query->whereHas('purchase', function ($q) {
-                    $q->where('reference_no', 'ilike', '%' . $this->search . '%');
+                    $q->where('reference_no', 'ilike', '%'.$this->search.'%');
                 });
             })
-            ->when($this->dateFrom, fn($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
-            ->when($this->dateTo, fn($q) => $q->whereDate('created_at', '<=', $this->dateTo))
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('created_at', '<=', $this->dateTo))
             ->orderByDesc('created_at')
             ->paginate($this->perPage);
 
         $purchases = Purchase::query()
             ->with('supplier')
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereNotIn('status', ['returned', 'cancelled'])
             ->orderByDesc('created_at')
             ->limit(50)

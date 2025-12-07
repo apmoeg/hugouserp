@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Jobs;
@@ -16,6 +17,7 @@ class SyncOfflinePosJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 2;
+
     public $timeout = 180;
 
     public function __construct(public array $payload) {}
@@ -29,16 +31,16 @@ class SyncOfflinePosJob implements ShouldQueue
                 $sale = \App\Models\Sale::query()->updateOrCreate(
                     ['code' => $tx['code']],
                     [
-                        'branch_id'   => $tx['branch_id'] ?? null,
-                        'warehouse_id'=> $tx['warehouse_id'] ?? null,
+                        'branch_id' => $tx['branch_id'] ?? null,
+                        'warehouse_id' => $tx['warehouse_id'] ?? null,
                         'customer_id' => $tx['customer_id'] ?? null,
-                        'status'      => 'synced',
-                        'subtotal'    => $tx['subtotal'] ?? 0,
-                        'tax_total'   => $tx['tax_total'] ?? 0,
+                        'status' => 'synced',
+                        'subtotal' => $tx['subtotal'] ?? 0,
+                        'tax_total' => $tx['tax_total'] ?? 0,
                         'discount_total' => $tx['discount_total'] ?? 0,
-                        'total'       => $tx['total'] ?? 0,
-                        'paid_total'  => $tx['paid_total'] ?? 0,
-                        'notes'       => 'Synced from offline POS',
+                        'total' => $tx['total'] ?? 0,
+                        'paid_total' => $tx['paid_total'] ?? 0,
+                        'notes' => 'Synced from offline POS',
                     ]
                 );
 
@@ -47,11 +49,11 @@ class SyncOfflinePosJob implements ShouldQueue
                     \App\Models\SaleItem::query()->updateOrCreate(
                         ['sale_id' => $sale->getKey(), 'product_id' => $it['product_id']],
                         [
-                            'qty'    => $it['qty'] ?? 0,
-                            'price'  => $it['price'] ?? 0,
+                            'qty' => $it['qty'] ?? 0,
+                            'price' => $it['price'] ?? 0,
                             'discount' => $it['discount'] ?? 0,
                             'tax_id' => $it['tax_id'] ?? null,
-                            'total'  => $it['total'] ?? 0,
+                            'total' => $it['total'] ?? 0,
                         ]
                     );
                 }
@@ -63,6 +65,6 @@ class SyncOfflinePosJob implements ShouldQueue
 
     public function tags(): array
     {
-        return ['pos','sync','count:'.count($this->payload)];
+        return ['pos', 'sync', 'count:'.count($this->payload)];
     }
 }

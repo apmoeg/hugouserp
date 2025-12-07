@@ -40,13 +40,13 @@ class VehicleModel extends Model
     public function getDisplayNameAttribute(): string
     {
         $name = "{$this->brand} {$this->model}";
-        
+
         if ($this->year_from && $this->year_to) {
             $name .= " ({$this->year_from}-{$this->year_to})";
         } elseif ($this->year_from) {
             $name .= " ({$this->year_from}+)";
         }
-        
+
         return $name;
     }
 

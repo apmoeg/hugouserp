@@ -15,7 +15,7 @@ class RunScheduledReports extends Command
     protected $signature = 'reports:run-scheduled 
                             {--force : Run all active schedules regardless of next_run_at}
                             {--id= : Run a specific schedule by ID}';
-    
+
     protected $description = 'Run scheduled reports that are due';
 
     protected ScheduledReportService $reportService;
@@ -35,7 +35,7 @@ class RunScheduledReports extends Command
 
         if ($this->option('id')) {
             $query->where('id', $this->option('id'));
-        } elseif (!$this->option('force')) {
+        } elseif (! $this->option('force')) {
             $query->where('next_run_at', '<=', now());
         }
 
@@ -43,6 +43,7 @@ class RunScheduledReports extends Command
 
         if ($schedules->isEmpty()) {
             $this->info('No scheduled reports to run.');
+
             return Command::SUCCESS;
         }
 
@@ -53,6 +54,7 @@ class RunScheduledReports extends Command
         }
 
         $this->info('Scheduled reports processing completed.');
+
         return Command::SUCCESS;
     }
 
@@ -62,14 +64,15 @@ class RunScheduledReports extends Command
 
         try {
             $template = ReportTemplate::find($schedule->report_template_id);
-            
-            if (!$template) {
+
+            if (! $template) {
                 $this->warn("  Template not found for schedule: {$schedule->name}");
+
                 return;
             }
 
             $filters = json_decode($schedule->filters ?? '[]', true);
-            
+
             $result = $this->reportService->generateAndSend(
                 $template,
                 $schedule->format,
@@ -82,11 +85,11 @@ class RunScheduledReports extends Command
                 $this->updateScheduleAfterRun($schedule);
                 $this->info("  Completed: {$schedule->name}");
                 $this->info("  File: {$result['file_path']}");
-                $this->info("  Sent to: " . implode(', ', $result['sent_to']));
+                $this->info('  Sent to: '.implode(', ', $result['sent_to']));
             } else {
                 $this->error("  Failed: {$result['error']}");
             }
-            
+
         } catch (\Exception $e) {
             Log::error("Scheduled report failed: {$schedule->name}", [
                 'schedule_id' => $schedule->id,

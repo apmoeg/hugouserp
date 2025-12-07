@@ -76,7 +76,7 @@ class UserPreference extends Model
     {
         $preference = self::where('user_id', $userId)->first();
 
-        if (!$preference) {
+        if (! $preference) {
             $defaults = self::getDefaults();
             $preference = self::create(array_merge($defaults, ['user_id' => $userId]));
         }
@@ -84,12 +84,12 @@ class UserPreference extends Model
         return $preference;
     }
 
-public static function cachedForUser(int $userId, int $ttlSeconds = 3600): self
-{
-    $cacheKey = sprintf('user_prefs:%d', $userId);
+    public static function cachedForUser(int $userId, int $ttlSeconds = 3600): self
+    {
+        $cacheKey = sprintf('user_prefs:%d', $userId);
 
-    return Cache::remember($cacheKey, $ttlSeconds, function () use ($userId) {
-        return static::getForUser($userId);
-    });
-}
+        return Cache::remember($cacheKey, $ttlSeconds, function () use ($userId) {
+            return static::getForUser($userId);
+        });
+    }
 }

@@ -1,12 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\V1\ProductsController;
+use App\Http\Controllers\Api\V1\CustomersController;
 use App\Http\Controllers\Api\V1\InventoryController;
 use App\Http\Controllers\Api\V1\OrdersController;
-use App\Http\Controllers\Api\V1\CustomersController;
-use App\Http\Controllers\Api\V1\WebhooksController;
 use App\Http\Controllers\Api\V1\POSController;
+use App\Http\Controllers\Api\V1\ProductsController;
+use App\Http\Controllers\Api\V1\WebhooksController;
+use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
 

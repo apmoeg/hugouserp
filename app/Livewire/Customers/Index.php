@@ -11,16 +11,23 @@ use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination;
     use HasExport;
+    use WithPagination;
 
     public string $search = '';
+
     public string $customerType = '';
+
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
+
     public string $paginationMode = 'load-more';
+
     public int $perPage = 15;
+
     public int $loadMorePage = 1;
+
     public bool $hasMorePages = true;
 
     protected $queryString = ['search', 'customerType'];
@@ -62,10 +69,10 @@ class Index extends Component
     public function render()
     {
         $query = Customer::query()
-            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")
+            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%")
                 ->orWhere('email', 'like', "%{$this->search}%")
                 ->orWhere('phone', 'like', "%{$this->search}%"))
-            ->when($this->customerType, fn($q) => $q->where('customer_type', $this->customerType))
+            ->when($this->customerType, fn ($q) => $q->where('customer_type', $this->customerType))
             ->orderBy($this->sortField, $this->sortDirection);
 
         if ($this->paginationMode === 'load-more') {
@@ -87,10 +94,10 @@ class Index extends Component
     public function export()
     {
         $data = Customer::query()
-            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")
+            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%")
                 ->orWhere('email', 'like', "%{$this->search}%")
                 ->orWhere('phone', 'like', "%{$this->search}%"))
-            ->when($this->customerType, fn($q) => $q->where('customer_type', $this->customerType))
+            ->when($this->customerType, fn ($q) => $q->where('customer_type', $this->customerType))
             ->orderBy($this->sortField, $this->sortDirection)
             ->select(['id', 'name', 'email', 'phone', 'address', 'balance', 'created_at'])
             ->get();

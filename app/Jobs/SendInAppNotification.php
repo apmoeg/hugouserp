@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Notifications\InAppMessage;
 use App\Models\User;
+use App\Notifications\InAppMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -16,6 +17,7 @@ class SendInAppNotification implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public $timeout = 60;
 
     public function __construct(
@@ -35,6 +37,6 @@ class SendInAppNotification implements ShouldQueue
 
     public function tags(): array
     {
-        return ['notify','inapp','user:'.$this->userId];
+        return ['notify', 'inapp', 'user:'.$this->userId];
     }
 }

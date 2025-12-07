@@ -13,7 +13,7 @@ trait HasAudit
     {
         static::creating(function ($model) {
             $userId = static::resolveAuditUserId();
-            if ($userId && !$model->created_by) {
+            if ($userId && ! $model->created_by) {
                 $model->created_by = $userId;
             }
         });
@@ -28,10 +28,10 @@ trait HasAudit
 
     protected static function resolveAuditUserId(): ?int
     {
-        if (!function_exists('auth')) {
+        if (! function_exists('auth')) {
             return null;
         }
-        
+
         try {
             return auth()->check() ? auth()->id() : null;
         } catch (\Exception $e) {

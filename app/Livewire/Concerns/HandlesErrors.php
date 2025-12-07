@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Concerns;
 
-use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
@@ -15,11 +15,11 @@ trait HandlesErrors
     {
         try {
             $operation();
-            
+
             if ($successMessage) {
                 session()->flash('success', $successMessage);
             }
-            
+
             if ($redirectRoute) {
                 $this->redirectRoute($redirectRoute, navigate: true);
             }
@@ -31,7 +31,7 @@ trait HandlesErrors
                 'error' => $e->getMessage(),
                 'user_id' => auth()->id(),
             ]);
-            
+
             session()->flash('error', __('A database error occurred. Please try again.'));
         } catch (Throwable $e) {
             Log::error('Error in Livewire component', [
@@ -40,7 +40,7 @@ trait HandlesErrors
                 'trace' => $e->getTraceAsString(),
                 'user_id' => auth()->id(),
             ]);
-            
+
             session()->flash('error', __('An unexpected error occurred. Please try again.'));
         }
     }
@@ -49,11 +49,11 @@ trait HandlesErrors
     {
         try {
             $operation();
-            
+
             if ($successMessage) {
                 session()->flash('success', $successMessage);
             }
-            
+
             if ($redirectRoute) {
                 $this->redirectRoute($redirectRoute, navigate: true);
             }
@@ -74,7 +74,7 @@ trait HandlesErrors
                 'error' => $e->getMessage(),
                 'user_id' => auth()->id(),
             ]);
-            
+
             session()->flash('error', __('An unexpected error occurred. Please try again.'));
         }
     }
@@ -89,7 +89,7 @@ trait HandlesErrors
                 'error' => $e->getMessage(),
                 'user_id' => auth()->id(),
             ]);
-            
+
             return $default;
         }
     }

@@ -19,16 +19,21 @@ class ProductStoreMappings extends Component
     protected string $paginationTheme = 'tailwind';
 
     public ?int $productId = null;
+
     public ?Product $product = null;
-    
+
     public string $search = '';
+
     public ?int $storeFilter = null;
 
     public bool $showModal = false;
+
     public ?int $editingId = null;
 
     public ?int $store_id = null;
+
     public string $external_id = '';
+
     public string $external_sku = '';
 
     public array $stores = [];
@@ -37,12 +42,12 @@ class ProductStoreMappings extends Component
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('inventory.products.view')) {
+        if (! $user || ! $user->can('inventory.products.view')) {
             abort(403);
         }
 
         $this->productId = $productId;
-        
+
         if ($productId) {
             $this->product = Product::findOrFail($productId);
         }
@@ -53,7 +58,7 @@ class ProductStoreMappings extends Component
     protected function loadStores(): void
     {
         $query = Store::where('is_active', true);
-        
+
         if ($this->product && $this->product->branch_id) {
             $query->where(function ($q) {
                 $q->where('branch_id', $this->product->branch_id)
@@ -127,9 +132,10 @@ class ProductStoreMappings extends Component
             $exists = ProductStoreMapping::where('product_id', $this->productId)
                 ->where('store_id', $this->store_id)
                 ->exists();
-            
+
             if ($exists) {
                 $this->addError('store_id', __('This product is already mapped to this store'));
+
                 return;
             }
 
@@ -157,8 +163,8 @@ class ProductStoreMappings extends Component
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->where('external_id', 'ilike', '%' . $this->search . '%')
-                    ->orWhere('external_sku', 'ilike', '%' . $this->search . '%');
+                $q->where('external_id', 'ilike', '%'.$this->search.'%')
+                    ->orWhere('external_sku', 'ilike', '%'.$this->search.'%');
             });
         }
 

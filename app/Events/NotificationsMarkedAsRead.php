@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Events;
@@ -12,7 +13,7 @@ class NotificationsMarkedAsRead
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * @param string[] $notificationIds
+     * @param  string[]  $notificationIds
      */
     public function __construct(
         public int $userId,

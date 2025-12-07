@@ -63,11 +63,11 @@ class OrdersDashboard extends Component
 
         $ordersForStats = (clone $query)->get();
 
-        $totalOrders   = $ordersForStats->count();
-        $totalRevenue  = (float) $ordersForStats->sum('total');
+        $totalOrders = $ordersForStats->count();
+        $totalRevenue = (float) $ordersForStats->sum('total');
         $totalDiscount = (float) $ordersForStats->sum('discount_total');
         $totalShipping = (float) $ordersForStats->sum('shipping_total');
-        $totalTax      = (float) $ordersForStats->sum('tax_total');
+        $totalTax = (float) $ordersForStats->sum('tax_total');
 
         $sources = [];
         foreach ($ordersForStats as $order) {
@@ -75,7 +75,7 @@ class OrdersDashboard extends Component
 
             if (! isset($sources[$source])) {
                 $sources[$source] = [
-                    'count'   => 0,
+                    'count' => 0,
                     'revenue' => 0.0,
                 ];
             }
@@ -146,19 +146,19 @@ class OrdersDashboard extends Component
 
         $this->dispatch('store-orders-charts-update', chartData: [
             'revenueBySource' => $chartRevenueBySource,
-            'ordersByDay'     => $chartOrdersByDay,
+            'ordersByDay' => $chartOrdersByDay,
         ]);
 
         return view('livewire.admin.store.orders-dashboard', [
-            'orders'        => $orders,
-            'totalOrders'   => $totalOrders,
-            'totalRevenue'  => $totalRevenue,
+            'orders' => $orders,
+            'totalOrders' => $totalOrders,
+            'totalRevenue' => $totalRevenue,
             'totalDiscount' => $totalDiscount,
             'totalShipping' => $totalShipping,
-            'totalTax'      => $totalTax,
-            'sources'       => $sources,
-            'allStatuses'   => $allStatuses,
-            'allSources'    => $allSources,
+            'totalTax' => $totalTax,
+            'sources' => $sources,
+            'allStatuses' => $allStatuses,
+            'allSources' => $allSources,
         ]);
     }
 
@@ -191,19 +191,19 @@ class OrdersDashboard extends Component
         $this->selectedOrderId = $order->id;
         $this->selectedOrderDetails = [
             'external_order_id' => $order->external_order_id,
-            'status'            => $order->status,
-            'branch_id'         => $order->branch_id,
-            'currency'          => $order->currency,
-            'total'             => $order->total,
-            'discount_total'    => $order->discount_total,
-            'shipping_total'    => $order->shipping_total,
-            'tax_total'         => $order->tax_total,
-            'source'            => $order->source ?? 'unknown',
-            'customer'          => Arr::get($payload, 'customer', null),
-            'items'             => Arr::get($payload, 'items', []),
-            'meta'              => Arr::get($payload, 'meta', []),
-            'sale_id'           => $order->sale?->id,
-            'created_at'        => optional($order->created_at)->toDateTimeString(),
+            'status' => $order->status,
+            'branch_id' => $order->branch_id,
+            'currency' => $order->currency,
+            'total' => $order->total,
+            'discount_total' => $order->discount_total,
+            'shipping_total' => $order->shipping_total,
+            'tax_total' => $order->tax_total,
+            'source' => $order->source ?? 'unknown',
+            'customer' => Arr::get($payload, 'customer', null),
+            'items' => Arr::get($payload, 'items', []),
+            'meta' => Arr::get($payload, 'meta', []),
+            'sale_id' => $order->sale?->id,
+            'created_at' => optional($order->created_at)->toDateTimeString(),
         ];
     }
 }

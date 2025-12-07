@@ -36,7 +36,7 @@ class Index extends Component
         $query = User::query()
             ->with('branch')
             ->when($this->search !== '', function ($q) {
-                $term = '%' . $this->search . '%';
+                $term = '%'.$this->search.'%';
 
                 $q->where(function ($inner) use ($term) {
                     $inner->where('name', 'like', $term)

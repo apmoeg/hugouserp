@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Branch;
-use App\Models\BranchModule;
 
 class Module extends Model
 {
@@ -43,7 +41,7 @@ class Module extends Model
     ];
 
     protected $casts = [
-        'is_core'   => 'bool',
+        'is_core' => 'bool',
         'is_active' => 'bool',
         'has_variations' => 'bool',
         'has_inventory' => 'bool',

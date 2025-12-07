@@ -35,7 +35,7 @@ class ModuleRepository extends EloquentBaseRepository implements ModuleRepositor
     public function getModulesForBranch(int $branchId): Collection
     {
         return $this->query()
-            ->whereHas('branches', fn($q) => $q->where('branches.id', $branchId))
+            ->whereHas('branches', fn ($q) => $q->where('branches.id', $branchId))
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
@@ -45,7 +45,7 @@ class ModuleRepository extends EloquentBaseRepository implements ModuleRepositor
     {
         $query = $this->query()->with('branches');
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function (Builder $q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
@@ -75,6 +75,7 @@ class ModuleRepository extends EloquentBaseRepository implements ModuleRepositor
     public function syncBranches(Module $module, array $branchIds): Module
     {
         $module->branches()->sync($branchIds);
+
         return $module->fresh(['branches']);
     }
 
@@ -82,6 +83,7 @@ class ModuleRepository extends EloquentBaseRepository implements ModuleRepositor
     {
         $module->is_active = false;
         $module->save();
+
         return $module;
     }
 
@@ -89,6 +91,7 @@ class ModuleRepository extends EloquentBaseRepository implements ModuleRepositor
     {
         $module->is_active = true;
         $module->save();
+
         return $module;
     }
 
@@ -96,11 +99,11 @@ class ModuleRepository extends EloquentBaseRepository implements ModuleRepositor
     {
         $basePermissions = ['view', 'create', 'edit', 'delete'];
         $permissions = [];
-        
+
         foreach ($basePermissions as $action) {
             $permissions[] = "{$module->slug}.{$action}";
         }
-        
+
         return $permissions;
     }
 }

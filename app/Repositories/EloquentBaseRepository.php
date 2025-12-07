@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Repositories;
@@ -12,8 +13,7 @@ abstract class EloquentBaseRepository implements BaseRepositoryInterface
 {
     public function __construct(
         protected Model $model,
-    ) {
-    }
+    ) {}
 
     protected function query(): Builder
     {

@@ -13,7 +13,7 @@ class LogSuccessfulLogin
     {
         $user = $event->user;
         $request = request();
-        
+
         LoginActivity::logLogin(
             $user,
             $request->ip() ?? 'unknown',

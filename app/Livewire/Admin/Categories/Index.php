@@ -17,14 +17,21 @@ class Index extends Component
     use WithPagination;
 
     public string $search = '';
+
     public bool $showModal = false;
+
     public ?int $editingId = null;
-    
+
     public string $name = '';
+
     public string $nameAr = '';
+
     public ?int $parentId = null;
+
     public string $description = '';
+
     public int $sortOrder = 0;
+
     public bool $isActive = true;
 
     protected $queryString = ['search'];
@@ -32,7 +39,7 @@ class Index extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('inventory.categories.view')) {
+        if (! $user || ! $user->can('inventory.categories.view')) {
             abort(403);
         }
     }
@@ -45,7 +52,7 @@ class Index extends Component
     public function render()
     {
         $categories = ProductCategory::query()
-            ->when($this->search, fn($q) => $q->where('name', 'ilike', "%{$this->search}%")
+            ->when($this->search, fn ($q) => $q->where('name', 'ilike', "%{$this->search}%")
                 ->orWhere('name_ar', 'ilike', "%{$this->search}%"))
             ->withCount('products')
             ->orderBy('sort_order')
@@ -127,13 +134,14 @@ class Index extends Component
             if ($category) {
                 if ($this->parentId === $this->editingId) {
                     $this->addError('parentId', __('A category cannot be its own parent'));
+
                     return;
                 }
                 $category->update($data);
                 session()->flash('success', __('Category updated successfully'));
             }
         } else {
-            $data['slug'] = Str::slug($this->name) . '-' . Str::random(4);
+            $data['slug'] = Str::slug($this->name).'-'.Str::random(4);
             $data['created_by'] = $user?->id;
             $data['branch_id'] = $user?->branch_id;
             ProductCategory::create($data);
@@ -149,10 +157,12 @@ class Index extends Component
         if ($category) {
             if ($category->products()->count() > 0) {
                 session()->flash('error', __('Cannot delete category with products'));
+
                 return;
             }
             if ($category->children()->count() > 0) {
                 session()->flash('error', __('Cannot delete category with subcategories'));
+
                 return;
             }
             $category->delete();
@@ -164,7 +174,7 @@ class Index extends Component
     {
         $category = ProductCategory::find($id);
         if ($category) {
-            $category->update(['is_active' => !$category->is_active]);
+            $category->update(['is_active' => ! $category->is_active]);
         }
     }
 }

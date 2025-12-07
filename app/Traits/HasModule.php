@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Traits;
@@ -11,7 +12,7 @@ trait HasModule
     {
         static::creating(function ($model): void {
             if ($model->isFillable('module_key') &&
-                !$model->getAttribute('module_key') &&
+                ! $model->getAttribute('module_key') &&
                 method_exists($model, 'currentModuleKey')
             ) {
                 $key = $model->currentModuleKey();
@@ -24,12 +25,13 @@ trait HasModule
 
     public function scopeForModule(Builder $q, ?string $moduleKey): Builder
     {
-        return $moduleKey ? $q->where($this->getTable() . '.module_key', $moduleKey) : $q;
+        return $moduleKey ? $q->where($this->getTable().'.module_key', $moduleKey) : $q;
     }
 
     public function scopeInRequestModule(Builder $q): Builder
     {
         $key = method_exists($this, 'currentModuleKey') ? $this->currentModuleKey() : null;
+
         return $this->scopeForModule($q, $key);
     }
 }

@@ -11,12 +11,14 @@ trait HasStatus
     public function scopeActive(Builder $query): Builder
     {
         $statusColumn = $this->getStatusColumn();
+
         return $query->where($statusColumn, true);
     }
 
     public function scopeInactive(Builder $query): Builder
     {
         $statusColumn = $this->getStatusColumn();
+
         return $query->where($statusColumn, false);
     }
 
@@ -25,6 +27,7 @@ trait HasStatus
         $statusColumn = $this->getStatusColumn();
         $this->{$statusColumn} = true;
         $this->save();
+
         return $this;
     }
 
@@ -33,26 +36,29 @@ trait HasStatus
         $statusColumn = $this->getStatusColumn();
         $this->{$statusColumn} = false;
         $this->save();
+
         return $this;
     }
 
     public function toggleStatus(): self
     {
         $statusColumn = $this->getStatusColumn();
-        $this->{$statusColumn} = !$this->{$statusColumn};
+        $this->{$statusColumn} = ! $this->{$statusColumn};
         $this->save();
+
         return $this;
     }
 
     public function isActive(): bool
     {
         $statusColumn = $this->getStatusColumn();
+
         return (bool) $this->{$statusColumn};
     }
 
     public function isInactive(): bool
     {
-        return !$this->isActive();
+        return ! $this->isActive();
     }
 
     protected function getStatusColumn(): string

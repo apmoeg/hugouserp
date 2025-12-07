@@ -4,21 +4,19 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\URL;
-
-// Models & observers
 use App\Models\Product;
 use App\Observers\ProductObserver;
-
-// Services
-use App\Services\Contracts\ProductServiceInterface;
-use App\Services\ProductService;
 use App\Services\Contracts\ModuleFieldServiceInterface;
+use App\Services\Contracts\ProductServiceInterface;
 use App\Services\ModuleFieldService;
+// Models & observers
+use App\Services\ProductService;
+use Illuminate\Database\Eloquent\Model;
+// Services
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {

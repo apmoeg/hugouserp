@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Models\Store;
 use App\Models\StoreToken;
 use Closure;
 use Illuminate\Http\Request;
@@ -16,7 +15,7 @@ class AuthenticateStoreToken
     {
         $token = $this->getTokenFromRequest($request);
 
-        if (!$token) {
+        if (! $token) {
             return response()->json([
                 'success' => false,
                 'message' => 'API token required.',
@@ -25,7 +24,7 @@ class AuthenticateStoreToken
 
         $storeToken = StoreToken::where('token', $token)->first();
 
-        if (!$storeToken) {
+        if (! $storeToken) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid API token.',
@@ -41,7 +40,7 @@ class AuthenticateStoreToken
 
         $store = $storeToken->store;
 
-        if (!$store || !$store->is_active) {
+        if (! $store || ! $store->is_active) {
             return response()->json([
                 'success' => false,
                 'message' => 'Store is not active.',
@@ -49,7 +48,7 @@ class AuthenticateStoreToken
         }
 
         foreach ($abilities as $ability) {
-            if (!$storeToken->hasAbility($ability)) {
+            if (! $storeToken->hasAbility($ability)) {
                 return response()->json([
                     'success' => false,
                     'message' => "Token does not have the '{$ability}' ability.",

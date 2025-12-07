@@ -18,15 +18,23 @@ class Index extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $filterStatus = '';
+
     public string $dateFrom = '';
+
     public string $dateTo = '';
+
     public int $perPage = 15;
 
     public bool $showReturnModal = false;
+
     public ?int $selectedSaleId = null;
+
     public ?Sale $selectedSale = null;
+
     public array $returnItems = [];
+
     public string $returnReason = '';
 
     protected $queryString = ['search', 'filterStatus', 'dateFrom', 'dateTo'];
@@ -35,6 +43,7 @@ class Index extends Component
     {
         /** @var User|null $user */
         $user = Auth::user();
+
         return $user?->branch_id;
     }
 
@@ -52,8 +61,9 @@ class Index extends Component
     {
         /** @var User|null $user */
         $user = Auth::user();
-        if (!$user?->can('sales.return')) {
+        if (! $user?->can('sales.return')) {
             $this->dispatch('notify', type: 'error', message: __('Unauthorized'));
+
             return;
         }
 
@@ -61,31 +71,32 @@ class Index extends Component
         $this->selectedSale = null;
         $this->returnItems = [];
         $this->returnReason = '';
-        
+
         if ($saleId) {
             $this->loadSale();
         }
-        
+
         $this->showReturnModal = true;
     }
 
     public function loadSale(): void
     {
-        if (!$this->selectedSaleId) {
+        if (! $this->selectedSaleId) {
             return;
         }
 
         $branchId = $this->getUserBranchId();
-        
+
         $this->selectedSale = Sale::with(['items.product', 'customer'])
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->where('id', $this->selectedSaleId)
             ->whereNotIn('status', ['returned', 'cancelled'])
             ->first();
 
-        if (!$this->selectedSale) {
+        if (! $this->selectedSale) {
             $this->dispatch('notify', type: 'error', message: __('Sale not found or already returned'));
             $this->selectedSaleId = null;
+
             return;
         }
 
@@ -94,7 +105,7 @@ class Index extends Component
             ->pluck('id')
             ->toArray();
 
-        $this->returnItems = $this->selectedSale->items->map(fn($item) => [
+        $this->returnItems = $this->selectedSale->items->map(fn ($item) => [
             'product_id' => $item->product_id,
             'product_name' => $item->product?->name ?? 'Unknown',
             'max_qty' => (float) $item->qty,
@@ -107,31 +118,34 @@ class Index extends Component
     {
         /** @var User|null $user */
         $user = Auth::user();
-        if (!$user?->can('sales.return')) {
+        if (! $user?->can('sales.return')) {
             $this->dispatch('notify', type: 'error', message: __('Unauthorized'));
+
             return;
         }
 
-        if (!$this->selectedSaleId || !$this->selectedSale) {
+        if (! $this->selectedSaleId || ! $this->selectedSale) {
             $this->dispatch('notify', type: 'error', message: __('Please select a valid sale'));
+
             return;
         }
 
         $branchId = $this->getUserBranchId();
         $sale = Sale::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->where('id', $this->selectedSaleId)
             ->whereNotIn('status', ['returned', 'cancelled'])
             ->first();
 
-        if (!$sale) {
+        if (! $sale) {
             $this->dispatch('notify', type: 'error', message: __('Sale not found or already processed'));
+
             return;
         }
 
         $itemsToReturn = collect($this->returnItems)
-            ->filter(fn($item) => $item['qty'] > 0)
-            ->map(fn($item) => [
+            ->filter(fn ($item) => $item['qty'] > 0)
+            ->map(fn ($item) => [
                 'product_id' => $item['product_id'],
                 'qty' => min((float) $item['qty'], (float) $item['max_qty']),
             ])
@@ -140,6 +154,7 @@ class Index extends Component
 
         if (empty($itemsToReturn)) {
             $this->dispatch('notify', type: 'error', message: __('Please select at least one item to return'));
+
             return;
         }
 
@@ -175,14 +190,15 @@ class Index extends Component
     {
         /** @var User|null $user */
         $user = Auth::user();
-        if (!$user?->can('sales.return')) {
+        if (! $user?->can('sales.return')) {
             $this->dispatch('notify', type: 'error', message: __('Unauthorized'));
+
             return;
         }
 
         $branchId = $this->getUserBranchId();
         $returnNote = ReturnNote::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->where('id', $id)
             ->first();
 
@@ -201,21 +217,21 @@ class Index extends Component
         $returns = ReturnNote::query()
             ->with(['sale.customer'])
             ->whereNotNull('sale_id')
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->when($this->search, function ($query) {
                 $query->whereHas('sale', function ($q) {
-                    $q->where('invoice_number', 'ilike', '%' . $this->search . '%')
-                        ->orWhere('reference_no', 'ilike', '%' . $this->search . '%');
+                    $q->where('invoice_number', 'ilike', '%'.$this->search.'%')
+                        ->orWhere('reference_no', 'ilike', '%'.$this->search.'%');
                 });
             })
-            ->when($this->dateFrom, fn($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
-            ->when($this->dateTo, fn($q) => $q->whereDate('created_at', '<=', $this->dateTo))
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('created_at', '<=', $this->dateTo))
             ->orderByDesc('created_at')
             ->paginate($this->perPage);
 
         $sales = Sale::query()
             ->with('customer')
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereNotIn('status', ['returned', 'cancelled'])
             ->orderByDesc('created_at')
             ->limit(50)

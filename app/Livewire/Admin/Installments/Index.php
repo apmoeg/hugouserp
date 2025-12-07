@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin\Installments;
 
-use App\Models\InstallmentPlan;
 use App\Models\InstallmentPayment;
+use App\Models\InstallmentPlan;
 use App\Services\InstallmentService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -17,17 +17,23 @@ class Index extends Component
     use WithPagination;
 
     public string $status = 'active';
+
     public string $search = '';
+
     public bool $showPaymentModal = false;
+
     public ?int $selectedPaymentId = null;
+
     public float $paymentAmount = 0;
+
     public string $paymentMethod = 'cash';
+
     public string $paymentReference = '';
 
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('sales.installments.view')) {
+        if (! $user || ! $user->can('sales.installments.view')) {
             abort(403);
         }
     }
@@ -51,7 +57,7 @@ class Index extends Component
 
         $payment = InstallmentPayment::findOrFail($this->selectedPaymentId);
         $service = app(InstallmentService::class);
-        
+
         $service->recordPayment(
             $payment,
             $this->paymentAmount,
@@ -68,7 +74,7 @@ class Index extends Component
     {
         $service = app(InstallmentService::class);
         $count = $service->updateOverduePayments();
-        
+
         session()->flash('success', __(':count payments marked as overdue', ['count' => $count]));
     }
 
@@ -79,10 +85,10 @@ class Index extends Component
         $service = app(InstallmentService::class);
 
         $query = InstallmentPlan::with(['customer', 'sale', 'payments'])
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
-            ->when($this->status !== 'all', fn($q) => $q->where('status', $this->status))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
+            ->when($this->status !== 'all', fn ($q) => $q->where('status', $this->status))
             ->when($this->search, function ($q) {
-                $q->whereHas('customer', fn($c) => $c->where('name', 'like', "%{$this->search}%"));
+                $q->whereHas('customer', fn ($c) => $c->where('name', 'like', "%{$this->search}%"));
             })
             ->orderByDesc('created_at');
 

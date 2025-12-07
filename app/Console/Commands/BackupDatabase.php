@@ -1,12 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Services\BackupService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use App\Services\BackupService;
 
 class BackupDatabase extends Command
 {
@@ -28,8 +29,9 @@ class BackupDatabase extends Command
         $verify = (bool) $this->option('verify');
 
         $lock = Cache::lock('cmd:system:backup', 1800); // 30 minutes
-        if (!$lock->get()) {
+        if (! $lock->get()) {
             $this->warn('Another backup process is already running. Exiting.');
+
             return self::FAILURE;
         }
 
@@ -39,8 +41,8 @@ class BackupDatabase extends Command
             ]);
 
             $result = $this->backupService->run();
-            $path   = (string)($result['path'] ?? '');
-            $size   = (int)   ($result['size'] ?? 0);
+            $path = (string) ($result['path'] ?? '');
+            $size = (int) ($result['size'] ?? 0);
 
             $this->info('✔ Backup completed');
             $this->line("   File: {$path}");
@@ -53,6 +55,7 @@ class BackupDatabase extends Command
                     $this->info('✔ Verification passed.');
                 } else {
                     $this->error('✖ Verification failed!');
+
                     return self::FAILURE;
                 }
             }
@@ -67,6 +70,7 @@ class BackupDatabase extends Command
         } catch (\Throwable $e) {
             Log::error('Backup error', ['error' => $e->getMessage()]);
             $this->error('✖ Backup failed: '.$e->getMessage());
+
             return self::FAILURE;
         } finally {
             optional($lock)->release();

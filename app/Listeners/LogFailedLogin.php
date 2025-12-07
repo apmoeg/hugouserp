@@ -13,7 +13,7 @@ class LogFailedLogin
     {
         $request = request();
         $email = $event->credentials['email'] ?? $event->credentials['username'] ?? 'unknown';
-        
+
         LoginActivity::logFailedAttempt(
             $email,
             $request->ip() ?? 'unknown',

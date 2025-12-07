@@ -64,12 +64,14 @@ class ReportDefinition extends Model
     public function getLocalizedNameAttribute(): string
     {
         $locale = app()->getLocale();
+
         return $locale === 'ar' && $this->report_name_ar ? $this->report_name_ar : $this->report_name;
     }
 
     public function getLocalizedDescriptionAttribute(): ?string
     {
         $locale = app()->getLocale();
+
         return $locale === 'ar' && $this->description_ar ? $this->description_ar : $this->description;
     }
 

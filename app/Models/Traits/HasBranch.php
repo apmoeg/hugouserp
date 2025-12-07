@@ -24,41 +24,41 @@ trait HasBranch
     {
         $user = $user ?? $this->resolveCurrentUser();
         $branchId = $user?->branch_id;
-        
+
         if ($branchId) {
             return $query->where('branch_id', $branchId);
         }
-        
+
         return $query;
     }
 
     public function scopeForUserBranches(Builder $query, ?object $user = null): Builder
     {
         $user = $user ?? $this->resolveCurrentUser();
-        
-        if (!$user) {
+
+        if (! $user) {
             return $query->whereRaw('1 = 0');
         }
 
         $branchIds = [];
-        
+
         if (method_exists($user, 'branches') && $user->relationLoaded('branches')) {
             $branchIds = $user->branches->pluck('id')->toArray();
         }
-        
-        if ($user->branch_id && !in_array($user->branch_id, $branchIds)) {
+
+        if ($user->branch_id && ! in_array($user->branch_id, $branchIds)) {
             $branchIds[] = $user->branch_id;
         }
-        
+
         return empty($branchIds) ? $query : $query->whereIn('branch_id', $branchIds);
     }
 
     protected function resolveCurrentUser(): ?object
     {
-        if (!function_exists('auth')) {
+        if (! function_exists('auth')) {
             return null;
         }
-        
+
         try {
             return auth()->user();
         } catch (\Exception $e) {
@@ -74,8 +74,8 @@ trait HasBranch
     public function isAccessibleByUser(?object $user = null): bool
     {
         $user = $user ?? $this->resolveCurrentUser();
-        
-        if (!$user) {
+
+        if (! $user) {
             return false;
         }
 

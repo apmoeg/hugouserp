@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Rules;
@@ -11,7 +12,7 @@ class ValidDiscount implements ValidationRule
     public function __construct(
         protected bool $percentage = true,
         protected float $maxPercent = 50.0,
-        protected float $maxAmount  = 1000.0
+        protected float $maxAmount = 1000.0
     ) {}
 
     public static function percent(float $maxPercent = 50.0): self
@@ -26,8 +27,9 @@ class ValidDiscount implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!is_numeric($value)) {
+        if (! is_numeric($value)) {
             $fail('Discount must be numeric.');
+
             return;
         }
         $num = (float) $value;

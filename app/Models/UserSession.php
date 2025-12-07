@@ -37,6 +37,7 @@ class UserSession extends Model
     public function isExpired(): bool
     {
         $lifetime = config('session.lifetime', 120);
+
         return $this->last_activity->addMinutes($lifetime)->isPast();
     }
 

@@ -9,10 +9,15 @@ use App\Services\ExportService;
 trait HasExport
 {
     public bool $showExportModal = false;
+
     public array $exportColumns = [];
+
     public array $selectedExportColumns = [];
+
     public string $exportFormat = 'xlsx';
+
     public bool $exportIncludeHeaders = true;
+
     public string $exportDateFormat = 'Y-m-d';
 
     public function initializeExport(string $entityType): void
@@ -45,11 +50,12 @@ trait HasExport
     {
         if (empty($this->selectedExportColumns)) {
             session()->flash('error', __('Please select at least one column'));
+
             return null;
         }
 
         $exportService = app(ExportService::class);
-        
+
         $exportData = collect($data)->map(function ($item) {
             if (is_object($item) && method_exists($item, 'toArray')) {
                 $array = $item->toArray();
@@ -58,13 +64,13 @@ trait HasExport
             } else {
                 $array = $item;
             }
-            
+
             return collect($this->selectedExportColumns)
                 ->mapWithKeys(fn ($col) => [$col => data_get($array, $col)])
                 ->toArray();
         });
 
-        $filename = $entityType . '_export_' . date('Y-m-d_His');
+        $filename = $entityType.'_export_'.date('Y-m-d_His');
 
         $filepath = $exportService->export(
             $exportData,
@@ -80,9 +86,9 @@ trait HasExport
         );
 
         $this->closeExportModal();
-        
-        $downloadName = $filename . '.' . $this->exportFormat;
-        
+
+        $downloadName = $filename.'.'.$this->exportFormat;
+
         return response()->download($filepath, $downloadName)->deleteFileAfterSend(true);
     }
 }

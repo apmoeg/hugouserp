@@ -1,14 +1,20 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Traits\HandlesServiceErrors;
-use App\Services\Contracts\POSServiceInterface;
-use App\Models\{Sale, SaleItem, SalePayment, Product, Tax, PosSession, User};
+use App\Models\PosSession;
+use App\Models\Product;
+use App\Models\Sale;
+use App\Models\SaleItem;
+use App\Models\SalePayment;
+use App\Models\Tax;
+use App\Models\User;
 use App\Rules\ValidPriceOverride;
+use App\Services\Contracts\POSServiceInterface;
+use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class POSService implements POSServiceInterface
 {
@@ -29,20 +35,20 @@ class POSService implements POSServiceInterface
                 $branchId = $payload['branch_id'] ?? request()->attributes->get('branch_id');
 
                 $sale = Sale::create([
-                    'branch_id'   => $branchId,
-                    'warehouse_id'=> $payload['warehouse_id'] ?? null,
+                    'branch_id' => $branchId,
+                    'warehouse_id' => $payload['warehouse_id'] ?? null,
                     'customer_id' => $payload['customer_id'] ?? null,
-                    'status'      => 'completed',
-                    'channel'     => $payload['channel'] ?? 'pos',
-                    'currency'    => $payload['currency'] ?? 'EGP',
-                    'sub_total'   => 0,
-                    'tax_total'   => 0,
+                    'status' => 'completed',
+                    'channel' => $payload['channel'] ?? 'pos',
+                    'currency' => $payload['currency'] ?? 'EGP',
+                    'sub_total' => 0,
+                    'tax_total' => 0,
                     'discount_total' => 0,
                     'grand_total' => 0,
-                    'paid_total'  => 0,
-                    'due_total'   => 0,
-                    'notes'       => $payload['notes'] ?? null,
-                    'created_by'  => $user?->id,
+                    'paid_total' => 0,
+                    'due_total' => 0,
+                    'notes' => $payload['notes'] ?? null,
+                    'created_by' => $user?->id,
                 ]);
 
                 $subtotal = 0.0;
@@ -58,22 +64,24 @@ class POSService implements POSServiceInterface
 
                 foreach ($items as $it) {
                     $product = Product::findOrFail($it['product_id']);
-                    $qty  = (float) ($it['qty'] ?? 1);
+                    $qty = (float) ($it['qty'] ?? 1);
                     $price = isset($it['price']) ? (float) $it['price'] : (float) $product->price;
 
-                    if ($user && !$user->can_modify_price && $price != (float) $product->price) {
+                    if ($user && ! $user->can_modify_price && $price != (float) $product->price) {
                         abort(422, __('You are not allowed to modify prices'));
                     }
 
-                    (new ValidPriceOverride((float) $product->cost, 0.0))->validate('price', $price, function($m) { abort(422, $m); });
+                    (new ValidPriceOverride((float) $product->cost, 0.0))->validate('price', $price, function ($m) {
+                        abort(422, $m);
+                    });
 
                     $itemDiscountPercent = (float) ($it['discount'] ?? 0);
                     if ($user && $user->max_discount_percent !== null && $itemDiscountPercent > $user->max_discount_percent) {
                         abort(422, __('Discount exceeds your maximum allowed discount of :max%', ['max' => $user->max_discount_percent]));
                     }
-                    
-                    $lineDisc = $this->discounts->lineTotal($qty, $price, $itemDiscountPercent, (bool)($it['percent'] ?? true));
-                    
+
+                    $lineDisc = $this->discounts->lineTotal($qty, $price, $itemDiscountPercent, (bool) ($it['percent'] ?? true));
+
                     if ($user && $user->daily_discount_limit !== null && $lineDisc > 0) {
                         $totalUsedWithThisLine = $previousDailyDiscount + $discountTotal + $lineDisc;
                         if ($totalUsedWithThisLine > $user->daily_discount_limit) {
@@ -84,13 +92,13 @@ class POSService implements POSServiceInterface
                             ]));
                         }
                     }
-                    $lineSub  = $qty * $price;
-                    $lineTax  = 0.0;
-                    
-                    if (!empty($it['tax_id']) && class_exists(Tax::class)) {
+                    $lineSub = $qty * $price;
+                    $lineTax = 0.0;
+
+                    if (! empty($it['tax_id']) && class_exists(Tax::class)) {
                         $tax = Tax::find($it['tax_id']);
                         if ($tax) {
-                            $lineTax = ($lineSub - $lineDisc) * ((float)$tax->rate / 100);
+                            $lineTax = ($lineSub - $lineDisc) * ((float) $tax->rate / 100);
                         }
                     }
 
@@ -99,18 +107,18 @@ class POSService implements POSServiceInterface
                     $taxTotal += $lineTax;
 
                     SaleItem::create([
-                        'sale_id'    => $sale->getKey(),
+                        'sale_id' => $sale->getKey(),
                         'product_id' => $product->getKey(),
-                        'qty'        => $qty,
-                        'price'      => $price,
-                        'discount'   => $lineDisc,
-                        'tax_id'     => $it['tax_id'] ?? null,
-                        'total'      => round($lineSub - $lineDisc + $lineTax, 2),
+                        'qty' => $qty,
+                        'price' => $price,
+                        'discount' => $lineDisc,
+                        'tax_id' => $it['tax_id'] ?? null,
+                        'total' => round($lineSub - $lineDisc + $lineTax, 2),
                     ]);
                 }
 
                 $grandTotal = round($subtotal - $discountTotal + $taxTotal, 2);
-                
+
                 $sale->sub_total = round($subtotal, 2);
                 $sale->discount_total = round($discountTotal, 2);
                 $sale->tax_total = round($taxTotal, 2);
@@ -119,10 +127,12 @@ class POSService implements POSServiceInterface
                 $payments = $payload['payments'] ?? [];
                 $paidTotal = 0.0;
 
-                if (!empty($payments)) {
+                if (! empty($payments)) {
                     foreach ($payments as $payment) {
                         $amount = (float) ($payment['amount'] ?? 0);
-                        if ($amount <= 0) continue;
+                        if ($amount <= 0) {
+                            continue;
+                        }
 
                         SalePayment::create([
                             'sale_id' => $sale->getKey(),
@@ -201,8 +211,8 @@ class POSService implements POSServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($sessionId, $closingCash, $notes) {
                 $session = PosSession::findOrFail($sessionId);
-                
-                if (!$session->isOpen()) {
+
+                if (! $session->isOpen()) {
                     abort(422, __('Session is already closed'));
                 }
 

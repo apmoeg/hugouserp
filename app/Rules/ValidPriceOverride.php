@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Rules;
@@ -15,14 +16,16 @@ class ValidPriceOverride implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!is_numeric($value)) {
+        if (! is_numeric($value)) {
             $fail('Price must be numeric.');
+
             return;
         }
 
         $price = (float) $value;
         if ($price < 0) {
             $fail('Price cannot be negative.');
+
             return;
         }
 

@@ -13,13 +13,13 @@ class ExportImportController extends Controller
     {
         $model = '\\App\\Models\\RentalUnit';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             abort(500, 'RentalUnit model not found');
         }
 
         $query = $model::query()->with('property');
 
-        $filename = 'rental_units_' . now()->format('Ymd_His') . '.csv';
+        $filename = 'rental_units_'.now()->format('Ymd_His').'.csv';
 
         $callback = function () use ($query) {
             $handle = fopen('php://output', 'w');
@@ -51,13 +51,13 @@ class ExportImportController extends Controller
     {
         $model = '\\App\\Models\\Tenant';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             abort(500, 'Tenant model not found');
         }
 
         $query = $model::query();
 
-        $filename = 'rental_tenants_' . now()->format('Ymd_His') . '.csv';
+        $filename = 'rental_tenants_'.now()->format('Ymd_His').'.csv';
 
         $callback = function () use ($query) {
             $handle = fopen('php://output', 'w');
@@ -88,13 +88,13 @@ class ExportImportController extends Controller
     {
         $model = '\\App\\Models\\RentalContract';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             abort(500, 'RentalContract model not found');
         }
 
         $query = $model::query()->with(['unit.property', 'tenant']);
 
-        $filename = 'rental_contracts_' . now()->format('Ymd_His') . '.csv';
+        $filename = 'rental_contracts_'.now()->format('Ymd_His').'.csv';
 
         $callback = function () use ($query) {
             $handle = fopen('php://output', 'w');
@@ -136,7 +136,7 @@ class ExportImportController extends Controller
 
         $model = '\\App\\Models\\RentalUnit';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             abort(500, 'RentalUnit model not found');
         }
 
@@ -178,7 +178,7 @@ class ExportImportController extends Controller
 
         $model = '\\App\\Models\\Tenant';
 
-        if (!class_exists($model)) {
+        if (! class_exists($model)) {
             abort(500, 'Tenant model not found');
         }
 
@@ -208,4 +208,3 @@ class ExportImportController extends Controller
         return back()->with('status', 'Tenants imported successfully');
     }
 }
-

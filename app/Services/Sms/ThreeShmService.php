@@ -24,7 +24,7 @@ class ThreeShmService implements SmsServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($to, $message, $filePath) {
-                if (!$this->isConfigured()) {
+                if (! $this->isConfigured()) {
                     return [
                         'success' => false,
                         'error' => 'SMS provider not configured',
@@ -51,7 +51,7 @@ class ThreeShmService implements SmsServiceInterface
 
                 Log::info('3shm SMS sent', [
                     'to' => $to,
-                    'has_file' => !empty($filePath),
+                    'has_file' => ! empty($filePath),
                     'response' => $result,
                 ]);
 
@@ -62,16 +62,16 @@ class ThreeShmService implements SmsServiceInterface
                 ];
             },
             operation: 'send',
-            context: ['to' => $to, 'has_file' => !empty($filePath)],
+            context: ['to' => $to, 'has_file' => ! empty($filePath)],
             defaultValue: ['success' => false, 'error' => 'SMS sending failed', 'provider' => '3shm']
         );
     }
 
     public function isConfigured(): bool
     {
-        return $this->config['enabled'] 
-            && !empty($this->config['appkey']) 
-            && !empty($this->config['authkey']);
+        return $this->config['enabled']
+            && ! empty($this->config['appkey'])
+            && ! empty($this->config['authkey']);
     }
 
     public function getProviderName(): string
@@ -82,13 +82,13 @@ class ThreeShmService implements SmsServiceInterface
     protected function formatPhone(string $phone): string
     {
         $phone = preg_replace('/[^0-9]/', '', $phone);
-        
+
         if (str_starts_with($phone, '0')) {
-            $phone = '2' . $phone;
+            $phone = '2'.$phone;
         }
-        
-        if (!str_starts_with($phone, '20')) {
-            $phone = '20' . $phone;
+
+        if (! str_starts_with($phone, '20')) {
+            $phone = '20'.$phone;
         }
 
         return $phone;

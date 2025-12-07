@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use App\Models\Branch;
-use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
 class UsersSeeder extends Seeder
 {
-
     public function run(): void
     {
         $email = 'admin@ghanem-lvju-egypt.com';
@@ -25,14 +24,14 @@ class UsersSeeder extends Seeder
 
         if (! $existing) {
             $existing = User::query()->create([
-                'name'      => 'Super Admin',
-                'email'     => $email,
-                'password'  => Hash::make('0150386787'),
-                'phone'     => '0150386787',
+                'name' => 'Super Admin',
+                'email' => $email,
+                'password' => Hash::make('0150386787'),
+                'phone' => '0150386787',
                 'is_active' => true,
-                'username'  => 'admin',
-                'locale'    => 'en',
-                'timezone'  => config('app.timezone'),
+                'username' => 'admin',
+                'locale' => 'en',
+                'timezone' => config('app.timezone'),
                 'branch_id' => $branch?->id,
             ]);
         }

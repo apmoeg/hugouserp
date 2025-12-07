@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
@@ -12,7 +13,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class BranchService implements BranchServiceInterface
 {
@@ -44,7 +44,7 @@ class BranchService implements BranchServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($user) {
                 $user = $user ?: Auth::user();
-                if (!$user) {
+                if (! $user) {
                     return collect();
                 }
 
@@ -70,13 +70,13 @@ class BranchService implements BranchServiceInterface
         $this->handleServiceOperation(
             callback: function () use ($branch, $user) {
                 $user = $user ?: Auth::user();
-                if (!$user) {
+                if (! $user) {
                     abort(401);
                 }
 
                 $allowed = $this->forUser($user)->pluck('id')->all();
 
-                if (!in_array($branch->getKey(), $allowed, true)) {
+                if (! in_array($branch->getKey(), $allowed, true)) {
                     abort(403, 'You are not allowed to access this branch.');
                 }
             },
@@ -93,22 +93,22 @@ class BranchService implements BranchServiceInterface
             callback: function () use ($filters) {
                 $q = Branch::query();
 
-                if (!empty($filters['active'])) {
+                if (! empty($filters['active'])) {
                     $q->where('is_active', true);
                 }
 
-                if (!empty($filters['search'])) {
+                if (! empty($filters['search'])) {
                     $term = trim((string) $filters['search']);
                     $q->where(function ($qq) use ($term) {
                         $qq->where('name', 'like', '%'.$term.'%')
-                           ->orWhere('code', 'like', '%'.$term.'%')
-                           ->orWhere('phone', 'like', '%'.$term.'%');
+                            ->orWhere('code', 'like', '%'.$term.'%')
+                            ->orWhere('phone', 'like', '%'.$term.'%');
                     });
                 }
 
                 return $q->orderByDesc('is_main')
-                         ->orderBy('name')
-                         ->get();
+                    ->orderBy('name')
+                    ->get();
             },
             operation: 'list',
             context: ['filters' => $filters],
@@ -125,14 +125,14 @@ class BranchService implements BranchServiceInterface
                     $branch = Branch::create($data);
 
                     if (Branch::count() === 1) {
-                        $branch->is_main   = true;
+                        $branch->is_main = true;
                         $branch->is_active = true;
                         $branch->save();
                     }
 
                     $this->logServiceInfo('create', 'Branch created successfully', [
                         'branch_id' => $branch->getKey(),
-                        'name' => $branch->name
+                        'name' => $branch->name,
                     ]);
 
                     return $branch;
@@ -151,7 +151,7 @@ class BranchService implements BranchServiceInterface
                 $branch->save();
 
                 $this->logServiceInfo('update', 'Branch updated successfully', [
-                    'branch_id' => $branch->getKey()
+                    'branch_id' => $branch->getKey(),
                 ]);
 
                 return $branch->refresh();
@@ -165,12 +165,12 @@ class BranchService implements BranchServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($branch, $active) {
-                $branch->is_active = $active ?? !$branch->is_active;
+                $branch->is_active = $active ?? ! $branch->is_active;
                 $branch->save();
 
                 $this->logServiceInfo('toggleActive', 'Branch active status toggled', [
                     'branch_id' => $branch->getKey(),
-                    'is_active' => $branch->is_active
+                    'is_active' => $branch->is_active,
                 ]);
 
                 return $branch->refresh();
@@ -192,13 +192,13 @@ class BranchService implements BranchServiceInterface
                             continue;
                         }
 
-                        $key    = (string) $item['module_key'];
+                        $key = (string) $item['module_key'];
                         $module = Module::where('key', $key)->first();
 
                         $pivotData = [
                             'module_key' => $key,
-                            'enabled'    => (bool) ($item['enabled'] ?? true),
-                            'settings'   => $item['settings'] ?? [],
+                            'enabled' => (bool) ($item['enabled'] ?? true),
+                            'settings' => $item['settings'] ?? [],
                         ];
 
                         if ($module) {
@@ -206,14 +206,14 @@ class BranchService implements BranchServiceInterface
                         }
                     }
 
-                    if (!empty($sync)) {
+                    if (! empty($sync)) {
                         $branch->modules()->sync($sync);
                     }
                 });
 
                 $this->logServiceInfo('syncModules', 'Branch modules synced', [
                     'branch_id' => $branch->getKey(),
-                    'module_count' => count($modulesPayload)
+                    'module_count' => count($modulesPayload),
                 ]);
             },
             operation: 'syncModules',
@@ -229,7 +229,7 @@ class BranchService implements BranchServiceInterface
 
                 $this->logServiceInfo('attachUser', 'User attached to branch', [
                     'branch_id' => $branch->getKey(),
-                    'user_id' => $user->getKey()
+                    'user_id' => $user->getKey(),
                 ]);
             },
             operation: 'attachUser',
@@ -245,7 +245,7 @@ class BranchService implements BranchServiceInterface
 
                 $this->logServiceInfo('detachUser', 'User detached from branch', [
                     'branch_id' => $branch->getKey(),
-                    'user_id' => $user->getKey()
+                    'user_id' => $user->getKey(),
                 ]);
             },
             operation: 'detachUser',

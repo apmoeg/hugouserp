@@ -25,13 +25,13 @@ class ScheduledReportMail extends Mailable
     public string $outputType;
 
     /**
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      */
     public function __construct(string $routeName, array $filters, string $url, string $outputType = 'web')
     {
-        $this->routeName  = $routeName;
-        $this->filters    = $filters;
-        $this->url        = $url;
+        $this->routeName = $routeName;
+        $this->filters = $filters;
+        $this->url = $url;
         $this->outputType = $outputType;
     }
 

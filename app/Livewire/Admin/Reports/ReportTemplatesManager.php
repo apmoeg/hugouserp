@@ -50,7 +50,7 @@ class ReportTemplatesManager extends Component
         $query = ReportTemplate::query();
 
         if (trim($this->search) !== '') {
-            $term = '%' . trim($this->search) . '%';
+            $term = '%'.trim($this->search).'%';
             $query->where(function ($q) use ($term): void {
                 $q->where('key', 'like', $term)
                     ->orWhere('name', 'like', $term)
@@ -62,9 +62,9 @@ class ReportTemplatesManager extends Component
         $templates = $query->orderBy('name')->paginate(20);
 
         return view('livewire.admin.reports.templates-manager', [
-            'templates'      => $templates,
-            'availableRoutes'=> $this->availableRoutes,
-            'outputTypes'    => ['web', 'excel', 'pdf'],
+            'templates' => $templates,
+            'availableRoutes' => $this->availableRoutes,
+            'outputTypes' => ['web', 'excel', 'pdf'],
         ]);
     }
 
@@ -82,19 +82,19 @@ class ReportTemplatesManager extends Component
     protected function rules(): array
     {
         return [
-            'key'               => [
+            'key' => [
                 'required',
                 'string',
                 'max:100',
                 Rule::unique('report_templates', 'key')->ignore($this->editingId),
             ],
-            'name'              => ['required', 'string', 'max:191'],
-            'description'       => ['nullable', 'string', 'max:255'],
-            'routeName'         => ['required', 'string', 'max:191'],
-            'defaultFiltersJson'=> ['nullable', 'string'],
-            'outputType'        => ['required', 'string', Rule::in(['web', 'excel', 'pdf'])],
+            'name' => ['required', 'string', 'max:191'],
+            'description' => ['nullable', 'string', 'max:255'],
+            'routeName' => ['required', 'string', 'max:191'],
+            'defaultFiltersJson' => ['nullable', 'string'],
+            'outputType' => ['required', 'string', Rule::in(['web', 'excel', 'pdf'])],
             'exportColumnsText' => ['nullable', 'string', 'max:1000'],
-            'isActive'          => ['boolean'],
+            'isActive' => ['boolean'],
         ];
     }
 
@@ -113,15 +113,15 @@ class ReportTemplatesManager extends Component
     {
         $template = ReportTemplate::query()->findOrFail($id);
 
-        $this->editingId          = $template->id;
-        $this->key                = $template->key;
-        $this->name               = $template->name;
-        $this->description        = $template->description;
-        $this->routeName          = $template->route_name;
+        $this->editingId = $template->id;
+        $this->key = $template->key;
+        $this->name = $template->name;
+        $this->description = $template->description;
+        $this->routeName = $template->route_name;
         $this->defaultFiltersJson = json_encode($template->default_filters ?? [], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        $this->outputType         = $template->output_type ?? 'web';
-        $this->exportColumnsText  = is_array($template->export_columns) ? implode(',', $template->export_columns) : '';
-        $this->isActive           = (bool) $template->is_active;
+        $this->outputType = $template->output_type ?? 'web';
+        $this->exportColumnsText = is_array($template->export_columns) ? implode(',', $template->export_columns) : '';
+        $this->isActive = (bool) $template->is_active;
     }
 
     public function save(): void
@@ -157,14 +157,14 @@ class ReportTemplatesManager extends Component
         ReportTemplate::query()->updateOrCreate(
             ['id' => $this->editingId],
             [
-                'key'             => $this->key,
-                'name'            => $this->name,
-                'description'     => $this->description,
-                'route_name'      => $this->routeName,
+                'key' => $this->key,
+                'name' => $this->name,
+                'description' => $this->description,
+                'route_name' => $this->routeName,
                 'default_filters' => $defaultFilters,
-                'output_type'     => $this->outputType,
-                'export_columns'  => $exportColumns ?: null,
-                'is_active'       => $this->isActive,
+                'output_type' => $this->outputType,
+                'export_columns' => $exportColumns ?: null,
+                'is_active' => $this->isActive,
             ]
         );
 
@@ -182,14 +182,14 @@ class ReportTemplatesManager extends Component
 
     protected function resetForm(): void
     {
-        $this->key                = '';
-        $this->name               = '';
-        $this->description        = null;
-        $this->routeName          = '';
+        $this->key = '';
+        $this->name = '';
+        $this->description = null;
+        $this->routeName = '';
         $this->defaultFiltersJson = '{}';
-        $this->outputType         = 'web';
-        $this->exportColumnsText  = '';
-        $this->isActive           = true;
+        $this->outputType = 'web';
+        $this->exportColumnsText = '';
+        $this->isActive = true;
     }
 
     public function getAvailableRoutesProperty(): array
@@ -201,7 +201,7 @@ class ReportTemplatesManager extends Component
             ->map(static function ($route): array {
                 return [
                     'name' => $route->getName(),
-                    'uri'  => $route->uri(),
+                    'uri' => $route->uri(),
                 ];
             })
             ->filter(static function (array $route): bool {

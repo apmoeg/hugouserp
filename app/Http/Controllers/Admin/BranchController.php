@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
@@ -14,7 +15,7 @@ class BranchController extends Controller
         $per = min(max($request->integer('per_page', 20), 1), 100);
 
         $rows = Branch::query()
-            ->when($request->filled('q'), fn($q) => $q->where('name', 'like', '%'.$request->q.'%'))
+            ->when($request->filled('q'), fn ($q) => $q->where('name', 'like', '%'.$request->q.'%'))
             ->orderByDesc('is_main')
             ->orderBy('name')
             ->paginate($per);
@@ -25,18 +26,18 @@ class BranchController extends Controller
     public function store(Request $request)
     {
         $data = $this->validate($request, [
-            'name'    => ['required', 'string', 'max:255', 'unique:branches,name'],
-            'code'    => ['required', 'string', 'max:50', 'unique:branches,code'],
+            'name' => ['required', 'string', 'max:255', 'unique:branches,name'],
+            'code' => ['required', 'string', 'max:50', 'unique:branches,code'],
             'address' => ['nullable', 'string', 'max:500'],
-            'phone'   => ['nullable', 'string', 'max:50'],
+            'phone' => ['nullable', 'string', 'max:50'],
             'is_active' => ['boolean'],
         ]);
 
         $row = Branch::create([
-            'name'      => $data['name'],
-            'code'      => $data['code'],
-            'address'   => $data['address'] ?? null,
-            'phone'     => $data['phone'] ?? null,
+            'name' => $data['name'],
+            'code' => $data['code'],
+            'address' => $data['address'] ?? null,
+            'phone' => $data['phone'] ?? null,
             'is_active' => $data['is_active'] ?? true,
         ]);
 
@@ -51,10 +52,10 @@ class BranchController extends Controller
     public function update(Request $request, Branch $branch)
     {
         $data = $this->validate($request, [
-            'name'    => ['sometimes', 'string', 'max:255', 'unique:branches,name,'.$branch->id],
-            'code'    => ['sometimes', 'string', 'max:50', 'unique:branches,code,'.$branch->id],
+            'name' => ['sometimes', 'string', 'max:255', 'unique:branches,name,'.$branch->id],
+            'code' => ['sometimes', 'string', 'max:50', 'unique:branches,code,'.$branch->id],
             'address' => ['nullable', 'string', 'max:500'],
-            'phone'   => ['nullable', 'string', 'max:50'],
+            'phone' => ['nullable', 'string', 'max:50'],
             'is_active' => ['boolean'],
         ]);
 

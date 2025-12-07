@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Livewire\Admin\Loyalty;
 
 use App\Models\Customer;
-use App\Models\LoyaltyTransaction;
 use App\Models\LoyaltySetting;
 use App\Services\LoyaltyService;
 use Illuminate\Support\Facades\Auth;
@@ -18,24 +17,35 @@ class Index extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $tier = '';
+
     public bool $showSettingsModal = false;
+
     public bool $showAdjustModal = false;
+
     public ?int $selectedCustomerId = null;
+
     public int $adjustPoints = 0;
+
     public string $adjustReason = '';
 
     public float $points_per_amount = 1;
+
     public float $amount_per_point = 100;
+
     public float $redemption_rate = 0.01;
+
     public int $min_points_redeem = 100;
+
     public ?int $points_expiry_days = null;
+
     public bool $is_active = true;
 
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('customers.loyalty.manage')) {
+        if (! $user || ! $user->can('customers.loyalty.manage')) {
             abort(403);
         }
 
@@ -98,7 +108,7 @@ class Index extends Component
 
         $customer = Customer::findOrFail($this->selectedCustomerId);
         $service = app(LoyaltyService::class);
-        
+
         $service->adjustPoints($customer, $this->adjustPoints, $this->adjustReason, Auth::id());
 
         $this->showAdjustModal = false;
@@ -111,7 +121,7 @@ class Index extends Component
         $branchId = Auth::user()?->branch_id;
 
         $query = Customer::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->when($this->search, function ($q) {
                 $q->where(function ($inner) {
                     $inner->where('name', 'like', "%{$this->search}%")
@@ -119,13 +129,13 @@ class Index extends Component
                         ->orWhere('phone', 'like', "%{$this->search}%");
                 });
             })
-            ->when($this->tier, fn($q) => $q->where('customer_tier', $this->tier))
+            ->when($this->tier, fn ($q) => $q->where('customer_tier', $this->tier))
             ->orderByDesc('loyalty_points');
 
         $stats = [
-            'total_points' => Customer::when($branchId, fn($q) => $q->where('branch_id', $branchId))->sum('loyalty_points'),
-            'vip_customers' => Customer::when($branchId, fn($q) => $q->where('branch_id', $branchId))->where('customer_tier', 'vip')->count(),
-            'premium_customers' => Customer::when($branchId, fn($q) => $q->where('branch_id', $branchId))->where('customer_tier', 'premium')->count(),
+            'total_points' => Customer::when($branchId, fn ($q) => $q->where('branch_id', $branchId))->sum('loyalty_points'),
+            'vip_customers' => Customer::when($branchId, fn ($q) => $q->where('branch_id', $branchId))->where('customer_tier', 'vip')->count(),
+            'premium_customers' => Customer::when($branchId, fn ($q) => $q->where('branch_id', $branchId))->where('customer_tier', 'premium')->count(),
         ];
 
         return view('livewire.admin.loyalty.index', [

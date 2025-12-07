@@ -21,13 +21,13 @@ class UserResource extends JsonResource
             'locale' => $this->locale,
             'timezone' => $this->timezone,
             'branch_id' => $this->branch_id,
-            'branch' => $this->whenLoaded('branch', fn() => new BranchResource($this->branch)),
-            'roles' => $this->whenLoaded('roles', fn() => $this->roles->pluck('name')),
+            'branch' => $this->whenLoaded('branch', fn () => new BranchResource($this->branch)),
+            'roles' => $this->whenLoaded('roles', fn () => $this->roles->pluck('name')),
             'permissions' => $this->when(
                 $this->relationLoaded('roles'),
-                fn() => $this->getAllPermissions()->pluck('name')
+                fn () => $this->getAllPermissions()->pluck('name')
             ),
-            'branches' => $this->whenLoaded('branches', fn() => BranchResource::collection($this->branches)),
+            'branches' => $this->whenLoaded('branches', fn () => BranchResource::collection($this->branches)),
             'last_login_at' => $this->last_login_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

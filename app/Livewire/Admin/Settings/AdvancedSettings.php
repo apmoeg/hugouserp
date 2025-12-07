@@ -12,7 +12,7 @@ use Livewire\Component;
 class AdvancedSettings extends Component
 {
     public string $activeTab = 'general';
-    
+
     public array $general = [
         'app_name' => '',
         'app_logo' => '',
@@ -77,6 +77,7 @@ class AdvancedSettings extends Component
     ];
 
     protected SettingsService $settingsService;
+
     protected SmsManager $smsManager;
 
     public function boot(SettingsService $settingsService, SmsManager $smsManager): void
@@ -88,7 +89,7 @@ class AdvancedSettings extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('settings.view')) {
+        if (! $user || ! $user->can('settings.view')) {
             abort(403);
         }
 
@@ -206,7 +207,7 @@ class AdvancedSettings extends Component
     public function testSms(): void
     {
         $result = $this->smsManager->testConnection($this->sms['provider']);
-        
+
         if ($result['success']) {
             session()->flash('success', __('SMS configuration is valid'));
         } else {
@@ -221,12 +222,14 @@ class AdvancedSettings extends Component
         if ($this->security['recaptcha_enabled']) {
             if (empty($this->security['recaptcha_site_key']) || empty($this->security['recaptcha_secret_key'])) {
                 session()->flash('error', __('reCAPTCHA requires both site key and secret key to be configured'));
+
                 return;
             }
         }
 
-        if ($this->security['2fa_required'] && !$this->security['2fa_enabled']) {
+        if ($this->security['2fa_required'] && ! $this->security['2fa_enabled']) {
             session()->flash('error', __('Two-factor authentication must be enabled before making it required'));
+
             return;
         }
 
@@ -278,6 +281,7 @@ class AdvancedSettings extends Component
         if ($this->firebase['enabled']) {
             if (empty($this->firebase['api_key']) || empty($this->firebase['project_id'])) {
                 session()->flash('error', __('Firebase requires at least API Key and Project ID'));
+
                 return;
             }
         }

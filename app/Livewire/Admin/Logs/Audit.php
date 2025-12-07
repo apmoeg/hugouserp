@@ -16,9 +16,10 @@ class Audit extends Component
     use WithPagination;
 
     public ?int $actorId = null;
-    public ?string $dateFrom = null;
-    public ?string $dateTo = null;
 
+    public ?string $dateFrom = null;
+
+    public ?string $dateTo = null;
 
     #[Layout('layouts.app')]
     public function mount(): void
@@ -28,7 +29,6 @@ class Audit extends Component
             abort(403);
         }
     }
-
 
     public function updating($name, $value): void
     {
@@ -62,7 +62,7 @@ class Audit extends Component
             ->get(['id', 'name']);
 
         return view('livewire.admin.logs.audit', [
-            'logs'   => $logs,
+            'logs' => $logs,
             'actors' => $actors,
         ]);
     }
