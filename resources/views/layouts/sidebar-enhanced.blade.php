@@ -6,11 +6,14 @@
     $user = auth()->user();
     
     $isActive = function($routes) use ($currentRoute) {
+        if (!$currentRoute || !$routes) {
+            return false;
+        }
         if (is_string($routes)) {
             return str_starts_with($currentRoute, $routes);
         }
         foreach ($routes as $route) {
-            if (str_starts_with($currentRoute, $route)) {
+            if ($route && str_starts_with($currentRoute, $route)) {
                 return true;
             }
         }
@@ -415,7 +418,7 @@
             @foreach($navStructure as $item)
                 @if($canAccess($item['permission'] ?? 'dashboard.view'))
                 <li>
-                    @if(isset($item['children']) && count($item['children']) > 0)
+                    @if(!empty($item['children']))
                         {{-- Parent with children --}}
                         <button 
                             @click="expandedSections.includes('{{ $item['key'] }}') ? expandedSections = expandedSections.filter(s => s !== '{{ $item['key'] }}') : expandedSections.push('{{ $item['key'] }}')"
@@ -481,7 +484,7 @@
             @foreach($adminSection as $item)
                 @if($canAccess($item['permission'] ?? 'dashboard.view'))
                 <li>
-                    @if(isset($item['children']) && count($item['children']) > 0)
+                    @if(!empty($item['children']))
                         <button 
                             @click="expandedSections.includes('{{ $item['key'] }}') ? expandedSections = expandedSections.filter(s => s !== '{{ $item['key'] }}') : expandedSections.push('{{ $item['key'] }}')"
                             class="w-full sidebar-link {{ isset($item['color']) ? 'bg-gradient-to-r ' . $item['color'] : '' }} flex items-center justify-between"
