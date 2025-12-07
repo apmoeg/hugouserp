@@ -183,4 +183,252 @@ class RentalService implements RentalServiceInterface
             context: ['invoice_id' => $invoiceId, 'penalty' => $penalty]
         );
     }
+
+    /**
+     * Generate recurring invoices for active contracts
+     */
+    public function generateRecurringInvoicesForMonth(?int $branchId = null, ?\Carbon\Carbon $forMonth = null): array
+    {
+        $forMonth = $forMonth ?? now();
+        $period = $forMonth->format('Y-m');
+
+        $query = RentalContract::where('status', 'active')
+            ->where('start_date', '<=', $forMonth->copy()->endOfMonth())
+            ->where(function ($q) use ($forMonth) {
+                $q->whereNull('end_date')
+                    ->orWhere('end_date', '>=', $forMonth->copy()->startOfMonth());
+            })
+            ->with(['unit', 'tenant', 'rentalPeriod']);
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        $contracts = $query->get();
+        $generated = [];
+        $skipped = [];
+        $errors = [];
+
+        foreach ($contracts as $contract) {
+            try {
+                // Check if invoice already exists for this period
+                $existingInvoice = RentalInvoice::where('contract_id', $contract->id)
+                    ->where('period', $period)
+                    ->first();
+
+                if ($existingInvoice) {
+                    $skipped[] = [
+                        'contract_id' => $contract->id,
+                        'reason' => 'Invoice already exists for this period',
+                        'invoice_id' => $existingInvoice->id,
+                    ];
+                    continue;
+                }
+
+                // Generate invoice code
+                $lastInvoice = RentalInvoice::orderBy('id', 'desc')->first();
+                $nextNumber = $lastInvoice ? (intval(substr($lastInvoice->code, -6)) + 1) : 1;
+                $code = 'RI-' . str_pad((string) $nextNumber, 6, '0', STR_PAD_LEFT);
+
+                // Calculate due date (typically start of month + grace period)
+                $dueDate = $forMonth->copy()->startOfMonth()->addDays(7);
+
+                // Create invoice
+                $invoice = RentalInvoice::create([
+                    'contract_id' => $contract->id,
+                    'code' => $code,
+                    'period' => $period,
+                    'due_date' => $dueDate,
+                    'amount' => $contract->rent,
+                    'status' => 'pending',
+                ]);
+
+                $generated[] = $invoice;
+            } catch (\Exception $e) {
+                $errors[] = [
+                    'contract_id' => $contract->id,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+
+        return [
+            'generated' => $generated,
+            'skipped' => $skipped,
+            'errors' => $errors,
+            'total_contracts' => $contracts->count(),
+            'success_count' => count($generated),
+            'skipped_count' => count($skipped),
+            'error_count' => count($errors),
+        ];
+    }
+
+    /**
+     * Get occupancy statistics for a branch
+     */
+    public function getOccupancyStatistics(?int $branchId = null): array
+    {
+        $query = RentalUnit::query();
+
+        if ($branchId) {
+            $query->whereHas('property', function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
+            });
+        }
+
+        $stats = $query->selectRaw('
+            COUNT(*) as total_units,
+            COUNT(CASE WHEN status = ? THEN 1 END) as occupied_units,
+            COUNT(CASE WHEN status = ? THEN 1 END) as vacant_units,
+            COUNT(CASE WHEN status = ? THEN 1 END) as maintenance_units
+        ', ['occupied', 'vacant', 'maintenance'])
+            ->first();
+
+        $totalUnits = $stats->total_units ?? 0;
+        $occupiedUnits = $stats->occupied_units ?? 0;
+
+        $occupancyRate = $totalUnits > 0
+            ? round(($occupiedUnits / $totalUnits) * 100, 2)
+            : 0;
+
+        return [
+            'total_units' => $totalUnits,
+            'occupied_units' => $occupiedUnits,
+            'vacant_units' => $stats->vacant_units ?? 0,
+            'maintenance_units' => $stats->maintenance_units ?? 0,
+            'occupancy_rate' => $occupancyRate,
+        ];
+    }
+
+    /**
+     * Get contracts expiring soon
+     */
+    public function getExpiringContracts(?int $branchId = null, int $daysAhead = 30): array
+    {
+        $today = now()->toDateString();
+        $futureDate = now()->addDays($daysAhead)->toDateString();
+
+        $query = RentalContract::where('status', 'active')
+            ->whereNotNull('end_date')
+            ->whereBetween('end_date', [$today, $futureDate])
+            ->with(['unit', 'tenant', 'rentalPeriod'])
+            ->orderBy('end_date');
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        $contracts = $query->get();
+
+        return $contracts->map(function ($contract) {
+            $daysRemaining = now()->diffInDays($contract->end_date, false);
+
+            return [
+                'contract_id' => $contract->id,
+                'unit' => $contract->unit->name ?? '',
+                'tenant' => $contract->tenant->name ?? '',
+                'end_date' => $contract->end_date->format('Y-m-d'),
+                'days_remaining' => $daysRemaining,
+                'urgency' => $this->getExpiryUrgency($daysRemaining),
+                'rent' => $contract->rent,
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Get urgency level based on days remaining
+     */
+    private function getExpiryUrgency(int $daysRemaining): string
+    {
+        if ($daysRemaining <= 7) {
+            return 'critical';
+        } elseif ($daysRemaining <= 14) {
+            return 'high';
+        } elseif ($daysRemaining <= 30) {
+            return 'medium';
+        }
+
+        return 'low';
+    }
+
+    /**
+     * Get overdue invoices
+     */
+    public function getOverdueInvoices(?int $branchId = null): array
+    {
+        $today = now()->toDateString();
+
+        $query = RentalInvoice::where('status', 'pending')
+            ->where('due_date', '<', $today)
+            ->with(['contract.unit', 'contract.tenant'])
+            ->orderBy('due_date');
+
+        if ($branchId) {
+            $query->whereHas('contract', function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
+            });
+        }
+
+        $invoices = $query->get();
+
+        return $invoices->map(function ($invoice) {
+            $daysOverdue = $invoice->due_date->diffInDays(now(), false);
+
+            return [
+                'invoice_id' => $invoice->id,
+                'invoice_code' => $invoice->code,
+                'contract_id' => $invoice->contract_id,
+                'unit' => $invoice->contract->unit->name ?? '',
+                'tenant' => $invoice->contract->tenant->name ?? '',
+                'due_date' => $invoice->due_date->format('Y-m-d'),
+                'amount' => $invoice->amount,
+                'days_overdue' => $daysOverdue,
+                'period' => $invoice->period,
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Get rental revenue statistics
+     */
+    public function getRevenueStatistics(?int $branchId = null, ?\Carbon\Carbon $startDate = null, ?\Carbon\Carbon $endDate = null): array
+    {
+        $startDate = $startDate ?? now()->startOfMonth();
+        $endDate = $endDate ?? now()->endOfMonth();
+
+        $query = RentalInvoice::whereBetween('due_date', [$startDate, $endDate]);
+
+        if ($branchId) {
+            $query->whereHas('contract', function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId);
+            });
+        }
+
+        $stats = $query->selectRaw('
+            COUNT(*) as total_invoices,
+            SUM(amount) as total_amount,
+            SUM(CASE WHEN status = ? THEN amount ELSE 0 END) as collected_amount,
+            SUM(CASE WHEN status = ? THEN amount ELSE 0 END) as pending_amount,
+            COUNT(CASE WHEN status = ? THEN 1 END) as collected_count,
+            COUNT(CASE WHEN status = ? THEN 1 END) as pending_count
+        ', ['paid', 'pending', 'paid', 'pending'])
+            ->first();
+
+        $totalAmount = $stats->total_amount ?? 0;
+        $collectedAmount = $stats->collected_amount ?? 0;
+
+        $collectionRate = $totalAmount > 0
+            ? round(($collectedAmount / $totalAmount) * 100, 2)
+            : 0;
+
+        return [
+            'total_invoices' => $stats->total_invoices ?? 0,
+            'total_amount' => $totalAmount,
+            'collected_amount' => $collectedAmount,
+            'pending_amount' => $stats->pending_amount ?? 0,
+            'collected_count' => $stats->collected_count ?? 0,
+            'pending_count' => $stats->pending_count ?? 0,
+            'collection_rate' => $collectionRate,
+        ];
+    }
 }
