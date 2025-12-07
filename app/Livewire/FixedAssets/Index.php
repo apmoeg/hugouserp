@@ -52,11 +52,21 @@ class Index extends Component
     {
         $branchId = auth()->user()->branch_id;
 
+        // Optimize with single query using conditional aggregations
+        $stats = FixedAsset::where('branch_id', $branchId)
+            ->selectRaw('
+                COUNT(*) as total_assets,
+                COUNT(CASE WHEN status = ? THEN 1 END) as active_assets,
+                SUM(CASE WHEN status = ? THEN purchase_cost ELSE 0 END) as total_value,
+                SUM(CASE WHEN status = ? THEN book_value ELSE 0 END) as total_book_value
+            ', ['active', 'active', 'active'])
+            ->first();
+
         return [
-            'total_assets' => FixedAsset::where('branch_id', $branchId)->count(),
-            'active_assets' => FixedAsset::where('branch_id', $branchId)->active()->count(),
-            'total_value' => FixedAsset::where('branch_id', $branchId)->active()->sum('purchase_cost'),
-            'total_book_value' => FixedAsset::where('branch_id', $branchId)->active()->sum('book_value'),
+            'total_assets' => $stats->total_assets ?? 0,
+            'active_assets' => $stats->active_assets ?? 0,
+            'total_value' => $stats->total_value ?? 0,
+            'total_book_value' => $stats->total_book_value ?? 0,
         ];
     }
 

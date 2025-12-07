@@ -82,10 +82,16 @@ class Form extends Component
 
         if ($this->isEditing) {
             $data['updated_by'] = auth()->id();
+            
+            // Check if account has transactions before updating balance
+            $hasTransactions = \DB::table('bank_transactions')
+                ->where('bank_account_id', $this->account->id)
+                ->exists();
+            
             $this->account->update($data);
             
-            // Update current balance if opening balance changed
-            if (!$this->account->transactions()->exists()) {
+            // Update current balance if opening balance changed and no transactions exist
+            if (!$hasTransactions) {
                 $this->account->current_balance = $this->opening_balance;
                 $this->account->save();
             }

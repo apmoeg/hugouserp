@@ -52,13 +52,21 @@ class Index extends Component
     {
         $branchId = auth()->user()->branch_id;
 
-        $accounts = BankAccount::where('branch_id', $branchId)->get();
+        // Optimize with single query using conditional aggregations
+        $stats = BankAccount::where('branch_id', $branchId)
+            ->selectRaw('
+                COUNT(*) as total_accounts,
+                COUNT(CASE WHEN status = ? THEN 1 END) as active_accounts,
+                SUM(CASE WHEN status = ? THEN current_balance ELSE 0 END) as total_balance,
+                COUNT(DISTINCT currency) as currencies
+            ', ['active', 'active'])
+            ->first();
 
         return [
-            'total_accounts' => $accounts->count(),
-            'active_accounts' => $accounts->where('status', 'active')->count(),
-            'total_balance' => $accounts->where('status', 'active')->sum('current_balance'),
-            'currencies' => $accounts->pluck('currency')->unique()->count(),
+            'total_accounts' => $stats->total_accounts ?? 0,
+            'active_accounts' => $stats->active_accounts ?? 0,
+            'total_balance' => $stats->total_balance ?? 0,
+            'currencies' => $stats->currencies ?? 0,
         ];
     }
 
