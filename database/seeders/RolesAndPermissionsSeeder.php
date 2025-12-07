@@ -59,6 +59,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'pos.use',
             'pos.session.manage',
             'pos.daily-report.view',
+            'manufacturing.create',
+            'manufacturing.update',
+            'manufacturing.delete',
+            'manufacturing.approve',
         ];
 
         foreach ($apiPermissions as $name) {
@@ -138,6 +142,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'reports.sales.view',
             'spares.compatibility.manage',
             'spares.vehicle-models.view',
+            'manufacturing.view',
+            'manufacturing.create',
+            'manufacturing.edit',
+            'manufacturing.delete',
+            'manufacturing.approve',
         ];
 
         foreach ($webPermissions as $name) {

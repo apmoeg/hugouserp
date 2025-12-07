@@ -146,6 +146,53 @@ class ModuleNavigationSeeder extends Seeder
                 ],
             ],
 
+            // Manufacturing
+            [
+                'module_id' => $modules['manufacturing']->id ?? null,
+                'nav_key' => 'manufacturing',
+                'nav_label' => 'Manufacturing',
+                'nav_label_ar' => 'التصنيع',
+                'icon' => '🏭',
+                'required_permissions' => ['manufacturing.view'],
+                'is_active' => true,
+                'sort_order' => 25,
+                'children' => [
+                    [
+                        'module_id' => $modules['manufacturing']->id ?? null,
+                        'nav_key' => 'manufacturing_boms',
+                        'nav_label' => 'Bills of Materials',
+                        'nav_label_ar' => 'قوائم المواد',
+                        'route_name' => 'manufacturing.boms.index',
+                        'icon' => '📋',
+                        'required_permissions' => ['manufacturing.view'],
+                        'is_active' => true,
+                        'sort_order' => 10,
+                    ],
+                    [
+                        'module_id' => $modules['manufacturing']->id ?? null,
+                        'nav_key' => 'manufacturing_production_orders',
+                        'nav_label' => 'Production Orders',
+                        'nav_label_ar' => 'أوامر الإنتاج',
+                        'route_name' => 'manufacturing.production-orders.index',
+                        'icon' => '🏭',
+                        'required_permissions' => ['manufacturing.view'],
+                        'is_active' => true,
+                        'sort_order' => 20,
+                    ],
+                    [
+                        'module_id' => $modules['manufacturing']->id ?? null,
+                        'nav_key' => 'manufacturing_work_centers',
+                        'nav_label' => 'Work Centers',
+                        'nav_label_ar' => 'مراكز العمل',
+                        'route_name' => 'manufacturing.work-centers.index',
+                        'icon' => '⚙️',
+                        'required_permissions' => ['manufacturing.view'],
+                        'is_active' => true,
+                        'sort_order' => 30,
+                    ],
+                ],
+            ],
+
             // Sales & POS
             [
                 'module_id' => $modules['pos']->id ?? null,

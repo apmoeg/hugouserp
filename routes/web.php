@@ -440,6 +440,62 @@ Route::middleware('auth')->group(function () {
             ->name('reports.dashboard')
             ->middleware('can:rental.view-reports');
     });
+
+    // Manufacturing: BOMs, Production Orders, Work Centers
+    Route::prefix('manufacturing')->name('manufacturing.')->group(function () {
+        // Bills of Materials
+        Route::get('/boms', \App\Livewire\Manufacturing\BillsOfMaterials\Index::class)
+            ->name('boms.index')
+            ->middleware('can:manufacturing.view');
+
+        // TODO: Add Form and Show components later
+        // Route::get('/boms/create', \App\Livewire\Manufacturing\BillsOfMaterials\Form::class)
+        //     ->name('boms.create')
+        //     ->middleware('can:manufacturing.create');
+        // Route::get('/boms/{bom}/edit', \App\Livewire\Manufacturing\BillsOfMaterials\Form::class)
+        //     ->name('boms.edit')
+        //     ->middleware('can:manufacturing.edit');
+        // Route::get('/boms/{bom}', \App\Livewire\Manufacturing\BillsOfMaterials\Show::class)
+        //     ->name('boms.show')
+        //     ->middleware('can:manufacturing.view');
+
+        // Production Orders
+        Route::get('/production-orders', \App\Livewire\Manufacturing\ProductionOrders\Index::class)
+            ->name('production-orders.index')
+            ->middleware('can:manufacturing.view');
+
+        // TODO: Add Form and Show components later
+        // Route::get('/production-orders/create', \App\Livewire\Manufacturing\ProductionOrders\Form::class)
+        //     ->name('production-orders.create')
+        //     ->middleware('can:manufacturing.create');
+        // Route::get('/production-orders/{productionOrder}/edit', \App\Livewire\Manufacturing\ProductionOrders\Form::class)
+        //     ->name('production-orders.edit')
+        //     ->middleware('can:manufacturing.edit');
+        // Route::get('/production-orders/{productionOrder}', \App\Livewire\Manufacturing\ProductionOrders\Show::class)
+        //     ->name('production-orders.show')
+        //     ->middleware('can:manufacturing.view');
+
+        // Work Centers
+        Route::get('/work-centers', \App\Livewire\Manufacturing\WorkCenters\Index::class)
+            ->name('work-centers.index')
+            ->middleware('can:manufacturing.view');
+
+        // TODO: Add Form and Show components later
+        // Route::get('/work-centers/create', \App\Livewire\Manufacturing\WorkCenters\Form::class)
+        //     ->name('work-centers.create')
+        //     ->middleware('can:manufacturing.create');
+        // Route::get('/work-centers/{workCenter}/edit', \App\Livewire\Manufacturing\WorkCenters\Form::class)
+        //     ->name('work-centers.edit')
+        //     ->middleware('can:manufacturing.edit');
+        // Route::get('/work-centers/{workCenter}', \App\Livewire\Manufacturing\WorkCenters\Show::class)
+        //     ->name('work-centers.show')
+        //     ->middleware('can:manufacturing.view');
+
+        // TODO: Add Dashboard component later
+        // Route::get('/dashboard', \App\Livewire\Manufacturing\Dashboard\Index::class)
+        //     ->name('dashboard')
+        //     ->middleware('can:manufacturing.view');
+    });
 });
 
 // Scheduled reports manager
