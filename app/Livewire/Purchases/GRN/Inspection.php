@@ -1,0 +1,178 @@
+<?php
+
+namespace App\Livewire\Purchases\GRN;
+
+use App\Models\GoodsReceivedNote;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+use Livewire\WithFileUploads;
+
+#[Layout('layouts.app')]
+class Inspection extends Component
+{
+    use AuthorizesRequests, WithFileUploads;
+
+    public GoodsReceivedNote $grn;
+    public array $inspectionData = [];
+    public array $photos = [];
+    public ?string $inspectorNotes = null;
+    public ?string $finalDecision = 'pending';
+
+    // Inspection criteria checklist
+    public array $checklist = [
+        'quantity_verified' => false,
+        'quality_verified' => false,
+        'packaging_intact' => false,
+        'documentation_complete' => false,
+        'no_visible_damage' => false,
+    ];
+
+    public function mount(int $id): void
+    {
+        $this->authorize('grn.inspect');
+        
+        $this->grn = GoodsReceivedNote::with(['items.product', 'purchaseOrder', 'supplier'])
+            ->findOrFail($id);
+
+        // Initialize inspection data for each item
+        foreach ($this->grn->items as $item) {
+            $this->inspectionData[$item->id] = [
+                'pass' => null,
+                'defect_category' => '',
+                'defect_description' => '',
+                'notes' => '',
+            ];
+        }
+    }
+
+    public function updateChecklistItem(string $item, bool $value): void
+    {
+        $this->checklist[$item] = $value;
+    }
+
+    public function updateInspection(int $itemId, string $field, $value): void
+    {
+        if (!isset($this->inspectionData[$itemId])) {
+            $this->inspectionData[$itemId] = [];
+        }
+        
+        $this->inspectionData[$itemId][$field] = $value;
+    }
+
+    public function acceptGRN(): void
+    {
+        $this->authorize('grn.approve');
+        
+        $this->validate([
+            'inspectorNotes' => 'nullable|string|max:1000',
+        ]);
+
+        // Check if all checklist items are verified
+        $allVerified = collect($this->checklist)->every(fn($item) => $item === true);
+
+        if (!$allVerified) {
+            session()->flash('error', __('Please complete all inspection checklist items before accepting.'));
+            return;
+        }
+
+        // Update GRN status
+        $this->grn->update([
+            'status' => 'approved',
+            'inspection_notes' => $this->inspectorNotes,
+            'inspected_at' => now(),
+            'inspected_by' => auth()->id(),
+        ]);
+
+        // Update item inspection results
+        foreach ($this->inspectionData as $itemId => $data) {
+            $item = $this->grn->items()->find($itemId);
+            if ($item) {
+                $item->update([
+                    'inspection_pass' => $data['pass'] ?? true,
+                    'inspection_notes' => $data['notes'] ?? null,
+                ]);
+            }
+        }
+
+        session()->flash('success', __('GRN inspection completed and approved.'));
+        
+        return redirect()->route('purchases.grn.index');
+    }
+
+    public function rejectGRN(): void
+    {
+        $this->authorize('grn.reject');
+        
+        $this->validate([
+            'inspectorNotes' => 'required|string|max:1000',
+        ]);
+
+        $this->grn->update([
+            'status' => 'rejected',
+            'rejection_reason' => $this->inspectorNotes,
+            'inspected_at' => now(),
+            'inspected_by' => auth()->id(),
+        ]);
+
+        session()->flash('success', __('GRN rejected with inspection notes.'));
+        
+        return redirect()->route('purchases.grn.index');
+    }
+
+    public function partialAccept(): void
+    {
+        $this->authorize('grn.approve');
+        
+        $this->validate([
+            'inspectorNotes' => 'nullable|string|max:1000',
+        ]);
+
+        // Check which items passed/failed
+        $passedItems = collect($this->inspectionData)
+            ->filter(fn($data) => ($data['pass'] ?? false) === true)
+            ->count();
+
+        $totalItems = $this->grn->items->count();
+
+        if ($passedItems === 0) {
+            session()->flash('error', __('No items passed inspection. Please reject the GRN instead.'));
+            return;
+        }
+
+        if ($passedItems === $totalItems) {
+            session()->flash('error', __('All items passed. Please use full accept instead.'));
+            return;
+        }
+
+        // Update GRN status to partial
+        $this->grn->update([
+            'status' => 'partial',
+            'inspection_notes' => $this->inspectorNotes,
+            'inspected_at' => now(),
+            'inspected_by' => auth()->id(),
+        ]);
+
+        // Update individual item results
+        foreach ($this->inspectionData as $itemId => $data) {
+            $item = $this->grn->items()->find($itemId);
+            if ($item) {
+                $item->update([
+                    'inspection_pass' => $data['pass'] ?? false,
+                    'defect_category' => $data['defect_category'] ?? null,
+                    'defect_description' => $data['defect_description'] ?? null,
+                    'inspection_notes' => $data['notes'] ?? null,
+                ]);
+            }
+        }
+
+        session()->flash('success', __('GRN marked as partial acceptance.'));
+        
+        return redirect()->route('purchases.grn.index');
+    }
+
+    public function render()
+    {
+        return view('livewire.purchases.grn.inspection');
+    }
+}
