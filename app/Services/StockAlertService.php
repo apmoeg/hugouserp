@@ -161,8 +161,8 @@ class StockAlertService
             $query->where('warehouse_id', $warehouseId);
         }
 
-        $inQty = (clone $query)->where('type', 'in')->sum('qty');
-        $outQty = (clone $query)->where('type', 'out')->sum('qty');
+        $inQty = (clone $query)->where('direction', 'in')->sum('qty');
+        $outQty = (clone $query)->where('direction', 'out')->sum('qty');
 
         return (int) ($inQty - $outQty);
     }

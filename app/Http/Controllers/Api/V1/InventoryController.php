@@ -18,16 +18,30 @@ class InventoryController extends BaseApiController
         $store = $this->getStore($request);
 
         $query = Product::query()
-            ->select('id', 'name', 'sku', 'quantity', 'min_stock', 'warehouse_id')
+            ->select('id', 'name', 'sku', 'min_stock', 'warehouse_id', 'branch_id')
             ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
-            ->when($request->filled('sku'), fn ($q) => $q->where('sku', $request->sku)
-            )
-            ->when($request->filled('warehouse_id'), fn ($q) => $q->where('warehouse_id', $request->warehouse_id)
-            )
-            ->when($request->boolean('low_stock'), fn ($q) => $q->whereColumn('quantity', '<=', 'min_stock')
-            );
+            ->when($request->filled('sku'), fn ($q) => $q->where('sku', $request->sku))
+            ->when($request->filled('warehouse_id'), fn ($q) => $q->where('warehouse_id', $request->warehouse_id));
+
+        // For low stock filter, we need to calculate stock from movements
+        if ($request->boolean('low_stock')) {
+            $query->whereHas('stockMovements', function ($q) {
+                $q->selectRaw('product_id, SUM(CASE WHEN direction = "in" THEN qty ELSE 0 END) - SUM(CASE WHEN direction = "out" THEN qty ELSE 0 END) as balance')
+                    ->groupBy('product_id')
+                    ->havingRaw('balance <= products.min_stock');
+            });
+        }
 
         $products = $query->paginate($request->get('per_page', 100));
+
+        // Add calculated stock quantity to each product
+        $products->getCollection()->transform(function ($product) {
+            $currentQty = StockMovement::where('product_id', $product->id)
+                ->selectRaw('SUM(CASE WHEN direction = "in" THEN qty ELSE 0 END) - SUM(CASE WHEN direction = "out" THEN qty ELSE 0 END) as balance')
+                ->value('balance') ?? 0;
+            $product->current_quantity = (float) $currentQty;
+            return $product;
+        });
 
         return $this->paginatedResponse($products, __('Stock levels retrieved successfully'));
     }
@@ -37,8 +51,8 @@ class InventoryController extends BaseApiController
         $validated = $request->validate([
             'product_id' => 'required_without:external_id|exists:products,id',
             'external_id' => 'required_without:product_id|string',
-            'quantity' => 'required|integer',
-            'type' => 'required|in:set,adjust',
+            'qty' => 'required|numeric',
+            'direction' => 'required|in:in,out,set',
             'reason' => 'nullable|string|max:255',
         ]);
 
@@ -64,31 +78,46 @@ class InventoryController extends BaseApiController
             return $this->errorResponse(__('Product not found'), 404);
         }
 
-        $oldQuantity = $product->quantity;
-        $newQuantity = $validated['type'] === 'set'
-            ? $validated['quantity']
-            : $product->quantity + $validated['quantity'];
+        // Get current quantity using stock movements
+        $currentQty = StockMovement::where('product_id', $product->id)
+            ->selectRaw('SUM(CASE WHEN direction = "in" THEN qty ELSE 0 END) - SUM(CASE WHEN direction = "out" THEN qty ELSE 0 END) as balance')
+            ->value('balance') ?? 0;
 
-        DB::transaction(function () use ($product, $newQuantity, $oldQuantity, $validated) {
-            $product->update(['quantity' => max(0, $newQuantity)]);
+        $oldQuantity = (float) $currentQty;
+        
+        // Calculate new quantity and direction
+        if ($validated['direction'] === 'set') {
+            $newQuantity = (float) $validated['qty'];
+            $difference = $newQuantity - $oldQuantity;
+            $actualDirection = $difference >= 0 ? 'in' : 'out';
+            $actualQty = abs($difference);
+        } else {
+            $actualDirection = $validated['direction'];
+            $actualQty = abs((float) $validated['qty']);
+            $newQuantity = $actualDirection === 'in' 
+                ? $oldQuantity + $actualQty 
+                : $oldQuantity - $actualQty;
+        }
 
-            StockMovement::create([
-                'product_id' => $product->id,
-                'warehouse_id' => $product->warehouse_id,
-                'type' => $newQuantity > $oldQuantity ? 'in' : 'out',
-                'quantity' => abs($newQuantity - $oldQuantity),
-                'before_quantity' => $oldQuantity,
-                'after_quantity' => $product->quantity,
-                'reason' => $validated['reason'] ?? 'API stock update',
-                'reference_type' => 'api_sync',
-            ]);
-        });
+        if ($actualQty > 0) {
+            DB::transaction(function () use ($product, $actualDirection, $actualQty, $validated) {
+                StockMovement::create([
+                    'product_id' => $product->id,
+                    'warehouse_id' => $product->warehouse_id,
+                    'branch_id' => $product->branch_id,
+                    'direction' => $actualDirection,
+                    'qty' => $actualQty,
+                    'reason' => $validated['reason'] ?? 'API stock update',
+                    'reference_type' => 'api_sync',
+                ]);
+            });
+        }
 
         return $this->successResponse([
             'product_id' => $product->id,
             'sku' => $product->sku,
             'old_quantity' => $oldQuantity,
-            'new_quantity' => $product->quantity,
+            'new_quantity' => max(0, $newQuantity),
         ], __('Stock updated successfully'));
     }
 
@@ -98,8 +127,8 @@ class InventoryController extends BaseApiController
             'items' => 'required|array|min:1|max:100',
             'items.*.product_id' => 'required_without:items.*.external_id|exists:products,id',
             'items.*.external_id' => 'required_without:items.*.product_id|string',
-            'items.*.quantity' => 'required|integer',
-            'items.*.type' => 'required|in:set,adjust',
+            'items.*.qty' => 'required|numeric',
+            'items.*.direction' => 'required|in:in,out,set',
         ]);
 
         $store = $this->getStore($request);
@@ -135,18 +164,44 @@ class InventoryController extends BaseApiController
             }
 
             try {
-                $oldQuantity = $product->quantity;
-                $newQuantity = $item['type'] === 'set'
-                    ? $item['quantity']
-                    : $product->quantity + $item['quantity'];
+                // Get current quantity using stock movements
+                $currentQty = StockMovement::where('product_id', $product->id)
+                    ->selectRaw('SUM(CASE WHEN direction = "in" THEN qty ELSE 0 END) - SUM(CASE WHEN direction = "out" THEN qty ELSE 0 END) as balance')
+                    ->value('balance') ?? 0;
 
-                $product->update(['quantity' => max(0, $newQuantity)]);
+                $oldQuantity = (float) $currentQty;
+                
+                // Calculate new quantity and direction
+                if ($item['direction'] === 'set') {
+                    $newQuantity = (float) $item['qty'];
+                    $difference = $newQuantity - $oldQuantity;
+                    $actualDirection = $difference >= 0 ? 'in' : 'out';
+                    $actualQty = abs($difference);
+                } else {
+                    $actualDirection = $item['direction'];
+                    $actualQty = abs((float) $item['qty']);
+                    $newQuantity = $actualDirection === 'in' 
+                        ? $oldQuantity + $actualQty 
+                        : $oldQuantity - $actualQty;
+                }
+
+                if ($actualQty > 0) {
+                    StockMovement::create([
+                        'product_id' => $product->id,
+                        'warehouse_id' => $product->warehouse_id,
+                        'branch_id' => $product->branch_id,
+                        'direction' => $actualDirection,
+                        'qty' => $actualQty,
+                        'reason' => 'API bulk stock update',
+                        'reference_type' => 'api_sync',
+                    ]);
+                }
 
                 $results['success'][] = [
                     'product_id' => $product->id,
                     'sku' => $product->sku,
                     'old_quantity' => $oldQuantity,
-                    'new_quantity' => $product->quantity,
+                    'new_quantity' => max(0, $newQuantity),
                 ];
             } catch (\Exception $e) {
                 $results['failed'][] = [
@@ -165,16 +220,11 @@ class InventoryController extends BaseApiController
 
         $query = StockMovement::query()
             ->with(['product:id,name,sku'])
-            ->when($store?->branch_id, fn ($q) => $q->whereHas('product', fn ($pq) => $pq->where('branch_id', $store->branch_id))
-            )
-            ->when($request->filled('product_id'), fn ($q) => $q->where('product_id', $request->product_id)
-            )
-            ->when($request->filled('type'), fn ($q) => $q->where('type', $request->type)
-            )
-            ->when($request->filled('from_date'), fn ($q) => $q->whereDate('created_at', '>=', $request->from_date)
-            )
-            ->when($request->filled('to_date'), fn ($q) => $q->whereDate('created_at', '<=', $request->to_date)
-            )
+            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
+            ->when($request->filled('product_id'), fn ($q) => $q->where('product_id', $request->product_id))
+            ->when($request->filled('direction'), fn ($q) => $q->where('direction', $request->direction))
+            ->when($request->filled('from_date'), fn ($q) => $q->whereDate('created_at', '>=', $request->from_date))
+            ->when($request->filled('to_date'), fn ($q) => $q->whereDate('created_at', '<=', $request->to_date))
             ->orderBy('created_at', 'desc');
 
         $movements = $query->paginate($request->get('per_page', 50));

@@ -10,6 +10,7 @@ use App\Models\ProductStoreMapping;
 use App\Models\Sale;
 use App\Models\Store;
 use App\Models\StoreSyncLog;
+use App\Services\Contracts\InventoryServiceInterface;
 use App\Services\Store\Clients\ShopifyClient;
 use App\Services\Store\Clients\WooCommerceClient;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\Log;
 
 class StoreSyncService
 {
+    public function __construct(protected InventoryServiceInterface $inventory) {}
+
     public function pullProductsFromShopify(Store $store): StoreSyncLog
     {
         $log = $this->createSyncLog($store, StoreSyncLog::TYPE_PRODUCTS, StoreSyncLog::DIRECTION_PULL);
@@ -55,7 +58,9 @@ class StoreSyncService
                 try {
                     $product = $mapping->product;
                     if ($product) {
-                        $client->updateInventory($mapping->external_id, $product->quantity);
+                        // Get current stock level from inventory service
+                        $currentQty = $this->inventory->currentQty($product->id);
+                        $client->updateInventory($mapping->external_id, (int) $currentQty);
                         $mapping->markSynced();
                         $log->incrementSuccess();
                     }
@@ -137,7 +142,9 @@ class StoreSyncService
                 try {
                     $product = $mapping->product;
                     if ($product) {
-                        $client->updateStock($mapping->external_id, (int) $product->quantity);
+                        // Get current stock level from inventory service
+                        $currentQty = $this->inventory->currentQty($product->id);
+                        $client->updateStock($mapping->external_id, (int) $currentQty);
                         $mapping->markSynced();
                         $log->incrementSuccess();
                     }
@@ -217,7 +224,19 @@ class StoreSyncService
                 ->first();
 
             if ($mapping && $mapping->product) {
-                $mapping->product->update(['quantity' => $available]);
+                // Use inventory service to adjust stock instead of direct update
+                request()->attributes->set('branch_id', $store->branch_id);
+                $currentQty = $this->inventory->currentQty($mapping->product->id);
+                $difference = $available - $currentQty;
+                
+                if ($difference != 0) {
+                    $this->inventory->adjust(
+                        $mapping->product->id,
+                        $difference,
+                        null,
+                        'Shopify inventory webhook update'
+                    );
+                }
             }
         }
     }
@@ -263,8 +282,7 @@ class StoreSyncService
                 'name' => $data['title'] ?? 'Unknown Product',
                 'description' => strip_tags($data['body_html'] ?? ''),
                 'sku' => $data['variants'][0]['sku'] ?? 'SHOP-'.$externalId,
-                'price' => (float) ($data['variants'][0]['price'] ?? 0),
-                'quantity' => (int) ($data['variants'][0]['inventory_quantity'] ?? 0),
+                'default_price' => (float) ($data['variants'][0]['price'] ?? 0),
                 'branch_id' => $store->branch_id,
             ];
 
@@ -326,10 +344,10 @@ class StoreSyncService
             $sale = Sale::create([
                 'branch_id' => $store->branch_id,
                 'customer_id' => $customerId,
-                'subtotal' => (float) ($data['subtotal_price'] ?? 0),
-                'tax' => (float) ($data['total_tax'] ?? 0),
-                'discount' => (float) ($data['total_discounts'] ?? 0),
-                'total' => (float) ($data['total_price'] ?? 0),
+                'sub_total' => (float) ($data['subtotal_price'] ?? 0),
+                'tax_total' => (float) ($data['total_tax'] ?? 0),
+                'discount_total' => (float) ($data['total_discounts'] ?? 0),
+                'grand_total' => (float) ($data['total_price'] ?? 0),
                 'status' => $this->mapShopifyOrderStatus($data['financial_status'] ?? 'pending'),
                 'source' => 'shopify',
                 'external_reference' => $externalId,
@@ -367,8 +385,7 @@ class StoreSyncService
                 'name' => $data['name'] ?? 'Unknown Product',
                 'description' => strip_tags($data['description'] ?? ''),
                 'sku' => $data['sku'] ?? 'WOO-'.$externalId,
-                'price' => (float) ($data['price'] ?? 0),
-                'quantity' => (int) ($data['stock_quantity'] ?? 0),
+                'default_price' => (float) ($data['price'] ?? 0),
                 'branch_id' => $store->branch_id,
             ];
 
@@ -433,10 +450,10 @@ class StoreSyncService
             $sale = Sale::create([
                 'branch_id' => $store->branch_id,
                 'customer_id' => $customerId,
-                'subtotal' => (float) ($data['total'] ?? 0) - (float) ($data['total_tax'] ?? 0),
-                'tax' => (float) ($data['total_tax'] ?? 0),
-                'discount' => (float) ($data['discount_total'] ?? 0),
-                'total' => (float) ($data['total'] ?? 0),
+                'sub_total' => (float) ($data['total'] ?? 0) - (float) ($data['total_tax'] ?? 0),
+                'tax_total' => (float) ($data['total_tax'] ?? 0),
+                'discount_total' => (float) ($data['discount_total'] ?? 0),
+                'grand_total' => (float) ($data['total'] ?? 0),
                 'status' => $this->mapWooOrderStatus($data['status'] ?? 'pending'),
                 'source' => 'woocommerce',
                 'external_reference' => $externalId,

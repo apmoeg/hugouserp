@@ -35,10 +35,10 @@ class SyncOfflinePosJob implements ShouldQueue
                         'warehouse_id' => $tx['warehouse_id'] ?? null,
                         'customer_id' => $tx['customer_id'] ?? null,
                         'status' => 'synced',
-                        'subtotal' => $tx['subtotal'] ?? 0,
+                        'sub_total' => $tx['sub_total'] ?? 0,
                         'tax_total' => $tx['tax_total'] ?? 0,
                         'discount_total' => $tx['discount_total'] ?? 0,
-                        'total' => $tx['total'] ?? 0,
+                        'grand_total' => $tx['grand_total'] ?? 0,
                         'paid_total' => $tx['paid_total'] ?? 0,
                         'notes' => 'Synced from offline POS',
                     ]
