@@ -247,27 +247,272 @@ class DashboardService
 
     /**
      * Generate widget data based on widget type.
-     *
-     * TODO: Implement specific widget data generators for each widget type.
-     * Each widget should have its own data generation logic based on widget->key.
      */
     private function generateWidgetData(DashboardWidget $widget, int $userId, ?int $branchId): array
     {
-        // TODO: Add widget-specific data generation
-        // Example structure:
-        // match ($widget->key) {
-        //     'sales_chart' => $this->generateSalesChartData($userId, $branchId),
-        //     'inventory_summary' => $this->generateInventorySummaryData($userId, $branchId),
-        //     default => ['message' => 'Widget data generator not implemented']
-        // }
+        $data = match ($widget->key) {
+            'sales_today' => $this->generateSalesTodayData($branchId),
+            'sales_this_week' => $this->generateSalesWeekData($branchId),
+            'sales_this_month' => $this->generateSalesMonthData($branchId),
+            'top_selling_products' => $this->generateTopSellingProductsData($branchId),
+            'top_customers' => $this->generateTopCustomersData($branchId),
+            'low_stock_alerts' => $this->generateLowStockAlertsData($branchId),
+            'rent_invoices_due' => $this->generateRentInvoicesDueData($branchId),
+            'cash_bank_balance' => $this->generateCashBankBalanceData($branchId),
+            'tickets_summary' => $this->generateTicketsSummaryData($branchId),
+            'attendance_snapshot' => $this->generateAttendanceSnapshotData($branchId),
+            default => ['message' => 'Widget data generator not implemented for: '.$widget->key],
+        };
 
         return [
             'widget_id' => $widget->id,
             'widget_key' => $widget->key,
-            'data' => [
-                'message' => 'Widget data generator pending implementation for: '.$widget->key,
-            ],
+            'data' => $data,
             'generated_at' => now()->toISOString(),
+        ];
+    }
+
+    /**
+     * Generate sales today data.
+     */
+    private function generateSalesTodayData(?int $branchId): array
+    {
+        $query = DB::table('sales')
+            ->whereDate('created_at', today())
+            ->where('status', '!=', 'cancelled');
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        $totalSales = $query->sum('grand_total') ?? 0;
+        $totalOrders = $query->count();
+        $averageOrder = $totalOrders > 0 ? $totalSales / $totalOrders : 0;
+
+        return [
+            'total_sales' => $totalSales,
+            'total_orders' => $totalOrders,
+            'average_order' => $averageOrder,
+            'currency' => setting('general.default_currency', 'EGP'),
+        ];
+    }
+
+    /**
+     * Generate sales this week data.
+     */
+    private function generateSalesWeekData(?int $branchId): array
+    {
+        $query = DB::table('sales')
+            ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
+            ->where('status', '!=', 'cancelled');
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        return [
+            'total_sales' => $query->sum('grand_total') ?? 0,
+            'total_orders' => $query->count(),
+            'currency' => setting('general.default_currency', 'EGP'),
+        ];
+    }
+
+    /**
+     * Generate sales this month data.
+     */
+    private function generateSalesMonthData(?int $branchId): array
+    {
+        $query = DB::table('sales')
+            ->whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->where('status', '!=', 'cancelled');
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        return [
+            'total_sales' => $query->sum('grand_total') ?? 0,
+            'total_orders' => $query->count(),
+            'currency' => setting('general.default_currency', 'EGP'),
+        ];
+    }
+
+    /**
+     * Generate top selling products data.
+     */
+    private function generateTopSellingProductsData(?int $branchId, int $limit = 5): array
+    {
+        $query = DB::table('sale_items')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->select(
+                'products.id',
+                'products.name',
+                DB::raw('SUM(sale_items.quantity) as total_quantity'),
+                DB::raw('SUM(sale_items.total) as total_revenue')
+            )
+            ->where('sales.status', '!=', 'cancelled')
+            ->whereBetween('sales.created_at', [now()->subDays(30), now()])
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_quantity')
+            ->limit($limit);
+
+        if ($branchId) {
+            $query->where('sales.branch_id', $branchId);
+        }
+
+        return [
+            'products' => $query->get()->toArray(),
+            'currency' => setting('general.default_currency', 'EGP'),
+        ];
+    }
+
+    /**
+     * Generate top customers data.
+     */
+    private function generateTopCustomersData(?int $branchId, int $limit = 5): array
+    {
+        $query = DB::table('sales')
+            ->join('customers', 'sales.customer_id', '=', 'customers.id')
+            ->select(
+                'customers.id',
+                'customers.name',
+                DB::raw('COUNT(sales.id) as total_orders'),
+                DB::raw('SUM(sales.grand_total) as total_spent')
+            )
+            ->where('sales.status', '!=', 'cancelled')
+            ->whereBetween('sales.created_at', [now()->subDays(30), now()])
+            ->groupBy('customers.id', 'customers.name')
+            ->orderByDesc('total_spent')
+            ->limit($limit);
+
+        if ($branchId) {
+            $query->where('sales.branch_id', $branchId);
+        }
+
+        return [
+            'customers' => $query->get()->toArray(),
+            'currency' => setting('general.default_currency', 'EGP'),
+        ];
+    }
+
+    /**
+     * Generate low stock alerts data.
+     */
+    private function generateLowStockAlertsData(?int $branchId): array
+    {
+        $query = DB::table('products')
+            ->select('id', 'name', 'sku', 'stock_quantity', 'stock_alert_threshold')
+            ->whereNotNull('stock_alert_threshold')
+            ->whereRaw('stock_quantity <= stock_alert_threshold')
+            ->orderBy('stock_quantity', 'asc')
+            ->limit(10);
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        return [
+            'products' => $query->get()->toArray(),
+            'total_alerts' => $query->count(),
+        ];
+    }
+
+    /**
+     * Generate rent invoices due data.
+     */
+    private function generateRentInvoicesDueData(?int $branchId): array
+    {
+        $query = DB::table('rental_invoices')
+            ->select('id', 'invoice_number', 'tenant_id', 'amount', 'due_date', 'status')
+            ->where('status', 'pending')
+            ->whereBetween('due_date', [now(), now()->addDays(7)])
+            ->orderBy('due_date', 'asc')
+            ->limit(10);
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        $invoices = $query->get()->toArray();
+        $totalAmount = collect($invoices)->sum('amount');
+
+        return [
+            'invoices' => $invoices,
+            'total_amount' => $totalAmount,
+            'count' => count($invoices),
+            'currency' => setting('general.default_currency', 'EGP'),
+        ];
+    }
+
+    /**
+     * Generate cash and bank balance data.
+     */
+    private function generateCashBankBalanceData(?int $branchId): array
+    {
+        $query = DB::table('bank_accounts')
+            ->select('id', 'name', 'account_type', 'balance', 'currency')
+            ->where('is_active', true);
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        $accounts = $query->get()->toArray();
+        $totalBalance = collect($accounts)->sum('balance');
+
+        return [
+            'accounts' => $accounts,
+            'total_balance' => $totalBalance,
+            'currency' => setting('general.default_currency', 'EGP'),
+        ];
+    }
+
+    /**
+     * Generate tickets summary data.
+     */
+    private function generateTicketsSummaryData(?int $branchId): array
+    {
+        $query = DB::table('tickets');
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        return [
+            'open' => $query->clone()->where('status', 'open')->count(),
+            'in_progress' => $query->clone()->where('status', 'in_progress')->count(),
+            'on_hold' => $query->clone()->where('status', 'on_hold')->count(),
+            'resolved' => $query->clone()->where('status', 'resolved')->count(),
+            'overdue' => $query->clone()->where('status', 'open')->where('due_date', '<', now())->count(),
+        ];
+    }
+
+    /**
+     * Generate attendance snapshot data.
+     */
+    private function generateAttendanceSnapshotData(?int $branchId): array
+    {
+        $query = DB::table('attendances')
+            ->whereDate('date', today());
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        $total = DB::table('hr_employees')->where('is_active', true);
+        if ($branchId) {
+            $total->where('branch_id', $branchId);
+        }
+        $totalEmployees = $total->count();
+
+        return [
+            'present' => $query->clone()->where('status', 'present')->count(),
+            'absent' => $query->clone()->where('status', 'absent')->count(),
+            'late' => $query->clone()->where('is_late', true)->count(),
+            'on_leave' => $query->clone()->where('status', 'leave')->count(),
+            'total_employees' => $totalEmployees,
         ];
     }
 
