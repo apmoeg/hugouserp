@@ -33,6 +33,32 @@ class BillOfMaterialRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'product_id.required' => __('Product is required'),
+            'product_id.exists' => __('Selected product does not exist'),
+            'name.required' => __('BOM name is required'),
+            'quantity.required' => __('Output quantity is required'),
+            'items.required' => __('At least one material item is required'),
+            'items.min' => __('At least one material item is required'),
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'product_id' => __('Product'),
+            'name' => __('BOM Name'),
+            'name_ar' => __('BOM Name (Arabic)'),
+            'description' => __('Description'),
+            'quantity' => __('Output Quantity'),
+            'status' => __('Status'),
+            'scrap_percentage' => __('Scrap Percentage'),
+            'branch_id' => __('Branch'),
+        ];
+    }
+
     protected function prepareForValidation(): void
     {
         if (!$this->has('branch_id') && $this->user()->branch_id) {

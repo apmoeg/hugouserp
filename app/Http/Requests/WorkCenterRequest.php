@@ -28,6 +28,31 @@ class WorkCenterRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return [
+            'code.required' => __('Work center code is required'),
+            'code.unique' => __('This work center code already exists'),
+            'name.required' => __('Work center name is required'),
+            'capacity_per_hour.required' => __('Capacity per hour is required'),
+            'capacity_per_hour.min' => __('Capacity must be greater than zero'),
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'code' => __('Code'),
+            'name' => __('Name'),
+            'name_ar' => __('Name (Arabic)'),
+            'description' => __('Description'),
+            'capacity_per_hour' => __('Capacity per Hour'),
+            'cost_per_hour' => __('Cost per Hour'),
+            'efficiency_percentage' => __('Efficiency Percentage'),
+            'branch_id' => __('Branch'),
+        ];
+    }
+
     protected function prepareForValidation(): void
     {
         if (!$this->has('branch_id') && $this->user()->branch_id) {
