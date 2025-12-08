@@ -10,7 +10,7 @@ class ExampleTest extends TestCase
     /**
      * Test that unauthenticated users are redirected to login.
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_unauthenticated_users_are_redirected_to_login(): void
     {
         $response = $this->get('/');
 

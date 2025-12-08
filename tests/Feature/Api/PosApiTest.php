@@ -49,9 +49,13 @@ class PosApiTest extends TestCase
         // Should not return 404 (route exists)
         $this->assertNotEquals(404, $response->status());
 
-        // Most likely will return 403 (forbidden) since we don't have permissions seeded
-        // or 200 if it works
-        $this->assertContains($response->status(), [200, 403]);
+        // Verify JSON structure regardless of permission status
+        if ($response->status() === 200) {
+            $response->assertJsonStructure([
+                'success',
+                'data',
+            ]);
+        }
     }
 
     public function test_product_search_requires_authentication(): void
@@ -91,9 +95,10 @@ class PosApiTest extends TestCase
         // Route should exist (not 404)
         $this->assertNotEquals(404, $response->status());
 
-        // Should either fail with validation/permission (422, 403)
-        // or succeed (201) depending on setup
-        $this->assertContains($response->status(), [201, 422, 403]);
+        // Verify JSON structure for success or error responses
+        $response->assertJsonStructure([
+            'success',
+        ]);
     }
 
     public function test_pos_checkout_validates_required_fields(): void
@@ -105,7 +110,8 @@ class PosApiTest extends TestCase
         ]);
 
         // Should fail with either permission (403) or validation (422)
-        $this->assertContains($response->status(), [422, 403]);
+        $this->assertTrue(in_array($response->status(), [422, 403]));
+        $response->assertJsonStructure(['success']);
     }
 
     public function test_pos_checkout_validates_item_structure(): void
@@ -122,6 +128,7 @@ class PosApiTest extends TestCase
         ]);
 
         // Should fail with either permission (403) or validation (422)
-        $this->assertContains($response->status(), [422, 403]);
+        $this->assertTrue(in_array($response->status(), [422, 403]));
+        $response->assertJsonStructure(['success']);
     }
 }

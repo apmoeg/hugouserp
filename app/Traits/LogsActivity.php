@@ -56,7 +56,13 @@ trait LogsActivity
                 'old_values' => $old,
                 'new_values' => $new,
             ]);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            if (config('app.debug')) {
+                \Log::warning('Audit logging failed: '.$e->getMessage(), [
+                    'model' => static::class,
+                    'action' => $action,
+                ]);
+            }
         }
     }
 }
