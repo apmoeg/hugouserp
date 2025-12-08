@@ -11,149 +11,229 @@ return new class extends Migration
     /**
      * Run the migrations.
      *
-     * Add performance indexes to frequently queried columns
+     * Add performance indexes to frequently queried columns.
+     * Note: Indexes may already exist, so we wrap in try-catch for safety.
      */
     public function up(): void
     {
         // Sales table indexes
         if (Schema::hasTable('sales')) {
-            Schema::table('sales', function (Blueprint $table) {
-                if (!$this->hasIndex('sales', 'sales_branch_id_status_index')) {
+            try {
+                Schema::table('sales', function (Blueprint $table) {
                     $table->index(['branch_id', 'status'], 'sales_branch_id_status_index');
-                }
-                if (!$this->hasIndex('sales', 'sales_customer_id_due_date_index')) {
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
+            
+            try {
+                Schema::table('sales', function (Blueprint $table) {
                     $table->index(['customer_id', 'due_date'], 'sales_customer_id_due_date_index');
-                }
-                if (!$this->hasIndex('sales', 'sales_created_at_index')) {
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
+            
+            try {
+                Schema::table('sales', function (Blueprint $table) {
                     $table->index('created_at');
-                }
-            });
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
         }
 
         // Products table indexes
         if (Schema::hasTable('products')) {
-            Schema::table('products', function (Blueprint $table) {
-                if (!$this->hasIndex('products', 'products_branch_id_status_index')) {
+            try {
+                Schema::table('products', function (Blueprint $table) {
                     $table->index(['branch_id', 'is_active'], 'products_branch_id_status_index');
-                }
-                if (!$this->hasIndex('products', 'products_sku_index')) {
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
+            
+            try {
+                Schema::table('products', function (Blueprint $table) {
                     $table->index('sku');
-                }
-                if (!$this->hasIndex('products', 'products_category_id_index')) {
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
+            
+            try {
+                Schema::table('products', function (Blueprint $table) {
                     $table->index('category_id');
-                }
-            });
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
         }
 
         // Stock movements table indexes
         if (Schema::hasTable('stock_movements')) {
-            Schema::table('stock_movements', function (Blueprint $table) {
-                if (!$this->hasIndex('stock_movements', 'stock_movements_product_warehouse_index')) {
+            try {
+                Schema::table('stock_movements', function (Blueprint $table) {
                     $table->index(['product_id', 'warehouse_id'], 'stock_movements_product_warehouse_index');
-                }
-                if (!$this->hasIndex('stock_movements', 'stock_movements_created_at_index')) {
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
+            
+            try {
+                Schema::table('stock_movements', function (Blueprint $table) {
                     $table->index('created_at');
-                }
-            });
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
         }
 
         // Purchases table indexes
         if (Schema::hasTable('purchases')) {
-            Schema::table('purchases', function (Blueprint $table) {
-                if (!$this->hasIndex('purchases', 'purchases_branch_id_status_index')) {
+            try {
+                Schema::table('purchases', function (Blueprint $table) {
                     $table->index(['branch_id', 'status'], 'purchases_branch_id_status_index');
-                }
-                if (!$this->hasIndex('purchases', 'purchases_supplier_id_index')) {
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
+            
+            try {
+                Schema::table('purchases', function (Blueprint $table) {
                     $table->index('supplier_id');
-                }
-            });
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
         }
 
         // Rental contracts table indexes
         if (Schema::hasTable('rental_contracts')) {
-            Schema::table('rental_contracts', function (Blueprint $table) {
-                if (!$this->hasIndex('rental_contracts', 'rental_contracts_status_index')) {
+            try {
+                Schema::table('rental_contracts', function (Blueprint $table) {
                     $table->index('status');
-                }
-                if (!$this->hasIndex('rental_contracts', 'rental_contracts_start_end_date_index')) {
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
+            
+            try {
+                Schema::table('rental_contracts', function (Blueprint $table) {
                     $table->index(['start_date', 'end_date'], 'rental_contracts_start_end_date_index');
-                }
-            });
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
         }
 
         // Rental invoices table indexes
         if (Schema::hasTable('rental_invoices')) {
-            Schema::table('rental_invoices', function (Blueprint $table) {
-                if (!$this->hasIndex('rental_invoices', 'rental_invoices_status_due_date_index')) {
+            try {
+                Schema::table('rental_invoices', function (Blueprint $table) {
                     $table->index(['status', 'due_date'], 'rental_invoices_status_due_date_index');
-                }
-                if (!$this->hasIndex('rental_invoices', 'rental_invoices_tenant_id_index')) {
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
+            
+            try {
+                Schema::table('rental_invoices', function (Blueprint $table) {
                     $table->index('tenant_id');
-                }
-            });
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
         }
 
         // Journal entries table indexes
         if (Schema::hasTable('journal_entries')) {
-            Schema::table('journal_entries', function (Blueprint $table) {
-                if (!$this->hasIndex('journal_entries', 'journal_entries_date_index')) {
+            try {
+                Schema::table('journal_entries', function (Blueprint $table) {
                     $table->index('date');
-                }
-                if (!$this->hasIndex('journal_entries', 'journal_entries_status_index')) {
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
+            
+            try {
+                Schema::table('journal_entries', function (Blueprint $table) {
                     $table->index('status');
-                }
-            });
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
         }
 
         // HR Employees table indexes
         if (Schema::hasTable('hr_employees')) {
-            Schema::table('hr_employees', function (Blueprint $table) {
-                if (!$this->hasIndex('hr_employees', 'hr_employees_branch_id_status_index')) {
+            try {
+                Schema::table('hr_employees', function (Blueprint $table) {
                     $table->index(['branch_id', 'is_active'], 'hr_employees_branch_id_status_index');
-                }
-            });
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
         }
 
         // Attendances table indexes
         if (Schema::hasTable('attendances')) {
-            Schema::table('attendances', function (Blueprint $table) {
-                if (!$this->hasIndex('attendances', 'attendances_employee_date_index')) {
+            try {
+                Schema::table('attendances', function (Blueprint $table) {
                     $table->index(['employee_id', 'date'], 'attendances_employee_date_index');
-                }
-            });
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
         }
 
         // Tickets table indexes
         if (Schema::hasTable('tickets')) {
-            Schema::table('tickets', function (Blueprint $table) {
-                if (!$this->hasIndex('tickets', 'tickets_status_priority_index')) {
+            try {
+                Schema::table('tickets', function (Blueprint $table) {
                     $table->index(['status', 'priority'], 'tickets_status_priority_index');
-                }
-                if (!$this->hasIndex('tickets', 'tickets_assigned_to_index')) {
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
+            
+            try {
+                Schema::table('tickets', function (Blueprint $table) {
                     $table->index('assigned_to');
-                }
-            });
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
         }
 
         // Bank accounts table indexes
         if (Schema::hasTable('bank_accounts')) {
-            Schema::table('bank_accounts', function (Blueprint $table) {
-                if (!$this->hasIndex('bank_accounts', 'bank_accounts_branch_id_active_index')) {
+            try {
+                Schema::table('bank_accounts', function (Blueprint $table) {
                     $table->index(['branch_id', 'is_active'], 'bank_accounts_branch_id_active_index');
-                }
-            });
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
         }
 
         // Audit logs table indexes
         if (Schema::hasTable('audit_logs')) {
-            Schema::table('audit_logs', function (Blueprint $table) {
-                if (!$this->hasIndex('audit_logs', 'audit_logs_user_id_created_index')) {
+            try {
+                Schema::table('audit_logs', function (Blueprint $table) {
                     $table->index(['user_id', 'created_at'], 'audit_logs_user_id_created_index');
-                }
-                if (!$this->hasIndex('audit_logs', 'audit_logs_auditable_index')) {
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
+            
+            try {
+                Schema::table('audit_logs', function (Blueprint $table) {
                     $table->index(['auditable_type', 'auditable_id'], 'audit_logs_auditable_index');
-                }
-            });
+                });
+            } catch (\Exception $e) {
+                // Index may already exist
+            }
         }
     }
 
@@ -256,17 +336,5 @@ return new class extends Migration
                 $table->dropIndex('audit_logs_auditable_index');
             });
         }
-    }
-
-    /**
-     * Check if index exists.
-     */
-    private function hasIndex(string $table, string $index): bool
-    {
-        $connection = Schema::getConnection();
-        $doctrineSchemaManager = $connection->getDoctrineSchemaManager();
-        $doctrineTable = $doctrineSchemaManager->listTableDetails($table);
-        
-        return $doctrineTable->hasIndex($index);
     }
 };
