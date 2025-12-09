@@ -123,6 +123,7 @@ class POSService implements POSServiceInterface
                     SaleItem::create([
                         'sale_id' => $sale->getKey(),
                         'product_id' => $product->getKey(),
+                        'branch_id' => $branchId,
                         'qty' => $qty,
                         'unit_price' => $price,
                         'discount' => $lineDisc,

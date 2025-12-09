@@ -157,4 +157,19 @@ return [
 
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Query Logging Configuration
+    |--------------------------------------------------------------------------
+    | 
+    | Configure query logging for non-production environments to help
+    | diagnose slow queries and performance issues.
+    |
+    */
+
+    'query_log' => [
+        'enabled' => env('DB_QUERY_LOG', env('APP_ENV') !== 'production'),
+        'slow_threshold' => (int) env('DB_SLOW_QUERY_THRESHOLD', 1000), // milliseconds
+    ],
+
 ];

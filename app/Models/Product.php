@@ -22,6 +22,7 @@ class Product extends BaseModel
         'uuid', 'code', 'name', 'sku', 'barcode',
         'thumbnail', 'image', 'gallery',
         'module_id',
+        'category_id',
         'product_type',
         'type',
         'has_variations',

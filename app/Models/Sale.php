@@ -22,6 +22,7 @@ class Sale extends BaseModel
         'sub_total', 'discount_total', 'tax_total', 'shipping_total', 'grand_total',
         'paid_total', 'due_total',
         'reference_no', 'posted_at',
+        'store_order_id',
         'notes', 'extra_attributes', 'created_by', 'updated_by',
     ];
 

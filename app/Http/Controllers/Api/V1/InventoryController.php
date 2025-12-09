@@ -4,18 +4,22 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Http\Requests\Api\Inventory\BulkUpdateStockRequest;
+use App\Http\Requests\Api\Inventory\GetMovementsRequest;
+use App\Http\Requests\Api\Inventory\GetStockRequest;
+use App\Http\Requests\Api\Inventory\UpdateStockRequest;
 use App\Models\Product;
 use App\Models\ProductStoreMapping;
 use App\Models\StockMovement;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class InventoryController extends BaseApiController
 {
-    public function getStock(Request $request): JsonResponse
+    public function getStock(GetStockRequest $request): JsonResponse
     {
         $store = $this->getStore($request);
+        $validated = $request->validated();
 
         $query = Product::query()
             ->select([
@@ -28,8 +32,8 @@ class InventoryController extends BaseApiController
             ])
             ->leftJoin('stock_movements', 'products.id', '=', 'stock_movements.product_id')
             ->when($store?->branch_id, fn ($q) => $q->where('products.branch_id', $store->branch_id))
-            ->when($request->filled('sku'), fn ($q) => $q->where('products.sku', $request->sku))
-            ->when($request->filled('warehouse_id'), fn ($q) => $q->where('stock_movements.warehouse_id', $request->warehouse_id))
+            ->when($request->filled('sku'), fn ($q) => $q->where('products.sku', $validated['sku']))
+            ->when($request->filled('warehouse_id'), fn ($q) => $q->where('stock_movements.warehouse_id', $validated['warehouse_id']))
             ->groupBy('products.id', 'products.name', 'products.sku', 'products.min_stock', 'products.branch_id');
 
         // For low stock filter
@@ -37,21 +41,14 @@ class InventoryController extends BaseApiController
             $query->havingRaw('current_quantity <= products.min_stock');
         }
 
-        $products = $query->paginate($request->get('per_page', 100));
+        $products = $query->paginate($validated['per_page'] ?? 100);
 
         return $this->paginatedResponse($products, __('Stock levels retrieved successfully'));
     }
 
-    public function updateStock(Request $request): JsonResponse
+    public function updateStock(UpdateStockRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'product_id' => 'required_without:external_id|exists:products,id',
-            'external_id' => 'required_without:product_id|string',
-            'qty' => 'required|numeric',
-            'direction' => 'required|in:in,out,set',
-            'reason' => 'nullable|string|max:255',
-        ]);
-
+        $validated = $request->validated();
         $store = $this->getStore($request);
 
         $product = null;
@@ -118,23 +115,16 @@ class InventoryController extends BaseApiController
         ], __('Stock updated successfully'));
     }
 
-    public function bulkUpdateStock(Request $request): JsonResponse
+    public function bulkUpdateStock(BulkUpdateStockRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'items' => 'required|array|min:1|max:100',
-            'items.*.product_id' => 'required_without:items.*.external_id|exists:products,id',
-            'items.*.external_id' => 'required_without:items.*.product_id|string',
-            'items.*.qty' => 'required|numeric',
-            'items.*.direction' => 'required|in:in,out,set',
-        ]);
-
+        $validated = $request->validated();
         $store = $this->getStore($request);
         $results = [
             'success' => [],
             'failed' => [],
         ];
 
-        foreach ($validated['items'] as $item) {
+        foreach ($validated['updates'] as $item) {
             $product = null;
 
             if (isset($item['product_id'])) {
@@ -212,20 +202,22 @@ class InventoryController extends BaseApiController
         return $this->successResponse($results, __('Bulk stock update completed'));
     }
 
-    public function getMovements(Request $request): JsonResponse
+    public function getMovements(GetMovementsRequest $request): JsonResponse
     {
+        $validated = $request->validated();
         $store = $this->getStore($request);
 
         $query = StockMovement::query()
             ->with(['product:id,name,sku'])
             ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
-            ->when($request->filled('product_id'), fn ($q) => $q->where('product_id', $request->product_id))
-            ->when($request->filled('direction'), fn ($q) => $q->where('direction', $request->direction))
-            ->when($request->filled('from_date'), fn ($q) => $q->whereDate('created_at', '>=', $request->from_date))
-            ->when($request->filled('to_date'), fn ($q) => $q->whereDate('created_at', '<=', $request->to_date))
+            ->when($request->filled('product_id'), fn ($q) => $q->where('product_id', $validated['product_id']))
+            ->when($request->filled('warehouse_id'), fn ($q) => $q->where('warehouse_id', $validated['warehouse_id']))
+            ->when($request->filled('direction'), fn ($q) => $q->where('direction', $validated['direction']))
+            ->when($request->filled('start_date'), fn ($q) => $q->whereDate('created_at', '>=', $validated['start_date']))
+            ->when($request->filled('end_date'), fn ($q) => $q->whereDate('created_at', '<=', $validated['end_date']))
             ->orderBy('created_at', 'desc');
 
-        $movements = $query->paginate($request->get('per_page', 50));
+        $movements = $query->paginate($validated['per_page'] ?? 50);
 
         return $this->paginatedResponse($movements, __('Stock movements retrieved successfully'));
     }

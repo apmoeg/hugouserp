@@ -18,12 +18,20 @@ class ProductsController extends BaseApiController
     public function search(Request $request, ?int $branchId = null): JsonResponse
     {
         $query = $request->get('q', '');
+        $perPage = min((int) $request->get('per_page', 20), 100);
+        $page = max((int) $request->get('page', 1), 1);
 
         if (strlen($query) < 2) {
-            return $this->successResponse([], __('Search query too short'));
+            return $this->successResponse([
+                'data' => [],
+                'current_page' => 1,
+                'last_page' => 1,
+                'per_page' => $perPage,
+                'total' => 0,
+            ], __('Search query too short'));
         }
 
-        $products = Product::query()
+        $productsQuery = Product::query()
             ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->when(! $branchId && auth()->user()?->branch_id, fn ($q) => $q->where('branch_id', auth()->user()->branch_id))
             ->where(function ($q) use ($query) {
@@ -32,12 +40,14 @@ class ProductsController extends BaseApiController
                     ->orWhere('barcode', 'like', '%'.$query.'%');
             })
             ->where('status', 'active')
-            ->select('id', 'name', 'sku', 'default_price', 'barcode', 'category_id', 'tax_id')
-            ->limit(50)
-            ->get();
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
+            ->when($request->filled('category_id'), fn ($q) => $q->where('category_id', $request->category_id))
+            ->select('id', 'name', 'sku', 'default_price', 'barcode', 'category_id', 'tax_id');
+
+        $products = $productsQuery->paginate($perPage, ['*'], 'page', $page);
 
         // Format response to match frontend expectations
-        $formattedProducts = $products->map(function ($product) {
+        $formattedProducts = $products->getCollection()->map(function ($product) {
             return [
                 'id' => $product->id,
                 'product_id' => $product->id, // Frontend expects both
@@ -51,7 +61,13 @@ class ProductsController extends BaseApiController
             ];
         });
 
-        return $this->successResponse($formattedProducts, __('Products found'));
+        return $this->successResponse([
+            'data' => $formattedProducts,
+            'current_page' => $products->currentPage(),
+            'last_page' => $products->lastPage(),
+            'per_page' => $products->perPage(),
+            'total' => $products->total(),
+        ], __('Products found'));
     }
 
     public function index(Request $request): JsonResponse
@@ -108,7 +124,7 @@ class ProductsController extends BaseApiController
             'price' => 'required|numeric|min:0',
             'cost_price' => 'nullable|numeric|min:0',
             'quantity' => 'required|integer|min:0',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => 'nullable|exists:product_categories,id',
             'warehouse_id' => 'nullable|exists:warehouses,id',
             'barcode' => 'nullable|string|max:100',
             'unit' => 'nullable|string|max:50',
@@ -118,6 +134,15 @@ class ProductsController extends BaseApiController
 
         $store = $this->getStore($request);
         $validated['branch_id'] = $store?->branch_id;
+
+        // Map API fields to database columns
+        $validated['default_price'] = $validated['price'];
+        unset($validated['price']);
+
+        if (isset($validated['cost_price'])) {
+            $validated['cost'] = $validated['cost_price'];
+            unset($validated['cost_price']);
+        }
 
         $product = Product::create($validated);
 
@@ -153,12 +178,23 @@ class ProductsController extends BaseApiController
             'price' => 'sometimes|numeric|min:0',
             'cost_price' => 'nullable|numeric|min:0',
             'quantity' => 'sometimes|integer|min:0',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => 'nullable|exists:product_categories,id',
             'warehouse_id' => 'nullable|exists:warehouses,id',
             'barcode' => 'nullable|string|max:100',
             'unit' => 'nullable|string|max:50',
             'min_stock' => 'nullable|integer|min:0',
         ]);
+
+        // Map API fields to database columns
+        if (isset($validated['price'])) {
+            $validated['default_price'] = $validated['price'];
+            unset($validated['price']);
+        }
+
+        if (isset($validated['cost_price'])) {
+            $validated['cost'] = $validated['cost_price'];
+            unset($validated['cost_price']);
+        }
 
         $product->update($validated);
 

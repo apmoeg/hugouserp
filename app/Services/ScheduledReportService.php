@@ -66,12 +66,12 @@ class ScheduledReportService
     protected function fetchSalesReportData(array $filters): array
     {
         try {
-            $query = DB::table('orders')
+            $query = DB::table('sales')
                 ->select([
                     DB::raw('DATE(created_at) as date'),
                     DB::raw('COUNT(*) as orders_count'),
-                    DB::raw('SUM(total) as total_sales'),
-                    DB::raw('AVG(total) as avg_order'),
+                    DB::raw('SUM(grand_total) as total_sales'),
+                    DB::raw('AVG(grand_total) as avg_order'),
                 ]);
 
             if (! empty($filters['date_from'])) {
@@ -101,14 +101,14 @@ class ScheduledReportService
     {
         try {
             $query = DB::table('products')
-                ->select(['name', 'sku', 'quantity', 'price', 'cost'])
-                ->where('is_active', true);
+                ->select(['name', 'sku', 'default_price', 'cost', 'reorder_qty', 'status'])
+                ->where('status', 'active');
 
             if (! empty($filters['category_id'])) {
                 $query->where('category_id', (int) $filters['category_id']);
             }
             if (! empty($filters['low_stock'])) {
-                $query->whereColumn('quantity', '<=', 'reorder_level');
+                $query->whereRaw('COALESCE((SELECT SUM(CASE WHEN direction = "in" THEN qty ELSE -qty END) FROM stock_movements WHERE stock_movements.product_id = products.id), 0) <= products.reorder_point');
             }
 
             return $query->orderBy('name')
@@ -127,13 +127,13 @@ class ScheduledReportService
     {
         try {
             $query = DB::table('customers')
-                ->leftJoin('orders', 'customers.id', '=', 'orders.customer_id')
+                ->leftJoin('sales', 'customers.id', '=', 'sales.customer_id')
                 ->select([
                     'customers.name',
                     'customers.email',
                     'customers.phone',
-                    DB::raw('COUNT(orders.id) as total_orders'),
-                    DB::raw('COALESCE(SUM(orders.total), 0) as total_spent'),
+                    DB::raw('COUNT(sales.id) as total_orders'),
+                    DB::raw('COALESCE(SUM(sales.grand_total), 0) as total_spent'),
                 ])
                 ->groupBy('customers.id', 'customers.name', 'customers.email', 'customers.phone');
 
@@ -156,28 +156,28 @@ class ScheduledReportService
     protected function fetchOrdersReportData(array $filters): array
     {
         try {
-            $query = DB::table('orders')
-                ->leftJoin('customers', 'orders.customer_id', '=', 'customers.id')
+            $query = DB::table('sales')
+                ->leftJoin('customers', 'sales.customer_id', '=', 'customers.id')
                 ->select([
-                    'orders.id',
-                    'orders.order_number',
+                    'sales.id',
+                    'sales.code',
                     'customers.name as customer_name',
-                    'orders.total',
-                    'orders.status',
-                    'orders.created_at',
+                    'sales.grand_total',
+                    'sales.status',
+                    'sales.created_at',
                 ]);
 
             if (! empty($filters['date_from'])) {
-                $query->where('orders.created_at', '>=', $filters['date_from']);
+                $query->where('sales.created_at', '>=', $filters['date_from']);
             }
             if (! empty($filters['date_to'])) {
-                $query->where('orders.created_at', '<=', $filters['date_to']);
+                $query->where('sales.created_at', '<=', $filters['date_to']);
             }
             if (! empty($filters['status'])) {
-                $query->where('orders.status', $filters['status']);
+                $query->where('sales.status', $filters['status']);
             }
 
-            return $query->orderByDesc('orders.created_at')
+            return $query->orderByDesc('sales.created_at')
                 ->limit(500)
                 ->get()
                 ->map(fn ($row) => (array) $row)

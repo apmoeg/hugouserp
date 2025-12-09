@@ -2,6 +2,7 @@
 
 use App\Console\Commands\ClosePosDay;
 use App\Console\Commands\SendScheduledReports;
+use App\Console\Commands\SystemDiagnostics;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -84,6 +85,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
         SendScheduledReports::class,
         ClosePosDay::class,
+        SystemDiagnostics::class,
     ])
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('reports:send-scheduled')

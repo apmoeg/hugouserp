@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\OrdersController;
 use App\Http\Controllers\Api\V1\POSController;
 use App\Http\Controllers\Api\V1\ProductsController;
 use App\Http\Controllers\Api\V1\WebhooksController;
+use App\Http\Controllers\Internal\DiagnosticsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -17,6 +18,11 @@ Route::prefix('v1')->group(function () {
             'version' => 'v1',
             'timestamp' => now()->toIso8601String(),
         ]);
+    });
+
+    // Internal diagnostics endpoint
+    Route::prefix('internal')->middleware(['auth:sanctum', 'throttle:api'])->group(function () {
+        Route::get('/diagnostics', [DiagnosticsController::class, 'index']);
     });
 
     // Branch-scoped POS routes (for frontend POS terminal)

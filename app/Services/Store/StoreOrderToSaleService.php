@@ -62,6 +62,9 @@ class StoreOrderToSaleService
                     case 'source_id':
                         $data[$field] = $order->getKey();
                         break;
+                    case 'store_order_id':
+                        $data[$field] = $order->getKey();
+                        break;
                 }
             }
 
@@ -71,17 +74,6 @@ class StoreOrderToSaleService
 
             /** @var Sale $sale */
             $sale = $saleModel->newQuery()->create($data);
-
-            if (in_array('store_order_id', $fillable, true)) {
-                $sale->store_order_id = $order->getKey();
-                $sale->save();
-            } elseif (method_exists($order, 'sale')) {
-                try {
-                    $order->sale()->save($sale);
-                } catch (\Throwable $e) {
-                    // ignore
-                }
-            }
 
             try {
                 if (class_exists(SaleItem::class)) {
