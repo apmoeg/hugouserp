@@ -38,6 +38,11 @@ class StoreOrder extends Model
         return $this->hasOne(Sale::class);
     }
 
+    public function branch()
+    {
+        return $this->belongsTo(\App\Models\Branch::class);
+    }
+
     public function getSourceAttribute(): ?string
     {
         $payload = $this->payload;
