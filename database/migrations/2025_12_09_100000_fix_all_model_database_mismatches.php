@@ -37,43 +37,21 @@ return new class extends Migration
             });
         }
 
-        // 3. Document Activities table - Add details, ip_address, and user_agent
+        // 3. Document Activities table - Add details column
         if (Schema::hasTable('document_activities')) {
             Schema::table('document_activities', function (Blueprint $table) {
                 if (!Schema::hasColumn('document_activities', 'details')) {
                     $table->json('details')->nullable()->after('action');
                 }
-                // ip_address and user_agent already exist in the schema, check if needed
-                if (!Schema::hasColumn('document_activities', 'ip_address')) {
-                    $table->string('ip_address', 45)->nullable()->after('details');
-                }
-                if (!Schema::hasColumn('document_activities', 'user_agent')) {
-                    $table->string('user_agent')->nullable()->after('ip_address');
-                }
             });
         }
 
-        // 4. Document Shares table - Add user_id, shared_by, permission, expires_at, access_count, last_accessed_at
+        // 4. Document Shares table - Add user_id with foreign key
         if (Schema::hasTable('document_shares')) {
             Schema::table('document_shares', function (Blueprint $table) {
                 if (!Schema::hasColumn('document_shares', 'user_id')) {
                     $table->unsignedBigInteger('user_id')->nullable()->after('document_id');
                     $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
-                }
-                if (!Schema::hasColumn('document_shares', 'shared_by')) {
-                    // shared_by already exists in the schema, skip
-                }
-                if (!Schema::hasColumn('document_shares', 'permission')) {
-                    // permission already exists in the schema, skip
-                }
-                if (!Schema::hasColumn('document_shares', 'expires_at')) {
-                    // expires_at already exists in the schema, skip
-                }
-                if (!Schema::hasColumn('document_shares', 'access_count')) {
-                    // access_count already exists in the schema, skip
-                }
-                if (!Schema::hasColumn('document_shares', 'last_accessed_at')) {
-                    // last_accessed_at already exists in the schema, skip
                 }
             });
         }

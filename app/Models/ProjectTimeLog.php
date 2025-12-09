@@ -100,11 +100,11 @@ class ProjectTimeLog extends Model
     // Helper methods for backwards compatibility
     public function getLogDateAttribute($value)
     {
-        return $value ?? $this->date;
+        return $value ?? ($this->attributes['date'] ?? null);
     }
 
     public function getUserIdAttribute($value)
     {
-        return $value ?? $this->employee_id;
+        return $value ?? ($this->attributes['employee_id'] ?? null);
     }
 }
