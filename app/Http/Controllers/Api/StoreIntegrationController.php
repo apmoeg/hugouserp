@@ -11,6 +11,7 @@ use App\Models\StoreOrder;
 use App\Services\Store\StoreOrderToSaleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class StoreIntegrationController extends Controller
 {
@@ -150,6 +151,14 @@ class StoreIntegrationController extends Controller
         ]);
     }
 
+    /**
+     * Store order endpoint.
+     * 
+     * Handles store order creation with best-effort conversion to Sale.
+     * If conversion fails, the error is logged but the API response remains stable (201 Created).
+     * This ensures external integrations remain reliable while allowing internal diagnosis
+     * of conversion issues through logs.
+     */
     public function storeOrder(Request $request, StoreOrderToSaleService $converter): JsonResponse
     {
         $user = $request->user();
@@ -229,11 +238,19 @@ class StoreIntegrationController extends Controller
             // ignore
         }
 
-        // Auto-convert to Sale
+        // Auto-convert to Sale (best-effort with error logging)
         try {
             $converter->convert($order);
         } catch (\Throwable $e) {
-            // ignore to keep API stable
+            // Log conversion failure with context for diagnosis
+            Log::warning('Store order conversion to sale failed', [
+                'order_id' => $order->id,
+                'external_id' => $order->external_order_id,
+                'branch_id' => $order->branch_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            // Keep API response stable despite conversion failure
         }
 
         return response()->json([

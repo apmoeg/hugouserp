@@ -40,7 +40,7 @@ class BackupDatabase extends Command
                 'request_id' => app()->bound('request_id') ? app('request_id') : null,
             ]);
 
-            $result = $this->backupService->run();
+            $result = $this->backupService->run($verify);
             $path = (string) ($result['path'] ?? '');
             $size = (int) ($result['size'] ?? 0);
 

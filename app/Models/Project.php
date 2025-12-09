@@ -119,7 +119,7 @@ class Project extends Model
 
     public function scopeOverBudget($query)
     {
-        return $query->whereRaw('(SELECT SUM(hours * hourly_rate) FROM project_time_logs WHERE project_id = projects.id) + 
+        return $query->whereRaw('COALESCE((SELECT SUM(hours * hourly_rate) FROM project_time_logs WHERE project_id = projects.id), 0) + 
                                  (SELECT COALESCE(SUM(amount), 0) FROM project_expenses WHERE project_id = projects.id AND status = "approved") > budget');
     }
 

@@ -187,9 +187,20 @@ class DepreciationService
     }
 
     /**
-     * Post depreciation entries to accounting
-     * Creates journal entries for depreciation
-     * TODO: Implement actual journal entry creation via AccountingService
+     * Post depreciation entries to accounting.
+     * 
+     * Currently implements interim behavior: marks depreciation as "posted"
+     * without creating actual journal entries. This allows the depreciation
+     * workflow to continue while the full accounting integration is pending.
+     * 
+     * TODO: Create actual journal entries via AccountingService:
+     *   - DR: Depreciation Expense (requires account mapping: fixed_assets.depreciation_expense)
+     *   - CR: Accumulated Depreciation (requires account mapping: fixed_assets.accumulated_depreciation)
+     *   - Link journal_entry_id to the depreciation record
+     * 
+     * @param AssetDepreciation $depreciation The depreciation record to post
+     * @throws \Exception If depreciation is already posted
+     * @return void
      */
     public function postDepreciationToAccounting(AssetDepreciation $depreciation): void
     {
@@ -199,16 +210,14 @@ class DepreciationService
 
         $asset = $depreciation->asset;
         
-        // TODO: Create a journal entry like:
-        // DR: Depreciation Expense
-        // CR: Accumulated Depreciation
-        // This requires AccountMapping configuration for fixed assets
-        
-        // For now, we just mark as posted
+        // Interim behavior: mark as posted without creating journal entry
+        // Full implementation requires AccountMapping configuration for:
+        //   1. Depreciation Expense account (debit)
+        //   2. Accumulated Depreciation account (credit)
         DB::transaction(function () use ($depreciation) {
             $depreciation->update([
                 'status' => 'posted',
-                // TODO: Set journal_entry_id after creating the entry
+                // TODO: Set journal_entry_id once journal entry is created
             ]);
         });
     }

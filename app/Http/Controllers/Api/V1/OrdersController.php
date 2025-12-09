@@ -107,19 +107,29 @@ class OrdersController extends BaseApiController
                     $product = null;
 
                     if (isset($item['product_id'])) {
-                        $product = Product::find($item['product_id']);
+                        // Restrict product lookup to current store branch
+                        $query = Product::query();
+                        if ($store?->branch_id) {
+                            $query->where('branch_id', $store->branch_id);
+                        }
+                        $product = $query->find($item['product_id']);
                     } elseif (isset($item['external_id']) && $store) {
                         $mapping = ProductStoreMapping::where('store_id', $store->id)
                             ->where('external_id', $item['external_id'])
                             ->first();
 
                         if ($mapping) {
-                            $product = $mapping->product;
+                            // Verify product belongs to current branch
+                            if ($store->branch_id && $mapping->product->branch_id !== $store->branch_id) {
+                                $product = null;
+                            } else {
+                                $product = $mapping->product;
+                            }
                         }
                     }
 
                     if (! $product) {
-                        throw new \Exception(__('Product not found').': '.($item['product_id'] ?? $item['external_id']));
+                        throw new \Exception(__('Product not available for this branch').': '.($item['product_id'] ?? $item['external_id']));
                     }
 
                     $lineTotal = ($item['price'] * $item['quantity']) - ($item['discount'] ?? 0);

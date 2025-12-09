@@ -23,7 +23,7 @@ class BackupService implements BackupServiceInterface
         $this->dir = (string) config('backup.dir', 'backups');
     }
 
-    public function run(bool $verify = true): string
+    public function run(bool $verify = true): array
     {
         return $this->handleServiceOperation(
             callback: function () use ($verify) {
@@ -40,10 +40,47 @@ class BackupService implements BackupServiceInterface
                     throw new \RuntimeException('Backup file missing after run.');
                 }
 
-                return $path;
+                $size = Storage::disk($this->disk)->exists($path) 
+                    ? Storage::disk($this->disk)->size($path) 
+                    : 0;
+
+                return [
+                    'path' => $path,
+                    'size' => $size,
+                ];
             },
             operation: 'run',
             context: ['verify' => $verify]
+        );
+    }
+
+    public function verify(array $result): bool
+    {
+        return $this->handleServiceOperation(
+            callback: function () use ($result) {
+                $path = $result['path'] ?? '';
+                
+                if (empty($path)) {
+                    return false;
+                }
+
+                // Check if file exists
+                if (! Storage::disk($this->disk)->exists($path)) {
+                    return false;
+                }
+
+                // Check if file has content (size > 0)
+                $size = Storage::disk($this->disk)->size($path);
+                if ($size <= 0) {
+                    return false;
+                }
+
+                // Basic verification passed
+                return true;
+            },
+            operation: 'verify',
+            context: ['path' => $result['path'] ?? ''],
+            defaultValue: false
         );
     }
 

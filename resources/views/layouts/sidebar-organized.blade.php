@@ -1,4 +1,4 @@
-{{-- resources/views/layouts/sidebar-enhanced.blade.php --}}
+{{-- resources/views/layouts/sidebar-organized.blade.php --}}
 @php
     $dir = app()->getLocale() === 'ar' ? 'rtl' : 'ltr';
     $currentRoute = request()->route()?->getName() ?? '';
@@ -22,10 +22,27 @@
         return $user->can($permission);
     };
     
-    // Check if module is enabled (from config/modules.php or database)
+    // Check if module is enabled (honors settings overrides, branch-specific config, and config fallbacks)
+    // Returns true if no branch context exists (backward compatible default behavior)
     $moduleEnabled = function($moduleName) {
-        // TODO: Implement module toggle check from settings
-        return true; // For now, all modules are enabled
+        $branchId = current_branch_id();
+        
+        // 1. Check branch-specific setting override (highest priority)
+        if ($branchId) {
+            $branchSetting = setting("modules.{$moduleName}.branch.{$branchId}.enabled");
+            if ($branchSetting !== null) {
+                return (bool) $branchSetting;
+            }
+        }
+        
+        // 2. Check global setting override (medium priority)
+        $globalSetting = setting("modules.{$moduleName}.enabled");
+        if ($globalSetting !== null) {
+            return (bool) $globalSetting;
+        }
+        
+        // 3. Fallback to config file (lowest priority)
+        return (bool) config("modules.{$moduleName}.enabled", true);
     };
 @endphp
 <aside
