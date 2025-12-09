@@ -21,12 +21,14 @@ class Branch extends BaseModel
         'timezone',
         'currency',
         'is_main',
+        'parent_id',
         'settings',
     ];
 
     protected $casts = [
         'is_active' => 'bool',
         'is_main' => 'bool',
+        'parent_id' => 'integer',
         'settings' => 'array',
     ];
 
