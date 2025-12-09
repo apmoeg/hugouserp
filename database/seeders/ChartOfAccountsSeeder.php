@@ -163,17 +163,26 @@ class ChartOfAccountsSeeder extends Seeder
         ]);
 
         // Tax Recoverable is an asset (receivable from government)
-        $taxRecoverable = Account::create([
-            'branch_id' => $branchId,
-            'account_number' => '1150',
-            'name' => 'Tax Recoverable',
-            'name_ar' => 'الضرائب القابلة للاسترداد',
-            'type' => 'asset',
-            'account_category' => 'current',
-            'parent_id' => $currentAssets->id,
-            'is_system_account' => true,
-            'is_active' => true,
-        ]);
+        // Find the Current Assets parent account
+        $currentAssets = Account::where('branch_id', $branchId)
+            ->where('account_number', '1000')
+            ->first();
+
+        if ($currentAssets) {
+            Account::create([
+                'branch_id' => $branchId,
+                'account_number' => '1150',
+                'name' => 'Tax Recoverable',
+                'name_ar' => 'الضرائب القابلة للاسترداد',
+                'type' => 'asset',
+                'account_category' => 'current',
+                'parent_id' => $currentAssets->id,
+                'is_system_account' => true,
+                'is_active' => true,
+            ]);
+        } else {
+            $this->command->warn('Current Assets parent account not found. Skipping Tax Recoverable account creation.');
+        }
 
         Account::create([
             'branch_id' => $branchId,
