@@ -154,8 +154,8 @@ class Index extends Component
                 ->whereMonth('sales.created_at', now()->month)
                 ->when(! $this->isAdmin && $this->branchId, fn ($q) => $q->where('sales.branch_id', $this->branchId))
                 ->whereNull('sales.deleted_at')
-                ->select('sale_payments.method', DB::raw('COUNT(*) as count'), DB::raw('SUM(sale_payments.amount) as total'))
-                ->groupBy('sale_payments.method')
+                ->select('sale_payments.payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(sale_payments.amount) as total'))
+                ->groupBy('sale_payments.payment_method')
                 ->get();
 
             $paymentMethodsData = [
@@ -207,16 +207,22 @@ class Index extends Component
         $cacheKey = "{$this->getCachePrefix()}:low_stock";
 
         $this->lowStockProducts = Cache::remember($cacheKey, $this->cacheTtl, function () {
+            $stockExpr = \App\Services\StockService::getStockCalculationExpression();
+            
             return $this->scopeProductsQuery(Product::query())
+                ->select('products.*')
+                ->selectRaw("{$stockExpr} as current_quantity")
                 ->with('category')
-                ->whereColumn('quantity', '<=', 'min_stock')
-                ->orderBy('quantity')
+                ->whereRaw("{$stockExpr} <= products.min_stock")
+                ->where('products.min_stock', '>', 0)
+                ->where('products.track_stock_alerts', true)
+                ->orderByRaw($stockExpr)
                 ->limit(5)
                 ->get()
                 ->map(fn ($p) => [
                     'id' => $p->id,
                     'name' => $p->name,
-                    'quantity' => $p->quantity,
+                    'quantity' => $p->current_quantity ?? 0,
                     'min_stock' => $p->min_stock,
                     'category' => $p->category?->name ?? '-',
                 ])

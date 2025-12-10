@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Livewire\Admin\Reports;
 
 use App\Models\Product;
+use App\Services\StockService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -22,13 +24,15 @@ class InventoryChartsDashboard extends Component
             abort(403);
         }
 
-        $query = Product::query();
+        $query = Product::query()
+            ->select('products.id', 'products.sku', 'products.name')
+            ->selectRaw(StockService::getStockCalculationExpression().' as current_stock');
 
         if ($this->branchId) {
             $query->where('branch_id', $this->branchId);
         }
 
-        $products = $query->orderBy('current_stock')->get(['id', 'sku', 'name', 'current_stock']);
+        $products = $query->orderBy('current_stock')->get();
 
         $totalProducts = $products->count();
         $totalStock = (float) $products->sum('current_stock');

@@ -193,15 +193,15 @@ class ScheduledReportService
     {
         try {
             $query = DB::table('products')
-                ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+                ->leftJoin('product_categories', 'products.category_id', '=', 'product_categories.id')
                 ->select([
                     'products.name',
                     'products.sku',
-                    'categories.name as category',
+                    'product_categories.name as category',
                     'products.price',
                     'products.cost',
-                    'products.quantity',
-                ]);
+                ])
+                ->selectRaw('COALESCE((SELECT SUM(CASE WHEN direction = \'in\' THEN qty ELSE -qty END) FROM stock_movements WHERE stock_movements.product_id = products.id), 0) as quantity');
 
             if (! empty($filters['category_id'])) {
                 $query->where('products.category_id', (int) $filters['category_id']);

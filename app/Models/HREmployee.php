@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class HREmployee extends BaseModel
 {
+    protected $table = 'hr_employees';
+
     protected ?string $moduleKey = 'hr';
 
     protected $fillable = ['branch_id', 'user_id', 'code', 'name', 'position', 'salary', 'is_active', 'extra_attributes'];

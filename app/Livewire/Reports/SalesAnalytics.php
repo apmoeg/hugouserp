@@ -288,7 +288,7 @@ class SalesAnalytics extends Component
     {
         $query = DB::table('sale_payments')
             ->join('sales', 'sale_payments.sale_id', '=', 'sales.id')
-            ->select('sale_payments.method')
+            ->select('sale_payments.payment_method')
             ->selectRaw('COUNT(*) as count')
             ->selectRaw('SUM(sale_payments.amount) as total')
             ->whereBetween('sales.created_at', [$this->dateFrom.' 00:00:00', $this->dateTo.' 23:59:59'])
@@ -298,10 +298,10 @@ class SalesAnalytics extends Component
             $query->where('sales.branch_id', $this->branchId);
         }
 
-        $results = $query->groupBy('sale_payments.method')->get();
+        $results = $query->groupBy('sale_payments.payment_method')->get();
 
         $this->paymentBreakdown = [
-            'labels' => $results->pluck('method')->map(fn ($m) => ucfirst($m ?? 'cash'))->toArray(),
+            'labels' => $results->pluck('payment_method')->map(fn ($m) => ucfirst($m ?? 'cash'))->toArray(),
             'counts' => $results->pluck('count')->map(fn ($v) => (int) $v)->toArray(),
             'totals' => $results->pluck('total')->map(fn ($v) => (float) $v)->toArray(),
         ];
@@ -342,9 +342,9 @@ class SalesAnalytics extends Component
         $query = SaleItem::query()
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
-            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->leftJoin('product_categories', 'products.category_id', '=', 'product_categories.id')
             ->select([
-                'categories.name as category_name',
+                'product_categories.name as category_name',
             ])
             ->selectRaw('SUM(sale_items.qty) as total_qty')
             ->selectRaw('SUM(sale_items.line_total) as total_revenue')
@@ -355,7 +355,7 @@ class SalesAnalytics extends Component
         }
 
         $results = $query
-            ->groupBy('categories.name')
+            ->groupBy('product_categories.name')
             ->orderByDesc('total_revenue')
             ->limit(10)
             ->get();

@@ -62,7 +62,7 @@ class Index extends Component
             return [
                 'total_centers' => $query->count(),
                 'active_centers' => $query->where('status', 'active')->count(),
-                'total_capacity' => $query->sum('capacity_per_day'),
+                'total_capacity' => $query->sum('capacity_per_hour'),
                 'avg_cost_per_hour' => $query->avg('cost_per_hour'),
             ];
         });
