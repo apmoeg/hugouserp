@@ -14,7 +14,7 @@
                     <x-quick-add-link 
                         :route="route('app.expenses.categories.index')" 
                         label="{{ __('Add Category') }}"
-                        tooltip="{{ __('Create new expense category') }}" />
+                        permission="expenses.manage" />
                 </div>
                 <select wire:model="category_id" class="erp-input">
                     <option value="">{{ __('Select Category') }}</option>

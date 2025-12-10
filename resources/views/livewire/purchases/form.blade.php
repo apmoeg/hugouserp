@@ -15,9 +15,9 @@
                     <div class="flex items-center justify-between">
                         <label class="erp-label">{{ __('Supplier') }} <span class="text-red-500">*</span></label>
                         <x-quick-add-link 
-                            route="suppliers.index" 
+                            :route="route('suppliers.create')" 
                             label="{{ __('Add Supplier') }}"
-                            tooltip="{{ __('Create new supplier') }}" />
+                            permission="suppliers.manage" />
                     </div>
                     <select wire:model="supplier_id" class="erp-input @error('supplier_id') border-red-500 @enderror">
                         <option value="">{{ __('Select Supplier') }}</option>
@@ -32,9 +32,9 @@
                     <div class="flex items-center justify-between">
                         <label class="erp-label">{{ __('Warehouse') }}</label>
                         <x-quick-add-link 
-                            route="warehouse.index" 
+                            :route="route('app.warehouse.index')" 
                             label="{{ __('Add Warehouse') }}"
-                            tooltip="{{ __('Create new warehouse') }}" />
+                            permission="warehouse.manage" />
                     </div>
                     <select wire:model="warehouse_id" class="erp-input">
                         <option value="">{{ __('Select Warehouse') }}</option>
@@ -79,9 +79,9 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-slate-700">{{ __('Products') }}</h3>
                 <x-quick-add-link 
-                    route="inventory.products.create" 
+                    :route="route('app.inventory.products.create')" 
                     label="{{ __('Add Product') }}"
-                    tooltip="{{ __('Create new product') }}" />
+                    permission="inventory.products.view" />
             </div>
             
             <div class="mb-4">

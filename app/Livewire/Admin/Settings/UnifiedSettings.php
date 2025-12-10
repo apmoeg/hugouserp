@@ -74,7 +74,7 @@ class UnifiedSettings extends Component
         $this->company_phone = $settings['company.phone'] ?? '';
         $this->timezone = $settings['app.timezone'] ?? config('app.timezone', 'UTC');
         $this->date_format = $settings['app.date_format'] ?? 'Y-m-d';
-        $this->default_currency = $settings['app.default_currency'] ?? 'USD';
+        $this->default_currency = $settings['general.default_currency'] ?? 'USD';
 
         // Load other settings
         $this->multi_branch = (bool) ($settings['system.multi_branch'] ?? false);
@@ -130,9 +130,10 @@ class UnifiedSettings extends Component
         $this->setSetting('company.phone', $this->company_phone, 'general');
         $this->setSetting('app.timezone', $this->timezone, 'general');
         $this->setSetting('app.date_format', $this->date_format, 'general');
-        $this->setSetting('app.default_currency', $this->default_currency, 'general');
+        $this->setSetting('general.default_currency', $this->default_currency, 'general');
 
         Cache::forget('system_settings');
+        Cache::forget('system_settings_all');
         session()->flash('success', __('General settings saved successfully'));
     }
 
@@ -142,6 +143,7 @@ class UnifiedSettings extends Component
         $this->setSetting('system.require_branch_selection', $this->require_branch_selection, 'branch');
 
         Cache::forget('system_settings');
+        Cache::forget('system_settings_all');
         session()->flash('success', __('Branch settings saved successfully'));
     }
 
@@ -156,6 +158,7 @@ class UnifiedSettings extends Component
         $this->setSetting('security.enable_audit_log', $this->enable_audit_log, 'security');
 
         Cache::forget('system_settings');
+        Cache::forget('system_settings_all');
         session()->flash('success', __('Security settings saved successfully'));
     }
 
@@ -170,6 +173,7 @@ class UnifiedSettings extends Component
         $this->setSetting('advanced.cache_ttl', $this->cache_ttl, 'advanced');
 
         Cache::forget('system_settings');
+        Cache::forget('system_settings_all');
         session()->flash('success', __('Advanced settings saved successfully'));
     }
 

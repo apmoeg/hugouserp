@@ -12,9 +12,9 @@
                 <div class="flex items-center justify-between">
                     <label class="erp-label">{{ __('Category') }}</label>
                     <x-quick-add-link 
-                        route="admin.income-categories.index" 
+                        :route="route('app.income.categories.index')" 
                         label="{{ __('Add Category') }}"
-                        tooltip="{{ __('Create new income category') }}" />
+                        permission="income.manage" />
                 </div>
                 <select wire:model="category_id" class="erp-input">
                     <option value="">{{ __('Select Category') }}</option>

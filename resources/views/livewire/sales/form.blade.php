@@ -17,7 +17,7 @@
                         <x-quick-add-link 
                             :route="route('customers.create')" 
                             label="{{ __('Add Customer') }}"
-                            tooltip="{{ __('Create new customer') }}" />
+                            permission="customers.manage" />
                     </div>
                     <select wire:model="customer_id" class="erp-input @error('customer_id') border-red-500 @enderror">
                         <option value="">{{ __('Walk-in Customer') }}</option>
@@ -34,7 +34,7 @@
                         <x-quick-add-link 
                             :route="route('app.warehouse.index')" 
                             label="{{ __('Add Warehouse') }}"
-                            tooltip="{{ __('Create new warehouse') }}" />
+                            permission="warehouse.manage" />
                     </div>
                     <select wire:model="warehouse_id" class="erp-input">
                         <option value="">{{ __('Select Warehouse') }}</option>
@@ -81,7 +81,7 @@
                 <x-quick-add-link 
                     :route="route('app.inventory.products.create')" 
                     label="{{ __('Add Product') }}"
-                    tooltip="{{ __('Create new product') }}" />
+                    permission="inventory.products.view" />
             </div>
             
             <div class="mb-4">
