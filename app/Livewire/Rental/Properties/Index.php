@@ -51,9 +51,9 @@ class Index extends Component
     public function openModal(?int $id = null): void
     {
         if ($id) {
-            $this->authorize('rentals.manage');
+            $this->authorize('rental.properties.update');
         } else {
-            $this->authorize('rentals.create');
+            $this->authorize('rental.properties.create');
         }
 
         $this->resetForm();
@@ -87,9 +87,9 @@ class Index extends Component
     public function save(): void
     {
         if ($this->editingId) {
-            $this->authorize('rentals.manage');
+            $this->authorize('rental.properties.update');
         } else {
-            $this->authorize('rentals.create');
+            $this->authorize('rental.properties.create');
         }
 
         $validated = $this->validate([
@@ -117,7 +117,7 @@ class Index extends Component
 
     public function delete(int $id): void
     {
-        $this->authorize('rentals.manage');
+        $this->authorize('rental.properties.update');
 
         Property::findOrFail($id)->delete();
         Cache::forget('properties_stats_'.(auth()->user()?->branch_id ?? 'all'));

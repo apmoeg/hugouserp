@@ -428,12 +428,12 @@ Route::middleware('auth')->group(function () {
         // Properties management
         Route::get('/properties', \App\Livewire\Rental\Properties\Index::class)
             ->name('properties.index')
-            ->middleware('can:rentals.view');
+            ->middleware('can:rental.properties.update');
 
         // Tenants management
         Route::get('/tenants', \App\Livewire\Rental\Tenants\Index::class)
             ->name('tenants.index')
-            ->middleware('can:rentals.view');
+            ->middleware('can:rental.tenants.update');
 
         // Rental reports dashboard
         Route::get('/reports', RentalReportsDashboard::class)
