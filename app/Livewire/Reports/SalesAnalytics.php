@@ -6,6 +6,7 @@ namespace App\Livewire\Reports;
 
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Services\DatabaseCompatibilityService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -38,6 +39,13 @@ class SalesAnalytics extends Component
     public array $hourlyDistribution = [];
 
     public array $categoryPerformance = [];
+    
+    protected DatabaseCompatibilityService $dbService;
+    
+    public function boot(DatabaseCompatibilityService $dbService): void
+    {
+        $this->dbService = $dbService;
+    }
 
     public function mount(): void
     {
@@ -178,13 +186,11 @@ class SalesAnalytics extends Component
         $days = Carbon::parse($this->dateFrom)->diffInDays(Carbon::parse($this->dateTo));
         $groupBy = $days > 60 ? 'month' : ($days > 14 ? 'week' : 'day');
 
-        $driver = DB::getDriverName();
-        $isPostgres = $driver === 'pgsql';
-
+        // Use database-portable date truncation
         $dateFormat = match ($groupBy) {
-            'month' => $isPostgres ? "DATE_TRUNC('month', created_at)" : "DATE_FORMAT(created_at, '%Y-%m-01')",
-            'week' => $isPostgres ? "DATE_TRUNC('week', created_at)" : 'DATE(DATE_SUB(created_at, INTERVAL WEEKDAY(created_at) DAY))',
-            default => 'DATE(created_at)',
+            'month' => $this->dbService->monthTruncateExpression('created_at'),
+            'week' => $this->dbService->weekTruncateExpression('created_at'),
+            default => $this->dbService->dateExpression('created_at'),
         };
 
         $query = Sale::query()
@@ -309,9 +315,7 @@ class SalesAnalytics extends Component
 
     protected function loadHourlyDistribution(): void
     {
-        $driver = DB::getDriverName();
-        $isPostgres = $driver === 'pgsql';
-        $hourExpr = $isPostgres ? 'EXTRACT(HOUR FROM created_at)::integer' : 'HOUR(created_at)';
+        $hourExpr = $this->dbService->hourExpression('created_at');
 
         $query = Sale::query()
             ->selectRaw("{$hourExpr} as hour")
