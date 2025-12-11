@@ -579,9 +579,27 @@ Route::middleware('auth')->group(function () {
     });
 
     // ACCOUNTING MODULE (kept separate as it's more complex)
-    Route::get('/app/accounting', AccountingIndexPage::class)
-        ->name('app.accounting.index')
-        ->middleware('can:accounting.view');
+    Route::prefix('app/accounting')->name('app.accounting.')->group(function () {
+        Route::get('/', AccountingIndexPage::class)
+            ->name('index')
+            ->middleware('can:accounting.view');
+
+        Route::get('/accounts/create', \App\Livewire\Accounting\Accounts\Form::class)
+            ->name('accounts.create')
+            ->middleware('can:accounting.create');
+
+        Route::get('/accounts/{account}/edit', \App\Livewire\Accounting\Accounts\Form::class)
+            ->name('accounts.edit')
+            ->middleware('can:accounting.view');
+
+        Route::get('/journal-entries/create', \App\Livewire\Accounting\JournalEntries\Form::class)
+            ->name('journal-entries.create')
+            ->middleware('can:accounting.create');
+
+        Route::get('/journal-entries/{journalEntry}/edit', \App\Livewire\Accounting\JournalEntries\Form::class)
+            ->name('journal-entries.edit')
+            ->middleware('can:accounting.view');
+    });
 
     // EXPENSES & INCOME (financial transactions)
     Route::prefix('app/expenses')->name('app.expenses.')->group(function () {

@@ -51,7 +51,7 @@
         <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white shadow-lg">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-purple-100 text-sm">{{ __('Daily Capacity') }}</p>
+                    <p class="text-purple-100 text-sm">{{ __('Total Capacity/Hour') }}</p>
                     <p class="text-2xl font-bold">{{ number_format($stats['total_capacity']) }}</p>
                 </div>
                 <div class="bg-white/20 rounded-lg p-3">
@@ -110,7 +110,7 @@
                             @endif
                         </th>
                         <th>{{ __('Type') }}</th>
-                        <th>{{ __('Capacity/Day') }}</th>
+                        <th>{{ __('Capacity/Hour') }}</th>
                         <th>{{ __('Cost/Hour') }}</th>
                         <th>{{ __('Working Hours') }}</th>
                         <th>{{ __('Status') }}</th>
@@ -144,7 +144,7 @@
                                     </span>
                                 @endif
                             </td>
-                            <td>{{ number_format((float)$workCenter->capacity_per_day, 2) }}</td>
+                            <td>{{ number_format((float)$workCenter->capacity_per_hour, 2) }}</td>
                             <td>{{ number_format((float)$workCenter->cost_per_hour, 2) }}</td>
                             <td>
                                 <div class="text-xs">
