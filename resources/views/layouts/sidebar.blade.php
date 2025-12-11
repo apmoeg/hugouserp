@@ -190,7 +190,7 @@
 
             @if($canAccess('spares.compatibility.manage'))
             <a href="{{ route('app.inventory.vehicle-models') }}"
-               class="sidebar-link-secondary ms-4 {{ $isActive('inventory.vehicle-models') ? 'active' : '' }}">
+               class="sidebar-link-secondary ms-4 {{ $isActive('app.inventory.vehicle-models') ? 'active' : '' }}">
                 <span class="text-base">🚗</span>
                 <span class="text-sm">{{ __('Vehicle Models') }}</span>
             </a>
@@ -198,20 +198,20 @@
 
             @if($canAccess('inventory.stock.alerts.view'))
             <a href="{{ route('app.inventory.stock-alerts') }}"
-               class="sidebar-link-secondary ms-4 {{ $isActive('inventory.stock-alerts') ? 'active' : '' }}">
+               class="sidebar-link-secondary ms-4 {{ $isActive('app.inventory.stock-alerts') ? 'active' : '' }}">
                 <span class="text-base">⚠️</span>
                 <span class="text-sm">{{ __('Low Stock Alerts') }}</span>
             </a>
             @endif
 
             <a href="{{ route('app.inventory.categories.index') }}"
-               class="sidebar-link-secondary ms-4 {{ $isActive('inventory.categories') ? 'active' : '' }}">
+               class="sidebar-link-secondary ms-4 {{ $isActive('app.inventory.categories') ? 'active' : '' }}">
                 <span class="text-base">📂</span>
                 <span class="text-sm">{{ __('Categories') }}</span>
             </a>
 
             <a href="{{ route('app.inventory.units.index') }}"
-               class="sidebar-link-secondary ms-4 {{ $isActive('inventory.units') ? 'active' : '' }}">
+               class="sidebar-link-secondary ms-4 {{ $isActive('app.inventory.units') ? 'active' : '' }}">
                 <span class="text-base">📏</span>
                 <span class="text-sm">{{ __('Units of Measure') }}</span>
             </a>
@@ -223,13 +223,13 @@
             </a>
 
             <a href="{{ route('app.inventory.batches.index') }}"
-               class="sidebar-link-secondary ms-4 {{ $isActive('inventory.batches') ? 'active' : '' }}">
+               class="sidebar-link-secondary ms-4 {{ $isActive('app.inventory.batches') ? 'active' : '' }}">
                 <span class="text-base">📦</span>
                 <span class="text-sm">{{ __('Batch Tracking') }}</span>
             </a>
 
             <a href="{{ route('app.inventory.serials.index') }}"
-               class="sidebar-link-secondary ms-4 {{ $isActive('inventory.serials') ? 'active' : '' }}">
+               class="sidebar-link-secondary ms-4 {{ $isActive('app.inventory.serials') ? 'active' : '' }}">
                 <span class="text-base">🔢</span>
                 <span class="text-sm">{{ __('Serial Tracking') }}</span>
             </a>
