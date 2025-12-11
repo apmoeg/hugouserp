@@ -101,7 +101,7 @@ class Form extends Component
             session()->flash('message', __('BOM created successfully.'));
         }
 
-        $this->redirect(route('manufacturing.boms.index'), navigate: true);
+        $this->redirect(route('app.manufacturing.boms.index'), navigate: true);
     }
 
     #[Layout('layouts.app')]

@@ -50,7 +50,7 @@
                                 <td class="font-mono text-sm">#{{ $return->id }}</td>
                                 <td>
                                     @if($return->sale)
-                                        <a href="{{ route('sales.show', $return->sale_id) }}" class="text-emerald-600 hover:text-emerald-800 hover:underline">
+                                        <a href="{{ route('app.sales.show', $return->sale_id) }}" class="text-emerald-600 hover:text-emerald-800 hover:underline">
                                             {{ $return->sale->invoice_number ?: '#' . $return->sale_id }}
                                         </a>
                                     @else

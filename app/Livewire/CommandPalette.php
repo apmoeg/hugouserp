@@ -100,7 +100,7 @@ class CommandPalette extends Component
                     'icon' => '🧾',
                     'name' => "Invoice #{$s->id}",
                     'subtitle' => $s->customer?->name ?? __('Walk-in Customer'),
-                    'url' => route('sales.show', $s),
+                    'url' => route('app.sales.show', $s),
                 ]);
             $results = array_merge($results, $sales->toArray());
         }

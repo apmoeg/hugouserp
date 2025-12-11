@@ -120,7 +120,7 @@
                             @endif
                         </td>
                         <td class="px-3 py-2 whitespace-nowrap text-xs text-end">
-                            <a href="{{ route('rental.contracts.edit', $row->id) }}"
+                            <a href="{{ route('app.rental.contracts.edit', $row->id) }}"
                                class="inline-flex items-center rounded-lg border border-slate-200 dark:border-slate-700 px-2 py-1 text-[11px] font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
                                 <i class="mdi mdi-pencil-outline text-[13px] mr-1"></i>
                                 {{ __('Edit') }}

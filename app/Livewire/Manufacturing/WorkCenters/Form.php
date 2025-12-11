@@ -101,7 +101,7 @@ class Form extends Component
             session()->flash('message', __('Work Center created successfully.'));
         }
 
-        $this->redirect(route('manufacturing.work-centers.index'), navigate: true);
+        $this->redirect(route('app.manufacturing.work-centers.index'), navigate: true);
     }
 
     #[Layout('layouts.app')]

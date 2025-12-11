@@ -153,7 +153,7 @@ class Form extends Component
 
         session()->flash('success', __('GRN saved successfully.'));
 
-        return redirect()->route('purchases.grn.index');
+        return redirect()->route('app.purchases.grn.index');
     }
 
     public function submit(): ?RedirectResponse
@@ -203,7 +203,7 @@ class Form extends Component
 
         session()->flash('success', __('GRN submitted for inspection.'));
 
-        return redirect()->route('purchases.grn.index');
+        return redirect()->route('app.purchases.grn.index');
     }
 
     public function render()

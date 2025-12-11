@@ -163,7 +163,7 @@
             </a>
             
             @if($canAccess('warehouse.view'))
-            <a href="{{ route('warehouse.index') }}"
+            <a href="{{ route('app.warehouse.index') }}"
                class="sidebar-link-secondary {{ $isActive('warehouse') ? 'active' : '' }}">
                 <span class="text-base">🏭</span>
                 <span class="text-sm">{{ __('Warehouses') }}</span>
@@ -194,7 +194,7 @@
                 <span class="text-sm">{{ __('Properties') }}</span>
             </a>
             
-            <a href="{{ route('rental.units.index') }}"
+            <a href="{{ route('app.rental.units.index') }}"
                class="sidebar-link-secondary {{ $isActive('rental.units') ? 'active' : '' }}">
                 <span class="text-base">🏠</span>
                 <span class="text-sm">{{ __('Units') }}</span>
@@ -208,7 +208,7 @@
             @endif
             
             @if($canAccess('rental.contracts.view'))
-            <a href="{{ route('rental.contracts.index') }}"
+            <a href="{{ route('app.rental.contracts.index') }}"
                class="sidebar-link-secondary {{ $isActive('rental.contracts') ? 'active' : '' }}">
                 <span class="text-base">📄</span>
                 <span class="text-sm">{{ __('Contracts') }}</span>
@@ -264,13 +264,13 @@
                 <span class="text-xs uppercase tracking-wide text-slate-500 font-semibold">{{ __('Manufacturing') }}</span>
             </div>
             
-            <a href="{{ route('manufacturing.boms.index') }}"
+            <a href="{{ route('app.manufacturing.boms.index') }}"
                class="sidebar-link-secondary {{ $isActive('manufacturing.boms') ? 'active' : '' }}">
                 <span class="text-base">📋</span>
                 <span class="text-sm">{{ __('Bills of Materials') }}</span>
             </a>
             
-            <a href="{{ route('manufacturing.production-orders.index') }}"
+            <a href="{{ route('app.manufacturing.orders.index') }}"
                class="sidebar-link-secondary {{ $isActive('manufacturing.production-orders') ? 'active' : '' }}">
                 <span class="text-base">⚙️</span>
                 <span class="text-sm">{{ __('Production Orders') }}</span>

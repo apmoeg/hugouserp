@@ -50,7 +50,7 @@
                                 <td class="font-mono text-sm">#{{ $return->id }}</td>
                                 <td>
                                     @if($return->purchase)
-                                        <a href="{{ route('purchases.edit', $return->purchase_id) }}" class="text-emerald-600 hover:text-emerald-800 hover:underline">
+                                        <a href="{{ route('app.purchases.edit', $return->purchase_id) }}" class="text-emerald-600 hover:text-emerald-800 hover:underline">
                                             {{ $return->purchase->reference_no ?: '#' . $return->purchase_id }}
                                         </a>
                                     @else

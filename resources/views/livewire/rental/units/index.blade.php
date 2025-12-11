@@ -33,7 +33,7 @@
                     <option value="maintenance">{{ __('Maintenance') }}</option>
                 </select>
 
-                <a href="{{ route('rental.units.create') }}"
+                <a href="{{ route('app.rental.units.create') }}"
                    class="erp-btn-primary text-xs px-3 py-2">
                     {{ __('Add unit') }}
                 </a>

@@ -139,7 +139,7 @@
         </div>
 
         <div class="flex justify-end gap-2">
-            <a href="{{ route('rental.contracts.index') }}"
+            <a href="{{ route('app.rental.contracts.index') }}"
                class="inline-flex items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800">
                 {{ __('Cancel') }}
             </a>

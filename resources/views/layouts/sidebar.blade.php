@@ -250,7 +250,7 @@
 
         {{-- Warehouse --}}
         @if($canAccess('warehouse.view'))
-        <a href="{{ route('warehouse.index') }}"
+        <a href="{{ route('app.warehouse.index') }}"
            class="sidebar-link bg-gradient-to-r from-orange-500 to-orange-600 {{ $isActive('warehouse') ? 'active ring-2 ring-white/30' : '' }}">
             <span class="text-lg">🏭</span>
             <span class="text-sm font-medium">{{ __('Manage Warehouse') }}</span>
@@ -263,7 +263,7 @@
         {{-- Manufacturing Module --}}
         @if($canAccess('manufacturing.view'))
         <div class="space-y-1">
-            <a href="{{ route('manufacturing.boms.index') }}"
+            <a href="{{ route('app.manufacturing.boms.index') }}"
                class="sidebar-link bg-gradient-to-r from-gray-500 to-gray-600 {{ $isActive('manufacturing') ? 'active ring-2 ring-white/30' : '' }}">
                 <span class="text-lg">🏭</span>
                 <span class="text-sm font-medium">{{ __('Manufacturing') }}</span>
@@ -272,19 +272,19 @@
                 @endif
             </a>
             
-            <a href="{{ route('manufacturing.boms.index') }}"
+            <a href="{{ route('app.manufacturing.boms.index') }}"
                class="sidebar-link-secondary ms-4 {{ $isActive('manufacturing.boms') ? 'active' : '' }}">
                 <span class="text-base">📋</span>
                 <span class="text-sm">{{ __('Bills of Materials') }}</span>
             </a>
             
-            <a href="{{ route('manufacturing.production-orders.index') }}"
+            <a href="{{ route('app.manufacturing.orders.index') }}"
                class="sidebar-link-secondary ms-4 {{ $isActive('manufacturing.production-orders') ? 'active' : '' }}">
                 <span class="text-base">⚙️</span>
                 <span class="text-sm">{{ __('Production Orders') }}</span>
             </a>
             
-            <a href="{{ route('manufacturing.work-centers.index') }}"
+            <a href="{{ route('app.manufacturing.work-centers.index') }}"
                class="sidebar-link-secondary ms-4 {{ $isActive('manufacturing.work-centers') ? 'active' : '' }}">
                 <span class="text-base">🔧</span>
                 <span class="text-sm">{{ __('Work Centers') }}</span>
@@ -341,7 +341,7 @@
             </a>
             
             @if($canAccess('rentals.view'))
-            <a href="{{ route('rental.properties.index') }}"
+            <a href="{{ route('app.rental.properties.index') }}"
                class="sidebar-link-secondary ms-4 {{ $isActive('rental.properties') ? 'active' : '' }}">
                 <span class="text-base">🏢</span>
                 <span class="text-sm">{{ __('Properties') }}</span>
@@ -354,7 +354,7 @@
             @endif
             
             @if($canAccess('rental.contracts.view'))
-            <a href="{{ route('rental.contracts.index') }}"
+            <a href="{{ route('app.rental.contracts.index') }}"
                class="sidebar-link-secondary ms-4 {{ $isActive('rental.contracts') ? 'active' : '' }}">
                 <span class="text-base">📄</span>
                 <span class="text-sm">{{ __('Contracts') }}</span>

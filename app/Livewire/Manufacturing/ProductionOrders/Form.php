@@ -109,7 +109,7 @@ class Form extends Component
             session()->flash('message', __('Production Order created successfully.'));
         }
 
-        $this->redirect(route('manufacturing.production-orders.index'), navigate: true);
+        $this->redirect(route('app.manufacturing.orders.index'), navigate: true);
     }
 
     #[Layout('layouts.app')]

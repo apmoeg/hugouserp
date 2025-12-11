@@ -103,7 +103,7 @@ class Inspection extends Component
 
         session()->flash('success', __('GRN inspection completed and approved.'));
 
-        return redirect()->route('purchases.grn.index');
+        return redirect()->route('app.purchases.grn.index');
     }
 
     public function rejectGRN(): ?RedirectResponse
@@ -123,7 +123,7 @@ class Inspection extends Component
 
         session()->flash('success', __('GRN rejected with inspection notes.'));
 
-        return redirect()->route('purchases.grn.index');
+        return redirect()->route('app.purchases.grn.index');
     }
 
     public function partialAccept(): ?RedirectResponse
@@ -176,7 +176,7 @@ class Inspection extends Component
 
         session()->flash('success', __('GRN marked as partial acceptance.'));
 
-        return redirect()->route('purchases.grn.index');
+        return redirect()->route('app.purchases.grn.index');
     }
 
     public function render()

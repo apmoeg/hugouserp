@@ -85,7 +85,7 @@ class Form extends Component
             session()->flash('success', __('Batch created successfully'));
         }
 
-        $this->redirect(route('inventory.batches.index'));
+        $this->redirect(route('app.inventory.batches.index'));
     }
 
     #[Layout('layouts.app')]
