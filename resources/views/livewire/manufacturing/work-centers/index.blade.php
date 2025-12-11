@@ -17,7 +17,7 @@
         </div>
         <div class="flex items-center gap-2">
             @can('manufacturing.create')
-            <a href="{{ route('manufacturing.work-centers.create') }}" class="erp-btn erp-btn-primary">
+            <a href="{{ route('app.manufacturing.work-centers.create') }}" class="erp-btn erp-btn-primary">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 {{ __('New Work Center') }}
             </a>
@@ -163,14 +163,16 @@
                             <td>
                                 <div class="flex items-center gap-2">
                                     @can('manufacturing.view')
-                                    <a href="{{ route('manufacturing.work-centers.show', $workCenter) }}" class="text-slate-600 hover:text-slate-900" title="{{ __('View') }}">
+                                    {{-- TODO: Add show route when implemented --}}
+                                    <button class="text-slate-400 cursor-not-allowed" title="{{ __('View - Coming Soon') }}" disabled>
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    </a>
+                                    </button>
                                     @endcan
                                     @can('manufacturing.edit')
-                                    <a href="{{ route('manufacturing.work-centers.edit', $workCenter) }}" class="text-emerald-600 hover:text-emerald-900" title="{{ __('Edit') }}">
+                                    {{-- TODO: Add edit route when implemented --}}
+                                    <button class="text-slate-400 cursor-not-allowed" title="{{ __('Edit - Coming Soon') }}" disabled>
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                    </a>
+                                    </button>
                                     @endcan
                                 </div>
                             </td>

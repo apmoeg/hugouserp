@@ -172,7 +172,7 @@
             'key' => 'accounting',
             'label' => __('Accounting'),
             'icon' => '🧮',
-            'route' => 'accounting.index',
+            'route' => 'app.accounting.index',
             'permission' => 'accounting.view',
             'color' => 'from-indigo-500 to-indigo-600',
         ],

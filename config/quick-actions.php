@@ -100,7 +100,7 @@ return [
         [
             'label' => 'Approve Journal Entries',
             'icon' => '✅',
-            'route' => 'accounting.index',
+            'route' => 'app.accounting.index',
             'permission' => 'accounting.view',
             'color' => 'sky',
             'description' => 'Review pending journal entries',

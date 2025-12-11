@@ -238,11 +238,11 @@
 
         {{-- Accounting Module --}}
         @if($canAccess('accounting.view'))
-        <a href="{{ route('accounting.index') }}"
-           class="sidebar-link bg-gradient-to-r from-indigo-500 to-indigo-600 {{ $isActive('accounting') ? 'active ring-2 ring-white/30' : '' }}">
+        <a href="{{ route('app.accounting.index') }}"
+           class="sidebar-link bg-gradient-to-r from-indigo-500 to-indigo-600 {{ $isActive('app.accounting') ? 'active ring-2 ring-white/30' : '' }}">
             <span class="text-lg">🧮</span>
             <span class="text-sm font-medium">{{ __('Accounting Module') }}</span>
-            @if($isActive('accounting'))
+            @if($isActive('app.accounting'))
                 <span class="ms-auto w-2 h-2 rounded-full bg-white animate-pulse"></span>
             @endif
         </a>

@@ -47,7 +47,7 @@ class Form extends Component
 
         if ($journalEntry) {
             // Load lines if not already loaded
-            if (!$journalEntry->relationLoaded('lines')) {
+            if (! $journalEntry->relationLoaded('lines')) {
                 $journalEntry->load('lines');
             }
 
@@ -109,7 +109,7 @@ class Form extends Component
         ];
     }
 
-    protected function withValidator($validator): void
+    public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
             // Check that each line has either debit OR credit (not both, not neither)
@@ -162,7 +162,7 @@ class Form extends Component
                         // Delete existing lines
                         $entry->lines()->delete();
                     } else {
-                        $entry = new JournalEntry();
+                        $entry = new JournalEntry;
                         $entry->branch_id = $user->branch_id ?? 1;
                         $entry->created_by = $user->id;
                     }
@@ -175,7 +175,7 @@ class Form extends Component
 
                     // Create lines
                     foreach ($lines as $line) {
-                        $entryLine = new JournalEntryLine();
+                        $entryLine = new JournalEntryLine;
                         $entryLine->journal_entry_id = $entry->id;
                         $entryLine->account_id = $line['account_id'];
                         $entryLine->description = $line['description'] ?: null;

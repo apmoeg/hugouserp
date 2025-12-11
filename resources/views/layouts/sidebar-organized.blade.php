@@ -225,8 +225,8 @@
             </div>
             
             @if($canAccess('accounting.view'))
-            <a href="{{ route('accounting.index') }}"
-               class="sidebar-link-secondary {{ $isActive('accounting') ? 'active' : '' }}">
+            <a href="{{ route('app.accounting.index') }}"
+               class="sidebar-link-secondary {{ $isActive('app.accounting') ? 'active' : '' }}">
                 <span class="text-base">🧮</span>
                 <span class="text-sm">{{ __('Chart of Accounts') }}</span>
             </a>
