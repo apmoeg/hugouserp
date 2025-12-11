@@ -1,0 +1,87 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Livewire\Helpdesk\Tickets;
+
+use App\Models\Ticket;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+use Livewire\WithPagination;
+
+class Index extends Component
+{
+    use WithPagination;
+
+    public string $search = '';
+    public ?string $status = null;
+    public ?string $priority = null;
+    public ?int $branchId = null;
+
+    public function mount(): void
+    {
+        $user = Auth::user();
+
+        if (! $user || ! $user->can('helpdesk.view')) {
+            abort(403);
+        }
+
+        $this->branchId = $user->branch_id;
+    }
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPriority(): void
+    {
+        $this->resetPage();
+    }
+
+    #[Layout('layouts.app')]
+    public function render()
+    {
+        $user = Auth::user();
+
+        if (! $user || ! $user->can('helpdesk.view')) {
+            abort(403);
+        }
+
+        $query = Ticket::query()
+            ->with(['customer', 'assignedAgent', 'category', 'branch'])
+            ->when($this->branchId, fn ($q) => $q->where('branch_id', $this->branchId))
+            ->when($this->search !== '', function ($q) {
+                $term = '%'.$this->search.'%';
+                $q->where(function ($inner) use ($term) {
+                    $inner->where('ticket_number', 'like', $term)
+                        ->orWhere('subject', 'like', $term)
+                        ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', $term));
+                });
+            })
+            ->when($this->status, fn ($q) => $q->where('status', $this->status))
+            ->when($this->priority, fn ($q) => $q->where('priority', $this->priority))
+            ->orderByDesc('created_at');
+
+        $tickets = $query->paginate(20);
+
+        // Get ticket statistics
+        $stats = [
+            'new' => Ticket::new()->when($this->branchId, fn ($q) => $q->where('branch_id', $this->branchId))->count(),
+            'open' => Ticket::open()->when($this->branchId, fn ($q) => $q->where('branch_id', $this->branchId))->count(),
+            'pending' => Ticket::pending()->when($this->branchId, fn ($q) => $q->where('branch_id', $this->branchId))->count(),
+            'overdue' => Ticket::overdue()->when($this->branchId, fn ($q) => $q->where('branch_id', $this->branchId))->count(),
+        ];
+
+        return view('livewire.helpdesk.tickets.index', [
+            'tickets' => $tickets,
+            'stats' => $stats,
+        ]);
+    }
+}
