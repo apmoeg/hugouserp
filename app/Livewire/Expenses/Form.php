@@ -87,7 +87,7 @@ class Form extends Component
                 }
             },
             successMessage: $this->editMode ? __('Expense updated successfully') : __('Expense created successfully'),
-            redirectRoute: 'expenses.index'
+            redirectRoute: 'app.expenses.index'
         );
     }
 

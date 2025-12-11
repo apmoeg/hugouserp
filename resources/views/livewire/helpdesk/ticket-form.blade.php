@@ -113,7 +113,7 @@
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-6 border-t">
-            <a href="{{ route('helpdesk.index') }}" class="erp-btn erp-btn-secondary">
+            <a href="{{ route('app.helpdesk.index') }}" class="erp-btn erp-btn-secondary">
                 {{ __('Cancel') }}
             </a>
             <button type="submit" class="erp-btn erp-btn-primary">

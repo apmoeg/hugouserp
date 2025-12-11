@@ -60,7 +60,7 @@
 
         {{-- Actions --}}
         <div class="flex justify-end gap-3">
-            <a href="{{ route('projects.index') }}" class="erp-btn erp-btn-secondary">
+            <a href="{{ route('app.projects.index') }}" class="erp-btn erp-btn-secondary">
                 {{ __('Cancel') }}
             </a>
             <button type="submit" class="erp-btn erp-btn-primary" wire:loading.attr="disabled">

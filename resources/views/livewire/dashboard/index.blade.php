@@ -65,7 +65,7 @@
         </a>
 
         {{-- Employees --}}
-        <a href="{{ route('hrm.employees.index') }}" class="group flex flex-col items-center gap-3 p-5 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-rose-200 transition-all duration-300">
+        <a href="{{ route('app.hrm.employees.index') }}" class="group flex flex-col items-center gap-3 p-5 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-rose-200 transition-all duration-300">
             <div class="w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-br from-rose-100 to-rose-50 group-hover:scale-110 transition-transform">
                 <svg class="w-8 h-8 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>

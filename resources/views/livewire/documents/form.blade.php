@@ -60,7 +60,7 @@
         </div>
 
         <div class="flex items-center justify-end gap-3 pt-6 border-t">
-            <a href="{{ route('documents.index') }}" class="erp-btn erp-btn-secondary">{{ __('Cancel') }}</a>
+            <a href="{{ route('app.documents.index') }}" class="erp-btn erp-btn-secondary">{{ __('Cancel') }}</a>
             <button type="submit" class="erp-btn erp-btn-primary">
                 {{ $isEdit ? __('Update Document') : __('Upload Document') }}
             </button>

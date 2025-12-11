@@ -85,7 +85,7 @@ class Form extends Component
                 }
             },
             successMessage: $this->editMode ? __('Income updated successfully') : __('Income created successfully'),
-            redirectRoute: 'income.index'
+            redirectRoute: 'app.income.index'
         );
     }
 

@@ -3,7 +3,7 @@
         <div>
             <h1 class="text-2xl font-bold text-slate-800">{{ $editMode ? __('Edit Income') : __('Add Income') }}</h1>
         </div>
-        <a href="{{ route('income.index') }}" class="erp-btn erp-btn-secondary">{{ __('Back') }}</a>
+        <a href="{{ route('app.income.index') }}" class="erp-btn erp-btn-secondary">{{ __('Back') }}</a>
     </div>
 
     <form wire:submit="save" class="erp-card p-6 space-y-6">
@@ -63,7 +63,7 @@
         </div>
 
         <div class="flex justify-end gap-3 pt-4 border-t">
-            <a href="{{ route('income.index') }}" class="erp-btn erp-btn-secondary">{{ __('Cancel') }}</a>
+            <a href="{{ route('app.income.index') }}" class="erp-btn erp-btn-secondary">{{ __('Cancel') }}</a>
             <button type="submit" class="erp-btn erp-btn-primary">{{ $editMode ? __('Update') : __('Save') }}</button>
         </div>
     </form>
