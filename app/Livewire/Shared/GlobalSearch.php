@@ -62,14 +62,14 @@ class GlobalSearch extends Component
                 $this->results['products'] = [
                     'label' => __('Products'),
                     'icon' => '📦',
-                    'route' => 'inventory.products.index',
+                    'route' => 'app.inventory.products.index',
                     'items' => $products->map(fn ($p) => [
                         'id' => $p->id,
                         'title' => $p->name,
                         'subtitle' => 'SKU: '.($p->sku ?: '-'),
                         'route' => $canEdit
-                            ? route('inventory.products.edit', $p->id)
-                            : route('inventory.products.index', ['search' => $p->sku]),
+                            ? route('app.inventory.products.edit', $p->id)
+                            : route('app.inventory.products.index', ['search' => $p->sku]),
                     ])->toArray(),
                 ];
             }
@@ -144,12 +144,12 @@ class GlobalSearch extends Component
                 $this->results['sales'] = [
                     'label' => __('Sales'),
                     'icon' => '💰',
-                    'route' => 'sales.index',
+                    'route' => 'app.sales.index',
                     'items' => $sales->map(fn ($s) => [
                         'id' => $s->id,
                         'title' => $s->invoice_number ?: '#'.$s->id,
                         'subtitle' => ucfirst($s->status ?? 'pending'),
-                        'route' => route('sales.show', $s->id),
+                        'route' => route('app.sales.show', $s->id),
                     ])->toArray(),
                 ];
             }
@@ -168,14 +168,14 @@ class GlobalSearch extends Component
                 $this->results['purchases'] = [
                     'label' => __('Purchases'),
                     'icon' => '📋',
-                    'route' => 'purchases.index',
+                    'route' => 'app.purchases.index',
                     'items' => $purchases->map(fn ($p) => [
                         'id' => $p->id,
                         'title' => $p->reference_no ?: '#'.$p->id,
                         'subtitle' => ucfirst($p->status ?? 'pending'),
                         'route' => $canEdit
-                            ? route('purchases.edit', $p->id)
-                            : route('purchases.index', ['search' => $p->reference_no]),
+                            ? route('app.purchases.edit', $p->id)
+                            : route('app.purchases.index', ['search' => $p->reference_no]),
                     ])->toArray(),
                 ];
             }

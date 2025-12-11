@@ -306,6 +306,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/barcodes', \App\Livewire\Inventory\BarcodePrint::class)
             ->name('barcodes')
             ->middleware('can:inventory.view');
+
+        // Vehicle Models (for spare parts compatibility)
+        Route::get('/vehicle-models', \App\Livewire\Inventory\VehicleModels::class)
+            ->name('vehicle-models')
+            ->middleware('can:inventory.view');
     });
 
     // WAREHOUSE MODULE
@@ -426,6 +431,10 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/work-centers/create', \App\Livewire\Manufacturing\WorkCenters\Form::class)
             ->name('work-centers.create')
+            ->middleware('can:manufacturing.manage');
+
+        Route::get('/work-centers/{workCenter}/edit', \App\Livewire\Manufacturing\WorkCenters\Form::class)
+            ->name('work-centers.edit')
             ->middleware('can:manufacturing.manage');
     });
 

@@ -101,17 +101,17 @@
         {{-- Sales Management --}}
         @if($canAccess('sales.view'))
         <div class="space-y-1">
-            <a href="{{ route('sales.index') }}"
-               class="sidebar-link bg-gradient-to-r from-green-500 to-green-600 {{ $isActive('sales.index') ? 'active ring-2 ring-white/30' : '' }}">
+            <a href="{{ route('app.sales.index') }}"
+               class="sidebar-link bg-gradient-to-r from-green-500 to-green-600 {{ $isActive('app.sales') ? 'active ring-2 ring-white/30' : '' }}">
                 <span class="text-lg">💰</span>
                 <span class="text-sm font-medium">{{ __('Sales Management') }}</span>
-                @if($isActive('sales.index'))
+                @if($isActive('app.sales'))
                     <span class="ms-auto w-2 h-2 rounded-full bg-white animate-pulse"></span>
                 @endif
             </a>
             @if($canAccess('sales.return'))
-            <a href="{{ route('sales.returns') }}"
-               class="sidebar-link-secondary ms-4 {{ $isActive('sales.returns') ? 'active' : '' }}">
+            <a href="{{ route('app.sales.returns.index') }}"
+               class="sidebar-link-secondary ms-4 {{ $isActive('app.sales.returns') ? 'active' : '' }}">
                 <span class="text-base">↩️</span>
                 <span class="text-sm">{{ __('Sales Returns') }}</span>
             </a>
@@ -122,17 +122,17 @@
         {{-- Purchases Management --}}
         @if($canAccess('purchases.view'))
         <div class="space-y-1">
-            <a href="{{ route('purchases.index') }}"
-               class="sidebar-link bg-gradient-to-r from-purple-500 to-purple-600 {{ $isActive('purchases.index') ? 'active ring-2 ring-white/30' : '' }}">
+            <a href="{{ route('app.purchases.index') }}"
+               class="sidebar-link bg-gradient-to-r from-purple-500 to-purple-600 {{ $isActive('app.purchases') ? 'active ring-2 ring-white/30' : '' }}">
                 <span class="text-lg">🛒</span>
                 <span class="text-sm font-medium">{{ __('Purchases') }}</span>
-                @if($isActive('purchases.index'))
+                @if($isActive('app.purchases'))
                     <span class="ms-auto w-2 h-2 rounded-full bg-white animate-pulse"></span>
                 @endif
             </a>
             @if($canAccess('purchases.return'))
-            <a href="{{ route('purchases.returns') }}"
-               class="sidebar-link-secondary ms-4 {{ $isActive('purchases.returns') ? 'active' : '' }}">
+            <a href="{{ route('app.purchases.returns.index') }}"
+               class="sidebar-link-secondary ms-4 {{ $isActive('app.purchases.returns') ? 'active' : '' }}">
                 <span class="text-base">↩️</span>
                 <span class="text-sm">{{ __('Purchase Returns') }}</span>
             </a>
@@ -179,17 +179,17 @@
         {{-- Item Management --}}
         @if($canAccess('inventory.products.view'))
         <div class="space-y-1">
-            <a href="{{ route('inventory.products.index') }}"
-               class="sidebar-link bg-gradient-to-r from-teal-500 to-teal-600 {{ $isActive('inventory.products') ? 'active ring-2 ring-white/30' : '' }}">
+            <a href="{{ route('app.inventory.products.index') }}"
+               class="sidebar-link bg-gradient-to-r from-teal-500 to-teal-600 {{ $isActive('app.inventory') ? 'active ring-2 ring-white/30' : '' }}">
                 <span class="text-lg">📦</span>
                 <span class="text-sm font-medium">{{ __('Item Management') }}</span>
-                @if($isActive('inventory.products'))
+                @if($isActive('app.inventory'))
                     <span class="ms-auto w-2 h-2 rounded-full bg-white animate-pulse"></span>
                 @endif
             </a>
 
             @if($canAccess('spares.compatibility.manage'))
-            <a href="{{ route('inventory.vehicle-models') }}"
+            <a href="{{ route('app.inventory.vehicle-models') }}"
                class="sidebar-link-secondary ms-4 {{ $isActive('inventory.vehicle-models') ? 'active' : '' }}">
                 <span class="text-base">🚗</span>
                 <span class="text-sm">{{ __('Vehicle Models') }}</span>
@@ -197,38 +197,38 @@
             @endif
 
             @if($canAccess('inventory.stock.alerts.view'))
-            <a href="{{ route('inventory.stock-alerts') }}"
+            <a href="{{ route('app.inventory.stock-alerts') }}"
                class="sidebar-link-secondary ms-4 {{ $isActive('inventory.stock-alerts') ? 'active' : '' }}">
                 <span class="text-base">⚠️</span>
                 <span class="text-sm">{{ __('Low Stock Alerts') }}</span>
             </a>
             @endif
 
-            <a href="{{ route('inventory.categories.index') }}"
+            <a href="{{ route('app.inventory.categories.index') }}"
                class="sidebar-link-secondary ms-4 {{ $isActive('inventory.categories') ? 'active' : '' }}">
                 <span class="text-base">📂</span>
                 <span class="text-sm">{{ __('Categories') }}</span>
             </a>
 
-            <a href="{{ route('inventory.units.index') }}"
+            <a href="{{ route('app.inventory.units.index') }}"
                class="sidebar-link-secondary ms-4 {{ $isActive('inventory.units') ? 'active' : '' }}">
                 <span class="text-base">📏</span>
                 <span class="text-sm">{{ __('Units of Measure') }}</span>
             </a>
 
-            <a href="{{ route('inventory.barcode-print') }}"
+            <a href="{{ route('app.inventory.barcodes') }}"
                class="sidebar-link-secondary ms-4 {{ $isActive('inventory.barcode-print') ? 'active' : '' }}">
                 <span class="text-base">🏷️</span>
                 <span class="text-sm">{{ __('Print Barcodes') }}</span>
             </a>
 
-            <a href="{{ route('inventory.batches.index') }}"
+            <a href="{{ route('app.inventory.batches.index') }}"
                class="sidebar-link-secondary ms-4 {{ $isActive('inventory.batches') ? 'active' : '' }}">
                 <span class="text-base">📦</span>
                 <span class="text-sm">{{ __('Batch Tracking') }}</span>
             </a>
 
-            <a href="{{ route('inventory.serials.index') }}"
+            <a href="{{ route('app.inventory.serials.index') }}"
                class="sidebar-link-secondary ms-4 {{ $isActive('inventory.serials') ? 'active' : '' }}">
                 <span class="text-base">🔢</span>
                 <span class="text-sm">{{ __('Serial Tracking') }}</span>

@@ -392,13 +392,13 @@
             </a>
             @endif
             @if($canAccess('inventory.products.view'))
-            <a href="{{ route('inventory.products.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md">
+            <a href="{{ route('app.inventory.products.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md">
                 <span>📦</span>
                 <span>{{ __('New Product') }}</span>
             </a>
             @endif
             @if($canAccess('purchases.create'))
-            <a href="{{ route('purchases.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md">
+            <a href="{{ route('app.purchases.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white text-xs font-medium transition-all duration-200 shadow-sm hover:shadow-md">
                 <span>🛒</span>
                 <span>{{ __('New Purchase') }}</span>
             </a>

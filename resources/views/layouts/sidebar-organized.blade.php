@@ -93,7 +93,7 @@
             @endif
             
             @if($canAccess('sales.view'))
-            <a href="{{ route('sales.index') }}"
+            <a href="{{ route('app.sales.index') }}"
                class="sidebar-link-secondary {{ $isActive('sales.index') ? 'active' : '' }}">
                 <span class="text-base">💰</span>
                 <span class="text-sm">{{ __('Sales Orders') }}</span>
@@ -101,7 +101,7 @@
             @endif
             
             @if($canAccess('sales.return'))
-            <a href="{{ route('sales.returns') }}"
+            <a href="{{ route('app.sales.returns.index') }}"
                class="sidebar-link-secondary {{ $isActive('sales.returns') ? 'active' : '' }}">
                 <span class="text-base">↩️</span>
                 <span class="text-sm">{{ __('Returns') }}</span>
@@ -126,7 +126,7 @@
             </div>
             
             @if($canAccess('purchases.view'))
-            <a href="{{ route('purchases.index') }}"
+            <a href="{{ route('app.purchases.index') }}"
                class="sidebar-link-secondary {{ $isActive('purchases.index') ? 'active' : '' }}">
                 <span class="text-base">🛒</span>
                 <span class="text-sm">{{ __('Purchase Orders') }}</span>
@@ -150,13 +150,13 @@
                 <span class="text-xs uppercase tracking-wide text-slate-500 font-semibold">{{ __('Inventory') }}</span>
             </div>
             
-            <a href="{{ route('inventory.products.index') }}"
+            <a href="{{ route('app.inventory.products.index') }}"
                class="sidebar-link-secondary {{ $isActive('inventory.products') ? 'active' : '' }}">
                 <span class="text-base">📦</span>
                 <span class="text-sm">{{ __('Products') }}</span>
             </a>
             
-            <a href="{{ route('inventory.categories.index') }}"
+            <a href="{{ route('app.inventory.categories.index') }}"
                class="sidebar-link-secondary {{ $isActive('inventory.categories') ? 'active' : '' }}">
                 <span class="text-base">📂</span>
                 <span class="text-sm">{{ __('Categories') }}</span>
@@ -171,7 +171,7 @@
             @endif
             
             @if($canAccess('inventory.stock.alerts.view'))
-            <a href="{{ route('inventory.stock-alerts') }}"
+            <a href="{{ route('app.inventory.stock-alerts') }}"
                class="sidebar-link-secondary {{ $isActive('inventory.stock-alerts') ? 'active' : '' }}">
                 <span class="text-base">⚠️</span>
                 <span class="text-sm">{{ __('Low Stock Alerts') }}</span>
