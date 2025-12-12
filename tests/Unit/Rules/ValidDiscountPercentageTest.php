@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Rules;
 
 use App\Rules\ValidDiscountPercentage;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class ValidDiscountPercentageTest extends TestCase
 {
@@ -67,5 +67,17 @@ class ValidDiscountPercentageTest extends TestCase
         });
 
         $this->assertTrue($failed, 'Should reject negative values');
+    }
+
+    public function test_rejects_decimal_separator_without_fractional_digits(): void
+    {
+        $rule = new ValidDiscountPercentage(maxDiscount: 100.0, decimalPlaces: 2);
+        $failed = false;
+
+        $rule->validate('discount', '10.', function ($message) use (&$failed) {
+            $failed = true;
+        });
+
+        $this->assertTrue($failed, 'Should reject "10." when decimalPlaces allows decimals but value has trailing separator');
     }
 }

@@ -61,6 +61,9 @@ export function erpPosTerminal(options) {
         /** @type {boolean} Whether the system is offline */
         offline: !window.navigator.onLine,
 
+        /** @type {Array} Queue of offline sales to sync when connection is restored */
+        offlineQueue: [],
+
         // ========== Lifecycle Methods ==========
         
         /**
@@ -162,6 +165,10 @@ export function erpPosTerminal(options) {
             for (const item of queue) {
                 try {
                     await window.axios.post(`/api/v1/branches/${this.branchId}/pos/checkout`, item.payload ?? {});
+                    
+                    // Remove synced item from queue and persist immediately
+                    this.offlineQueue.shift();
+                    this.persistOfflineQueue();
                 } catch (error) {
                     console.error('Failed to sync offline sale', error);
                     this.message = {
@@ -171,9 +178,6 @@ export function erpPosTerminal(options) {
                     return;
                 }
             }
-
-            this.offlineQueue = [];
-            this.persistOfflineQueue();
 
             this.message = {
                 type: 'success',

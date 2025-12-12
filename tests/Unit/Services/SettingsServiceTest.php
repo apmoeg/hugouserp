@@ -136,4 +136,78 @@ class SettingsServiceTest extends TestCase
         $this->assertEquals('value2', $retrieved['option2']);
         $this->assertEquals('value3', $retrieved['option3']);
     }
+
+    /**
+     * Test getByGroup decodes encrypted arrays correctly.
+     */
+    public function test_get_by_group_decodes_encrypted_arrays(): void
+    {
+        $group = 'test-group';
+        $key = 'test.group.encrypted.array';
+        $arrayValue = [
+            'setting1' => 'value1',
+            'setting2' => 'value2',
+            'nested' => ['key' => 'value'],
+        ];
+
+        // Set encrypted array setting
+        $this->service->set($key, $arrayValue, [
+            'is_encrypted' => true,
+            'type' => 'array',
+            'group' => $group,
+        ]);
+
+        // Get by group
+        $groupSettings = $this->service->getByGroup($group);
+
+        $this->assertIsArray($groupSettings);
+        $this->assertArrayHasKey($key, $groupSettings);
+        $this->assertIsArray($groupSettings[$key]);
+        $this->assertEquals($arrayValue, $groupSettings[$key]);
+    }
+
+    /**
+     * Test getByCategory handles encrypted and plain values correctly.
+     */
+    public function test_get_by_category_handles_encrypted_and_plain_values(): void
+    {
+        $category = 'notifications';
+
+        // Set plain string setting
+        $plainKey = 'notifications.email.from';
+        $plainValue = 'noreply@example.com';
+        $this->service->set($plainKey, $plainValue, [
+            'is_encrypted' => false,
+            'type' => 'string',
+            'group' => 'notifications',
+            'category' => $category,
+        ]);
+
+        // Set encrypted array setting
+        $encryptedKey = 'notifications.sms.config';
+        $encryptedValue = [
+            'api_key' => 'secret_key_123',
+            'sender' => 'MySender',
+        ];
+        $this->service->set($encryptedKey, $encryptedValue, [
+            'is_encrypted' => true,
+            'type' => 'array',
+            'group' => 'notifications',
+            'category' => $category,
+        ]);
+
+        // Get by category
+        $categorySettings = $this->service->getByCategory($category);
+
+        $this->assertIsArray($categorySettings);
+        $this->assertArrayHasKey($plainKey, $categorySettings);
+        $this->assertArrayHasKey($encryptedKey, $categorySettings);
+        
+        // Verify plain value
+        $this->assertEquals($plainValue, $categorySettings[$plainKey]);
+        
+        // Verify encrypted array was decoded
+        $this->assertIsArray($categorySettings[$encryptedKey]);
+        $this->assertEquals($encryptedValue, $categorySettings[$encryptedKey]);
+    }
 }

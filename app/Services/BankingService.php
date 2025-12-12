@@ -213,4 +213,62 @@ class BankingService
             'errors' => $errors,
         ];
     }
+
+    /**
+     * Get current balance for an account
+     */
+    public function getAccountBalance(int $accountId): float
+    {
+        $account = BankAccount::findOrFail($accountId);
+
+        return $account->current_balance;
+    }
+
+    /**
+     * Check if account has sufficient balance for a withdrawal
+     */
+    public function hasSufficientBalance(int $accountId, float $amount): bool
+    {
+        $balance = $this->getAccountBalance($accountId);
+
+        return $balance >= $amount;
+    }
+
+    /**
+     * Record a deposit transaction
+     */
+    public function recordDeposit(array $data): BankTransaction
+    {
+        return $this->recordTransaction([
+            'bank_account_id' => $data['account_id'],
+            'branch_id' => $data['branch_id'],
+            'transaction_date' => $data['transaction_date'] ?? now(),
+            'type' => 'deposit',
+            'amount' => $data['amount'],
+            'description' => $data['description'] ?? null,
+            'status' => $data['status'] ?? 'cleared',
+            'created_by' => $data['created_by'] ?? auth()->id(),
+            'reference_number' => $data['reference_number'] ?? null,
+            'payee_payer' => $data['payee_payer'] ?? null,
+        ]);
+    }
+
+    /**
+     * Record a withdrawal transaction
+     */
+    public function recordWithdrawal(array $data): BankTransaction
+    {
+        return $this->recordTransaction([
+            'bank_account_id' => $data['account_id'],
+            'branch_id' => $data['branch_id'],
+            'transaction_date' => $data['transaction_date'] ?? now(),
+            'type' => 'withdrawal',
+            'amount' => $data['amount'],
+            'description' => $data['description'] ?? null,
+            'status' => $data['status'] ?? 'cleared',
+            'created_by' => $data['created_by'] ?? auth()->id(),
+            'reference_number' => $data['reference_number'] ?? null,
+            'payee_payer' => $data['payee_payer'] ?? null,
+        ]);
+    }
 }

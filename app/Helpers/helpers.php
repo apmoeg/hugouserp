@@ -100,6 +100,10 @@ if (! function_exists('sanitize_svg_icon')) {
             'xmlns', 'preserveaspectratio', 'fill-rule', 'clip-rule', 'vector-effect',
         ];
 
+        // Normalize to lowercase for case-insensitive matching
+        $normalizedAllowedTags = array_map('strtolower', $allowedTags);
+        $normalizedAllowedAttrs = array_map('strtolower', $allowedAttrs);
+
         // Use DOMDocument for proper parsing
         libxml_use_internal_errors(true);
         $dom = new \DOMDocument;
@@ -124,7 +128,7 @@ if (! function_exists('sanitize_svg_icon')) {
             $tagName = strtolower($element->tagName);
 
             // Only allow explicitly whitelisted elements
-            if (! in_array($tagName, array_merge($allowedTags, ['html', 'body']))) {
+            if (! in_array($tagName, array_merge($normalizedAllowedTags, ['html', 'body']), true)) {
                 $toRemove[] = $element;
 
                 continue;
@@ -170,7 +174,7 @@ if (! function_exists('sanitize_svg_icon')) {
                 }
 
                 // Only allow explicitly whitelisted attributes
-                if (! in_array($attrName, $allowedAttrs)) {
+                if (! in_array($attrName, $normalizedAllowedAttrs, true)) {
                     $attrsToRemove[] = $attr->name;
                 }
             }

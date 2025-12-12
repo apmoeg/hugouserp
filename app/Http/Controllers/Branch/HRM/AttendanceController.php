@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Branch\HRM;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\Branch;
+use App\Models\HREmployee;
 use App\Services\Contracts\HRMServiceInterface as HRM;
 use Illuminate\Http\Request;
 
@@ -13,14 +15,28 @@ class AttendanceController extends Controller
 {
     public function __construct(protected HRM $hrm) {}
 
-    public function index()
+    public function index(Branch $branch, Request $request)
     {
-        $per = min(max(request()->integer('per_page', 20), 1), 100);
+        $per = min(max($request->integer('per_page', 20), 1), 100);
 
-        return $this->ok(Attendance::query()->orderByDesc('logged_at')->paginate($per));
+        $query = Attendance::query()
+            ->where('branch_id', $branch->getKey())
+            ->orderByDesc('date')
+            ->orderByDesc('check_in');
+
+        // Apply filters
+        if ($request->has('employee_id')) {
+            $query->where('employee_id', $request->integer('employee_id'));
+        }
+
+        if ($request->has('status')) {
+            $query->where('status', $request->string('status')->toString());
+        }
+
+        return $this->ok($query->paginate($per));
     }
 
-    public function log(Request $request)
+    public function log(Branch $branch, Request $request)
     {
         $data = $this->validate($request, [
             'employee_id' => ['required', 'exists:hr_employees,id'],
@@ -28,11 +44,71 @@ class AttendanceController extends Controller
             'at' => ['sometimes', 'date'],
         ]);
 
+        // Ensure employee belongs to branch
+        HREmployee::where('branch_id', $branch->getKey())->findOrFail($data['employee_id']);
+
         return $this->ok($this->hrm->logAttendance($data['employee_id'], $data['type'], $request->input('at', now()->toDateTimeString())));
     }
 
-    public function approve(Attendance $record)
+    public function approve(Branch $branch, Attendance $record)
     {
+        abort_if($record->branch_id !== $branch->getKey(), 404);
+
         return $this->ok($this->hrm->approveAttendance($record->id));
+    }
+
+    public function store(Branch $branch, Request $request)
+    {
+        $data = $this->validate($request, [
+            'employee_id' => ['required', 'exists:hr_employees,id'],
+            'date' => ['required', 'date'],
+            'check_in' => ['required', 'date_format:H:i:s'],
+            'check_out' => ['nullable', 'date_format:H:i:s'],
+            'status' => ['nullable', 'string', 'in:present,absent,late,on_leave,pending,inactive'],
+        ]);
+
+        // Ensure employee belongs to branch
+        HREmployee::where('branch_id', $branch->getKey())->findOrFail($data['employee_id']);
+
+        $attendance = Attendance::updateOrCreate(
+            [
+                'employee_id' => $data['employee_id'],
+                'date' => $data['date'],
+            ],
+            [
+                'branch_id' => $branch->getKey(),
+                'check_in' => $data['check_in'],
+                'check_out' => $data['check_out'] ?? null,
+                'status' => $data['status'] ?? 'pending',
+            ]
+        );
+
+        return $this->ok($attendance->fresh());
+    }
+
+    public function update(Branch $branch, Attendance $record, Request $request)
+    {
+        abort_if($record->branch_id !== $branch->getKey(), 404);
+
+        $data = $this->validate($request, [
+            'check_in' => ['nullable', 'date_format:H:i:s'],
+            'check_out' => ['nullable', 'date_format:H:i:s'],
+            'status' => ['nullable', 'string', 'in:present,absent,late,on_leave,pending,inactive'],
+        ]);
+
+        $record->fill($data);
+        $record->save();
+
+        return $this->ok($record->fresh());
+    }
+
+    public function deactivate(Branch $branch, Attendance $record)
+    {
+        abort_if($record->branch_id !== $branch->getKey(), 404);
+
+        $record->status = 'inactive';
+        $record->save();
+
+        return $this->ok($record->fresh(), __('Deactivated'));
     }
 }
