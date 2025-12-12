@@ -113,22 +113,21 @@ class POSController extends Controller
         }
     }
 
-    public function getCurrentSession(Request $request): JsonResponse
+    public function getCurrentSession(Branch $branch): JsonResponse
     {
         $this->authorize('pos.use');
 
-        $branchId = $request->query('branch_id');
         $userId = auth()->id();
 
-        if (! $branchId || ! $userId) {
+        if (! $userId) {
             return response()->json([
                 'success' => false,
-                'message' => __('Branch ID is required'),
+                'message' => __('Unauthorized'),
                 'data' => null,
-            ], 400);
+            ], 401);
         }
 
-        $session = $this->posService->getCurrentSession((int) $branchId, (int) $userId);
+        $session = $this->posService->getCurrentSession($branch->id, $userId);
 
         return response()->json([
             'success' => true,
@@ -145,12 +144,11 @@ class POSController extends Controller
         ]);
     }
 
-    public function openSession(Request $request): JsonResponse
+    public function openSession(Request $request, Branch $branch): JsonResponse
     {
         $this->authorize('pos.session.manage');
 
         $request->validate([
-            'branch_id' => 'required|integer|exists:branches,id',
             'opening_cash' => 'nullable|numeric|min:0',
         ]);
 
@@ -164,7 +162,7 @@ class POSController extends Controller
 
         try {
             $session = $this->posService->openSession(
-                (int) $request->input('branch_id'),
+                $branch->id,
                 $userId,
                 (float) ($request->input('opening_cash') ?? 0)
             );
