@@ -72,8 +72,21 @@ class InventoryController extends BaseApiController
             return $this->errorResponse(__('Product not found'), 404);
         }
 
-        // Get current quantity using helper method
-        $oldQuantity = $this->calculateCurrentStock($product->id);
+        // Resolve warehouse_id using fallback logic
+        $warehouseId = $this->resolveWarehouseId(
+            $request->input('warehouse_id'),
+            $product->branch_id
+        );
+
+        // Ensure warehouse_id is not null to prevent foreign key constraint violation
+        if ($warehouseId === null) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'warehouse_id' => [__('No warehouse available for stock movement')]
+            ]);
+        }
+
+        // Get current quantity using helper method with warehouse and branch scoping
+        $oldQuantity = $this->calculateCurrentStock($product->id, $warehouseId, $product->branch_id);
 
         // Calculate new quantity and direction
         if ($validated['direction'] === 'set') {
@@ -90,24 +103,7 @@ class InventoryController extends BaseApiController
         }
 
         if ($actualQty > 0) {
-            DB::transaction(function () use ($product, $actualDirection, $actualQty, $validated, $request) {
-                // Resolve warehouse_id using fallback logic
-                $warehouseId = $this->resolveWarehouseId(
-                    $request->input('warehouse_id'),
-                    $product->branch_id
-                );
-
-                // Ensure warehouse_id is not null to prevent foreign key constraint violation
-                if ($warehouseId === null) {
-                    throw new \Illuminate\Validation\ValidationException(
-                        validator([], []),
-                        response()->json([
-                            'message' => __('No warehouse available for stock movement'),
-                            'errors' => ['warehouse_id' => [__('No warehouse available for stock movement')]],
-                        ], 422)
-                    );
-                }
-
+            DB::transaction(function () use ($product, $actualDirection, $actualQty, $validated, $warehouseId) {
                 StockMovement::create([
                     'product_id' => $product->id,
                     'warehouse_id' => $warehouseId,
@@ -164,8 +160,23 @@ class InventoryController extends BaseApiController
             }
 
             try {
-                // Get current quantity using helper method
-                $oldQuantity = $this->calculateCurrentStock($product->id);
+                // Resolve warehouse_id using fallback logic
+                $warehouseId = $this->resolveWarehouseId(
+                    $item['warehouse_id'] ?? $request->input('warehouse_id'),
+                    $product->branch_id
+                );
+
+                // If warehouse cannot be resolved, record failure and continue
+                if ($warehouseId === null) {
+                    $results['failed'][] = [
+                        'identifier' => $item['product_id'] ?? $item['external_id'],
+                        'error' => __('No warehouse available for stock movement'),
+                    ];
+                    continue;
+                }
+
+                // Get current quantity using helper method with warehouse and branch scoping
+                $oldQuantity = $this->calculateCurrentStock($product->id, $warehouseId, $product->branch_id);
 
                 // Calculate new quantity and direction
                 if ($item['direction'] === 'set') {
@@ -182,17 +193,6 @@ class InventoryController extends BaseApiController
                 }
 
                 if ($actualQty > 0) {
-                    // Resolve warehouse_id using fallback logic
-                    $warehouseId = $this->resolveWarehouseId(
-                        $item['warehouse_id'] ?? $request->input('warehouse_id'),
-                        $product->branch_id
-                    );
-
-                    // Ensure warehouse_id is not null to prevent foreign key constraint violation
-                    if ($warehouseId === null) {
-                        throw new \Exception(__('No warehouse available for stock movement'));
-                    }
-
                     StockMovement::create([
                         'product_id' => $product->id,
                         'warehouse_id' => $warehouseId,
@@ -243,11 +243,25 @@ class InventoryController extends BaseApiController
 
     /**
      * Calculate current stock quantity for a product
+     * 
+     * @param int $productId Product ID
+     * @param int|null $warehouseId Optional warehouse ID filter
+     * @param int|null $branchId Optional branch ID filter
+     * @return float Current stock balance
      */
-    protected function calculateCurrentStock(int $productId): float
+    protected function calculateCurrentStock(int $productId, ?int $warehouseId = null, ?int $branchId = null): float
     {
-        return (float) (StockMovement::where('product_id', $productId)
-            ->selectRaw('SUM(CASE WHEN direction = "in" THEN qty ELSE 0 END) - SUM(CASE WHEN direction = "out" THEN qty ELSE 0 END) as balance')
+        $query = StockMovement::where('product_id', $productId);
+
+        if ($warehouseId !== null) {
+            $query->where('warehouse_id', $warehouseId);
+        }
+
+        if ($branchId !== null) {
+            $query->where('branch_id', $branchId);
+        }
+
+        return (float) ($query->selectRaw('SUM(CASE WHEN direction = "in" THEN qty ELSE 0 END) - SUM(CASE WHEN direction = "out" THEN qty ELSE 0 END) as balance')
             ->value('balance') ?? 0);
     }
 

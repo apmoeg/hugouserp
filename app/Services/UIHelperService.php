@@ -81,18 +81,21 @@ class UIHelperService
         ];
 
         $symbol = $symbols[$currency] ?? $currency;
-        $formatted = number_format($amount, 2);
+        $isNegative = $amount < 0;
+        $absAmount = abs($amount);
+        $formatted = number_format($absAmount, 2);
 
-        if ($showSymbol) {
-            // RTL currencies go after the number
-            if (in_array($currency, ['SAR', 'AED', 'EGP'], true)) {
-                return $formatted.' '.$symbol;
-            }
-
-            return $symbol.' '.$formatted;
+        if (!$showSymbol) {
+            return $isNegative ? '-' . $formatted : $formatted;
         }
 
-        return $formatted;
+        // RTL currencies go after the number
+        if (in_array($currency, ['SAR', 'AED', 'EGP'], true)) {
+            return $isNegative ? '-' . $formatted . ' ' . $symbol : $formatted . ' ' . $symbol;
+        }
+
+        // Symbol-leading currencies (USD, EUR, GBP, etc.)
+        return $isNegative ? '-' . $symbol . ' ' . $formatted : $symbol . ' ' . $formatted;
     }
 
     /**

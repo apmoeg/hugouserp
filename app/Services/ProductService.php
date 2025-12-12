@@ -318,7 +318,7 @@ class ProductService implements ProductServiceInterface
                     if ($thumbnail) {
                         // Delete old thumbnail if exists
                         if ($product->thumbnail) {
-                            Storage::delete($product->thumbnail);
+                            Storage::disk('public')->delete($product->thumbnail);
                         }
                         $updateData['thumbnail'] = $thumbnail->store('products/thumbnails', 'public');
                     }

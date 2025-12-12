@@ -38,6 +38,8 @@ class JournalEntry extends Model
         'is_reversible' => 'boolean',
     ];
 
+    protected $appends = ['reference'];
+
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
@@ -72,6 +74,11 @@ class JournalEntry extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(JournalEntryLine::class);
+    }
+
+    public function getReferenceAttribute(): string
+    {
+        return (string) ($this->reference_number ?? '');
     }
 
     public function getTotalDebitAttribute(): float

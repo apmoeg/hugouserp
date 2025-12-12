@@ -164,4 +164,32 @@ class UIHelperServiceTest extends TestCase
         $this->assertStringNotContainsString('<script>', $attributes);
         $this->assertStringContainsString('&lt;', $attributes);
     }
+
+    /** @test */
+    public function it_formats_negative_usd_with_symbol(): void
+    {
+        $formatted = $this->service->formatCurrency(-1234.56, 'USD');
+        $this->assertEquals('-$ 1,234.56', $formatted);
+    }
+
+    /** @test */
+    public function it_formats_negative_rtl_currency_with_trailing_symbol(): void
+    {
+        $formatted = $this->service->formatCurrency(-1234.56, 'EGP');
+        $this->assertEquals('-1,234.56 ج.م', $formatted);
+
+        $formatted = $this->service->formatCurrency(-1234.56, 'SAR');
+        $this->assertEquals('-1,234.56 ر.س', $formatted);
+
+        $formatted = $this->service->formatCurrency(-1234.56, 'AED');
+        $this->assertEquals('-1,234.56 د.إ', $formatted);
+    }
+
+    /** @test */
+    public function it_formats_negative_output_without_symbol(): void
+    {
+        $formatted = $this->service->formatCurrency(-1234.56, 'USD', showSymbol: false);
+        $this->assertEquals('-1,234.56', $formatted);
+        $this->assertStringNotContainsString('$', $formatted);
+    }
 }

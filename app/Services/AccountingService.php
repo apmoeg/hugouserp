@@ -329,4 +329,94 @@ class AccountingService
             return $reversalEntry->fresh('lines');
         });
     }
+
+    /**
+     * Create a manual journal entry
+     * 
+     * @param array $data Journal entry data with items array
+     * @return JournalEntry
+     * @throws Exception If entry is not balanced
+     */
+    public function createJournalEntry(array $data): JournalEntry
+    {
+        $items = $data['items'] ?? [];
+        
+        if (empty($items)) {
+            throw new Exception('Journal entry must have at least one line item');
+        }
+
+        if (!$this->validateBalancedEntry($items)) {
+            throw new Exception('Journal entry is not balanced - total debits must equal total credits');
+        }
+
+        return DB::transaction(function () use ($data, $items) {
+            $fiscalPeriod = FiscalPeriod::getCurrentPeriod($data['branch_id'] ?? null);
+
+            // Determine reference number with preference order
+            $referenceNumber = $data['reference'] 
+                ?? $data['reference_number'] 
+                ?? $this->generateReferenceNumber('JE', time());
+
+            $entry = JournalEntry::create([
+                'branch_id' => $data['branch_id'] ?? null,
+                'reference_number' => $referenceNumber,
+                'entry_date' => $data['entry_date'] ?? now()->toDateString(),
+                'description' => $data['description'] ?? '',
+                'status' => $data['status'] ?? 'draft',
+                'source_module' => $data['source_module'] ?? 'manual',
+                'source_type' => $data['source_type'] ?? null,
+                'source_id' => $data['source_id'] ?? null,
+                'fiscal_year' => $fiscalPeriod?->year,
+                'fiscal_period' => $fiscalPeriod?->period,
+                'is_auto_generated' => false,
+                'created_by' => auth()->id(),
+            ]);
+
+            foreach ($items as $item) {
+                JournalEntryLine::create([
+                    'journal_entry_id' => $entry->id,
+                    'account_id' => $item['account_id'],
+                    'debit' => $item['debit'] ?? 0,
+                    'credit' => $item['credit'] ?? 0,
+                    'description' => $item['description'] ?? null,
+                ]);
+            }
+
+            return $entry->fresh('lines');
+        });
+    }
+
+    /**
+     * Validate that journal entry lines are balanced
+     * 
+     * @param array $items Array of line items with debit and credit amounts
+     * @return bool True if balanced (within 0.01 tolerance)
+     */
+    public function validateBalancedEntry(array $items): bool
+    {
+        $totalDebit = 0;
+        $totalCredit = 0;
+
+        foreach ($items as $item) {
+            $totalDebit += (float) ($item['debit'] ?? 0);
+            $totalCredit += (float) ($item['credit'] ?? 0);
+        }
+
+        return abs($totalDebit - $totalCredit) < 0.01;
+    }
+
+    /**
+     * Get account balance from journal entry lines
+     * 
+     * @param int $accountId Account ID
+     * @return float Net balance (sum of debits minus credits)
+     */
+    public function getAccountBalance(int $accountId): float
+    {
+        $result = JournalEntryLine::where('account_id', $accountId)
+            ->selectRaw('SUM(debit) - SUM(credit) as balance')
+            ->value('balance');
+
+        return (float) ($result ?? 0);
+    }
 }

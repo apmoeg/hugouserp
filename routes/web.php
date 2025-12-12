@@ -64,10 +64,22 @@ use Illuminate\Support\Facades\Route;
 
 // Root redirect
 Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect()->route('dashboard');
+    if (auth()->guest()) {
+        return redirect()->route('login');
     }
-    return redirect()->route('login');
+
+    // Determine dashboard permission from config
+    $dashboardPermission = config('screen_permissions.dashboard', 'dashboard.view');
+
+    // Default destination based on user permissions
+    if (auth()->user()->can($dashboardPermission)) {
+        $defaultDestination = route('dashboard');
+    } else {
+        $defaultDestination = route('profile.edit');
+    }
+
+    // Use intended redirect to honor any previous intended URL
+    return redirect()->intended($defaultDestination);
 });
 
 // Health check
