@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -25,10 +26,12 @@ class RentalUnit extends BaseModel
         return $this->hasMany(RentalContract::class, 'unit_id');
     }
 
-    public function scopeForBranch($query, int $branchId)
+    public function scopeForBranch(Builder $query, $branch): Builder
     {
-        return $query->whereHas('property', function ($q) use ($branchId) {
-            $q->where('branch_id', $branchId);
+        $id = is_object($branch) ? $branch->getKey() : $branch;
+
+        return $query->whereHas('property', function ($q) use ($id) {
+            $q->where('branch_id', $id);
         });
     }
 }

@@ -11,8 +11,13 @@ use Illuminate\Support\Arrayable;
 
 class ApiResponse
 {
-    public static function success(array|Arrayable $data = [], string $message = 'OK', int $status = 200, array $meta = []): JsonResponse
+    public static function success(array|Arrayable|LengthAwarePaginator $data = [], string $message = 'OK', int $status = 200, array $meta = []): JsonResponse
     {
+        // Handle paginators specially
+        if ($data instanceof LengthAwarePaginator) {
+            return self::paginated($data, $meta);
+        }
+
         return response()->json([
             'success' => true,
             'message' => $message,
