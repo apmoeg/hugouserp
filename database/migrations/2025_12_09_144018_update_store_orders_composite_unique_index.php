@@ -118,7 +118,7 @@ return new class extends Migration
                         'id' => $order->id,
                         'external_order_id' => $order->external_order_id,
                         'status' => $order->status,
-                        'branch_id' => $order->branch_id ?: null,
+                        'branch_id' => $order->branch_id ?? null,
                         'currency' => $order->currency,
                         'total' => $order->total,
                         'discount_total' => $order->discount_total,

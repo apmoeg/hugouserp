@@ -164,7 +164,7 @@ class InventoryService implements InventoryServiceInterface
         );
     }
 
-    public function recordStockAdjustment(array $data): StockMovement
+    public function recordStockAdjustment(array $data): ?StockMovement
     {
         return $this->handleServiceOperation(
             callback: function () use ($data) {
@@ -190,17 +190,14 @@ class InventoryService implements InventoryServiceInterface
 
                 $payload['created_by'] = $this->currentUser()?->getAuthIdentifier();
 
-                // Normalize quantity sign based on direction
+                // Normalize quantity to positive (direction field captures the sign)
                 $payload['qty'] = abs((float) $payload['qty']);
-                if ($payload['direction'] === 'out') {
-                    $payload['qty'] *= 1; // stored as positive, direction captures sign
-                }
 
                 return StockMovement::create($payload);
             },
             operation: 'recordStockAdjustment',
             context: ['payload_keys' => array_keys($data)],
-            defaultValue: new StockMovement
+            defaultValue: null
         );
     }
 
