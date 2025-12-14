@@ -48,6 +48,12 @@ class UnifiedSettings extends Component
     public bool $enable_webhooks = false;
     public int $cache_ttl = 3600;
 
+    // Backup settings
+    public bool $auto_backup = false;
+    public string $backup_frequency = 'daily';
+    public int $backup_retention_days = 30;
+    public string $backup_storage = 'local';
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -85,6 +91,12 @@ class UnifiedSettings extends Component
         $this->enable_api = (bool) ($settings['advanced.enable_api'] ?? true);
         $this->enable_webhooks = (bool) ($settings['advanced.enable_webhooks'] ?? false);
         $this->cache_ttl = (int) ($settings['advanced.cache_ttl'] ?? 3600);
+
+        // Load backup settings
+        $this->auto_backup = (bool) ($settings['backup.auto_backup'] ?? false);
+        $this->backup_frequency = $settings['backup.frequency'] ?? 'daily';
+        $this->backup_retention_days = (int) ($settings['backup.retention_days'] ?? 30);
+        $this->backup_storage = $settings['backup.storage'] ?? 'local';
     }
 
     protected function getSetting(string $key, $default = null)
@@ -175,6 +187,24 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('Advanced settings saved successfully'));
+    }
+
+    public function saveBackup(): void
+    {
+        $this->validate([
+            'backup_retention_days' => 'required|integer|min:1|max:365',
+            'backup_frequency' => 'required|in:daily,weekly,monthly',
+            'backup_storage' => 'required|in:local,s3,ftp',
+        ]);
+
+        $this->setSetting('backup.auto_backup', $this->auto_backup, 'backup');
+        $this->setSetting('backup.frequency', $this->backup_frequency, 'backup');
+        $this->setSetting('backup.retention_days', $this->backup_retention_days, 'backup');
+        $this->setSetting('backup.storage', $this->backup_storage, 'backup');
+
+        Cache::forget('system_settings');
+        Cache::forget('system_settings_all');
+        session()->flash('success', __('Backup settings saved successfully'));
     }
 
     public function render()

@@ -216,9 +216,59 @@
                 </form>
 
             @elseif($activeTab === 'backup')
-                <div>
-                    <p class="text-gray-600 dark:text-gray-400">{{ __('Backup settings will be implemented here') }}</p>
-                </div>
+                <form wire:submit="saveBackup">
+                    <div class="space-y-6">
+                        <div class="flex items-center">
+                            <input type="checkbox" wire:model="auto_backup" id="auto_backup"
+                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <label for="auto_backup" class="ml-2 block text-sm text-gray-900 dark:text-white">
+                                {{ __('Enable Automatic Backups') }}
+                            </label>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {{ __('Backup Frequency') }}
+                            </label>
+                            <select wire:model="backup_frequency"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <option value="daily">{{ __('Daily') }}</option>
+                                <option value="weekly">{{ __('Weekly') }}</option>
+                                <option value="monthly">{{ __('Monthly') }}</option>
+                            </select>
+                            @error('backup_frequency') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {{ __('Retention Period (days)') }}
+                            </label>
+                            <input type="number" wire:model="backup_retention_days" min="1" max="365"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                            @error('backup_retention_days') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                {{ __('Backup Storage') }}
+                            </label>
+                            <select wire:model="backup_storage"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                <option value="local">{{ __('Local Storage') }}</option>
+                                <option value="s3">{{ __('Amazon S3') }}</option>
+                                <option value="ftp">{{ __('FTP Server') }}</option>
+                            </select>
+                            @error('backup_storage') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                {{ __('Save Changes') }}
+                            </button>
+                        </div>
+                    </div>
+                </form>
 
             @elseif($activeTab === 'advanced')
                 <form wire:submit="saveAdvanced">
