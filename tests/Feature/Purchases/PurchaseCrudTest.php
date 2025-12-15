@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,12 +20,14 @@ class PurchaseCrudTest extends TestCase
     protected User $user;
     protected Branch $branch;
     protected Supplier $supplier;
+    protected Warehouse $warehouse;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->branch = Branch::create(['name' => 'Test Branch', 'code' => 'TB001']);
+        $this->warehouse = Warehouse::create(['name' => 'Test Warehouse', 'code' => 'WH001', 'branch_id' => $this->branch->id]);
         $this->user = User::factory()->create(['branch_id' => $this->branch->id]);
         $this->supplier = Supplier::create(['name' => 'Test Supplier', 'branch_id' => $this->branch->id]);
     }
@@ -32,23 +35,21 @@ class PurchaseCrudTest extends TestCase
     public function test_can_create_purchase(): void
     {
         $purchase = Purchase::create([
-            'purchase_number' => 'PO-001',
             'supplier_id' => $this->supplier->id,
-            'total' => 1000,
             'status' => 'pending',
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
         ]);
 
-        $this->assertDatabaseHas('purchases', ['purchase_number' => 'PO-001']);
+        $this->assertDatabaseHas('purchases', ['id' => $purchase->id]);
     }
 
     public function test_can_read_purchase(): void
     {
         $purchase = Purchase::create([
-            'purchase_number' => 'PO-001',
             'supplier_id' => $this->supplier->id,
-            'total' => 1000,
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
         ]);
 
         $found = Purchase::find($purchase->id);
@@ -58,10 +59,9 @@ class PurchaseCrudTest extends TestCase
     public function test_can_update_purchase(): void
     {
         $purchase = Purchase::create([
-            'purchase_number' => 'PO-001',
             'supplier_id' => $this->supplier->id,
-            'total' => 1000,
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
         ]);
 
         $purchase->update(['status' => 'approved']);
@@ -71,10 +71,9 @@ class PurchaseCrudTest extends TestCase
     public function test_can_delete_purchase(): void
     {
         $purchase = Purchase::create([
-            'purchase_number' => 'PO-001',
             'supplier_id' => $this->supplier->id,
-            'total' => 1000,
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
         ]);
 
         $purchase->delete();

@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\User;
+use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -20,12 +21,14 @@ class SaleCrudTest extends TestCase
     protected Branch $branch;
     protected Customer $customer;
     protected Product $product;
+    protected Warehouse $warehouse;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->branch = Branch::create(['name' => 'Test Branch', 'code' => 'TB001']);
+        $this->warehouse = Warehouse::create(['name' => 'Test Warehouse', 'code' => 'WH001', 'branch_id' => $this->branch->id]);
         $this->user = User::factory()->create(['branch_id' => $this->branch->id]);
         $this->customer = Customer::create(['name' => 'Test Customer', 'branch_id' => $this->branch->id]);
         $this->product = Product::create([
@@ -40,23 +43,21 @@ class SaleCrudTest extends TestCase
     public function test_can_create_sale(): void
     {
         $sale = Sale::create([
-            'sale_number' => 'SALE-001',
             'customer_id' => $this->customer->id,
-            'total' => 100,
             'status' => 'completed',
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
         ]);
 
-        $this->assertDatabaseHas('sales', ['sale_number' => 'SALE-001']);
+        $this->assertDatabaseHas('sales', ['id' => $sale->id]);
     }
 
     public function test_can_read_sale(): void
     {
         $sale = Sale::create([
-            'sale_number' => 'SALE-001',
             'customer_id' => $this->customer->id,
-            'total' => 100,
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
         ]);
 
         $found = Sale::find($sale->id);
@@ -66,23 +67,21 @@ class SaleCrudTest extends TestCase
     public function test_can_update_sale(): void
     {
         $sale = Sale::create([
-            'sale_number' => 'SALE-001',
             'customer_id' => $this->customer->id,
-            'total' => 100,
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
         ]);
 
-        $sale->update(['total' => 200]);
-        $this->assertDatabaseHas('sales', ['id' => $sale->id, 'total' => 200]);
+        $sale->update(['grand_total' => 200]);
+        $this->assertDatabaseHas('sales', ['id' => $sale->id, 'grand_total' => 200]);
     }
 
     public function test_can_delete_sale(): void
     {
         $sale = Sale::create([
-            'sale_number' => 'SALE-001',
             'customer_id' => $this->customer->id,
-            'total' => 100,
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
         ]);
 
         $sale->delete();
