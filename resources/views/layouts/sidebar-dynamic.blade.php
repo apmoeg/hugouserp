@@ -1,4 +1,5 @@
 {{-- resources/views/layouts/sidebar-dynamic.blade.php --}}
+{{-- DEPRECATED: This sidebar variant is not used. Use layouts/sidebar.blade.php instead. --}}
 {{-- Database-driven Dynamic Sidebar --}}
 @php
     $dir = app()->getLocale() === 'ar' ? 'rtl' : 'ltr';

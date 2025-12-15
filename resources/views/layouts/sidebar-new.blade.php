@@ -1,4 +1,5 @@
 {{-- resources/views/layouts/sidebar-new.blade.php --}}
+{{-- DEPRECATED: This sidebar variant is not used. Use layouts/sidebar.blade.php instead. --}}
 @php
     $dir = app()->getLocale() === 'ar' ? 'rtl' : 'ltr';
     $user = auth()->user();
