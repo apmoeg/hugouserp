@@ -40,6 +40,7 @@ class ProjectOverBudgetTest extends TestCase
         ProjectExpense::create([
             'project_id' => $project->id,
             'description' => 'Expense 1',
+            'category' => 'materials',
             'amount' => 800.00,
             'status' => 'approved',
             'expense_date' => now(),
@@ -48,6 +49,7 @@ class ProjectOverBudgetTest extends TestCase
         ProjectExpense::create([
             'project_id' => $project->id,
             'description' => 'Expense 2',
+            'category' => 'materials',
             'amount' => 700.00,
             'status' => 'approved',
             'expense_date' => now(),
@@ -100,6 +102,7 @@ class ProjectOverBudgetTest extends TestCase
         ProjectExpense::create([
             'project_id' => $project->id,
             'description' => 'Pending Expense',
+            'category' => 'materials',
             'amount' => 1500.00,
             'status' => 'pending',
             'expense_date' => now(),

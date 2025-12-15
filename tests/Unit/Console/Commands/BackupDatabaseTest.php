@@ -30,6 +30,8 @@ class BackupDatabaseTest extends TestCase
                 'size' => 1024000,
             ]);
 
+        $this->app->instance(BackupService::class, $mockBackupService);
+
         // Mock cache lock
         $mockLock = Mockery::mock(\Illuminate\Contracts\Cache\Lock::class);
         $mockLock->shouldReceive('get')->once()->andReturn(true);
@@ -40,15 +42,9 @@ class BackupDatabaseTest extends TestCase
             ->with('cmd:system:backup', 1800)
             ->andReturn($mockLock);
 
-        // Create command with mocked service
-        $command = new BackupDatabase($mockBackupService);
-        $command->setLaravel($this->app);
-
         // Execute command without --verify option
-        $exitCode = $command->handle();
-
-        // Assert success
-        $this->assertEquals(BackupDatabase::SUCCESS, $exitCode);
+        $this->artisan('system:backup')
+            ->assertSuccessful();
     }
 
     public function test_backup_runs_with_verification_when_flag_provided(): void
@@ -71,6 +67,8 @@ class BackupDatabaseTest extends TestCase
             ->with($result)
             ->andReturn(true);
 
+        $this->app->instance(BackupService::class, $mockBackupService);
+
         // Mock cache lock
         $mockLock = Mockery::mock(\Illuminate\Contracts\Cache\Lock::class);
         $mockLock->shouldReceive('get')->once()->andReturn(true);
@@ -81,34 +79,16 @@ class BackupDatabaseTest extends TestCase
             ->with('cmd:system:backup', 1800)
             ->andReturn($mockLock);
 
-        // Mock the option method to return true for verify
-        $command = Mockery::mock(BackupDatabase::class, [$mockBackupService])
-            ->makePartial()
-            ->shouldAllowMockingProtectedMethods();
-        
-        $command->shouldReceive('option')
-            ->with('verify')
-            ->andReturn(true);
-        
-        $command->shouldReceive('info')->andReturnNull();
-        $command->shouldReceive('line')->andReturnNull();
-        $command->shouldReceive('warn')->andReturnNull();
-        $command->shouldReceive('error')->andReturnNull();
-
-        $command->setLaravel($this->app);
-
-        // Execute command
-        $exitCode = $command->handle();
-
-        // Assert success
-        $this->assertEquals(BackupDatabase::SUCCESS, $exitCode);
+        // Execute command with --verify option
+        $this->artisan('system:backup', ['--verify' => true])
+            ->assertSuccessful();
     }
 
     public function test_backup_fails_when_another_process_is_running(): void
     {
         // Mock the BackupService (should not be called)
         $mockBackupService = Mockery::mock(BackupService::class);
-        $mockBackupService->shouldNotReceive('run');
+        $this->app->instance(BackupService::class, $mockBackupService);
 
         // Mock cache lock that fails to acquire
         $mockLock = Mockery::mock(\Illuminate\Contracts\Cache\Lock::class);
@@ -119,24 +99,9 @@ class BackupDatabaseTest extends TestCase
             ->with('cmd:system:backup', 1800)
             ->andReturn($mockLock);
 
-        // Create command with mocked service
-        $command = Mockery::mock(BackupDatabase::class, [$mockBackupService])
-            ->makePartial()
-            ->shouldAllowMockingProtectedMethods();
-        
-        $command->shouldReceive('option')
-            ->with('verify')
-            ->andReturn(false);
-        
-        $command->shouldReceive('warn')->once()->andReturnNull();
-
-        $command->setLaravel($this->app);
-
         // Execute command
-        $exitCode = $command->handle();
-
-        // Assert failure
-        $this->assertEquals(BackupDatabase::FAILURE, $exitCode);
+        $this->artisan('system:backup')
+            ->assertFailed();
     }
 
     public function test_backup_fails_when_verification_fails(): void
@@ -159,6 +124,8 @@ class BackupDatabaseTest extends TestCase
             ->with($result)
             ->andReturn(false); // Verification fails
 
+        $this->app->instance(BackupService::class, $mockBackupService);
+
         // Mock cache lock
         $mockLock = Mockery::mock(\Illuminate\Contracts\Cache\Lock::class);
         $mockLock->shouldReceive('get')->once()->andReturn(true);
@@ -169,25 +136,8 @@ class BackupDatabaseTest extends TestCase
             ->with('cmd:system:backup', 1800)
             ->andReturn($mockLock);
 
-        // Create command with mocked service
-        $command = Mockery::mock(BackupDatabase::class, [$mockBackupService])
-            ->makePartial()
-            ->shouldAllowMockingProtectedMethods();
-        
-        $command->shouldReceive('option')
-            ->with('verify')
-            ->andReturn(true);
-        
-        $command->shouldReceive('info')->andReturnNull();
-        $command->shouldReceive('line')->andReturnNull();
-        $command->shouldReceive('error')->once()->andReturnNull();
-
-        $command->setLaravel($this->app);
-
-        // Execute command
-        $exitCode = $command->handle();
-
-        // Assert failure
-        $this->assertEquals(BackupDatabase::FAILURE, $exitCode);
+        // Execute command with --verify option
+        $this->artisan('system:backup', ['--verify' => true])
+            ->assertFailed();
     }
 }
