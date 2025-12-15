@@ -29,7 +29,7 @@ The following verification was performed in a working environment (SQLite):
 **Environment Used for Verification:**
 - PHP 8.3.6, Composer 2.9.2, SQLite
 - All 89 migrations ran successfully
-- 291 tests passing (53 fixture-related failures requiring schema updates)
+- 307 tests passing (37 fixture-related failures requiring external packages like spatie/laravel-activitylog)
 
 ---
 
