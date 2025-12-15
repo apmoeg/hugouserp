@@ -30,11 +30,21 @@ class WarrantyController extends Controller
 
     public function show(Warranty $warranty)
     {
+        // Defense-in-depth: Verify warranty's vehicle belongs to current branch
+        $branchId = (int) request()->attributes->get('branch_id');
+        $warranty->load('vehicle');
+        abort_if($warranty->vehicle?->branch_id !== $branchId, 404, 'Warranty not found in this branch');
+        
         return $this->ok($warranty);
     }
 
     public function update(WarrantyUpdateRequest $request, Warranty $warranty)
     {
+        // Defense-in-depth: Verify warranty's vehicle belongs to current branch
+        $branchId = (int) $request->attributes->get('branch_id');
+        $warranty->load('vehicle');
+        abort_if($warranty->vehicle?->branch_id !== $branchId, 404, 'Warranty not found in this branch');
+        
         $warranty->fill($request->validated())->save();
 
         return $this->ok($warranty);
