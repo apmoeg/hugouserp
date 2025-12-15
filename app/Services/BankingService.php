@@ -221,7 +221,7 @@ class BankingService
     {
         $account = BankAccount::findOrFail($accountId);
 
-        return $account->current_balance;
+        return (float) $account->current_balance;
     }
 
     /**

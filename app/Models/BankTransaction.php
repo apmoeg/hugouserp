@@ -103,11 +103,12 @@ class BankTransaction extends Model
      */
     public function getSignedAmount(): float
     {
+        $amount = (float) $this->amount;
         if ($this->isDeposit() || $this->type === 'interest') {
-            return $this->amount;
+            return $amount;
         }
         
-        return -$this->amount;
+        return -$amount;
     }
 
     /**
