@@ -40,7 +40,7 @@ class VehicleController extends Controller
     public function show(Vehicle $vehicle)
     {
         // Defense-in-depth: Verify vehicle belongs to current branch
-        $branchId = (int) request()->attributes->get('branch_id');
+        $branchId = $this->requireBranchId(request());
         abort_if($vehicle->branch_id !== $branchId, 404, 'Vehicle not found in this branch');
         
         return $this->ok($vehicle);
@@ -49,7 +49,7 @@ class VehicleController extends Controller
     public function update(VehicleUpdateRequest $request, Vehicle $vehicle)
     {
         // Defense-in-depth: Verify vehicle belongs to current branch
-        $branchId = (int) $request->attributes->get('branch_id');
+        $branchId = $this->requireBranchId($request);
         abort_if($vehicle->branch_id !== $branchId, 404, 'Vehicle not found in this branch');
         
         $vehicle->fill($request->validated())->save();

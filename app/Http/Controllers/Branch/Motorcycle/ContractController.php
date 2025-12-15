@@ -44,7 +44,7 @@ class ContractController extends Controller
     public function show(VehicleContract $contract)
     {
         // Defense-in-depth: Verify contract's vehicle belongs to current branch
-        $branchId = (int) request()->attributes->get('branch_id');
+        $branchId = $this->requireBranchId(request());
         $contract->load('vehicle');
         abort_if($contract->vehicle?->branch_id !== $branchId, 404, 'Contract not found in this branch');
         
@@ -54,7 +54,7 @@ class ContractController extends Controller
     public function update(Request $request, VehicleContract $contract)
     {
         // Defense-in-depth: Verify contract's vehicle belongs to current branch
-        $branchId = (int) $request->attributes->get('branch_id');
+        $branchId = $this->requireBranchId($request);
         $contract->load('vehicle');
         abort_if($contract->vehicle?->branch_id !== $branchId, 404, 'Contract not found in this branch');
         

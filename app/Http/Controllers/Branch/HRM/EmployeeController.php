@@ -32,7 +32,7 @@ class EmployeeController extends Controller
     public function show(HREmployee $employee)
     {
         // Defense-in-depth: Verify employee belongs to current branch
-        $branchId = (int) request()->attributes->get('branch_id');
+        $branchId = $this->requireBranchId(request());
         abort_if($employee->branch_id !== $branchId, 404, 'Employee not found in this branch');
         
         return $this->ok($employee);
