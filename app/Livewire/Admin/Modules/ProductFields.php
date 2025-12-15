@@ -89,6 +89,11 @@ class ProductFields extends Component
 
     public function mount(?int $moduleId = null): void
     {
+        $user = auth()->user();
+        if (! $user || ! $user->can('modules.manage')) {
+            abort(403);
+        }
+
         $this->modules = Module::where('is_active', true)
             ->orderBy('name')
             ->get(['id', 'name', 'name_ar'])
