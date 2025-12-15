@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Purchases;
 
 use App\Models\Branch;
-use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Supplier;
 use App\Models\User;
@@ -18,8 +17,11 @@ class PurchaseCrudTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Branch $branch;
+
     protected Supplier $supplier;
+
     protected Warehouse $warehouse;
 
     protected function setUp(): void

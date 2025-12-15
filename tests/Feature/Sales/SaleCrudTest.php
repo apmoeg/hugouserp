@@ -18,9 +18,13 @@ class SaleCrudTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Branch $branch;
+
     protected Customer $customer;
+
     protected Product $product;
+
     protected Warehouse $warehouse;
 
     protected function setUp(): void

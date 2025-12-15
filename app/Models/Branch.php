@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Branch extends BaseModel
 {
@@ -86,7 +87,7 @@ class Branch extends BaseModel
      * Get all rental units for this branch through properties.
      * Used by route model binding with scopeBindings().
      */
-    public function units(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    public function units(): HasManyThrough
     {
         return $this->hasManyThrough(RentalUnit::class, Property::class);
     }
@@ -113,7 +114,7 @@ class Branch extends BaseModel
      * Get all rental invoices for this branch through contracts.
      * Used by route model binding with scopeBindings().
      */
-    public function invoices(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    public function invoices(): HasManyThrough
     {
         return $this->hasManyThrough(RentalInvoice::class, RentalContract::class, 'branch_id', 'contract_id');
     }
