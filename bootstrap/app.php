@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->group('api-core', [
+            \App\Http\Middleware\EnsureApiEnabled::class,
             \App\Http\Middleware\ForceJsonResponse::class,
             \App\Http\Middleware\ValidateJson::class,
             \App\Http\Middleware\RequestId::class,

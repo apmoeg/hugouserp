@@ -267,6 +267,7 @@ class UnifiedSettings extends Component
 
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
+        Cache::forget('api_enabled_setting'); // Clear API enabled cache for middleware
         session()->flash('success', __('Advanced settings saved successfully'));
     }
 
