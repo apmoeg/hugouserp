@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\Document;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class DocumentCrudTest extends TestCase
@@ -25,15 +26,26 @@ class DocumentCrudTest extends TestCase
         $this->user = User::factory()->create(['branch_id' => $this->branch->id]);
     }
 
+    protected function createDocument(array $overrides = []): Document
+    {
+        return Document::create(array_merge([
+            'title' => 'Test Document',
+            'code' => 'DOC-' . Str::random(6),
+            'file_name' => 'test.pdf',
+            'file_path' => 'documents/test.pdf',
+            'file_size' => 1024,
+            'file_type' => 'pdf',
+            'mime_type' => 'application/pdf',
+            'status' => 'published',
+            'branch_id' => $this->branch->id,
+            'uploaded_by' => $this->user->id,
+        ], $overrides));
+    }
+
     public function test_can_create_document(): void
     {
-        $document = Document::create([
-            'title' => 'Test Document',
+        $document = $this->createDocument([
             'description' => 'Test description',
-            'file_path' => 'documents/test.pdf',
-            'file_type' => 'pdf',
-            'status' => 'active',
-            'branch_id' => $this->branch->id,
         ]);
 
         $this->assertDatabaseHas('documents', ['title' => 'Test Document']);
@@ -41,12 +53,7 @@ class DocumentCrudTest extends TestCase
 
     public function test_can_read_document(): void
     {
-        $document = Document::create([
-            'title' => 'Test Document',
-            'file_path' => 'test.pdf',
-            'file_type' => 'pdf',
-            'branch_id' => $this->branch->id,
-        ]);
+        $document = $this->createDocument();
 
         $found = Document::find($document->id);
         $this->assertNotNull($found);
@@ -54,12 +61,7 @@ class DocumentCrudTest extends TestCase
 
     public function test_can_update_document(): void
     {
-        $document = Document::create([
-            'title' => 'Test Document',
-            'file_path' => 'test.pdf',
-            'file_type' => 'pdf',
-            'branch_id' => $this->branch->id,
-        ]);
+        $document = $this->createDocument();
 
         $document->update(['title' => 'Updated Document']);
         $this->assertDatabaseHas('documents', ['id' => $document->id, 'title' => 'Updated Document']);
@@ -67,12 +69,7 @@ class DocumentCrudTest extends TestCase
 
     public function test_can_delete_document(): void
     {
-        $document = Document::create([
-            'title' => 'Test Document',
-            'file_path' => 'test.pdf',
-            'file_type' => 'pdf',
-            'branch_id' => $this->branch->id,
-        ]);
+        $document = $this->createDocument();
 
         $document->delete();
         $this->assertSoftDeleted('documents', ['id' => $document->id]);

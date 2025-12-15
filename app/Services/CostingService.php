@@ -23,18 +23,21 @@ class CostingService
 {
     /**
      * Calculate cost for stock movement based on product's costing method
+     * Falls back to system-wide default costing method from settings
      */
     public function calculateCost(
         Product $product,
         int $warehouseId,
         float $quantity
     ): array {
-        $costMethod = $product->cost_method ?? 'weighted_average';
+        // Use product-specific method if set, otherwise use system default from settings
+        $costMethod = $product->cost_method 
+            ?? strtolower(setting('inventory.costing_method', 'weighted_average'));
 
         return match ($costMethod) {
-            'fifo' => $this->calculateFifoCost($product->id, $warehouseId, $quantity),
-            'lifo' => $this->calculateLifoCost($product->id, $warehouseId, $quantity),
-            'weighted_average' => $this->calculateWeightedAverageCost($product->id, $warehouseId, $quantity),
+            'fifo', 'FIFO' => $this->calculateFifoCost($product->id, $warehouseId, $quantity),
+            'lifo', 'LIFO' => $this->calculateLifoCost($product->id, $warehouseId, $quantity),
+            'weighted_average', 'AVG' => $this->calculateWeightedAverageCost($product->id, $warehouseId, $quantity),
             'standard' => $this->calculateStandardCost($product, $quantity),
             default => $this->calculateWeightedAverageCost($product->id, $warehouseId, $quantity),
         };

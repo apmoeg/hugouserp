@@ -141,6 +141,7 @@ class PrintService
 
     protected function generateInvoiceNumber(): string
     {
-        return 'INV-'.date('Ymd').'-'.str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
+        $prefix = setting('sales.invoice_prefix', 'INV-');
+        return $prefix.date('Ymd').'-'.str_pad((string) random_int(1, 9999), 4, '0', STR_PAD_LEFT);
     }
 }

@@ -84,6 +84,21 @@ class POSService implements POSServiceInterface
                     $qty = (float) ($it['qty'] ?? 1);
                     $price = isset($it['price']) ? (float) $it['price'] : (float) ($product->default_price ?? 0);
 
+                    // Check stock availability for physical products (not services)
+                    // Respect the allow_negative_stock setting from system configuration
+                    $allowNegativeStock = (bool) setting('pos.allow_negative_stock', false);
+                    if (!$allowNegativeStock && $product->type !== 'service' && $product->product_type !== 'service') {
+                        $warehouseId = $payload['warehouse_id'] ?? null;
+                        $availableStock = StockService::getCurrentStock($product->getKey(), $warehouseId);
+                        if ($availableStock < $qty) {
+                            abort(422, __('Insufficient stock for :product. Available: :available, Requested: :requested', [
+                                'product' => $product->name,
+                                'available' => number_format($availableStock, 2),
+                                'requested' => number_format($qty, 2),
+                            ]));
+                        }
+                    }
+
                     if ($user && ! $user->can_modify_price && $price != (float) ($product->default_price ?? 0)) {
                         abort(422, __('You are not allowed to modify prices'));
                     }
@@ -93,6 +108,14 @@ class POSService implements POSServiceInterface
                     });
 
                     $itemDiscountPercent = (float) ($it['discount'] ?? 0);
+                    
+                    // Check system-wide max discount setting first
+                    $systemMaxDiscount = (float) setting('pos.max_discount_percent', 100);
+                    if ($itemDiscountPercent > $systemMaxDiscount) {
+                        abort(422, __('Discount exceeds the system maximum of :max%', ['max' => $systemMaxDiscount]));
+                    }
+                    
+                    // Then check user-specific limit (can be more restrictive)
                     if ($user && $user->max_discount_percent !== null && $itemDiscountPercent > $user->max_discount_percent) {
                         abort(422, __('Discount exceeds your maximum allowed discount of :max%', ['max' => $user->max_discount_percent]));
                     }

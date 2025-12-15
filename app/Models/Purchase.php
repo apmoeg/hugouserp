@@ -41,7 +41,9 @@ class Purchase extends BaseModel
 
         static::creating(function ($m) {
             $m->uuid = $m->uuid ?: (string) Str::uuid();
-            $m->code = $m->code ?: 'PO-'.Str::upper(Str::random(8));
+            // Use configurable purchase order prefix from settings
+            $prefix = setting('purchases.purchase_order_prefix', 'PO-');
+            $m->code = $m->code ?: $prefix.Str::upper(Str::random(8));
         });
     }
 

@@ -356,6 +356,54 @@ return [
             'max' => 100,
             'description' => 'Basic income tax rate',
         ],
+        'transport_allowance_type' => [
+            'label' => 'Transport Allowance Type',
+            'type' => 'select',
+            'options' => [
+                'percentage' => 'Percentage of Basic',
+                'fixed' => 'Fixed Amount',
+            ],
+            'default' => 'percentage',
+            'description' => 'How transport allowance is calculated',
+        ],
+        'transport_allowance_value' => [
+            'label' => 'Transport Allowance Value',
+            'type' => 'number',
+            'default' => 10,
+            'min' => 0,
+            'description' => 'Transport allowance percentage or fixed amount',
+        ],
+        'housing_allowance_type' => [
+            'label' => 'Housing Allowance Type',
+            'type' => 'select',
+            'options' => [
+                'percentage' => 'Percentage of Basic',
+                'fixed' => 'Fixed Amount',
+            ],
+            'default' => 'percentage',
+            'description' => 'How housing allowance is calculated',
+        ],
+        'housing_allowance_value' => [
+            'label' => 'Housing Allowance Value',
+            'type' => 'number',
+            'default' => 0,
+            'min' => 0,
+            'description' => 'Housing allowance percentage or fixed amount',
+        ],
+        'meal_allowance' => [
+            'label' => 'Meal Allowance (Fixed)',
+            'type' => 'number',
+            'default' => 0,
+            'min' => 0,
+            'description' => 'Fixed monthly meal allowance',
+        ],
+        'health_insurance_deduction' => [
+            'label' => 'Health Insurance Deduction',
+            'type' => 'number',
+            'default' => 0,
+            'min' => 0,
+            'description' => 'Fixed monthly health insurance deduction',
+        ],
     ],
 
     /**

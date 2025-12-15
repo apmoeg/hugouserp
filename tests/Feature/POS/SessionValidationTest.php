@@ -7,7 +7,9 @@ namespace Tests\Feature\POS;
 use App\Models\Branch;
 use App\Models\PosSession;
 use App\Models\Product;
+use App\Models\StockMovement;
 use App\Models\User;
+use App\Models\Warehouse;
 use App\Services\POSService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
@@ -21,6 +23,7 @@ class SessionValidationTest extends TestCase
     protected Branch $branch;
     protected User $user;
     protected Product $product;
+    protected Warehouse $warehouse;
 
     protected function setUp(): void
     {
@@ -31,6 +34,14 @@ class SessionValidationTest extends TestCase
         $this->branch = Branch::create([
             'name' => 'Test Branch',
             'code' => 'TB001',
+        ]);
+
+        $this->warehouse = Warehouse::create([
+            'name' => 'Default Warehouse',
+            'code' => 'WH001',
+            'branch_id' => $this->branch->id,
+            'is_default' => true,
+            'status' => 'active',
         ]);
 
         $this->user = User::factory()->create([
@@ -47,6 +58,16 @@ class SessionValidationTest extends TestCase
             'default_price' => 100,
             'standard_cost' => 50,
             'branch_id' => $this->branch->id,
+        ]);
+
+        // Add stock for the product
+        StockMovement::create([
+            'branch_id' => $this->branch->id,
+            'product_id' => $this->product->id,
+            'warehouse_id' => $this->warehouse->id,
+            'qty' => 100,
+            'direction' => 'in',
+            'reason' => 'initial_stock',
         ]);
 
         // Authenticate as user
@@ -66,6 +87,7 @@ class SessionValidationTest extends TestCase
 
         $payload = [
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
             'channel' => 'pos',
             'items' => [
                 [
@@ -92,6 +114,7 @@ class SessionValidationTest extends TestCase
 
         $payload = [
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
             'channel' => 'pos',
             'items' => [
                 [
@@ -114,6 +137,7 @@ class SessionValidationTest extends TestCase
 
         $payload = [
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
             'channel' => 'pos',
             'items' => [
                 [
@@ -134,6 +158,7 @@ class SessionValidationTest extends TestCase
     {
         $payload = [
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
             'channel' => 'online',
             'items' => [
                 [

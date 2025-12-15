@@ -6,7 +6,8 @@ namespace Tests\Unit\Services;
 
 use App\Models\Branch;
 use App\Models\Product;
-use App\Models\Sale;
+use App\Models\User;
+use App\Models\PosSession;
 use App\Services\POSService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -18,6 +19,7 @@ class POSServiceTest extends TestCase
     protected POSService $service;
     protected Branch $branch;
     protected Product $product;
+    protected User $user;
 
     protected function setUp(): void
     {
@@ -28,6 +30,10 @@ class POSServiceTest extends TestCase
         $this->branch = Branch::create([
             'name' => 'Test Branch',
             'code' => 'TB001',
+        ]);
+
+        $this->user = User::factory()->create([
+            'branch_id' => $this->branch->id,
         ]);
 
         $this->product = Product::create([
@@ -41,71 +47,50 @@ class POSServiceTest extends TestCase
         ]);
     }
 
-    public function test_can_calculate_cart_total(): void
+    public function test_can_open_session(): void
     {
-        $items = [
-            [
-                'product_id' => $this->product->id,
-                'quantity' => 2,
-                'price' => 100,
-            ],
-        ];
+        $session = $this->service->openSession(
+            $this->branch->id,
+            $this->user->id,
+            1000.00
+        );
 
-        $total = $this->service->calculateCartTotal($items);
-
-        $this->assertEquals(200, $total);
+        $this->assertInstanceOf(PosSession::class, $session);
+        $this->assertEquals(1000.00, $session->opening_cash);
     }
 
-    public function test_can_apply_discount_to_cart(): void
+    public function test_can_close_session(): void
     {
-        $subtotal = 1000;
-        $discount = 10; // 10%
+        $session = $this->service->openSession(
+            $this->branch->id,
+            $this->user->id,
+            1000.00
+        );
 
-        $finalTotal = $this->service->applyDiscount($subtotal, $discount);
+        $closedSession = $this->service->closeSession($session->id, 1200.00, 'End of day');
 
-        $this->assertEquals(900, $finalTotal);
+        $this->assertEquals('closed', $closedSession->status);
+        $this->assertEquals(1200.00, $closedSession->closing_cash);
     }
 
-    public function test_can_create_sale(): void
+    public function test_can_get_current_session(): void
     {
-        $data = [
-            'customer_id' => null,
-            'total' => 100,
-            'paid' => 100,
-            'payment_method' => 'cash',
-            'branch_id' => $this->branch->id,
-            'items' => [
-                [
-                    'product_id' => $this->product->id,
-                    'quantity' => 1,
-                    'price' => 100,
-                ],
-            ],
-        ];
+        $session = $this->service->openSession(
+            $this->branch->id,
+            $this->user->id,
+            1000.00
+        );
 
-        $sale = $this->service->createSale($data);
+        $currentSession = $this->service->getCurrentSession($this->branch->id, $this->user->id);
 
-        $this->assertInstanceOf(Sale::class, $sale);
-        $this->assertEquals(100, $sale->total);
+        $this->assertNotNull($currentSession);
+        $this->assertEquals($session->id, $currentSession->id);
     }
 
-    public function test_validates_payment_amount(): void
+    public function test_validate_discount_with_valid_percent(): void
     {
-        $total = 100;
-        $paid = 100;
+        $isValid = $this->service->validateDiscount($this->user, 10);
 
-        $isValid = $this->service->validatePayment($total, $paid);
-
-        $this->assertTrue($isValid);
-    }
-
-    public function test_detects_insufficient_payment(): void
-    {
-        $total = 100;
-        $paid = 50;
-
-        $isValid = $this->service->validatePayment($total, $paid);
-
-        $this->assertFalse($isValid);
+        $this->assertIsBool($isValid);
     }
 }

@@ -8,7 +8,7 @@ use App\Exceptions\BusinessException;
 use App\Exceptions\InsufficientStockException;
 use App\Exceptions\InvalidDiscountException;
 use App\Exceptions\NoBranchSelectedException;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class BusinessExceptionTest extends TestCase
 {

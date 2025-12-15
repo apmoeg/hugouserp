@@ -221,7 +221,7 @@ class BankingService
     {
         $account = BankAccount::findOrFail($accountId);
 
-        return $account->current_balance;
+        return (float) $account->current_balance;
     }
 
     /**
@@ -255,9 +255,20 @@ class BankingService
 
     /**
      * Record a withdrawal transaction
+     * @throws \InvalidArgumentException if insufficient balance
      */
     public function recordWithdrawal(array $data): BankTransaction
     {
+        // Check for sufficient balance before withdrawal
+        $availableBalance = $this->getAccountBalance($data['account_id']);
+        if ($availableBalance < $data['amount']) {
+            throw new \InvalidArgumentException(sprintf(
+                'Insufficient balance for withdrawal. Available: %.2f, Requested: %.2f',
+                $availableBalance,
+                $data['amount']
+            ));
+        }
+
         return $this->recordTransaction([
             'bank_account_id' => $data['account_id'],
             'branch_id' => $data['branch_id'],

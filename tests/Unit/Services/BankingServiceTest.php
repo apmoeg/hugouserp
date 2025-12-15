@@ -34,7 +34,9 @@ class BankingServiceTest extends TestCase
             'account_number' => '1234567890',
             'bank_name' => 'Test Bank',
             'currency' => 'EGP',
-            'balance' => 10000,
+            'current_balance' => 10000,
+            'opening_balance' => 10000,
+            'opening_date' => now(),
             'branch_id' => $this->branch->id,
         ]);
     }

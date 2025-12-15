@@ -6,6 +6,7 @@ namespace Tests\Unit\Services;
 
 use App\Models\Branch;
 use App\Models\Document;
+use App\Models\User;
 use App\Services\DocumentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -16,6 +17,7 @@ class DocumentServiceTest extends TestCase
 
     protected DocumentService $service;
     protected Branch $branch;
+    protected User $user;
 
     protected function setUp(): void
     {
@@ -27,69 +29,73 @@ class DocumentServiceTest extends TestCase
             'name' => 'Test Branch',
             'code' => 'TB001',
         ]);
+
+        $this->user = User::factory()->create([
+            'branch_id' => $this->branch->id,
+        ]);
     }
 
-    public function test_can_create_document(): void
+    protected function createDocument(array $overrides = []): Document
     {
-        $data = [
+        return Document::create(array_merge([
             'title' => 'Test Document',
-            'description' => 'Test Description',
+            'code' => 'DOC-' . uniqid(),
+            'file_name' => 'test.pdf',
             'file_path' => 'documents/test.pdf',
+            'file_size' => 1024,
             'file_type' => 'pdf',
-            'status' => 'active',
+            'mime_type' => 'application/pdf',
+            'status' => 'published',
+            'is_public' => false,
             'branch_id' => $this->branch->id,
-        ];
-
-        $document = $this->service->createDocument($data);
-
-        $this->assertInstanceOf(Document::class, $document);
-        $this->assertEquals('Test Document', $document->title);
+            'uploaded_by' => $this->user->id,
+        ], $overrides));
     }
 
-    public function test_can_share_document(): void
+    public function test_can_get_statistics(): void
     {
-        $document = Document::create([
-            'title' => 'Test',
-            'file_path' => 'test.pdf',
-            'file_type' => 'pdf',
-            'branch_id' => $this->branch->id,
-        ]);
+        $this->createDocument();
+        $this->createDocument();
 
-        $shared = $this->service->shareDocument($document->id, [1, 2]);
+        $stats = $this->service->getStatistics($this->branch->id);
 
-        $this->assertTrue($shared);
+        $this->assertIsArray($stats);
+        $this->assertArrayHasKey('total_documents', $stats);
     }
 
-    public function test_can_add_document_version(): void
+    public function test_validates_public_document_access(): void
     {
-        $document = Document::create([
-            'title' => 'Test',
-            'file_path' => 'test.pdf',
-            'file_type' => 'pdf',
-            'branch_id' => $this->branch->id,
+        $document = $this->createDocument([
+            'is_public' => true,
         ]);
 
-        $version = $this->service->addVersion($document->id, [
-            'file_path' => 'test-v2.pdf',
-            'version' => '2.0',
-            'notes' => 'Updated version',
-        ]);
-
-        $this->assertNotNull($version);
-    }
-
-    public function test_validates_document_access(): void
-    {
-        $document = Document::create([
-            'title' => 'Test',
-            'file_path' => 'test.pdf',
-            'file_type' => 'pdf',
-            'branch_id' => $this->branch->id,
-            'created_by' => 1,
-        ]);
-
-        $hasAccess = $this->service->canAccess($document->id, 1);
+        // Public documents should be accessible
+        $hasAccess = $document->canBeAccessedBy($this->user);
 
         $this->assertTrue($hasAccess);
+    }
+
+    public function test_validates_owner_document_access(): void
+    {
+        $document = $this->createDocument([
+            'is_public' => false,
+            'uploaded_by' => $this->user->id,
+        ]);
+
+        // Owner should be able to access their document
+        $hasAccess = $document->canBeAccessedBy($this->user);
+
+        $this->assertTrue($hasAccess);
+    }
+
+    public function test_document_file_size_formatted(): void
+    {
+        $document = $this->createDocument([
+            'file_size' => 1536000, // ~1.5 MB
+        ]);
+
+        $formatted = $document->getFileSizeFormatted();
+
+        $this->assertStringContainsString('MB', $formatted);
     }
 }

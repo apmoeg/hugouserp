@@ -37,8 +37,10 @@ class RentalService implements RentalServiceInterface
             callback: fn () => RentalUnit::create([
                 'property_id' => $propertyId,
                 'code' => $payload['code'],
-                'status' => $payload['status'] ?? 'vacant',
-                'area' => $payload['area'] ?? null,
+                'type' => $payload['type'] ?? $payload['unit_type'] ?? null,
+                'status' => $payload['status'] ?? 'available',
+                'rent' => $payload['rent'] ?? $payload['monthly_rent'] ?? 0,
+                'deposit' => $payload['deposit'] ?? 0,
             ]),
             operation: 'createUnit',
             context: ['property_id' => $propertyId, 'payload' => $payload]
@@ -195,6 +197,18 @@ class RentalService implements RentalServiceInterface
                 // Get branch_id from contract, ensure it's set
                 $invoiceBranchId = $i->contract->branch_id ?? null;
                 abort_if(! $invoiceBranchId, 422, __('Branch context is required'));
+
+                // Validate payment amount
+                $remainingDue = max(0, ($i->amount ?? 0) - ($i->paid_total ?? 0));
+                if ($amount <= 0) {
+                    abort(422, __('Payment amount must be positive'));
+                }
+                if ($amount > $remainingDue) {
+                    abort(422, __('Payment amount (:amount) exceeds remaining due (:due)', [
+                        'amount' => number_format($amount, 2),
+                        'due' => number_format($remainingDue, 2),
+                    ]));
+                }
 
                 // Create payment record
                 \App\Models\RentalPayment::create([

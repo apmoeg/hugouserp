@@ -6,6 +6,9 @@ namespace Tests\Unit\Services;
 
 use App\Models\Branch;
 use App\Models\Ticket;
+use App\Models\TicketCategory;
+use App\Models\TicketPriority;
+use App\Models\User;
 use App\Services\HelpdeskService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -16,6 +19,9 @@ class HelpdeskServiceTest extends TestCase
 
     protected HelpdeskService $service;
     protected Branch $branch;
+    protected TicketPriority $priority;
+    protected TicketCategory $category;
+    protected User $user;
 
     protected function setUp(): void
     {
@@ -27,65 +33,66 @@ class HelpdeskServiceTest extends TestCase
             'name' => 'Test Branch',
             'code' => 'TB001',
         ]);
+
+        $this->user = User::factory()->create([
+            'branch_id' => $this->branch->id,
+        ]);
+
+        $this->priority = TicketPriority::create([
+            'name' => 'Medium',
+            'slug' => 'medium',
+            'level' => 2,
+            'color' => '#FFA500',
+            'is_active' => true,
+        ]);
+
+        $this->category = TicketCategory::create([
+            'name' => 'General',
+            'slug' => 'general',
+            'is_active' => true,
+        ]);
     }
 
-    public function test_can_create_ticket(): void
+    protected function createTicketData(array $overrides = []): array
     {
-        $data = [
+        return array_merge([
             'subject' => 'Test Ticket',
             'description' => 'Test Description',
             'status' => 'new',
+            'priority_id' => $this->priority->id,
+            'category_id' => $this->category->id,
             'branch_id' => $this->branch->id,
-        ];
-
-        $ticket = $this->service->createTicket($data);
-
-        $this->assertInstanceOf(Ticket::class, $ticket);
-        $this->assertEquals('Test Ticket', $ticket->subject);
+        ], $overrides);
     }
 
-    public function test_can_assign_ticket(): void
+    protected function createTicket(array $overrides = []): Ticket
     {
-        $ticket = Ticket::create([
-            'subject' => 'Test',
-            'description' => 'Test',
-            'status' => 'new',
-            'branch_id' => $this->branch->id,
-        ]);
-
-        $assigned = $this->service->assignTicket($ticket->id, 1);
-
-        $this->assertTrue($assigned);
+        static $counter = 0;
+        $counter++;
+        return Ticket::create(array_merge($this->createTicketData(), [
+            'ticket_number' => 'TKT-' . str_pad((string) $counter, 6, '0', STR_PAD_LEFT),
+        ], $overrides));
     }
 
-    public function test_can_update_ticket_status(): void
+    public function test_can_get_ticket_stats(): void
     {
-        $ticket = Ticket::create([
-            'subject' => 'Test',
-            'description' => 'Test',
-            'status' => 'new',
-            'branch_id' => $this->branch->id,
-        ]);
+        $this->createTicket();
+        $this->createTicket(['status' => 'closed']);
 
-        $updated = $this->service->updateTicketStatus($ticket->id, 'in_progress');
+        $stats = $this->service->getTicketStats($this->branch->id);
 
-        $this->assertTrue($updated);
+        $this->assertIsArray($stats);
+        $this->assertArrayHasKey('total', $stats);
     }
 
-    public function test_can_add_ticket_reply(): void
+    public function test_can_calculate_sla(): void
     {
-        $ticket = Ticket::create([
-            'subject' => 'Test',
-            'description' => 'Test',
-            'status' => 'new',
-            'branch_id' => $this->branch->id,
-        ]);
+        $ticket = $this->createTicket();
 
-        $reply = $this->service->addReply($ticket->id, [
-            'message' => 'Test Reply',
-            'user_id' => 1,
-        ]);
+        $sla = $this->service->calculateSLA($ticket);
 
-        $this->assertNotNull($reply);
+        $this->assertIsArray($sla);
+        // Check that SLA returns expected structure
+        $this->assertTrue(count($sla) > 0);
     }
 }

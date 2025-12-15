@@ -22,6 +22,14 @@ class ReportsHub extends Component
 
     protected array $cachedPermissions = [];
 
+    public function mount(): void
+    {
+        $user = Auth::user();
+        if (! $user || ! $user->can('reports.view')) {
+            abort(403);
+        }
+    }
+
     #[Layout('layouts.app')]
     public function render()
     {

@@ -113,6 +113,21 @@ class PurchaseService implements PurchaseServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($id, $amount) {
                 $p = $this->findBranchPurchaseOrFail($id);
+
+                // Validate payment amount
+                if ($amount <= 0) {
+                    throw new \InvalidArgumentException('Payment amount must be positive');
+                }
+
+                $remainingDue = max(0, $p->grand_total - $p->paid_total);
+                if ($amount > $remainingDue) {
+                    throw new \InvalidArgumentException(sprintf(
+                        'Payment amount (%.2f) exceeds remaining due (%.2f)',
+                        $amount,
+                        $remainingDue
+                    ));
+                }
+
                 $p->paid_total = round((float) $p->paid_total + $amount, 2);
                 $p->due_total = round(max(0, $p->grand_total - $p->paid_total), 2);
                 if ($p->paid_total >= $p->grand_total) {
@@ -132,6 +147,18 @@ class PurchaseService implements PurchaseServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($id) {
                 $p = $this->findBranchPurchaseOrFail($id);
+
+                // Prevent cancelling if already received or paid
+                if ($p->status === 'received') {
+                    throw new \InvalidArgumentException('Cannot cancel a received purchase. Please create a return instead.');
+                }
+                if ($p->status === 'paid') {
+                    throw new \InvalidArgumentException('Cannot cancel a paid purchase. Please refund first.');
+                }
+                if ($p->status === 'cancelled') {
+                    throw new \InvalidArgumentException('Purchase is already cancelled.');
+                }
+
                 $p->status = 'cancelled';
                 $p->save();
 

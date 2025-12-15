@@ -44,7 +44,9 @@ class Sale extends BaseModel
 
         static::creating(function ($m) {
             $m->uuid = $m->uuid ?: (string) Str::uuid();
-            $m->code = $m->code ?: 'SO-'.Str::upper(Str::random(8));
+            // Use configurable invoice prefix from settings
+            $prefix = setting('sales.invoice_prefix', 'SO-');
+            $m->code = $m->code ?: $prefix.Str::upper(Str::random(8));
         });
     }
 

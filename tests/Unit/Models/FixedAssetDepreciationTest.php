@@ -143,7 +143,7 @@ class FixedAssetDepreciationTest extends TestCase
         ]);
 
         // (12000 - 2000) / 60 months = 166.67
-        $this->assertEquals(166.666666666667, $asset->getMonthlyDepreciation(), '', 0.01);
+        $this->assertEqualsWithDelta(166.67, $asset->getMonthlyDepreciation(), 0.01);
     }
 
     public function test_get_monthly_depreciation_returns_zero_when_no_useful_life(): void
@@ -198,6 +198,6 @@ class FixedAssetDepreciationTest extends TestCase
         ]);
 
         // (10000 - 1000) / 27 months = 333.33...
-        $this->assertEquals(333.333333333333, $asset->getMonthlyDepreciation(), '', 0.01);
+        $this->assertEqualsWithDelta(333.33, $asset->getMonthlyDepreciation(), 0.01);
     }
 }

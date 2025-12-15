@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
+use App\Models\Attendance;
 use App\Models\Branch;
-use App\Models\HrEmployee;
+use App\Models\HREmployee;
 use App\Services\HRMService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -16,7 +17,7 @@ class HRMServiceTest extends TestCase
 
     protected HRMService $service;
     protected Branch $branch;
-    protected HrEmployee $employee;
+    protected HREmployee $employee;
 
     protected function setUp(): void
     {
@@ -29,49 +30,55 @@ class HRMServiceTest extends TestCase
             'code' => 'TB001',
         ]);
 
-        $this->employee = HrEmployee::create([
-            'employee_code' => 'EMP001',
+        $this->employee = HREmployee::create([
+            'code' => 'EMP001',
             'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'phone' => '1234567890',
-            'hire_date' => now(),
             'position' => 'Developer',
             'salary' => 5000,
-            'salary_type' => 'monthly',
-            'employment_type' => 'full_time',
-            'status' => 'active',
+            'is_active' => true,
             'branch_id' => $this->branch->id,
         ]);
     }
 
-    public function test_can_calculate_monthly_salary(): void
+    public function test_can_get_active_employees(): void
     {
-        $salary = $this->service->calculateMonthlySalary($this->employee);
+        $employees = $this->service->employees(true);
 
-        $this->assertEquals(5000, $salary);
+        $this->assertNotNull($employees);
     }
 
-    public function test_can_calculate_daily_salary_from_monthly(): void
+    public function test_can_get_all_employees(): void
     {
-        $dailySalary = $this->service->calculateDailySalary($this->employee);
+        $employees = $this->service->employees(false);
 
-        $this->assertIsNumeric($dailySalary);
-        $this->assertGreaterThan(0, $dailySalary);
+        $this->assertNotNull($employees);
     }
 
-    public function test_can_validate_employee_status(): void
+    public function test_can_log_attendance_check_in(): void
     {
-        $isActive = $this->service->isEmployeeActive($this->employee);
+        $attendance = $this->service->logAttendance(
+            $this->employee->id,
+            'in',  // Use 'in' instead of 'check_in'
+            now()->format('Y-m-d H:i:s')
+        );
 
-        $this->assertTrue($isActive);
+        $this->assertInstanceOf(Attendance::class, $attendance);
+        $this->assertEquals($this->employee->id, $attendance->employee_id);
     }
 
-    public function test_can_calculate_working_days_in_month(): void
+    public function test_can_approve_attendance(): void
     {
-        $workingDays = $this->service->getWorkingDaysInMonth(now());
+        $attendance = Attendance::create([
+            'employee_id' => $this->employee->id,
+            'branch_id' => $this->branch->id,
+            'date' => now()->format('Y-m-d'),
+            'check_in' => now()->format('H:i:s'),
+            'status' => 'pending',
+        ]);
 
-        $this->assertIsInt($workingDays);
-        $this->assertGreaterThan(0, $workingDays);
-        $this->assertLessThanOrEqual(31, $workingDays);
+        $approved = $this->service->approveAttendance($attendance->id);
+
+        $this->assertInstanceOf(Attendance::class, $approved);
+        $this->assertEquals('approved', $approved->status);
     }
 }

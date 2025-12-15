@@ -61,6 +61,12 @@ class UnifiedSettings extends Component
     public int $hrm_working_days_per_week = 5;
     public float $hrm_working_hours_per_day = 8.0;
     public int $hrm_late_arrival_threshold = 15;
+    public string $hrm_transport_allowance_type = 'percentage';
+    public float $hrm_transport_allowance_value = 10.0;
+    public string $hrm_housing_allowance_type = 'percentage';
+    public float $hrm_housing_allowance_value = 0.0;
+    public float $hrm_meal_allowance = 0.0;
+    public float $hrm_health_insurance_deduction = 0.0;
 
     // Rental settings
     public int $rental_grace_period_days = 5;
@@ -143,6 +149,12 @@ class UnifiedSettings extends Component
         $this->hrm_working_days_per_week = (int) ($settings['hrm.working_days_per_week'] ?? 5);
         $this->hrm_working_hours_per_day = (float) ($settings['hrm.working_hours_per_day'] ?? 8.0);
         $this->hrm_late_arrival_threshold = (int) ($settings['hrm.late_arrival_threshold'] ?? 15);
+        $this->hrm_transport_allowance_type = $settings['hrm.transport_allowance_type'] ?? 'percentage';
+        $this->hrm_transport_allowance_value = (float) ($settings['hrm.transport_allowance_value'] ?? 10.0);
+        $this->hrm_housing_allowance_type = $settings['hrm.housing_allowance_type'] ?? 'percentage';
+        $this->hrm_housing_allowance_value = (float) ($settings['hrm.housing_allowance_value'] ?? 0.0);
+        $this->hrm_meal_allowance = (float) ($settings['hrm.meal_allowance'] ?? 0.0);
+        $this->hrm_health_insurance_deduction = (float) ($settings['hrm.health_insurance_deduction'] ?? 0.0);
 
         // Load rental settings
         $this->rental_grace_period_days = (int) ($settings['rental.grace_period_days'] ?? 5);
@@ -341,11 +353,23 @@ class UnifiedSettings extends Component
             'hrm_working_days_per_week' => 'required|integer|min:1|max:7',
             'hrm_working_hours_per_day' => 'required|numeric|min:1|max:24',
             'hrm_late_arrival_threshold' => 'required|integer|min:0',
+            'hrm_transport_allowance_type' => 'required|in:percentage,fixed',
+            'hrm_transport_allowance_value' => 'required|numeric|min:0',
+            'hrm_housing_allowance_type' => 'required|in:percentage,fixed',
+            'hrm_housing_allowance_value' => 'required|numeric|min:0',
+            'hrm_meal_allowance' => 'required|numeric|min:0',
+            'hrm_health_insurance_deduction' => 'required|numeric|min:0',
         ]);
 
         $this->setSetting('hrm.working_days_per_week', $this->hrm_working_days_per_week, 'hrm');
         $this->setSetting('hrm.working_hours_per_day', $this->hrm_working_hours_per_day, 'hrm');
         $this->setSetting('hrm.late_arrival_threshold', $this->hrm_late_arrival_threshold, 'hrm');
+        $this->setSetting('hrm.transport_allowance_type', $this->hrm_transport_allowance_type, 'hrm');
+        $this->setSetting('hrm.transport_allowance_value', $this->hrm_transport_allowance_value, 'hrm');
+        $this->setSetting('hrm.housing_allowance_type', $this->hrm_housing_allowance_type, 'hrm');
+        $this->setSetting('hrm.housing_allowance_value', $this->hrm_housing_allowance_value, 'hrm');
+        $this->setSetting('hrm.meal_allowance', $this->hrm_meal_allowance, 'hrm');
+        $this->setSetting('hrm.health_insurance_deduction', $this->hrm_health_insurance_deduction, 'hrm');
 
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');

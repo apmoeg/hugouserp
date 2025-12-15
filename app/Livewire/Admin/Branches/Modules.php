@@ -24,6 +24,11 @@ class Modules extends Component
 
     public function mount(Branch $branch): void
     {
+        $user = auth()->user();
+        if (! $user || ! $user->can('branches.manage')) {
+            abort(403);
+        }
+
         $this->branch = $branch;
         $this->loadModules();
     }

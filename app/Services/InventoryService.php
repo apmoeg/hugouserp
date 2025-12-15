@@ -259,6 +259,15 @@ class InventoryService implements InventoryServiceInterface
                         ->lockForUpdate()
                         ->findOrFail($toWarehouse);
 
+                    // Check if source warehouse has sufficient stock
+                    $availableStock = $this->getStockLevel($productId, $fromWarehouse);
+                    if ($availableStock < $qty) {
+                        throw new InvalidQuantityException(
+                            sprintf('Insufficient stock. Available: %.2f, Requested: %.2f', $availableStock, $qty),
+                            422
+                        );
+                    }
+
                     $userId = $this->currentUser()?->getAuthIdentifier();
 
                     $outMovement = $this->movements->create([
