@@ -40,14 +40,14 @@ class FinancialReportServiceTest extends TestCase
             'name' => 'Cash',
             'name_ar' => 'نقدية',
             'type' => 'asset',
-            'status' => 'active',
+            'is_active' => true,
         ]);
 
         // Create a journal entry
         $entry = JournalEntry::create([
             'branch_id' => $this->branch->id,
             'entry_date' => now(),
-            'reference' => 'JE001',
+            'reference_number' => 'JE001',
             'description' => 'Test entry',
             'status' => 'posted',
         ]);
@@ -83,14 +83,14 @@ class FinancialReportServiceTest extends TestCase
             'name' => 'Accounts Payable',
             'name_ar' => 'حسابات دائنة',
             'type' => 'liability',
-            'status' => 'active',
+            'is_active' => true,
         ]);
 
         // Create a journal entry
         $entry = JournalEntry::create([
             'branch_id' => $this->branch->id,
             'entry_date' => now(),
-            'reference' => 'JE002',
+            'reference_number' => 'JE002',
             'description' => 'Test liability',
             'status' => 'posted',
         ]);
@@ -126,14 +126,14 @@ class FinancialReportServiceTest extends TestCase
             'name' => 'Sales Revenue',
             'name_ar' => 'إيرادات المبيعات',
             'type' => 'revenue',
-            'status' => 'active',
+            'is_active' => true,
         ]);
 
         // Create a journal entry
         $entry = JournalEntry::create([
             'branch_id' => $this->branch->id,
             'entry_date' => now(),
-            'reference' => 'JE003',
+            'reference_number' => 'JE003',
             'description' => 'Test revenue',
             'status' => 'posted',
         ]);
@@ -169,14 +169,14 @@ class FinancialReportServiceTest extends TestCase
             'name' => 'Operating Expenses',
             'name_ar' => 'مصروفات تشغيلية',
             'type' => 'expense',
-            'status' => 'active',
+            'is_active' => true,
         ]);
 
         // Create a journal entry
         $entry = JournalEntry::create([
             'branch_id' => $this->branch->id,
             'entry_date' => now(),
-            'reference' => 'JE004',
+            'reference_number' => 'JE004',
             'description' => 'Test expense',
             'status' => 'posted',
         ]);
