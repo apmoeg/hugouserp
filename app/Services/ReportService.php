@@ -265,7 +265,7 @@ class ReportService implements ReportServiceInterface
             callback: function () use ($filters, $user) {
                 $query = DB::table('expenses')
                     ->select(['expenses.*', 'expense_categories.name as category_name', 'branches.name as branch_name'])
-                    ->leftJoin('expense_categories', 'expenses.expense_category_id', '=', 'expense_categories.id')
+                    ->leftJoin('expense_categories', 'expenses.category_id', '=', 'expense_categories.id')
                     ->leftJoin('branches', 'expenses.branch_id', '=', 'branches.id');
 
                 if ($user && ! $user->hasRole('Super Admin')) {
@@ -277,7 +277,7 @@ class ReportService implements ReportServiceInterface
                 $this->applyBranchFilter($query, $filters, 'expenses.branch_id');
 
                 if (! empty($filters['category_id'])) {
-                    $query->where('expenses.expense_category_id', $filters['category_id']);
+                    $query->where('expenses.category_id', $filters['category_id']);
                 }
 
                 $items = $query->orderBy('expenses.expense_date', 'desc')->get();
@@ -303,7 +303,7 @@ class ReportService implements ReportServiceInterface
             callback: function () use ($filters, $user) {
                 $query = DB::table('incomes')
                     ->select(['incomes.*', 'income_categories.name as category_name', 'branches.name as branch_name'])
-                    ->leftJoin('income_categories', 'incomes.income_category_id', '=', 'income_categories.id')
+                    ->leftJoin('income_categories', 'incomes.category_id', '=', 'income_categories.id')
                     ->leftJoin('branches', 'incomes.branch_id', '=', 'branches.id');
 
                 if ($user && ! $user->hasRole('Super Admin')) {
@@ -313,6 +313,10 @@ class ReportService implements ReportServiceInterface
 
                 $this->applyDateFilters($query, $filters, 'incomes.income_date');
                 $this->applyBranchFilter($query, $filters, 'incomes.branch_id');
+
+                if (! empty($filters['category_id'])) {
+                    $query->where('incomes.category_id', $filters['category_id']);
+                }
 
                 $items = $query->orderBy('incomes.income_date', 'desc')->get();
 
