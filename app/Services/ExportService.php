@@ -35,7 +35,7 @@ class ExportService
             'sales' => [
                 'id' => 'ID',
                 'reference' => __('Reference'),
-                'sale_date' => __('Date'),
+                'posted_at' => __('Date'),
                 'customer_name' => __('Customer'),
                 'grand_total' => __('Total'),
                 'amount_paid' => __('Paid'),
@@ -47,7 +47,7 @@ class ExportService
             'purchases' => [
                 'id' => 'ID',
                 'reference' => __('Reference'),
-                'purchase_date' => __('Date'),
+                'posted_at' => __('Date'),
                 'supplier_name' => __('Supplier'),
                 'grand_total' => __('Total'),
                 'amount_paid' => __('Paid'),
