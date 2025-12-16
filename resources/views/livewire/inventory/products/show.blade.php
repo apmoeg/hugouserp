@@ -29,11 +29,11 @@
                 </div>
                 <div>
                     <dt class="text-sm font-medium text-gray-500">{{ __('Price') }}</dt>
-                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ number_format($product->sale_price ?? 0, 2) }}</dd>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ number_format($product->default_price ?? 0, 2) }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm font-medium text-gray-500">{{ __('Cost') }}</dt>
-                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ number_format($product->cost_price ?? 0, 2) }}</dd>
+                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ number_format($product->cost ?? 0, 2) }}</dd>
                 </div>
             </dl>
         </div>
