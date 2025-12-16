@@ -121,7 +121,7 @@ class Form extends Component
         if (isset($this->items[$index]['product_id'])) {
             $product = Product::find($this->items[$index]['product_id']);
             if ($product) {
-                $this->items[$index]['unit_price'] = $product->price;
+                $this->items[$index]['unit_price'] = $product->default_price ?? 0;
                 $this->items[$index]['product_name'] = $product->name;
             }
         }

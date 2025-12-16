@@ -142,7 +142,7 @@ class Form extends Component
                 'product_name' => $product->name,
                 'sku' => $product->sku ?? '',
                 'qty' => 1,
-                'unit_price' => (float) ($product->default_price ?? $product->price ?? 0),
+                'unit_price' => (float) ($product->default_price ?? 0),
                 'discount' => 0,
                 'tax_rate' => 0,
             ];
