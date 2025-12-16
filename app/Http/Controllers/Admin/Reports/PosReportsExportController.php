@@ -36,11 +36,11 @@ class PosReportsExportController extends Controller
         $query = Sale::query()->posted();
 
         if (! empty($validated['date_from'])) {
-            $query->whereDate('sale_date', '>=', $validated['date_from']);
+            $query->whereDate('posted_at', '>=', $validated['date_from']);
         }
 
         if (! empty($validated['date_to'])) {
-            $query->whereDate('sale_date', '<=', $validated['date_to']);
+            $query->whereDate('posted_at', '<=', $validated['date_to']);
         }
 
         if (! empty($validated['branch_id'])) {
@@ -59,11 +59,11 @@ class PosReportsExportController extends Controller
             $query->where('grand_total', '>=', $validated['min_total']);
         }
 
-        $sales = $query->with('branch')->orderBy('sale_date')->limit(5000)->get();
+        $sales = $query->with('branch')->orderBy('posted_at')->limit(5000)->get();
 
         $columns = [
             'id' => 'ID',
-            'sale_date' => 'Date',
+            'posted_at' => 'Date',
             'branch_name' => 'Branch',
             'status' => 'Status',
             'channel' => 'Channel',
@@ -75,7 +75,7 @@ class PosReportsExportController extends Controller
         $rows = $sales->map(function (Sale $sale) {
             return [
                 'id' => $sale->id,
-                'sale_date' => optional($sale->sale_date)->format('Y-m-d H:i'),
+                'posted_at' => optional($sale->posted_at ?? $sale->created_at)->format('Y-m-d H:i'),
                 'branch_name' => optional($sale->branch)->name ?? '-',
                 'status' => $sale->status,
                 'channel' => $sale->channel ?? null,

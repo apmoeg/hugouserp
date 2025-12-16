@@ -28,9 +28,9 @@ class ReceiptPreview extends Component
                 'customer' => $sale->customer?->name ?? __('Walk-in Customer'),
                 'items' => $sale->items->map(fn ($item) => [
                     'name' => $item->product?->name ?? $item->product_name ?? 'Item',
-                    'qty' => $item->quantity,
+                    'qty' => $item->qty,
                     'price' => $item->unit_price,
-                    'total' => $item->total,
+                    'total' => $item->line_total,
                 ])->toArray(),
                 'subtotal' => $sale->sub_total,
                 'discount' => $sale->discount_total,

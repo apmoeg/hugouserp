@@ -86,9 +86,9 @@ class Form extends Component
             return [
                 'id' => $item->id,
                 'product_id' => $item->product_id,
-                'quantity' => $item->quantity,
-                'unit_price' => $item->unit_price,
-                'tax_percentage' => $item->tax_percentage,
+                'quantity' => $item->qty,
+                'unit_price' => $item->unit_cost,
+                'tax_percentage' => $item->tax_rate,
                 'notes' => $item->notes,
             ];
         })->toArray();
@@ -180,9 +180,9 @@ class Form extends Component
             foreach ($this->items as $item) {
                 $this->quotation->items()->create([
                     'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'tax_percentage' => $item['tax_percentage'] ?? 0,
+                    'qty' => $item['quantity'],
+                    'unit_cost' => $item['unit_price'],
+                    'tax_rate' => $item['tax_percentage'] ?? 0,
                     'notes' => $item['notes'] ?? null,
                 ]);
             }

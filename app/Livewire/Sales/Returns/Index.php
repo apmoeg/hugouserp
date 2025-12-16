@@ -110,7 +110,7 @@ class Index extends Component
             'product_name' => $item->product?->name ?? 'Unknown',
             'max_qty' => (float) $item->qty,
             'qty' => 0,
-            'price' => (float) $item->price,
+            'price' => (float) $item->unit_price,
         ])->toArray();
     }
 

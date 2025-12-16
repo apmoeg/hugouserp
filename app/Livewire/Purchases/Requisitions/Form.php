@@ -83,8 +83,8 @@ class Form extends Component
                 'id' => $item->id,
                 'product_id' => $item->product_id,
                 'product_name' => $item->product->name ?? '',
-                'quantity' => $item->quantity,
-                'unit_price' => $item->estimated_unit_price,
+                'quantity' => $item->qty,
+                'unit_price' => $item->estimated_unit_cost,
                 'specifications' => $item->specifications ?? '',
             ];
         })->toArray();
@@ -158,10 +158,10 @@ class Form extends Component
         // Create items
         foreach ($this->items as $item) {
             PurchaseRequisitionItem::create([
-                'purchase_requisition_id' => $this->requisition->id,
+                'requisition_id' => $this->requisition->id,
                 'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'estimated_unit_price' => $item['unit_price'],
+                'qty' => $item['quantity'],
+                'estimated_unit_cost' => $item['unit_price'],
                 'specifications' => $item['specifications'] ?? null,
             ]);
         }
@@ -205,10 +205,10 @@ class Form extends Component
         // Create items
         foreach ($this->items as $item) {
             PurchaseRequisitionItem::create([
-                'purchase_requisition_id' => $this->requisition->id,
+                'requisition_id' => $this->requisition->id,
                 'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'estimated_unit_price' => $item['unit_price'],
+                'qty' => $item['quantity'],
+                'estimated_unit_cost' => $item['unit_price'],
                 'specifications' => $item['specifications'] ?? null,
             ]);
         }

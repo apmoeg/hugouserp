@@ -66,10 +66,10 @@ class Compare extends Component
                 }
                 
                 $matrix[$productId]['quotations'][$quotation->id] = [
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'tax_percentage' => $item->tax_percentage,
-                    'total' => $item->quantity * $item->unit_price * (1 + ($item->tax_percentage / 100)),
+                    'quantity' => $item->qty,
+                    'unit_price' => $item->unit_cost,
+                    'tax_percentage' => $item->tax_rate,
+                    'total' => $item->qty * $item->unit_cost * (1 + ($item->tax_rate / 100)),
                 ];
             }
         }
@@ -89,7 +89,7 @@ class Compare extends Component
         // Find quotation with lowest total price
         $bestQuotation = $this->quotations->sortBy(function ($quotation) {
             return $quotation->items->sum(function ($item) {
-                return $item->quantity * $item->unit_price * (1 + ($item->tax_percentage / 100));
+                return $item->qty * $item->unit_cost * (1 + ($item->tax_rate / 100));
             });
         })->first();
 

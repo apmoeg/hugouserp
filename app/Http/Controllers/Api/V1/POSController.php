@@ -94,9 +94,9 @@ class POSController extends Controller
                         'product_id' => $item->product_id,
                         'product_name' => $item->product?->name,
                         'qty' => $item->qty,
-                        'unit_price' => $item->price,
+                        'unit_price' => $item->unit_price,
                         'discount' => $item->discount,
-                        'line_total' => $item->total,
+                        'line_total' => $item->line_total,
                     ]),
                     'payments' => $sale->payments->map(fn ($p) => [
                         'method' => $p->payment_method,
