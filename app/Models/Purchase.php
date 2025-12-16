@@ -114,4 +114,19 @@ class Purchase extends BaseModel
 
         return $receivedQty > 0 && !$this->isFullyReceived();
     }
+
+    public function getTotalPaidAttribute(): float
+    {
+        return (float) $this->payments()->sum('amount');
+    }
+
+    public function getRemainingAmountAttribute(): float
+    {
+        return max(0, (float) $this->grand_total - $this->total_paid);
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->remaining_amount <= 0;
+    }
 }

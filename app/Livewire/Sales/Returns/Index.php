@@ -220,7 +220,7 @@ class Index extends Component
             ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->when($this->search, function ($query) {
                 $query->whereHas('sale', function ($q) {
-                    $q->where('invoice_number', 'like', '%'.$this->search.'%')
+                    $q->where('code', 'like', '%'.$this->search.'%')
                         ->orWhere('reference_no', 'like', '%'.$this->search.'%');
                 });
             })

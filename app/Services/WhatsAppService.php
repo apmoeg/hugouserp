@@ -107,13 +107,13 @@ class WhatsAppService
         })->join("\n");
 
         return __("Invoice #:invoice\n\nDear :customer,\n\nThank you for your purchase!\n\n:items\n\nSubtotal: :subtotal\nTax: :tax\nDiscount: :discount\n\nTotal: :total\n\nDate: :date\n\nThank you for shopping with us!", [
-            'invoice' => $sale->invoice_number,
+            'invoice' => $sale->code,
             'customer' => $sale->customer?->name ?? __('Customer'),
             'items' => $items,
-            'subtotal' => number_format($sale->subtotal, 2),
-            'tax' => number_format($sale->tax_amount, 2),
-            'discount' => number_format($sale->discount_amount, 2),
-            'total' => number_format($sale->total, 2),
+            'subtotal' => number_format((float) $sale->sub_total, 2),
+            'tax' => number_format((float) $sale->tax_total, 2),
+            'discount' => number_format((float) $sale->discount_total, 2),
+            'total' => number_format((float) $sale->grand_total, 2),
             'date' => $sale->created_at->format('Y-m-d H:i'),
         ]);
     }

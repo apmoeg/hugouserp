@@ -260,7 +260,8 @@ class FinancialReportService
     {
         $asOfDate = $asOfDate ?? now()->toDateString();
 
-        $query = Sale::whereIn('payment_status', ['pending', 'partial']);
+        // Get sales where there's still outstanding amount (due_total > 0 or paid_total < grand_total)
+        $query = Sale::whereRaw('paid_total < grand_total');
 
         if ($branchId) {
             $query->where('branch_id', $branchId);
@@ -271,8 +272,8 @@ class FinancialReportService
         $aging = [];
 
         foreach ($sales as $sale) {
-            // Calculate days from sale date (or due date if available)
-            $referenceDate = $sale->due_date ?? $sale->sale_date;
+            // Calculate days from posted date (or due date if available)
+            $referenceDate = $sale->due_date ?? $sale->posted_at ?? $sale->created_at;
             $asOf = \Carbon\Carbon::parse($asOfDate);
             $daysOverdue = $asOf->diffInDays($referenceDate, false);
             $outstandingAmount = $sale->grand_total - ($sale->paid_total ?? 0);
@@ -316,7 +317,8 @@ class FinancialReportService
     {
         $asOfDate = $asOfDate ?? now()->toDateString();
 
-        $query = Purchase::whereIn('payment_status', ['pending', 'partial']);
+        // Get purchases where there's still outstanding amount (paid_total < grand_total)
+        $query = Purchase::whereRaw('paid_total < grand_total');
 
         if ($branchId) {
             $query->where('branch_id', $branchId);
@@ -327,8 +329,8 @@ class FinancialReportService
         $aging = [];
 
         foreach ($purchases as $purchase) {
-            // Calculate days from purchase date (or due date if available)
-            $referenceDate = $purchase->due_date ?? $purchase->purchase_date;
+            // Calculate days from posted date (or due date if available)
+            $referenceDate = $purchase->due_date ?? $purchase->posted_at ?? $purchase->created_at;
             $asOf = \Carbon\Carbon::parse($asOfDate);
             $daysOverdue = $asOf->diffInDays($referenceDate, false);
             $outstandingAmount = $purchase->grand_total - ($purchase->paid_total ?? 0);

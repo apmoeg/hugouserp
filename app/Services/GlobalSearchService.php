@@ -46,7 +46,7 @@ class GlobalSearchService
         ],
         'sales' => [
             'model' => Sale::class,
-            'title' => ['invoice_number'],
+            'title' => ['code'],
             'content' => ['notes'],
             'icon' => '💵',
             'route' => 'sales.show',
@@ -54,7 +54,7 @@ class GlobalSearchService
         ],
         'purchases' => [
             'model' => Purchase::class,
-            'title' => ['invoice_number'],
+            'title' => ['code'],
             'content' => ['notes'],
             'icon' => '🛒',
             'route' => 'purchases.show',

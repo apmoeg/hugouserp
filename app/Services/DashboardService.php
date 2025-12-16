@@ -440,15 +440,11 @@ class DashboardService
     private function generateRentInvoicesDueData(?int $branchId): array
     {
         $query = DB::table('rental_invoices')
-            ->select('id', 'invoice_number', 'tenant_id', 'amount', 'due_date', 'status')
+            ->select('id', 'code', 'contract_id', 'amount', 'due_date', 'status')
             ->where('status', 'pending')
             ->whereBetween('due_date', [now(), now()->addDays(7)])
             ->orderBy('due_date', 'asc')
             ->limit(10);
-
-        if ($branchId) {
-            $query->where('branch_id', $branchId);
-        }
 
         $invoices = $query->get()->toArray();
         $totalAmount = collect($invoices)->sum('amount');

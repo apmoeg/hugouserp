@@ -88,7 +88,7 @@ class Index extends Component
                 $q->where(function ($query) {
                     $query->where('code', 'like', "%{$this->search}%")
                         ->orWhereHas('purchase', function ($q) {
-                            $q->where('invoice_number', 'like', "%{$this->search}%");
+                            $q->where('code', 'like', "%{$this->search}%");
                         })
                         ->orWhereHas('supplier', function ($q) {
                             $q->where('name', 'like', "%{$this->search}%");

@@ -31,8 +31,8 @@ class AccountingService
             $entry = JournalEntry::create([
                 'branch_id' => $sale->branch_id,
                 'reference_number' => $this->generateReferenceNumber('SALE', $sale->id),
-                'entry_date' => $sale->sale_date,
-                'description' => "Sale #{$sale->invoice_number}",
+                'entry_date' => $sale->posted_at ?? $sale->created_at,
+                'description' => "Sale #{$sale->code}",
                 'status' => 'posted',
                 'source_module' => 'sales',
                 'source_type' => 'Sale',
@@ -46,7 +46,7 @@ class AccountingService
             $lines = [];
 
             // Debit: Cash/Bank or Customer Account (Asset)
-            if ($sale->payment_status === 'paid') {
+            if ($sale->isPaid()) {
                 $cashAccount = AccountMapping::getAccount('sales', 'cash_account', $sale->branch_id);
                 if ($cashAccount) {
                     $lines[] = [
@@ -136,7 +136,7 @@ class AccountingService
             $entry = JournalEntry::create([
                 'branch_id' => $purchase->branch_id,
                 'reference_number' => $this->generateReferenceNumber('PURCH', $purchase->id),
-                'entry_date' => $purchase->purchase_date,
+                'entry_date' => $purchase->posted_at ?? $purchase->created_at,
                 'description' => "Purchase Order #{$purchase->reference_number}",
                 'status' => 'posted',
                 'source_module' => 'purchases',
@@ -177,7 +177,7 @@ class AccountingService
             }
 
             // Credit: Cash/Bank or Accounts Payable
-            if ($purchase->payment_status === 'paid') {
+            if ($purchase->isPaid()) {
                 $cashAccount = AccountMapping::getAccount('purchases', 'cash_account', $purchase->branch_id);
                 if ($cashAccount) {
                     $lines[] = [

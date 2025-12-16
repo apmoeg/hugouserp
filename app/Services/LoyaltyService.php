@@ -31,7 +31,7 @@ class LoyaltyService
                     return null;
                 }
 
-                $points = (int) floor((float) $sale->total / $amountPerPoint * (float) $settings->points_per_amount);
+                $points = (int) floor((float) $sale->grand_total / $amountPerPoint * (float) $settings->points_per_amount);
 
                 if ($points <= 0) {
                     return null;
@@ -50,7 +50,7 @@ class LoyaltyService
                         'type' => 'earn',
                         'points' => $points,
                         'balance_after' => $customer->loyalty_points,
-                        'description' => __('Points earned from sale #:invoice', ['invoice' => $sale->invoice_number]),
+                        'description' => __('Points earned from sale #:invoice', ['invoice' => $sale->code]),
                         'created_by' => $userId,
                     ]);
                 });

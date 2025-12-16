@@ -51,7 +51,7 @@
                                 <td>
                                     @if($return->sale)
                                         <a href="{{ route('app.sales.show', $return->sale_id) }}" class="text-emerald-600 hover:text-emerald-800 hover:underline">
-                                            {{ $return->sale->invoice_number ?: '#' . $return->sale_id }}
+                                            {{ $return->sale->code ?: '#' . $return->sale_id }}
                                         </a>
                                     @else
                                         <span class="text-slate-400">-</span>
@@ -106,18 +106,18 @@
                                 <option value="">{{ __('Choose a sale...') }}</option>
                                 @foreach($sales as $sale)
                                     <option value="{{ $sale->id }}">
-                                        {{ $sale->invoice_number ?: '#' . $sale->id }} - 
+                                        {{ $sale->code ?: '#' . $sale->id }} - 
                                         {{ $sale->customer?->name ?? __('Walk-in Customer') }} - 
-                                        {{ number_format((float)$sale->total, 2) }}
+                                        {{ number_format((float)$sale->grand_total, 2) }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
                     @else
                         <div class="mb-4 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-                            <p class="text-sm"><strong>{{ __('Invoice') }}:</strong> {{ $selectedSale->invoice_number ?: '#' . $selectedSale->id }}</p>
+                            <p class="text-sm"><strong>{{ __('Invoice') }}:</strong> {{ $selectedSale->code ?: '#' . $selectedSale->id }}</p>
                             <p class="text-sm"><strong>{{ __('Customer') }}:</strong> {{ $selectedSale->customer?->name ?? __('Walk-in Customer') }}</p>
-                            <p class="text-sm"><strong>{{ __('Total') }}:</strong> {{ number_format((float)$selectedSale->total, 2) }}</p>
+                            <p class="text-sm"><strong>{{ __('Total') }}:</strong> {{ number_format((float)$selectedSale->grand_total, 2) }}</p>
                         </div>
 
                         <div class="mb-4">
