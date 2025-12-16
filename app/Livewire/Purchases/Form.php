@@ -106,7 +106,7 @@ class Form extends Component
                     ->orWhere('sku', 'like', "%{$this->productSearch}%");
             })
             ->limit(10)
-            ->get(['id', 'name', 'sku', 'cost_price'])
+            ->get(['id', 'name', 'sku', 'cost'])
             ->toArray();
     }
 
@@ -128,7 +128,7 @@ class Form extends Component
                 'product_name' => $product->name,
                 'sku' => $product->sku ?? '',
                 'qty' => 1,
-                'unit_cost' => (float) ($product->cost_price ?? 0),
+                'unit_cost' => (float) ($product->cost ?? 0),
                 'discount' => 0,
                 'tax_rate' => 0,
             ];

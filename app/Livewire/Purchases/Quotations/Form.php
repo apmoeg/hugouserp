@@ -126,7 +126,7 @@ class Form extends Component
                 return [
                     'product_id' => $item->product_id,
                     'quantity' => $item->qty,
-                    'unit_price' => $item->product->selling_price ?? 0,
+                    'unit_price' => $item->product->default_price ?? 0,
                     'tax_percentage' => 0,
                     'notes' => $item->specifications,
                 ];

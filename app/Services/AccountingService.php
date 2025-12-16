@@ -137,7 +137,7 @@ class AccountingService
                 'branch_id' => $purchase->branch_id,
                 'reference_number' => $this->generateReferenceNumber('PURCH', $purchase->id),
                 'entry_date' => $purchase->posted_at ?? $purchase->created_at,
-                'description' => "Purchase Order #{$purchase->reference_number}",
+                'description' => "Purchase Order #{$purchase->code}",
                 'status' => 'posted',
                 'source_module' => 'purchases',
                 'source_type' => 'Purchase',
