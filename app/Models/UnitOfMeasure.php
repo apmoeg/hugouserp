@@ -84,7 +84,14 @@ class UnitOfMeasure extends Model
         }
 
         $baseValue = $value * (float) $this->conversion_factor;
+        
+        $targetFactor = (float) $targetUnit->conversion_factor;
+        
+        // Prevent division by zero
+        if ($targetFactor <= 0) {
+            throw new \InvalidArgumentException('Target unit conversion factor must be greater than zero');
+        }
 
-        return $baseValue / (float) $targetUnit->conversion_factor;
+        return $baseValue / $targetFactor;
     }
 }

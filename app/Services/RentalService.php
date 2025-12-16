@@ -299,10 +299,12 @@ class RentalService implements RentalServiceInterface
                     continue;
                 }
 
-                // Generate invoice code
-                $lastInvoice = RentalInvoice::orderBy('id', 'desc')->first();
-                $nextNumber = $lastInvoice ? (intval(substr($lastInvoice->code, -6)) + 1) : 1;
-                $code = 'RI-'.str_pad((string) $nextNumber, 6, '0', STR_PAD_LEFT);
+                // Generate invoice code with locking to prevent race conditions
+                $code = DB::transaction(function () {
+                    $lastInvoice = RentalInvoice::lockForUpdate()->orderBy('id', 'desc')->first();
+                    $nextNumber = $lastInvoice ? (intval(substr($lastInvoice->code, -6)) + 1) : 1;
+                    return 'RI-'.str_pad((string) $nextNumber, 6, '0', STR_PAD_LEFT);
+                });
 
                 // Calculate due date (typically start of month + grace period)
                 $dueDate = $forMonth->copy()->startOfMonth()->addDays(7);
