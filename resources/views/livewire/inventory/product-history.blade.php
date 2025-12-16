@@ -1,24 +1,23 @@
 {{-- resources/views/livewire/inventory/product-history.blade.php --}}
-@section('page-header')
-    <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-        <span class="text-2xl">📜</span>
-        {{ __('Product History') }}
-    </h1>
-    @if($product)
-        <p class="text-sm text-slate-500">{{ __('Transaction history for') }}: <span class="font-semibold">{{ $product->name }}</span></p>
-    @endif
-@endsection
-
-@section('page-actions')
-    <a href="{{ route('app.inventory.products.index') }}" class="erp-btn-secondary">
-        <svg class="w-5 h-5 ltr:mr-1 rtl:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-        </svg>
-        {{ __('Back to Products') }}
-    </a>
-@endsection
-
 <div class="space-y-6">
+    {{-- Page Header --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <span class="text-2xl">📜</span>
+                {{ __('Product History') }}
+            </h1>
+            @if($product)
+                <p class="text-sm text-slate-500">{{ __('Transaction history for') }}: <span class="font-semibold">{{ $product->name }}</span></p>
+            @endif
+        </div>
+        <a href="{{ route('app.inventory.products.index') }}" class="erp-btn-secondary">
+            <svg class="w-5 h-5 ltr:mr-1 rtl:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            {{ __('Back to Products') }}
+        </a>
+    </div>
     @if($product)
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div class="erp-card p-4 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">

@@ -1,22 +1,22 @@
 {{-- resources/views/livewire/expenses/categories/index.blade.php --}}
-@section('page-header')
-    <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-        <span class="text-2xl">📁</span>
-        {{ __('Expense Categories') }}
-    </h1>
-    <p class="text-sm text-slate-500">{{ __('Manage expense categories for organizing expenses') }}</p>
-@endsection
-
-@section('page-actions')
-    <button wire:click="openModal" class="erp-btn-primary">
-        <svg class="w-5 h-5 ltr:mr-1 rtl:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        {{ __('Add Category') }}
-    </button>
-@endsection
-
 <div class="space-y-4">
+    {{-- Page Header --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <span class="text-2xl">📁</span>
+                {{ __('Expense Categories') }}
+            </h1>
+            <p class="text-sm text-slate-500">{{ __('Manage expense categories for organizing expenses') }}</p>
+        </div>
+        <button wire:click="openModal" class="erp-btn-primary">
+            <svg class="w-5 h-5 ltr:mr-1 rtl:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            {{ __('Add Category') }}
+        </button>
+    </div>
+
     @if(session('success'))
         <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 flex items-center gap-2">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

@@ -1,13 +1,15 @@
 {{-- resources/views/livewire/inventory/barcode-print.blade.php --}}
-@section('page-header')
-    <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-        <span class="text-2xl">🏷️</span>
-        {{ __('Print Barcodes/QR Codes') }}
-    </h1>
-    <p class="text-sm text-slate-500">{{ __('Generate and print barcode labels for products') }}</p>
-@endsection
-
 <div class="space-y-6">
+    {{-- Page Header --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <span class="text-2xl">🏷️</span>
+                {{ __('Print Barcodes/QR Codes') }}
+            </h1>
+            <p class="text-sm text-slate-500">{{ __('Generate and print barcode labels for products') }}</p>
+        </div>
+    </div>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2 space-y-4">
             <div class="erp-card p-4">
