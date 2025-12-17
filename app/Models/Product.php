@@ -9,9 +9,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Product extends BaseModel
 {
+    use LogsActivity;
     protected ?string $moduleKey = 'inventory';
 
     protected $table = 'products';
@@ -288,5 +291,14 @@ class Product extends BaseModel
     public function getThumbnailUrlAttribute(): ?string
     {
         return $this->thumbnail ? Storage::url($this->thumbnail) : null;
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'sku', 'default_price', 'cost', 'is_active', 'min_stock', 'category_id'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn(string $eventName) => "Product {$this->name} was {$eventName}");
     }
 }

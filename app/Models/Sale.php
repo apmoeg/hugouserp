@@ -7,9 +7,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Sale extends BaseModel
 {
+    use LogsActivity;
     protected ?string $moduleKey = 'sales';
 
     protected $table = 'sales';
@@ -118,5 +121,14 @@ class Sale extends BaseModel
     public function storeOrder(): BelongsTo
     {
         return $this->belongsTo(StoreOrder::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['code', 'status', 'grand_total', 'paid_total', 'customer_id', 'branch_id'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn(string $eventName) => "Sale {$this->code} was {$eventName}");
     }
 }

@@ -596,9 +596,14 @@
 
         @if($canAccess('logs.audit.view'))
         <a href="{{ route('admin.logs.audit') }}"
-           class="sidebar-link-secondary {{ $isActive('admin.logs') ? 'active' : '' }}">
+           class="sidebar-link-secondary {{ $isActive('admin.logs.audit') ? 'active' : '' }}">
             <span class="text-base">📋</span>
             <span class="text-sm">{{ __('Audit Logs') }}</span>
+        </a>
+        <a href="{{ route('admin.activity-log') }}"
+           class="sidebar-link-secondary {{ $isActive('admin.activity-log') ? 'active' : '' }}">
+            <span class="text-base">📜</span>
+            <span class="text-sm">{{ __('Activity Log') }}</span>
         </a>
         @endif
 

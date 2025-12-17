@@ -850,6 +850,11 @@ Route::middleware('auth')->group(function () {
             ->name('logs.audit')
             ->middleware('can:'.config('screen_permissions.logs.audit', 'logs.audit.view'));
 
+        // Activity Log (Spatie)
+        Route::get('/activity-log', \App\Livewire\Admin\ActivityLog::class)
+            ->name('activity-log')
+            ->middleware('can:logs.audit.view');
+
         /*
         |--------------------------------------------------------------------------
         | Admin Reports

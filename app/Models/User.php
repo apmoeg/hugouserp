@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends BaseModel implements AuthenticatableContract, AuthorizableContract
@@ -24,6 +26,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     use HasApiTokens;
     use HasFactory;
     use HasRoles;
+    use LogsActivity;
     use Notifiable;
     use SoftDeletes;
 
@@ -124,5 +127,13 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
             ->orWhere('phone', $credential)
             ->orWhere('username', $credential)
             ->first();
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'email', 'phone', 'is_active', 'locale', 'timezone', 'branch_id', 'two_factor_enabled'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }
