@@ -109,7 +109,9 @@ Route::get('/download/export', function () {
     
     // Check if file is too old (older than 5 minutes)
     if (isset($exportInfo['time']) && (now()->timestamp - $exportInfo['time']) > 300) {
-        @unlink($exportInfo['path']);
+        if (file_exists($exportInfo['path'])) {
+            unlink($exportInfo['path']);
+        }
         abort(410, 'Export file has expired');
     }
     

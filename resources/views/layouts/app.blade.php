@@ -348,10 +348,13 @@
                 iframe.src = url;
                 document.body.appendChild(iframe);
                 
-                // Remove iframe after download starts
+                // Remove iframe after download starts (3 seconds for larger files)
+                const IFRAME_CLEANUP_DELAY = 3000;
                 setTimeout(() => {
-                    document.body.removeChild(iframe);
-                }, 2000);
+                    if (document.body.contains(iframe)) {
+                        document.body.removeChild(iframe);
+                    }
+                }, IFRAME_CLEANUP_DELAY);
             }
         });
     });

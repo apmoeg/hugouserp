@@ -70,7 +70,7 @@ trait HasExport
                 ->toArray();
         });
 
-        $filename = $entityType.'_export_'.date('Y-m-d_His').'.'.$this->exportFormat;
+        $filename = $entityType.'_export_'.date('Y-m-d_His');
 
         $filepath = $exportService->export(
             $exportData,
@@ -87,10 +87,12 @@ trait HasExport
 
         $this->closeExportModal();
 
+        $downloadName = $filename.'.'.$this->exportFormat;
+
         // Store export info in session for download
         session()->put('export_file', [
             'path' => $filepath,
-            'name' => $filename,
+            'name' => $downloadName,
             'time' => now()->timestamp,
         ]);
 

@@ -125,7 +125,7 @@ class Index extends Component
         $entityType = $this->getEntityTypeFromReport();
         $availableColumns = $this->exportService->getAvailableColumns($entityType);
 
-        $filename = 'report_'.date('Y-m-d_His').'.'.$this->exportFormat;
+        $filename = 'report_'.date('Y-m-d_His');
 
         $filepath = $this->exportService->export(
             collect($this->reportData),
@@ -140,10 +140,12 @@ class Index extends Component
 
         $this->closeExportModal();
 
+        $downloadName = $filename.'.'.$this->exportFormat;
+
         // Store export info in session for download
         session()->put('export_file', [
             'path' => $filepath,
-            'name' => $filename,
+            'name' => $downloadName,
             'time' => now()->timestamp,
         ]);
 
