@@ -19,7 +19,7 @@ class ProductStoreRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'sku' => ['nullable', 'string', 'max:100', 'unique:products,sku'],
             'barcode' => ['nullable', 'string', 'max:100', 'unique:products,barcode'],
-            'price' => ['required', 'numeric', 'min:0'],
+            'default_price' => ['required', 'numeric', 'min:0'],
             'cost' => ['nullable', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
             'category_id' => ['nullable', 'exists:product_categories,id'],

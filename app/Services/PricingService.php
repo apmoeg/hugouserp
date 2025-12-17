@@ -39,7 +39,7 @@ class PricingService implements PricingServiceInterface
                     }
                 }
 
-                $base = $product->default_price ?? $product->price ?? 0.0;
+                $base = $product->default_price ?? 0.0;
 
                 return round((float) $base, 4);
             },

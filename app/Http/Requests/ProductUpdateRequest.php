@@ -21,7 +21,7 @@ class ProductUpdateRequest extends FormRequest
             'name' => ['sometimes', 'string', 'max:255'],
             'sku' => ['sometimes', 'string', 'max:100', 'unique:products,sku,'.$product?->id],
             'barcode' => ['sometimes', 'string', 'max:100', 'unique:products,barcode,'.$product?->id],
-            'price' => ['sometimes', 'numeric', 'min:0'],
+            'default_price' => ['sometimes', 'numeric', 'min:0'],
             'cost' => ['sometimes', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
             'category_id' => ['nullable', 'exists:product_categories,id'],
