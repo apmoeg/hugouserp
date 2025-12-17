@@ -17,6 +17,7 @@ class UnifiedSettings extends Component
 
     public array $tabs = [
         'general' => 'General Settings',
+        'branding' => 'Branding',
         'inventory' => 'Inventory',
         'pos' => 'POS',
         'accounting' => 'Accounting',
@@ -42,6 +43,13 @@ class UnifiedSettings extends Component
     public string $timezone = 'UTC';
     public string $date_format = 'Y-m-d';
     public string $default_currency = 'USD';
+
+    // Branding settings
+    public string $branding_logo = '';
+    public string $branding_favicon = '';
+    public string $branding_primary_color = '#10b981';
+    public string $branding_secondary_color = '#3b82f6';
+    public string $branding_tagline = '';
 
     // Inventory settings
     public string $inventory_costing_method = 'FIFO';
@@ -130,6 +138,13 @@ class UnifiedSettings extends Component
         $this->timezone = $settings['app.timezone'] ?? config('app.timezone', 'UTC');
         $this->date_format = $settings['app.date_format'] ?? 'Y-m-d';
         $this->default_currency = $settings['general.default_currency'] ?? 'USD';
+
+        // Load branding settings
+        $this->branding_logo = $settings['branding.logo'] ?? '';
+        $this->branding_favicon = $settings['branding.favicon'] ?? '';
+        $this->branding_primary_color = $settings['branding.primary_color'] ?? '#10b981';
+        $this->branding_secondary_color = $settings['branding.secondary_color'] ?? '#3b82f6';
+        $this->branding_tagline = $settings['branding.tagline'] ?? '';
 
         // Load inventory settings
         $this->inventory_costing_method = $settings['inventory.costing_method'] ?? 'FIFO';
@@ -240,6 +255,25 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('General settings saved successfully'));
+    }
+
+    public function saveBranding(): void
+    {
+        $this->validate([
+            'branding_primary_color' => 'required|string|max:7',
+            'branding_secondary_color' => 'required|string|max:7',
+            'branding_tagline' => 'nullable|string|max:255',
+        ]);
+
+        $this->setSetting('branding.logo', $this->branding_logo, 'branding');
+        $this->setSetting('branding.favicon', $this->branding_favicon, 'branding');
+        $this->setSetting('branding.primary_color', $this->branding_primary_color, 'branding');
+        $this->setSetting('branding.secondary_color', $this->branding_secondary_color, 'branding');
+        $this->setSetting('branding.tagline', $this->branding_tagline, 'branding');
+
+        Cache::forget('system_settings');
+        Cache::forget('system_settings_all');
+        session()->flash('success', __('Branding settings saved successfully'));
     }
 
     public function saveBranch(): void

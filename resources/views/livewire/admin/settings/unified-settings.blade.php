@@ -122,6 +122,93 @@
                     </div>
                 </form>
 
+            @elseif($activeTab === 'branding')
+                <form wire:submit="saveBranding">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Company Tagline') }}</label>
+                            <input type="text" wire:model="branding_tagline" 
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                                placeholder="{{ __('Your company slogan or tagline') }}">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Primary Color') }}</label>
+                                <div class="mt-1 flex items-center gap-2">
+                                    <input type="color" wire:model="branding_primary_color" 
+                                        class="h-10 w-14 rounded border-gray-300 cursor-pointer">
+                                    <input type="text" wire:model="branding_primary_color" 
+                                        class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                                        placeholder="#10b981">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Secondary Color') }}</label>
+                                <div class="mt-1 flex items-center gap-2">
+                                    <input type="color" wire:model="branding_secondary_color" 
+                                        class="h-10 w-14 rounded border-gray-300 cursor-pointer">
+                                    <input type="text" wire:model="branding_secondary_color" 
+                                        class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                                        placeholder="#3b82f6">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Logo') }}</label>
+                                <p class="text-xs text-gray-500 mb-2">{{ __('Upload your company logo from the Media Library') }}</p>
+                                <input type="text" wire:model="branding_logo" 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                                    placeholder="{{ __('Enter logo URL or path') }}">
+                                @if($branding_logo)
+                                    <img src="{{ $branding_logo }}" alt="Logo Preview" class="mt-2 h-16 object-contain">
+                                @endif
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Favicon') }}</label>
+                                <p class="text-xs text-gray-500 mb-2">{{ __('Upload your favicon from the Media Library') }}</p>
+                                <input type="text" wire:model="branding_favicon" 
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
+                                    placeholder="{{ __('Enter favicon URL or path') }}">
+                                @if($branding_favicon)
+                                    <img src="{{ $branding_favicon }}" alt="Favicon Preview" class="mt-2 h-8 object-contain">
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <h4 class="font-medium text-gray-900 dark:text-white mb-2">{{ __('Preview') }}</h4>
+                            <div class="flex items-center gap-3 p-3 rounded-lg" style="background: {{ $branding_primary_color }}20;">
+                                @if($branding_logo)
+                                    <img src="{{ $branding_logo }}" alt="Logo" class="h-10 object-contain">
+                                @else
+                                    <div class="h-10 w-10 rounded-lg flex items-center justify-center" style="background: {{ $branding_primary_color }};">
+                                        <span class="text-white font-bold">{{ substr($company_name ?? 'E', 0, 1) }}</span>
+                                    </div>
+                                @endif
+                                <div>
+                                    <span class="font-semibold" style="color: {{ $branding_primary_color }};">{{ $company_name ?? 'Company Name' }}</span>
+                                    @if($branding_tagline)
+                                        <p class="text-xs text-gray-500">{{ $branding_tagline }}</p>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit"
+                                class="px-4 py-2 text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                                style="background: {{ $branding_primary_color }};">
+                                {{ __('Save Changes') }}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
             @elseif($activeTab === 'branch')
                 <form wire:submit="saveBranch">
                     <div class="space-y-6">
