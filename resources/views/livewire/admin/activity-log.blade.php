@@ -122,9 +122,12 @@
                                     <div x-show="open" 
                                          x-transition
                                          @click.away="open = false"
+                                         role="dialog"
+                                         aria-modal="true"
+                                         aria-labelledby="activity-details-title-{{ $activity->id }}"
                                          class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                                         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-96 overflow-auto p-6" @click.stop>
-                                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ __('Activity Details') }}</h3>
+                                            <h3 id="activity-details-title-{{ $activity->id }}" class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ __('Activity Details') }}</h3>
                                             <pre class="text-xs bg-gray-50 dark:bg-gray-900 p-4 rounded-lg overflow-auto text-left">{{ json_encode($activity->properties, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
                                             <button @click="open = false" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">{{ __('Close') }}</button>
                                         </div>
