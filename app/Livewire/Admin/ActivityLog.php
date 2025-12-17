@@ -11,7 +11,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Spatie\Activitylog\Models\Activity;
 
-#[Layout('layouts.admin')]
+#[Layout('layouts.app')]
 class ActivityLog extends Component
 {
     use WithPagination;

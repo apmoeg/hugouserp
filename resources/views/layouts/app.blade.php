@@ -236,6 +236,63 @@
 @stack('scripts')
 
 <script>
+    // CSRF Token Refresh - Prevents 419 Session Expired Errors
+    // Refreshes the CSRF token every 30 minutes to keep sessions alive
+    (function() {
+        const refreshCsrfToken = async () => {
+            try {
+                const response = await fetch('/csrf-token', {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.csrf_token) {
+                        // Update meta tag
+                        const metaTag = document.querySelector('meta[name="csrf-token"]');
+                        if (metaTag) {
+                            metaTag.setAttribute('content', data.csrf_token);
+                        }
+                        
+                        // Update axios default header if available
+                        if (window.axios) {
+                            window.axios.defaults.headers.common['X-CSRF-TOKEN'] = data.csrf_token;
+                        }
+                        
+                        // Update Livewire's CSRF token if available
+                        if (window.Livewire) {
+                            window.Livewire.hook('request', ({ options }) => {
+                                options.headers = options.headers || {};
+                                options.headers['X-CSRF-TOKEN'] = data.csrf_token;
+                            });
+                        }
+                        
+                        console.log('[CSRF] Token refreshed successfully');
+                    }
+                } else {
+                    console.warn('[CSRF] Failed to refresh token, status:', response.status);
+                }
+            } catch (error) {
+                console.error('[CSRF] Error refreshing token:', error);
+            }
+        };
+        
+        // Refresh token every 30 minutes (1800000 ms)
+        // This ensures the token is always fresh even during long sessions
+        setInterval(refreshCsrfToken, 30 * 60 * 1000);
+        
+        // Also refresh on page visibility change (user comes back to tab)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                refreshCsrfToken();
+            }
+        });
+    })();
+    
     // Handle theme changes from UserPreferences
     document.addEventListener('livewire:initialized', () => {
         Livewire.on('theme-changed', (event) => {
