@@ -27,7 +27,7 @@ class DepreciationService
             return null;
         }
 
-        if ($date->lt($asset->depreciation_start_date)) {
+        if (!$asset->depreciation_start_date || $date->lt($asset->depreciation_start_date)) {
             return null;
         }
 
@@ -46,7 +46,7 @@ class DepreciationService
      */
     protected function calculateStraightLine(FixedAsset $asset, Carbon $date): array
     {
-        $depreciableAmount = $asset->purchase_cost - $asset->salvage_value;
+        $depreciableAmount = ($asset->purchase_cost ?? 0) - ($asset->salvage_value ?? 0);
         $totalMonths = $asset->getTotalUsefulLifeMonths();
         
         if ($totalMonths <= 0) {

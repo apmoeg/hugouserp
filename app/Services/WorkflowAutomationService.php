@@ -19,8 +19,10 @@ class WorkflowAutomationService
     public function checkLowStockProducts(): array
     {
         $lowStockProducts = Product::query()
-            ->whereRaw('current_stock <= reorder_point')
-            ->orWhereRaw('current_stock <= min_stock')
+            ->where(function ($query) {
+                $query->whereRaw('current_stock <= COALESCE(reorder_point, min_stock, 0)')
+                      ->orWhereRaw('current_stock <= COALESCE(min_stock, 0)');
+            })
             ->with(['category', 'supplier'])
             ->get();
 
@@ -144,7 +146,7 @@ class WorkflowAutomationService
     public function generateReorderSuggestions(): array
     {
         $products = Product::query()
-            ->whereRaw('current_stock <= reorder_point')
+            ->whereRaw('current_stock <= COALESCE(reorder_point, min_stock, 0)')
             ->with(['supplier', 'category'])
             ->get();
 

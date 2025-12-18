@@ -163,11 +163,21 @@ return new class extends Migration
         // Drop indexes - Note: Only drop if they exist
         if (Schema::hasTable('sales')) {
             Schema::table('sales', function (Blueprint $table) {
-                $table->dropIndex(['customer_id']);
-                $table->dropIndex(['branch_id']);
-                $table->dropIndex(['status']);
-                $table->dropIndex(['posted_at']);
-                $table->dropIndex(['reference']);
+                if ($this->indexExists('sales', 'sales_customer_id_index')) {
+                    $table->dropIndex(['customer_id']);
+                }
+                if ($this->indexExists('sales', 'sales_branch_id_index')) {
+                    $table->dropIndex(['branch_id']);
+                }
+                if ($this->indexExists('sales', 'sales_status_index')) {
+                    $table->dropIndex(['status']);
+                }
+                if ($this->indexExists('sales', 'sales_posted_at_index')) {
+                    $table->dropIndex(['posted_at']);
+                }
+                if ($this->indexExists('sales', 'sales_reference_index')) {
+                    $table->dropIndex(['reference']);
+                }
             });
         }
 

@@ -97,9 +97,14 @@ class ExportImportController extends Controller
 
         $updateExisting = $request->input('update_existing', false);
         $file = $request->file('file');
-        $spreadsheet = IOFactory::load($file->getRealPath());
-        $worksheet = $spreadsheet->getActiveSheet();
-        $rows = $worksheet->toArray();
+        
+        try {
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
+        } catch (\Exception $e) {
+            return back()->with('error', __('Failed to read file: :error', ['error' => $e->getMessage()]));
+        }
 
         if (count($rows) < 2) {
             return back()->with('error', __('File is empty or has no data rows'));

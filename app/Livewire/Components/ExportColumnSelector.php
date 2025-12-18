@@ -51,8 +51,11 @@ class ExportColumnSelector extends Component
         // Build export URL with selected columns
         $url = $this->exportUrl;
         $separator = str_contains($url, '?') ? '&' : '?';
-        $url .= $separator . 'columns=' . implode(',', $this->selectedColumns);
+        $url .= $separator . 'columns=' . urlencode(implode(',', $this->selectedColumns));
         $url .= '&format=xlsx';
+
+        // Close modal before redirect
+        $this->showModal = false;
 
         // Redirect to export
         return redirect($url);
