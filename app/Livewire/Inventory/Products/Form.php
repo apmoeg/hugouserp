@@ -47,6 +47,11 @@ class Form extends Component
         'module_id' => null,
         'category_id' => null,
         'unit_id' => null,
+        'min_stock' => 0,
+        'max_stock' => null,
+        'reorder_point' => 0,
+        'lead_time_days' => null,
+        'location_code' => '',
     ];
 
     public array $dynamicSchema = [];
@@ -97,6 +102,11 @@ class Form extends Component
             $this->form['module_id'] = $p->module_id;
             $this->form['category_id'] = $p->category_id;
             $this->form['unit_id'] = $p->unit_id;
+            $this->form['min_stock'] = (float) ($p->min_stock ?? 0);
+            $this->form['max_stock'] = $p->max_stock ? (float) $p->max_stock : null;
+            $this->form['reorder_point'] = (float) ($p->reorder_point ?? 0);
+            $this->form['lead_time_days'] = $p->lead_time_days ? (float) $p->lead_time_days : null;
+            $this->form['location_code'] = $p->location_code ?? '';
             $this->form['thumbnail'] = $p->thumbnail ?? '';
             $this->selectedModuleId = $p->module_id;
 
@@ -264,6 +274,11 @@ class Form extends Component
                 'branch_id' => $this->form['branch_id'],
                 'category_id' => $this->form['category_id'] ?: null,
                 'unit_id' => $this->form['unit_id'] ?: null,
+                'min_stock' => $this->form['min_stock'] ?? 0,
+                'max_stock' => $this->form['max_stock'] ?: null,
+                'reorder_point' => $this->form['reorder_point'] ?? 0,
+                'lead_time_days' => $this->form['lead_time_days'] ?: null,
+                'location_code' => $this->form['location_code'] ?: null,
                 'custom_fields' => $this->dynamicData,
             ];
 
