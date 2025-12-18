@@ -19,10 +19,7 @@ class WorkflowAutomationService
     public function checkLowStockProducts(int $limit = 100): array
     {
         $lowStockProducts = Product::query()
-            ->where(function ($query) {
-                $query->whereRaw('current_stock <= COALESCE(reorder_point, min_stock, 0)')
-                      ->orWhereRaw('current_stock <= COALESCE(min_stock, 0)');
-            })
+            ->whereRaw('current_stock <= COALESCE(reorder_point, min_stock, 0)')
             ->with(['category', 'supplier'])
             ->limit($limit)
             ->get();

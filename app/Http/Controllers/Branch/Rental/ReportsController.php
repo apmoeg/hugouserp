@@ -13,7 +13,7 @@ class ReportsController extends Controller
     public function occupancy(Request $request): StreamedResponse
     {
         $validated = $request->validate([
-            'property_id' => 'nullable|integer|exists:properties,id',
+            'property_id' => 'nullable|integer',
         ]);
 
         $model = '\\App\\Models\\RentalUnit';

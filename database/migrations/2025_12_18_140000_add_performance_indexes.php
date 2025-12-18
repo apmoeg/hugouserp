@@ -160,23 +160,33 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Drop indexes - Note: Only drop if they exist
+        // Drop indexes - wrapped in try-catch for safety
         if (Schema::hasTable('sales')) {
             Schema::table('sales', function (Blueprint $table) {
-                if ($this->indexExists('sales', 'sales_customer_id_index')) {
+                try {
                     $table->dropIndex(['customer_id']);
+                } catch (\Exception $e) {
+                    // Index may not exist
                 }
-                if ($this->indexExists('sales', 'sales_branch_id_index')) {
+                try {
                     $table->dropIndex(['branch_id']);
+                } catch (\Exception $e) {
+                    // Index may not exist
                 }
-                if ($this->indexExists('sales', 'sales_status_index')) {
+                try {
                     $table->dropIndex(['status']);
+                } catch (\Exception $e) {
+                    // Index may not exist
                 }
-                if ($this->indexExists('sales', 'sales_posted_at_index')) {
+                try {
                     $table->dropIndex(['posted_at']);
+                } catch (\Exception $e) {
+                    // Index may not exist
                 }
-                if ($this->indexExists('sales', 'sales_reference_index')) {
+                try {
                     $table->dropIndex(['reference']);
+                } catch (\Exception $e) {
+                    // Index may not exist
                 }
             });
         }

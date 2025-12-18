@@ -13,7 +13,7 @@ class ReportsController extends Controller
     public function attendance(Request $request): StreamedResponse
     {
         $validated = $request->validate([
-            'employee_id' => 'nullable|integer',
+            'employee_id' => 'nullable|integer|exists:hr_employees,id',
             'status' => 'nullable|string|in:present,absent,late,on_leave',
             'branch_id' => 'nullable|integer',
             'from' => 'nullable|date',
@@ -101,7 +101,7 @@ class ReportsController extends Controller
     public function payroll(Request $request): StreamedResponse
     {
         $validated = $request->validate([
-            'employee_id' => 'nullable|integer',
+            'employee_id' => 'nullable|integer|exists:hr_employees,id',
             'period' => 'nullable|string|max:20',
             'status' => 'nullable|string|in:pending,paid,cancelled',
         ]);
