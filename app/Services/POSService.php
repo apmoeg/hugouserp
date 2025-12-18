@@ -99,7 +99,7 @@ class POSService implements POSServiceInterface
                         }
                     }
 
-                    if ($user && ! $user->can_modify_price && $price != (float) ($product->default_price ?? 0)) {
+                    if ($user && ! $user->can_modify_price && abs($price - (float) ($product->default_price ?? 0)) > 0.001) {
                         abort(422, __('You are not allowed to modify prices'));
                     }
 

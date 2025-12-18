@@ -251,14 +251,15 @@ class AccountingService
                 'approved_at' => now(),
             ]);
 
-            // Update account balances
+            // Update account balances - eager load to avoid N+1
+            $entry->load('lines.account');
             foreach ($entry->lines as $line) {
                 $account = $line->account;
                 $netChange = $line->debit - $line->credit;
 
                 // For asset and expense accounts, debit increases balance
                 // For liability, equity, and revenue accounts, credit increases balance
-                if (in_array($account->type, ['asset', 'expense'])) {
+                if (in_array($account->type, ['asset', 'expense'], true)) {
                     $account->increment('balance', $netChange);
                 } else {
                     $account->decrement('balance', $netChange);
@@ -300,7 +301,8 @@ class AccountingService
                 'approved_at' => now(),
             ]);
 
-            // Create reversed lines (swap debit and credit)
+            // Create reversed lines (swap debit and credit) - eager load to avoid N+1
+            $entry->load('lines.account');
             foreach ($entry->lines as $line) {
                 JournalEntryLine::create([
                     'journal_entry_id' => $reversalEntry->id,
