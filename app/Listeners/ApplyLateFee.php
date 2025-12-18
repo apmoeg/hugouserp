@@ -32,9 +32,13 @@ class ApplyLateFee implements ShouldQueue
             return;
         }
 
-        $base = (float) $invoice->amount;
-        $penalty = max($base * ($this->penaltyPercent / 100), $this->minPenalty);
-        $invoice->amount = round($base + $penalty, 2);
+        $base = (string) $invoice->amount;
+        // Use bcmath for precise late fee calculation
+        $penaltyRate = bcdiv((string) $this->penaltyPercent, '100', 6);
+        $penaltyFromRate = bcmul($base, $penaltyRate, 2);
+        $penalty = max((float) $penaltyFromRate, $this->minPenalty);
+        $newAmount = bcadd($base, (string) $penalty, 2);
+        $invoice->amount = (float) $newAmount;
         $invoice->save();
     }
 }
