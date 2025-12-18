@@ -26,8 +26,9 @@ class TaxService implements TaxServiceInterface
     {
         $r = $this->rate($taxId);
 
-        // Use bcmath for precise tax calculation
-        $taxAmount = bcmul((string) $base, (string) ($r / 100), 4);
+        // Use bcmath for precise tax calculation (full bcmath chain)
+        $rateDecimal = bcdiv((string) $r, '100', 6);
+        $taxAmount = bcmul((string) $base, $rateDecimal, 4);
         return (float) bcdiv($taxAmount, '1', 2);
     }
 

@@ -62,9 +62,14 @@ class DiscountService implements DiscountServiceInterface
                     ? bcmul((string) $subtotal, bcdiv((string) $discount, '100', 6), 6)
                     : (string) $discount;
 
-                $discTotal = min(max((float) $discTotal, 0.0), $subtotal);
+                // Use bcmath comparisons for precision
+                if (bccomp($discTotal, '0', 6) < 0) {
+                    $discTotal = '0';
+                } elseif (bccomp($discTotal, (string) $subtotal, 6) > 0) {
+                    $discTotal = (string) $subtotal;
+                }
 
-                return (float) bcdiv((string) $discTotal, '1', 2);
+                return (float) bcdiv($discTotal, '1', 2);
             },
             operation: 'lineTotal',
             context: ['qty' => $qty, 'price' => $price, 'discount' => $discount, 'percent' => $percent],

@@ -145,8 +145,8 @@ class HRMService implements HRMServiceInterface
 
     protected function calculateTax(float $taxableIncome): float
     {
-        $annualIncome = $taxableIncome * 12;
-        $annualTax = 0;
+        // Use bcmath for all tax calculations
+        $annualIncome = bcmul((string) $taxableIncome, '12', 2);
 
         $brackets = config('hrm.tax_brackets', [
             ['limit' => 40000, 'rate' => 0],
@@ -157,18 +157,25 @@ class HRMService implements HRMServiceInterface
             ['limit' => PHP_FLOAT_MAX, 'rate' => 0.25],
         ]);
 
-        $previousLimit = 0;
+        $previousLimit = '0';
         $annualTaxString = '0.00';
         foreach ($brackets as $bracket) {
-            if ($annualIncome <= $previousLimit) {
+            // Use bcmath comparison
+            if (bccomp($annualIncome, $previousLimit, 2) <= 0) {
                 break;
             }
 
-            $taxableInBracket = min($annualIncome, $bracket['limit']) - $previousLimit;
+            // Use bcmath to calculate taxable amount in bracket
+            $bracketLimit = (string) $bracket['limit'];
+            $taxableUpToLimit = bccomp($annualIncome, $bracketLimit, 2) < 0 ? $annualIncome : $bracketLimit;
+            $taxableInBracket = bcsub($taxableUpToLimit, $previousLimit, 2);
+            
             // Use bcmath for precise tax bracket calculation
-            $bracketTax = bcmul((string) max(0, $taxableInBracket), (string) $bracket['rate'], 4);
-            $annualTaxString = bcadd($annualTaxString, $bracketTax, 4);
-            $previousLimit = $bracket['limit'];
+            if (bccomp($taxableInBracket, '0', 2) > 0) {
+                $bracketTax = bcmul($taxableInBracket, (string) $bracket['rate'], 4);
+                $annualTaxString = bcadd($annualTaxString, $bracketTax, 4);
+            }
+            $previousLimit = $bracketLimit;
         }
 
         // Use bcmath for precise monthly tax calculation

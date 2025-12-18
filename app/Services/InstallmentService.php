@@ -57,7 +57,8 @@ class InstallmentService
                 $totalWithInterest = bcmul((string) $totalAmount, $interestMultiplier, 2);
                 $remainingAmount = bcsub($totalWithInterest, (string) $downPayment, 2);
 
-                if ((float) $remainingAmount <= 0) {
+                // Use bcmath comparison for precision
+                if (bccomp($remainingAmount, '0', 2) <= 0) {
                     throw new InvalidArgumentException(__('Remaining amount must be greater than zero'));
                 }
 
