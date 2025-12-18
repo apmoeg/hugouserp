@@ -430,7 +430,7 @@ class AccountingService
      */
     public function getAccountMapping(string $key): ?int
     {
-        return AccountMapping::where('key', $key)
+        return AccountMapping::where('mapping_key', $key)
             ->value('account_id');
     }
 
@@ -454,9 +454,10 @@ class AccountingService
         }
 
         return DB::transaction(function () use ($data, $lines) {
+            $branchId = $data['branch_id'] ?? auth()->user()?->branch_id ?? 1;
             $entry = JournalEntry::create([
-                'branch_id' => $data['branch_id'] ?? auth()->user()?->branch_id ?? 1,
-                'reference_number' => $data['reference_number'] ?? $this->generateReferenceNumber('JE'),
+                'branch_id' => $branchId,
+                'reference_number' => $data['reference_number'] ?? 'JE-' . now()->format('YmdHis'),
                 'entry_date' => $data['entry_date'] ?? now(),
                 'description' => $data['description'] ?? '',
                 'status' => 'posted',

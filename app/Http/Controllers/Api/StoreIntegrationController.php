@@ -137,10 +137,10 @@ class StoreIntegrationController extends Controller
                 // Note: Stock should be managed through stock_movements table
                 // This sync is no longer updating stock directly
                 // Create stock movement record for tracking
-                if ($saleItem->product) {
+                if ($saleItem->product && $sale->warehouse_id) {
                     StockMovement::create([
                         'product_id' => $saleItem->product_id,
-                        'warehouse_id' => $sale->warehouse_id ?? 1,
+                        'warehouse_id' => $sale->warehouse_id,
                         'branch_id' => $sale->branch_id,
                         'quantity' => -$saleItem->quantity,
                         'type' => 'sale',
