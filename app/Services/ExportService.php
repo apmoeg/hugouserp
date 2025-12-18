@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\ExportLayout;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Collection;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -261,7 +262,8 @@ class ExportService
                 }
                 
                 // Style header row
-                $headerRange = 'A1:'.chr(64 + count($columns)).'1';
+                $lastColumn = Coordinate::stringFromColumnIndex(count($columns));
+                $headerRange = 'A1:'.$lastColumn.'1';
                 $sheet->getStyle($headerRange)->getFont()->setBold(true);
                 $sheet->getStyle($headerRange)->getFill()
                     ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
