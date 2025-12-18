@@ -1,0 +1,233 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Models\Product;
+use App\Models\RentalContract;
+use App\Models\Customer;
+use App\Models\Supplier;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
+
+class WorkflowAutomationService
+{
+    /**
+     * Check for low stock products and create alerts
+     */
+    public function checkLowStockProducts(int $limit = 100): array
+    {
+        $lowStockProducts = Product::query()
+            ->whereRaw('current_stock <= COALESCE(reorder_point, min_stock, 0)')
+            ->with(['category', 'supplier'])
+            ->limit($limit)
+            ->get();
+
+        $alerts = [];
+        foreach ($lowStockProducts as $product) {
+            $alerts[] = [
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'current_stock' => $product->current_stock ?? 0,
+                'reorder_point' => $product->reorder_point ?? $product->min_stock,
+                'severity' => $this->calculateStockSeverity($product),
+            ];
+        }
+
+        return $alerts;
+    }
+
+    /**
+     * Calculate stock severity level
+     */
+    protected function calculateStockSeverity(Product $product): string
+    {
+        $currentStock = $product->current_stock ?? 0;
+        $minStock = $product->min_stock ?? 0;
+        $reorderPoint = $product->reorder_point ?? $minStock;
+
+        if ($currentStock <= 0) {
+            return 'critical';
+        } elseif ($currentStock <= $minStock) {
+            return 'high';
+        } elseif ($currentStock <= $reorderPoint) {
+            return 'medium';
+        }
+
+        return 'low';
+    }
+
+    /**
+     * Check for expiring rental contracts
+     */
+    public function checkExpiringContracts(int $daysAhead = 30, int $limit = 100): array
+    {
+        $expiringContracts = RentalContract::query()
+            ->where('status', 'active')
+            ->whereDate('end_date', '<=', now()->addDays($daysAhead))
+            ->whereDate('end_date', '>=', now())
+            ->with(['unit', 'tenant', 'property'])
+            ->limit($limit)
+            ->get();
+
+        $alerts = [];
+        foreach ($expiringContracts as $contract) {
+            $daysRemaining = now()->diffInDays($contract->end_date, false);
+            
+            $alerts[] = [
+                'contract_id' => $contract->id,
+                'tenant_name' => $contract->tenant?->name,
+                'property_name' => $contract->property?->name,
+                'unit_code' => $contract->unit?->code,
+                'end_date' => $contract->end_date,
+                'days_remaining' => (int) $daysRemaining,
+                'renewal_notice_days' => $contract->renewal_notice_days ?? 30,
+                'auto_renew' => $contract->auto_renew ?? false,
+                'priority' => $daysRemaining <= 7 ? 'high' : 'normal',
+            ];
+        }
+
+        return $alerts;
+    }
+
+    /**
+     * Analyze customer payment patterns
+     */
+    public function analyzeCustomerPaymentPatterns(int $customerId): array
+    {
+        $customer = Customer::find($customerId);
+        
+        if (!$customer) {
+            return [];
+        }
+
+        // This would typically query sales and payments
+        // For now, return a structure showing what would be analyzed
+        return [
+            'customer_id' => $customer->id,
+            'customer_name' => $customer->name,
+            'payment_terms_days' => $customer->payment_terms_days ?? 30,
+            'credit_limit' => $customer->credit_limit ?? 0,
+            'avg_payment_delay' => 0, // Would be calculated from actual payments
+            'total_outstanding' => 0, // Would be calculated from unpaid invoices
+            'payment_reliability_score' => 100, // 0-100 scale
+            'recommended_credit_limit' => $customer->credit_limit ?? 0,
+        ];
+    }
+
+    /**
+     * Evaluate supplier performance
+     */
+    public function evaluateSupplierPerformance(int $supplierId): array
+    {
+        $supplier = Supplier::find($supplierId);
+        
+        if (!$supplier) {
+            return [];
+        }
+
+        return [
+            'supplier_id' => $supplier->id,
+            'supplier_name' => $supplier->name,
+            'current_rating' => $supplier->supplier_rating ?? 'unrated',
+            'lead_time_days' => $supplier->lead_time_days ?? 0,
+            'on_time_delivery_rate' => 100, // Would be calculated from purchases
+            'quality_rejection_rate' => 0, // Would be calculated from returns
+            'price_competitiveness' => 'good', // Would be calculated from market data
+            'recommended_rating' => 'A', // A, B, C, D based on metrics
+        ];
+    }
+
+    /**
+     * Generate reorder suggestions based on stock levels and sales velocity
+     */
+    public function generateReorderSuggestions(int $limit = 50): array
+    {
+        $products = Product::query()
+            ->whereRaw('current_stock <= COALESCE(reorder_point, min_stock, 0)')
+            ->with(['supplier', 'category'])
+            ->orderByRaw('(COALESCE(reorder_point, min_stock, 0) - current_stock) DESC')
+            ->limit($limit)
+            ->get();
+
+        $suggestions = [];
+        foreach ($products as $product) {
+            $reorderQuantity = $this->calculateReorderQuantity($product);
+            
+            $suggestions[] = [
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'sku' => $product->sku,
+                'current_stock' => $product->current_stock ?? 0,
+                'min_stock' => $product->min_stock ?? 0,
+                'max_stock' => $product->max_stock ?? 0,
+                'reorder_point' => $product->reorder_point ?? 0,
+                'suggested_order_quantity' => $reorderQuantity,
+                'supplier_name' => $product->supplier?->name,
+                'estimated_cost' => $product->cost * $reorderQuantity,
+                'lead_time_days' => $product->lead_time_days ?? $product->supplier?->lead_time_days ?? 7,
+                'urgency' => $this->calculateUrgency($product),
+            ];
+        }
+
+        // Sort by urgency
+        usort($suggestions, function ($a, $b) {
+            $urgencyOrder = ['critical' => 0, 'high' => 1, 'medium' => 2, 'low' => 3];
+            return ($urgencyOrder[$a['urgency']] ?? 99) <=> ($urgencyOrder[$b['urgency']] ?? 99);
+        });
+
+        return $suggestions;
+    }
+
+    /**
+     * Calculate optimal reorder quantity
+     */
+    protected function calculateReorderQuantity(Product $product): float
+    {
+        $currentStock = $product->current_stock ?? 0;
+        $maxStock = $product->max_stock ?? ($product->min_stock * 3);
+        $minStock = $product->min_stock ?? 0;
+
+        // Simple reorder formula: order to max stock level
+        $reorderQty = $maxStock - $currentStock;
+
+        // Ensure minimum order if supplier has one
+        $minOrderValue = $product->supplier?->minimum_order_value ?? 0;
+        if ($minOrderValue > 0 && ($reorderQty * $product->cost) < $minOrderValue) {
+            $reorderQty = ceil($minOrderValue / $product->cost);
+        }
+
+        return max($reorderQty, $minStock);
+    }
+
+    /**
+     * Calculate urgency level for reordering
+     */
+    protected function calculateUrgency(Product $product): string
+    {
+        $currentStock = $product->current_stock ?? 0;
+        $minStock = $product->min_stock ?? 0;
+        $leadTimeDays = $product->lead_time_days ?? 7;
+
+        // Calculate days of stock remaining based on average sales
+        // For now, simplified urgency calculation
+        if ($currentStock <= 0) {
+            return 'critical';
+        } elseif ($currentStock <= ($minStock * 0.5)) {
+            return 'high';
+        } elseif ($currentStock <= $minStock) {
+            return 'medium';
+        }
+
+        return 'low';
+    }
+
+    /**
+     * Log workflow event
+     */
+    protected function logWorkflowEvent(string $event, array $data): void
+    {
+        Log::channel('workflow')->info($event, $data);
+    }
+}

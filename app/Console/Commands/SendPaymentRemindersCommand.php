@@ -73,14 +73,18 @@ class SendPaymentRemindersCommand extends Command
             return self::SUCCESS;
         }
 
-        // In a real implementation, you would send emails/notifications here
+        // Send reminders via notification service
         $this->info("\nSending reminders...");
         $sent = 0;
 
         foreach ($alerts as $alert) {
-            // TODO: Implement actual reminder sending
-            // For now, just count
-            $sent++;
+            try {
+                // Send notification to customer
+                $alert->customer->notify(new \App\Notifications\PaymentReminderNotification($alert));
+                $sent++;
+            } catch (\Exception $e) {
+                $this->error("Failed to send reminder for {$alert->reference}: {$e->getMessage()}");
+            }
         }
 
         $this->info("Sent {$sent} payment reminders");

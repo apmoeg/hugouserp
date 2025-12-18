@@ -15,6 +15,25 @@ class ExportImportController extends Controller
     public function exportUnits(Request $request): StreamedResponse
     {
         $query = \App\Models\RentalUnit::query()->with('property');
+        
+        $format = $request->input('format', 'xlsx');
+
+        if ($format === 'xlsx') {
+            return $this->exportToXlsx(
+                $query,
+                ['ID', 'Property', 'Code', 'Type', 'Status', 'Rent', 'Deposit'],
+                fn ($row) => [
+                    $row->id,
+                    $row->property?->name ?? '',
+                    $row->code,
+                    $row->type,
+                    $row->status,
+                    $row->rent,
+                    $row->deposit,
+                ],
+                'rental_units'
+            );
+        }
 
         return $this->exportToCsv(
             $query,
@@ -35,6 +54,24 @@ class ExportImportController extends Controller
     public function exportTenants(Request $request): StreamedResponse
     {
         $query = \App\Models\Tenant::query();
+        
+        $format = $request->input('format', 'xlsx');
+
+        if ($format === 'xlsx') {
+            return $this->exportToXlsx(
+                $query,
+                ['ID', 'Name', 'Email', 'Phone', 'Address', 'Active'],
+                fn ($row) => [
+                    $row->id,
+                    $row->name,
+                    $row->email,
+                    $row->phone,
+                    $row->address,
+                    $row->is_active ? 'Yes' : 'No',
+                ],
+                'rental_tenants'
+            );
+        }
 
         return $this->exportToCsv(
             $query,
@@ -54,6 +91,27 @@ class ExportImportController extends Controller
     public function exportContracts(Request $request): StreamedResponse
     {
         $query = \App\Models\RentalContract::query()->with(['unit.property', 'tenant']);
+        
+        $format = $request->input('format', 'xlsx');
+
+        if ($format === 'xlsx') {
+            return $this->exportToXlsx(
+                $query,
+                ['ID', 'Property', 'Unit', 'Tenant', 'Start date', 'End date', 'Rent', 'Deposit', 'Status'],
+                fn ($row) => [
+                    $row->id,
+                    $row->unit?->property?->name ?? '',
+                    $row->unit?->code ?? '',
+                    $row->tenant?->name ?? '',
+                    $row->start_date,
+                    $row->end_date,
+                    $row->rent,
+                    $row->deposit,
+                    $row->status,
+                ],
+                'rental_contracts'
+            );
+        }
 
         return $this->exportToCsv(
             $query,

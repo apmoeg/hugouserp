@@ -251,14 +251,15 @@ class AccountingService
                 'approved_at' => now(),
             ]);
 
-            // Update account balances
+            // Update account balances - eager load to avoid N+1
+            $entry->load('lines.account');
             foreach ($entry->lines as $line) {
                 $account = $line->account;
                 $netChange = $line->debit - $line->credit;
 
                 // For asset and expense accounts, debit increases balance
                 // For liability, equity, and revenue accounts, credit increases balance
-                if (in_array($account->type, ['asset', 'expense'])) {
+                if (in_array($account->type, ['asset', 'expense'], true)) {
                     $account->increment('balance', $netChange);
                 } else {
                     $account->decrement('balance', $netChange);
@@ -300,7 +301,8 @@ class AccountingService
                 'approved_at' => now(),
             ]);
 
-            // Create reversed lines (swap debit and credit)
+            // Create reversed lines (swap debit and credit) - eager load to avoid N+1
+            $entry->load('lines.account');
             foreach ($entry->lines as $line) {
                 JournalEntryLine::create([
                     'journal_entry_id' => $reversalEntry->id,
@@ -314,7 +316,7 @@ class AccountingService
                 $account = $line->account;
                 $netChange = $line->credit - $line->debit; // Reversed
 
-                if (in_array($account->type, ['asset', 'expense'])) {
+                if (in_array($account->type, ['asset', 'expense'], true)) {
                     $account->increment('balance', $netChange);
                 } else {
                     $account->decrement('balance', $netChange);
@@ -418,5 +420,61 @@ class AccountingService
             ->value('balance');
 
         return (float) ($result ?? 0);
+    }
+
+    /**
+     * Get account ID from mapping key
+     * 
+     * @param string $key Mapping key (e.g., 'fixed_assets.depreciation_expense')
+     * @return int|null Account ID or null if not configured
+     */
+    public function getAccountMapping(string $key): ?int
+    {
+        return AccountMapping::where('mapping_key', $key)
+            ->value('account_id');
+    }
+
+    /**
+     * Create a journal entry with lines
+     * 
+     * @param array $data Entry data including lines array
+     * @return JournalEntry Created journal entry
+     * @throws Exception If entry is not balanced
+     */
+    public function createEntry(array $data): JournalEntry
+    {
+        $lines = $data['lines'] ?? [];
+        
+        if (empty($lines)) {
+            throw new Exception('Journal entry must have at least one line');
+        }
+
+        if (!$this->validateBalancedEntry($lines)) {
+            throw new Exception('Journal entry debits and credits must balance');
+        }
+
+        return DB::transaction(function () use ($data, $lines) {
+            $branchId = $data['branch_id'] ?? auth()->user()?->branch_id ?? 1;
+            $entry = JournalEntry::create([
+                'branch_id' => $branchId,
+                'reference_number' => $data['reference_number'] ?? 'JE-' . now()->format('YmdHis'),
+                'entry_date' => $data['entry_date'] ?? now(),
+                'description' => $data['description'] ?? '',
+                'status' => 'posted',
+                'created_by' => auth()->id(),
+            ]);
+
+            foreach ($lines as $line) {
+                JournalEntryLine::create([
+                    'journal_entry_id' => $entry->id,
+                    'account_id' => $line['account_id'],
+                    'debit' => $line['debit'] ?? 0,
+                    'credit' => $line['credit'] ?? 0,
+                    'description' => $line['description'] ?? '',
+                ]);
+            }
+
+            return $entry->fresh('lines');
+        });
     }
 }

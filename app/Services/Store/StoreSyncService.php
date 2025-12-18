@@ -230,7 +230,7 @@ class StoreSyncService
                 $currentQty = $this->inventory->currentQty($mapping->product->id);
                 $difference = $available - $currentQty;
 
-                if ($difference != 0) {
+                if (abs($difference) > 0.001) {
                     $this->inventory->adjust(
                         $mapping->product->id,
                         $difference,

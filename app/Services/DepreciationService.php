@@ -27,7 +27,7 @@ class DepreciationService
             return null;
         }
 
-        if ($date->lt($asset->depreciation_start_date)) {
+        if (!$asset->depreciation_start_date || $date->lt($asset->depreciation_start_date)) {
             return null;
         }
 
@@ -46,7 +46,7 @@ class DepreciationService
      */
     protected function calculateStraightLine(FixedAsset $asset, Carbon $date): array
     {
-        $depreciableAmount = $asset->purchase_cost - $asset->salvage_value;
+        $depreciableAmount = ($asset->purchase_cost ?? 0) - ($asset->salvage_value ?? 0);
         $totalMonths = $asset->getTotalUsefulLifeMonths();
         
         if ($totalMonths <= 0) {
@@ -189,17 +189,10 @@ class DepreciationService
     /**
      * Post depreciation entries to accounting.
      * 
-     * Currently implements interim behavior: marks depreciation as "posted"
-     * without creating actual journal entries. This allows the depreciation
-     * workflow to continue while the full accounting integration is pending.
-     * 
-     * TODO: Create actual journal entries via AccountingService:
-     *   - DR: Depreciation Expense (requires account mapping: fixed_assets.depreciation_expense)
-     *   - CR: Accumulated Depreciation (requires account mapping: fixed_assets.accumulated_depreciation)
-     *   - Link journal_entry_id to the depreciation record
+     * Creates journal entries for depreciation and updates the depreciation record.
      * 
      * @param AssetDepreciation $depreciation The depreciation record to post
-     * @throws \Exception If depreciation is already posted
+     * @throws \Exception If depreciation is already posted or account mapping is missing
      * @return void
      */
     public function postDepreciationToAccounting(AssetDepreciation $depreciation): void
@@ -210,14 +203,40 @@ class DepreciationService
 
         $asset = $depreciation->asset;
         
-        // Interim behavior: mark as posted without creating journal entry
-        // Full implementation requires AccountMapping configuration for:
-        //   1. Depreciation Expense account (debit)
-        //   2. Accumulated Depreciation account (credit)
-        DB::transaction(function () use ($depreciation) {
+        // Get account mappings for depreciation
+        $expenseAccountId = app(AccountingService::class)->getAccountMapping('fixed_assets.depreciation_expense');
+        $accumulatedAccountId = app(AccountingService::class)->getAccountMapping('fixed_assets.accumulated_depreciation');
+        
+        if (!$expenseAccountId || !$accumulatedAccountId) {
+            throw new \Exception('Depreciation account mappings not configured');
+        }
+        
+        DB::transaction(function () use ($depreciation, $asset, $expenseAccountId, $accumulatedAccountId) {
+            // Create journal entry for depreciation
+            $journalEntry = app(AccountingService::class)->createEntry([
+                'reference_number' => 'DEP-' . $asset->id . '-' . date('Ym'),
+                'entry_date' => $depreciation->period_end,
+                'description' => "Depreciation for {$asset->name} - " . date('M Y', strtotime($depreciation->period_end)),
+                'branch_id' => $asset->branch_id,
+                'lines' => [
+                    [
+                        'account_id' => $expenseAccountId,
+                        'debit' => $depreciation->amount,
+                        'credit' => 0,
+                        'description' => "Depreciation expense for {$asset->name}",
+                    ],
+                    [
+                        'account_id' => $accumulatedAccountId,
+                        'debit' => 0,
+                        'credit' => $depreciation->amount,
+                        'description' => "Accumulated depreciation for {$asset->name}",
+                    ],
+                ],
+            ]);
+            
             $depreciation->update([
                 'status' => 'posted',
-                // TODO: Set journal_entry_id once journal entry is created
+                'journal_entry_id' => $journalEntry->id,
             ]);
         });
     }

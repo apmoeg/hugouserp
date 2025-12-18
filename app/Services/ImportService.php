@@ -62,6 +62,30 @@ class ImportService
                     'address' => 'nullable|string|max:500',
                 ],
             ],
+            'sales' => [
+                'name' => __('Sales Invoices'),
+                'required_columns' => ['date', 'total', 'status'],
+                'optional_columns' => ['reference', 'customer', 'subtotal', 'tax', 'discount', 'paid', 'due'],
+                'validation_rules' => [
+                    'reference' => 'nullable|string|max:50',
+                    'date' => 'required|date',
+                    'customer' => 'nullable|string|max:255',
+                    'total' => 'required|numeric|min:0',
+                    'status' => 'required|in:draft,posted,paid,cancelled',
+                ],
+            ],
+            'purchases' => [
+                'name' => __('Purchase Invoices'),
+                'required_columns' => ['date', 'total', 'status'],
+                'optional_columns' => ['reference', 'supplier', 'subtotal', 'tax', 'discount', 'paid', 'due'],
+                'validation_rules' => [
+                    'reference' => 'nullable|string|max:50',
+                    'date' => 'required|date',
+                    'supplier' => 'nullable|string|max:255',
+                    'total' => 'required|numeric|min:0',
+                    'status' => 'required|in:draft,posted,paid,cancelled',
+                ],
+            ],
         ];
     }
 

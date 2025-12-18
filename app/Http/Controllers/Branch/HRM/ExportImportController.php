@@ -15,6 +15,26 @@ class ExportImportController extends Controller
     public function exportEmployees(Request $request): StreamedResponse
     {
         $query = \App\Models\HREmployee::query()->with(['branch', 'user']);
+        
+        $format = $request->input('format', 'xlsx');
+
+        if ($format === 'xlsx') {
+            return $this->exportToXlsx(
+                $query,
+                ['ID', 'Code', 'Name', 'Position', 'Salary', 'Active', 'Branch', 'User email'],
+                fn ($row) => [
+                    $row->id,
+                    $row->code,
+                    $row->name,
+                    $row->position,
+                    $row->salary,
+                    $row->is_active ? 'Yes' : 'No',
+                    $row->branch?->name ?? '',
+                    $row->user?->email ?? '',
+                ],
+                'hrm_employees'
+            );
+        }
 
         return $this->exportToCsv(
             $query,

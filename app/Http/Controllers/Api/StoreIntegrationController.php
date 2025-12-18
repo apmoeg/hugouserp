@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductVariation;
+use App\Models\StockMovement;
 use App\Models\StoreOrder;
 use App\Services\StockService;
 use App\Services\Store\StoreOrderToSaleService;
@@ -135,7 +136,19 @@ class StoreIntegrationController extends Controller
 
                 // Note: Stock should be managed through stock_movements table
                 // This sync is no longer updating stock directly
-                // TODO: Create proper stock movement records if needed
+                // Create stock movement record for tracking
+                if ($saleItem->product && $sale->warehouse_id) {
+                    StockMovement::create([
+                        'product_id' => $saleItem->product_id,
+                        'warehouse_id' => $sale->warehouse_id,
+                        'branch_id' => $sale->branch_id,
+                        'quantity' => -$saleItem->quantity,
+                        'type' => 'sale',
+                        'reference_type' => 'sale',
+                        'reference_id' => $sale->id,
+                        'notes' => "Sale from store order #{$storeOrder->store_order_number}",
+                    ]);
+                }
 
                 $updated[] = [
                     'type' => $type,

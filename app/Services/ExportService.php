@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\ExportLayout;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Collection;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -176,10 +177,22 @@ class ExportService
     {
         return $this->handleServiceOperation(
             callback: function () use ($data, $columns, $format, $options) {
+                // Validate inputs
+                if (empty($columns)) {
+                    throw new \InvalidArgumentException('At least one column must be specified for export');
+                }
+
+                if ($data->isEmpty()) {
+                    throw new \InvalidArgumentException('No data available to export');
+                }
+
                 $availableColumns = $options['available_columns'] ?? [];
                 $dateFormat = $options['date_format'] ?? 'Y-m-d';
                 $includeHeaders = $options['include_headers'] ?? true;
                 $filename = $options['filename'] ?? 'export_'.date('Y-m-d_His');
+
+                // Sanitize filename
+                $filename = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $filename);
 
                 $rows = $this->prepareDataRows($data, $columns, $availableColumns, $dateFormat);
 
@@ -204,10 +217,25 @@ class ExportService
             foreach ($columns as $column) {
                 $value = $itemArray[$column] ?? '';
 
-                if ($value instanceof \DateTime || $value instanceof \Carbon\Carbon) {
-                    $value = $value->format($dateFormat);
-                } elseif (is_array($value)) {
-                    $value = json_encode($value);
+                // Handle different data types safely
+                try {
+                    if ($value instanceof \DateTime || $value instanceof \Carbon\Carbon) {
+                        $value = $value->format($dateFormat);
+                    } elseif (is_array($value)) {
+                        $value = json_encode($value, JSON_THROW_ON_ERROR);
+                    } elseif (is_object($value)) {
+                        $value = method_exists($value, '__toString') ? (string) $value : json_encode($value, JSON_THROW_ON_ERROR);
+                    } elseif (is_bool($value)) {
+                        $value = $value ? 'Yes' : 'No';
+                    } elseif (is_null($value)) {
+                        $value = '';
+                    } else {
+                        // Ensure string conversion for scalar types
+                        $value = (string) $value;
+                    }
+                } catch (\Throwable $e) {
+                    // Fallback to empty string if conversion fails
+                    $value = '';
                 }
 
                 $row[$column] = $value;
@@ -219,67 +247,95 @@ class ExportService
 
     protected function exportToExcel(array $rows, array $columns, array $availableColumns, bool $includeHeaders, string $filename): string
     {
-        $spreadsheet = new Spreadsheet;
-        $sheet = $spreadsheet->getActiveSheet();
+        try {
+            $spreadsheet = new Spreadsheet;
+            $sheet = $spreadsheet->getActiveSheet();
 
-        $rowIndex = 1;
+            $rowIndex = 1;
 
-        if ($includeHeaders) {
-            $colIndex = 1;
-            foreach ($columns as $column) {
-                $label = $availableColumns[$column] ?? $column;
-                $sheet->setCellValueByColumnAndRow($colIndex, $rowIndex, $label);
-                $colIndex++;
+            if ($includeHeaders) {
+                $colIndex = 1;
+                foreach ($columns as $column) {
+                    $label = $availableColumns[$column] ?? $column;
+                    $sheet->setCellValueByColumnAndRow($colIndex, $rowIndex, $label);
+                    $colIndex++;
+                }
+                
+                // Style header row
+                $lastColumn = Coordinate::stringFromColumnIndex(count($columns));
+                $headerRange = 'A1:'.$lastColumn.'1';
+                $sheet->getStyle($headerRange)->getFont()->setBold(true);
+                $sheet->getStyle($headerRange)->getFill()
+                    ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('FFE0E0E0');
+                
+                $rowIndex++;
             }
-            $rowIndex++;
-        }
 
-        foreach ($rows as $row) {
-            $colIndex = 1;
-            foreach ($columns as $column) {
-                $sheet->setCellValueByColumnAndRow($colIndex, $rowIndex, $row[$column] ?? '');
-                $colIndex++;
+            foreach ($rows as $row) {
+                $colIndex = 1;
+                foreach ($columns as $column) {
+                    $value = $row[$column] ?? '';
+                    $sheet->setCellValueByColumnAndRow($colIndex, $rowIndex, $value);
+                    $colIndex++;
+                }
+                $rowIndex++;
             }
-            $rowIndex++;
+
+            // Auto-size columns for better readability
+            foreach (range(1, count($columns)) as $col) {
+                $sheet->getColumnDimensionByColumn($col)->setAutoSize(true);
+            }
+
+            $filepath = storage_path("app/exports/{$filename}.xlsx");
+
+            if (! is_dir(dirname($filepath))) {
+                mkdir(dirname($filepath), 0755, true);
+            }
+
+            $writer = new Xlsx($spreadsheet);
+            $writer->save($filepath);
+
+            return $filepath;
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('Failed to generate Excel export: '.$e->getMessage(), 0, $e);
         }
-
-        $filepath = storage_path("app/exports/{$filename}.xlsx");
-
-        if (! is_dir(dirname($filepath))) {
-            mkdir(dirname($filepath), 0755, true);
-        }
-
-        $writer = new Xlsx($spreadsheet);
-        $writer->save($filepath);
-
-        return $filepath;
     }
 
     protected function exportToCsv(array $rows, array $columns, array $availableColumns, bool $includeHeaders, string $filename): string
     {
-        $filepath = storage_path("app/exports/{$filename}.csv");
+        try {
+            $filepath = storage_path("app/exports/{$filename}.csv");
 
-        if (! is_dir(dirname($filepath))) {
-            mkdir(dirname($filepath), 0755, true);
+            if (! is_dir(dirname($filepath))) {
+                mkdir(dirname($filepath), 0755, true);
+            }
+
+            $handle = fopen($filepath, 'w');
+
+            if (! $handle) {
+                throw new \RuntimeException('Failed to create CSV file');
+            }
+
+            // Add UTF-8 BOM for proper Excel compatibility
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            if ($includeHeaders) {
+                $headers = array_map(fn ($col) => $availableColumns[$col] ?? $col, $columns);
+                fputcsv($handle, $headers);
+            }
+
+            foreach ($rows as $row) {
+                $rowData = array_map(fn ($col) => $row[$col] ?? '', $columns);
+                fputcsv($handle, $rowData);
+            }
+
+            fclose($handle);
+
+            return $filepath;
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('Failed to generate CSV export: '.$e->getMessage(), 0, $e);
         }
-
-        $handle = fopen($filepath, 'w');
-
-        fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-
-        if ($includeHeaders) {
-            $headers = array_map(fn ($col) => $availableColumns[$col] ?? $col, $columns);
-            fputcsv($handle, $headers);
-        }
-
-        foreach ($rows as $row) {
-            $rowData = array_map(fn ($col) => $row[$col] ?? '', $columns);
-            fputcsv($handle, $rowData);
-        }
-
-        fclose($handle);
-
-        return $filepath;
     }
 
     protected function exportToPdf(array $rows, array $columns, array $availableColumns, bool $includeHeaders, string $filename, array $options): string

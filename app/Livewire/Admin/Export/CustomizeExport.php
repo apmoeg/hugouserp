@@ -34,10 +34,23 @@ class CustomizeExport extends Component
     protected ExportService $exportService;
 
     protected $rules = [
-        'layoutName' => 'required|string|max:100',
+        'layoutName' => 'required|string|max:100|min:3',
         'entityType' => 'required|in:products,sales,purchases,customers,suppliers,expenses,incomes',
         'selectedColumns' => 'required|array|min:1',
+        'selectedColumns.*' => 'string|max:100',
         'exportFormat' => 'required|in:xlsx,csv,pdf',
+        'dateFormat' => 'required|string|max:50',
+        'includeHeaders' => 'boolean',
+        'isDefault' => 'boolean',
+        'isShared' => 'boolean',
+    ];
+
+    protected $messages = [
+        'layoutName.required' => 'Please enter a layout name',
+        'layoutName.min' => 'Layout name must be at least 3 characters',
+        'layoutName.max' => 'Layout name cannot exceed 100 characters',
+        'selectedColumns.required' => 'Please select at least one column',
+        'selectedColumns.min' => 'Please select at least one column',
     ];
 
     public function boot(ExportService $exportService): void
