@@ -19,6 +19,17 @@ class SupplierStoreRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:100'],
             'email' => ['nullable', 'email', 'max:190', 'unique:suppliers,email'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'tax_number' => ['nullable', 'string', 'max:100'],
+            // Financial fields
+            'payment_terms' => ['nullable', 'string', 'in:immediate,net15,net30,net60,net90'],
+            'payment_due_days' => ['nullable', 'integer', 'min:0'],
+            'minimum_order_value' => ['nullable', 'numeric', 'min:0'],
+            // Rating fields
+            'supplier_rating' => ['nullable', 'string', 'max:191'],
+            'quality_rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
+            'delivery_rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
+            'service_rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
         ];
     }
 }

@@ -35,6 +35,13 @@ class EmployeeStoreRequest extends FormRequest
             'bank_name' => ['nullable', 'string', 'max:100'],
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],
             'emergency_contact_phone' => ['nullable', 'string', 'max:20'],
+            'emergency_contact_relation' => ['nullable', 'string', 'max:100'],
+            // Contract fields
+            'contract_start_date' => ['nullable', 'date'],
+            'contract_end_date' => ['nullable', 'date', 'after_or_equal:contract_start_date'],
+            // Work permit fields
+            'work_permit_number' => ['nullable', 'string', 'max:100'],
+            'work_permit_expiry' => ['nullable', 'date'],
             'branch_id' => ['nullable', 'exists:branches,id'],
         ];
     }
