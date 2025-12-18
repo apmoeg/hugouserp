@@ -59,7 +59,7 @@ class PriceAuditObserver
                 }
             }
             
-            Log::channel('audit')->info('Product price change detected', [
+            Log::info('Product price change detected', [
                 'product_id' => $product->id,
                 'product_name' => $product->name,
                 'sku' => $product->sku,

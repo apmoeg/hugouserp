@@ -7,6 +7,8 @@ namespace App\Listeners;
 use App\Events\PurchaseReceived;
 use App\Models\StockMovement;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 class UpdateStockOnPurchase implements ShouldQueue
 {
@@ -25,7 +27,7 @@ class UpdateStockOnPurchase implements ShouldQueue
                 ->exists();
                 
             if ($existing) {
-                \Log::info('Stock movement already recorded for purchase', [
+                Log::info('Stock movement already recorded for purchase', [
                     'purchase_id' => $purchase->getKey(),
                     'product_id' => $item->product_id,
                 ]);
@@ -34,12 +36,12 @@ class UpdateStockOnPurchase implements ShouldQueue
             
             // Validate quantity is positive
             if ($item->qty <= 0) {
-                \Log::error('Invalid purchase quantity', [
+                Log::error('Invalid purchase quantity', [
                     'purchase_id' => $purchase->getKey(),
                     'product_id' => $item->product_id,
                     'qty' => $item->qty,
                 ]);
-                throw new \Exception("Purchase quantity must be positive for product {$item->product_id}");
+                throw new InvalidArgumentException("Purchase quantity must be positive for product {$item->product_id}");
             }
 
             StockMovement::create([

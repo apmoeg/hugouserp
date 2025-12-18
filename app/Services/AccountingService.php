@@ -238,7 +238,7 @@ class AccountingService
         
         // Log unbalanced entries for audit
         if (abs((float) $difference) >= 0.01) {
-            \Log::error('Unbalanced journal entry detected', [
+            Log::error('Unbalanced journal entry detected', [
                 'entry_id' => $entry->id,
                 'total_debit' => $totalDebit,
                 'total_credit' => $totalCredit,

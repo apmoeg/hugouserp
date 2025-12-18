@@ -7,6 +7,8 @@ namespace App\Listeners;
 use App\Events\SaleCompleted;
 use App\Models\StockMovement;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 class UpdateStockOnSale implements ShouldQueue
 {
@@ -27,14 +29,14 @@ class UpdateStockOnSale implements ShouldQueue
                 );
                 
                 if ($currentStock < $item->qty) {
-                    \Log::warning('Insufficient stock for sale', [
+                    Log::warning('Insufficient stock for sale', [
                         'sale_id' => $sale->getKey(),
                         'product_id' => $item->product_id,
                         'requested' => $item->qty,
                         'available' => $currentStock,
                     ]);
                     
-                    throw new \Exception(
+                    throw new InvalidArgumentException(
                         "Insufficient stock for product {$item->product_id}. Available: {$currentStock}, Required: {$item->qty}"
                     );
                 }
@@ -48,7 +50,7 @@ class UpdateStockOnSale implements ShouldQueue
                 ->exists();
                 
             if ($existing) {
-                \Log::info('Stock movement already recorded for sale', [
+                Log::info('Stock movement already recorded for sale', [
                     'sale_id' => $sale->getKey(),
                     'product_id' => $item->product_id,
                 ]);
