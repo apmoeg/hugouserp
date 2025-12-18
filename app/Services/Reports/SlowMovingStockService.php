@@ -1,0 +1,170 @@
+<?php
+
+namespace App\Services\Reports;
+
+use App\Models\Product;
+use App\Models\SaleItem;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
+class SlowMovingStockService
+{
+    /**
+     * Get slow-moving and obsolete stock analysis
+     */
+    public function getSlowMovingStock($days = 90)
+    {
+        $cutoffDate = Carbon::now()->subDays($days);
+
+        $products = Product::select('products.*')
+            ->selectRaw('COALESCE(SUM(sale_items.quantity), 0) as total_sold')
+            ->selectRaw('MAX(sale_items.created_at) as last_sold_date')
+            ->selectRaw('DATEDIFF(NOW(), MAX(sale_items.created_at)) as days_since_sale')
+            ->leftJoin('sale_items', 'products.id', '=', 'sale_items.product_id')
+            ->leftJoin('sales', function($join) {
+                $join->on('sale_items.sale_id', '=', 'sales.id')
+                     ->whereNull('sales.deleted_at');
+            })
+            ->where('products.stock_quantity', '>', 0)
+            ->whereNull('products.deleted_at')
+            ->groupBy('products.id')
+            ->havingRaw('COALESCE(days_since_sale, 999) > ?', [$days])
+            ->orderBy('days_since_sale', 'desc')
+            ->get();
+
+        return [
+            'slow_moving_products' => $products->map(function($product) {
+                $stockValue = bcmul((string)$product->stock_quantity, (string)$product->selling_price, 2);
+                $dailyRate = $this->calculateDailySalesRate($product);
+                
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->product_code,
+                    'stock_quantity' => $product->stock_quantity,
+                    'stock_value' => (float)$stockValue,
+                    'days_since_sale' => $product->days_since_sale ?? 999,
+                    'last_sold_date' => $product->last_sold_date,
+                    'daily_sales_rate' => (float)$dailyRate,
+                    'days_to_stockout' => $dailyRate > 0 
+                        ? (int)bcdiv((string)$product->stock_quantity, $dailyRate, 0)
+                        : 9999,
+                    'recommended_action' => $this->getRecommendedAction($product),
+                ];
+            }),
+            'total_slow_moving' => $products->count(),
+            'total_stock_value' => (float)$products->sum(function($product) {
+                return bcmul((string)$product->stock_quantity, (string)$product->selling_price, 2);
+            }),
+        ];
+    }
+
+    /**
+     * Get expiring products alert
+     */
+    public function getExpiringProducts($daysAhead = 30)
+    {
+        $expiryDate = Carbon::now()->addDays($daysAhead);
+
+        $products = Product::where('expiry_date', '<=', $expiryDate)
+            ->where('expiry_date', '>=', Carbon::now())
+            ->where('stock_quantity', '>', 0)
+            ->whereNull('deleted_at')
+            ->orderBy('expiry_date', 'asc')
+            ->get();
+
+        return [
+            'expiring_products' => $products->map(function($product) {
+                $daysToExpiry = Carbon::now()->diffInDays($product->expiry_date, false);
+                $potentialLoss = bcmul((string)$product->stock_quantity, (string)$product->cost_price, 2);
+                
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'sku' => $product->product_code,
+                    'stock_quantity' => $product->stock_quantity,
+                    'expiry_date' => $product->expiry_date,
+                    'days_to_expiry' => $daysToExpiry,
+                    'potential_loss' => (float)$potentialLoss,
+                    'urgency' => $this->getExpiryUrgency($daysToExpiry),
+                    'recommended_action' => $this->getExpiryAction($daysToExpiry),
+                ];
+            }),
+            'total_expiring' => $products->count(),
+            'total_potential_loss' => (float)$products->sum(function($product) {
+                return bcmul((string)$product->stock_quantity, (string)$product->cost_price, 2);
+            }),
+        ];
+    }
+
+    /**
+     * Calculate daily sales rate using bcmath
+     */
+    private function calculateDailySalesRate($product)
+    {
+        if (!$product->total_sold || $product->total_sold == 0) {
+            return '0';
+        }
+
+        $daysSinceFirstSale = $product->days_since_sale ?? 90;
+        if ($daysSinceFirstSale == 0) {
+            return '0';
+        }
+
+        return bcdiv((string)$product->total_sold, (string)$daysSinceFirstSale, 4);
+    }
+
+    /**
+     * Get recommended action for slow-moving product
+     */
+    private function getRecommendedAction($product)
+    {
+        $daysSinceSale = $product->days_since_sale ?? 999;
+
+        if ($daysSinceSale > 180) {
+            return 'Consider clearance sale or write-off';
+        }
+
+        if ($daysSinceSale > 120) {
+            return 'Run promotion or discount campaign';
+        }
+
+        return 'Monitor and consider bundling with fast-moving items';
+    }
+
+    /**
+     * Get expiry urgency level
+     */
+    private function getExpiryUrgency($daysToExpiry)
+    {
+        if ($daysToExpiry <= 7) {
+            return 'CRITICAL';
+        }
+
+        if ($daysToExpiry <= 14) {
+            return 'HIGH';
+        }
+
+        if ($daysToExpiry <= 30) {
+            return 'MEDIUM';
+        }
+
+        return 'LOW';
+    }
+
+    /**
+     * Get recommended action for expiring product
+     */
+    private function getExpiryAction($daysToExpiry)
+    {
+        if ($daysToExpiry <= 7) {
+            return 'Immediate clearance sale required';
+        }
+
+        if ($daysToExpiry <= 14) {
+            return 'Start promotional campaign';
+        }
+
+        return 'Plan discount strategy';
+    }
+}
