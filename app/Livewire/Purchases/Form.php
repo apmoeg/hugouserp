@@ -35,6 +35,16 @@ class Form extends Component
 
     public string $notes = '';
 
+    public string $supplier_notes = '';
+
+    public string $internal_notes = '';
+
+    public string $expected_delivery_date = '';
+
+    public string $actual_delivery_date = '';
+
+    public string $shipping_method = '';
+
     public float $discount_total = 0;
 
     public float $shipping_total = 0;
@@ -54,6 +64,11 @@ class Form extends Component
             'status' => 'required|in:draft,pending,posted,received,cancelled',
             'currency' => 'nullable|string|max:3',
             'notes' => 'nullable|string',
+            'supplier_notes' => 'nullable|string|max:1000',
+            'internal_notes' => 'nullable|string|max:1000',
+            'expected_delivery_date' => 'nullable|date',
+            'actual_delivery_date' => 'nullable|date',
+            'shipping_method' => 'nullable|string|max:191',
             'discount_total' => 'nullable|numeric|min:0',
             'shipping_total' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
@@ -76,6 +91,11 @@ class Form extends Component
             $this->status = $purchase->status ?? 'draft';
             $this->currency = $purchase->currency ?? 'EGP';
             $this->notes = $purchase->notes ?? '';
+            $this->supplier_notes = $purchase->supplier_notes ?? '';
+            $this->internal_notes = $purchase->internal_notes ?? '';
+            $this->expected_delivery_date = $purchase->expected_delivery_date?->format('Y-m-d') ?? '';
+            $this->actual_delivery_date = $purchase->actual_delivery_date?->format('Y-m-d') ?? '';
+            $this->shipping_method = $purchase->shipping_method ?? '';
             $this->discount_total = (float) ($purchase->discount_total ?? 0);
             $this->shipping_total = (float) ($purchase->shipping_total ?? 0);
 
@@ -182,6 +202,11 @@ class Form extends Component
                         'status' => $this->status,
                         'currency' => $this->currency,
                         'notes' => $this->notes,
+                        'supplier_notes' => $this->supplier_notes,
+                        'internal_notes' => $this->internal_notes,
+                        'expected_delivery_date' => $this->expected_delivery_date ?: null,
+                        'actual_delivery_date' => $this->actual_delivery_date ?: null,
+                        'shipping_method' => $this->shipping_method,
                         'sub_total' => $this->subTotal,
                         'discount_total' => $this->discount_total,
                         'tax_total' => $this->taxTotal,

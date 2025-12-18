@@ -84,10 +84,10 @@ class CostingService
             ->selectRaw('SUM(quantity * unit_cost) as total_value, SUM(quantity) as total_quantity')
             ->first();
 
-        $totalQuantity = (float) ($result->total_quantity ?? 0);
-        $totalValue = (float) ($result->total_value ?? 0);
+        $totalQuantity = (string) ($result->total_quantity ?? 0);
+        $totalValue = (string) ($result->total_value ?? 0);
 
-        if ($totalQuantity <= 0) {
+        if (bccomp($totalQuantity, '0', 4) <= 0) {
             return [
                 'unit_cost' => 0.0,
                 'total_cost' => 0.0,
@@ -95,11 +95,12 @@ class CostingService
             ];
         }
 
-        $avgCost = $totalValue / $totalQuantity;
+        $avgCost = bcdiv($totalValue, $totalQuantity, 4);
+        $totalCost = bcmul($avgCost, (string) $quantity, 4);
 
         return [
-            'unit_cost' => $avgCost,
-            'total_cost' => $avgCost * $quantity,
+            'unit_cost' => (float) $avgCost,
+            'total_cost' => (float) bcdiv($totalCost, '1', 2),
             'batches_used' => [],
         ];
     }
@@ -123,35 +124,36 @@ class CostingService
      */
     protected function allocateCostFromBatches($batches, float $quantityNeeded): array
     {
-        $totalCost = 0.0;
-        $remainingQty = $quantityNeeded;
+        $totalCost = '0';
+        $remainingQty = (string) $quantityNeeded;
         $batchesUsed = [];
 
         foreach ($batches as $batch) {
-            if ($remainingQty <= 0) {
+            if (bccomp($remainingQty, '0', 4) <= 0) {
                 break;
             }
 
-            $batchQty = min($remainingQty, (float) $batch->quantity);
-            $batchCost = $batchQty * (float) $batch->unit_cost;
+            $batchQuantity = (string) $batch->quantity;
+            $batchQty = bccomp($remainingQty, $batchQuantity, 4) < 0 ? $remainingQty : $batchQuantity;
+            $batchCost = bcmul($batchQty, (string) $batch->unit_cost, 4);
 
-            $totalCost += $batchCost;
-            $remainingQty -= $batchQty;
+            $totalCost = bcadd($totalCost, $batchCost, 4);
+            $remainingQty = bcsub($remainingQty, $batchQty, 4);
 
             $batchesUsed[] = [
                 'batch_id' => $batch->id,
                 'batch_number' => $batch->batch_number,
-                'quantity' => $batchQty,
+                'quantity' => (float) $batchQty,
                 'unit_cost' => (float) $batch->unit_cost,
-                'total_cost' => $batchCost,
+                'total_cost' => (float) bcdiv($batchCost, '1', 2),
             ];
         }
 
-        $unitCost = $quantityNeeded > 0 ? $totalCost / $quantityNeeded : 0.0;
+        $unitCost = $quantityNeeded > 0 ? bcdiv($totalCost, (string) $quantityNeeded, 4) : '0';
 
         return [
-            'unit_cost' => $unitCost,
-            'total_cost' => $totalCost,
+            'unit_cost' => (float) $unitCost,
+            'total_cost' => (float) bcdiv($totalCost, '1', 2),
             'batches_used' => $batchesUsed,
         ];
     }

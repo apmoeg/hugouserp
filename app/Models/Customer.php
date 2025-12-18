@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Customer extends BaseModel
 {
-    use LogsActivity;
+    use LogsActivity, SoftDeletes;
     protected ?string $moduleKey = 'customers';
 
     protected $table = 'customers';
@@ -20,7 +21,9 @@ class Customer extends BaseModel
         'address', 'city', 'country', 'company', 'external_id',
         'status', 'notes', 'loyalty_points', 'customer_tier', 'tier_updated_at',
         'balance', 'credit_limit', 'total_purchases', 'discount_percentage',
-        'payment_terms', 'payment_due_days', 'preferred_currency',
+        'payment_terms', 'payment_due_days', 'payment_terms_days', 'preferred_currency',
+        'customer_group', 'preferred_payment_method', 'last_order_date',
+        'last_interaction_date', 'customer_source', 'lifetime_revenue',
         'website', 'fax', 'credit_hold', 'credit_hold_reason',
         'extra_attributes', 'branch_id', 'created_by', 'updated_by',
     ];
@@ -34,8 +37,12 @@ class Customer extends BaseModel
         'balance' => 'decimal:4',
         'credit_limit' => 'decimal:4',
         'total_purchases' => 'decimal:4',
+        'lifetime_revenue' => 'decimal:4',
         'discount_percentage' => 'decimal:4',
         'payment_due_days' => 'integer',
+        'payment_terms_days' => 'integer',
+        'last_order_date' => 'datetime',
+        'last_interaction_date' => 'datetime',
         'credit_hold' => 'boolean',
     ];
 

@@ -187,18 +187,18 @@ class UIHelperService
         $value = $bytes;
 
         while ($value >= 1024 && $i < count($units) - 1) {
-            $value = $value / 1024.0;
+            $value = (float) bcdiv((string) $value, '1024', $precision + 2);
             $i++;
         }
 
-        // Round before formatting to check for promotion
-        $rounded = round($value, $precision);
+        // Round before formatting to check for promotion using bcmath
+        $rounded = (float) bcdiv((string) $value, '1', $precision);
 
         // If rounded value is 1024 or more, promote to next unit
         if ($rounded >= 1024 && $i < count($units) - 1) {
-            $value = $rounded / 1024.0;
+            $value = (float) bcdiv((string) $rounded, '1024', $precision + 2);
             $i++;
-            $rounded = round($value, $precision);
+            $rounded = (float) bcdiv((string) $value, '1', $precision);
         }
 
         // Format the value without thousand separators and remove trailing zeros

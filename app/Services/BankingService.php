@@ -50,7 +50,7 @@ class BankingService
         // Calculate book balance at statement date
         $bookBalance = $this->calculateBookBalanceAt($bankAccountId, $statementDate);
 
-        $difference = $statementBalance - $bookBalance;
+        $difference = bcsub((string) $statementBalance, (string) $bookBalance, 2);
 
         return BankReconciliation::create([
             'bank_account_id' => $bankAccountId,
@@ -59,7 +59,7 @@ class BankingService
             'reconciliation_date' => now(),
             'statement_balance' => $statementBalance,
             'book_balance' => $bookBalance,
-            'difference' => $difference,
+            'difference' => (float) $difference,
             'status' => 'draft',
             'reconciled_by' => auth()->id(),
         ]);
@@ -77,20 +77,30 @@ class BankingService
                     'reconciliation_id' => $reconciliation->id,
                 ]);
 
-            // Recalculate difference
-            $deposits = BankTransaction::where('reconciliation_id', $reconciliation->id)
+            // Recalculate difference using bcmath
+            $depositsCollection = BankTransaction::where('reconciliation_id', $reconciliation->id)
                 ->whereIn('type', ['deposit', 'interest'])
-                ->sum('amount');
-
-            $withdrawals = BankTransaction::where('reconciliation_id', $reconciliation->id)
+                ->get();
+            
+            $withdrawalsCollection = BankTransaction::where('reconciliation_id', $reconciliation->id)
                 ->whereNotIn('type', ['deposit', 'interest'])
-                ->sum('amount');
+                ->get();
+            
+            $deposits = '0';
+            foreach ($depositsCollection as $txn) {
+                $deposits = bcadd($deposits, (string) $txn->amount, 2);
+            }
+            
+            $withdrawals = '0';
+            foreach ($withdrawalsCollection as $txn) {
+                $withdrawals = bcadd($withdrawals, (string) $txn->amount, 2);
+            }
 
-            $reconciledTotal = $deposits - $withdrawals;
+            $reconciledTotal = bcsub($deposits, $withdrawals, 2);
+            $statementMinusBook = bcsub((string) $reconciliation->statement_balance, (string) $reconciliation->book_balance, 2);
+            $newDifference = bcsub($statementMinusBook, $reconciledTotal, 2);
 
-            $newDifference = $reconciliation->statement_balance - $reconciliation->book_balance - $reconciledTotal;
-
-            $reconciliation->update(['difference' => $newDifference]);
+            $reconciliation->update(['difference' => (float) $newDifference]);
         });
     }
 
@@ -121,17 +131,17 @@ class BankingService
             ->where('status', '!=', 'cancelled')
             ->get();
 
-        $balance = $bankAccount->opening_balance;
+        $balance = (string) $bankAccount->opening_balance;
 
         foreach ($transactions as $transaction) {
             if ($transaction->isDeposit() || $transaction->type === 'interest') {
-                $balance += $transaction->amount;
+                $balance = bcadd($balance, (string) $transaction->amount, 2);
             } else {
-                $balance -= $transaction->amount;
+                $balance = bcsub($balance, (string) $transaction->amount, 2);
             }
         }
 
-        return $balance;
+        return (float) $balance;
     }
 
     /**
@@ -144,21 +154,23 @@ class BankingService
             ->where('status', '!=', 'cancelled')
             ->get();
 
-        $inflows = 0;
-        $outflows = 0;
+        $inflows = '0';
+        $outflows = '0';
 
         foreach ($transactions as $transaction) {
             if ($transaction->isDeposit() || $transaction->type === 'interest') {
-                $inflows += $transaction->amount;
+                $inflows = bcadd($inflows, (string) $transaction->amount, 2);
             } else {
-                $outflows += $transaction->amount;
+                $outflows = bcadd($outflows, (string) $transaction->amount, 2);
             }
         }
 
+        $netCashflow = bcsub($inflows, $outflows, 2);
+
         return [
-            'total_inflows' => $inflows,
-            'total_outflows' => $outflows,
-            'net_cashflow' => $inflows - $outflows,
+            'total_inflows' => (float) $inflows,
+            'total_outflows' => (float) $outflows,
+            'net_cashflow' => (float) $netCashflow,
             'transaction_count' => $transactions->count(),
         ];
     }
@@ -231,7 +243,7 @@ class BankingService
     {
         $balance = $this->getAccountBalance($accountId);
 
-        return $balance >= $amount;
+        return bccomp((string) $balance, (string) $amount, 2) >= 0;
     }
 
     /**
@@ -259,9 +271,9 @@ class BankingService
      */
     public function recordWithdrawal(array $data): BankTransaction
     {
-        // Check for sufficient balance before withdrawal
+        // Check for sufficient balance before withdrawal using bcmath
         $availableBalance = $this->getAccountBalance($data['account_id']);
-        if ($availableBalance < $data['amount']) {
+        if (bccomp((string) $availableBalance, (string) $data['amount'], 2) < 0) {
             throw new \InvalidArgumentException(sprintf(
                 'Insufficient balance for withdrawal. Available: %.2f, Requested: %.2f',
                 $availableBalance,

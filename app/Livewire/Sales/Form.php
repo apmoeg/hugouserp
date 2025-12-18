@@ -36,6 +36,16 @@ class Form extends Component
 
     public string $notes = '';
 
+    public string $customer_notes = '';
+
+    public string $internal_notes = '';
+
+    public string $delivery_date = '';
+
+    public string $shipping_method = '';
+
+    public string $tracking_number = '';
+
     public float $discount_total = 0;
 
     public float $shipping_total = 0;
@@ -59,6 +69,11 @@ class Form extends Component
             'status' => 'required|in:draft,pending,completed,cancelled,refunded',
             'currency' => 'nullable|string|max:3',
             'notes' => 'nullable|string',
+            'customer_notes' => 'nullable|string|max:1000',
+            'internal_notes' => 'nullable|string|max:1000',
+            'delivery_date' => 'nullable|date',
+            'shipping_method' => 'nullable|string|max:191',
+            'tracking_number' => 'nullable|string|max:191',
             'discount_total' => 'nullable|numeric|min:0',
             'shipping_total' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
@@ -83,6 +98,11 @@ class Form extends Component
             $this->status = $sale->status ?? 'completed';
             $this->currency = $sale->currency ?? 'EGP';
             $this->notes = $sale->notes ?? '';
+            $this->customer_notes = $sale->customer_notes ?? '';
+            $this->internal_notes = $sale->internal_notes ?? '';
+            $this->delivery_date = $sale->delivery_date?->format('Y-m-d') ?? '';
+            $this->shipping_method = $sale->shipping_method ?? '';
+            $this->tracking_number = $sale->tracking_number ?? '';
             $this->discount_total = (float) ($sale->discount_total ?? 0);
             $this->shipping_total = (float) ($sale->shipping_total ?? 0);
 
@@ -196,6 +216,11 @@ class Form extends Component
                         'status' => $this->status,
                         'currency' => $this->currency,
                         'notes' => $this->notes,
+                        'customer_notes' => $this->customer_notes,
+                        'internal_notes' => $this->internal_notes,
+                        'delivery_date' => $this->delivery_date ?: null,
+                        'shipping_method' => $this->shipping_method,
+                        'tracking_number' => $this->tracking_number,
                         'sub_total' => $this->subTotal,
                         'discount_total' => $this->discount_total,
                         'tax_total' => $this->taxTotal,

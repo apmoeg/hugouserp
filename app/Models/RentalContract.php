@@ -6,14 +6,33 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RentalContract extends BaseModel
 {
+    use SoftDeletes;
     protected ?string $moduleKey = 'rentals';
 
-    protected $fillable = ['branch_id', 'unit_id', 'tenant_id', 'rental_period_id', 'custom_days', 'start_date', 'end_date', 'rent', 'deposit', 'status', 'extra_attributes'];
+    protected $fillable = [
+        'branch_id', 'unit_id', 'tenant_id', 'rental_period_id', 'custom_days', 
+        'start_date', 'end_date', 'rent', 'deposit', 'status', 
+        'renewal_notice_days', 'auto_renew', 'renewal_term_months', 
+        'deposit_refunded', 'deposit_refund_date',
+        'extra_attributes'
+    ];
 
-    protected $casts = ['start_date' => 'date', 'end_date' => 'date', 'rent' => 'decimal:2', 'deposit' => 'decimal:2', 'custom_days' => 'integer'];
+    protected $casts = [
+        'start_date' => 'date', 
+        'end_date' => 'date', 
+        'rent' => 'decimal:2', 
+        'deposit' => 'decimal:2',
+        'deposit_refunded' => 'decimal:2',
+        'deposit_refund_date' => 'date',
+        'custom_days' => 'integer',
+        'renewal_notice_days' => 'integer',
+        'renewal_term_months' => 'integer',
+        'auto_renew' => 'boolean'
+    ];
 
     public function unit(): BelongsTo
     {

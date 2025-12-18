@@ -76,7 +76,9 @@ class LowStockAlert extends Model
 
     public function isCritical(): bool
     {
-        return $this->current_qty <= $this->min_qty * 0.25;
+        // Critical if current stock is 25% or less of minimum stock
+        $threshold = bcmul((string)$this->min_qty, '0.25', 2);
+        return bccomp((string)$this->current_qty, $threshold, 2) <= 0;
     }
 
     public function scopeActive(Builder $query): Builder

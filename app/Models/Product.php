@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
@@ -14,7 +15,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Product extends BaseModel
 {
-    use LogsActivity;
+    use LogsActivity, SoftDeletes;
     protected ?string $moduleKey = 'inventory';
 
     protected $table = 'products';
@@ -37,13 +38,13 @@ class Product extends BaseModel
         'cost_method', 'cost_currency', 'standard_cost', 'cost',
         'tax_id',
         'price_list_id', 'default_price', 'price_currency',
-        'min_stock', 'reorder_point', 'reorder_qty', 'stock_quantity', 'stock_alert_threshold',
-        'reserved_quantity',
+        'min_stock', 'reorder_point', 'max_stock', 'reorder_qty', 'stock_quantity', 'stock_alert_threshold',
+        'reserved_quantity', 'lead_time_days', 'location_code',
         'is_serialized', 'is_batch_tracked',
         'track_stock_alerts',
-        'has_warranty', 'warranty_period_days', 'warranty_type',
+        'has_warranty', 'warranty_period_days', 'warranty_period', 'warranty_type',
         'length', 'width', 'height', 'weight',
-        'manufacturer', 'brand', 'model_number', 'origin_country',
+        'manufacturer', 'brand', 'model_number', 'origin_country', 'hs_code',
         'manufacture_date', 'expiry_date', 'is_perishable', 'shelf_life_days',
         'allow_backorder', 'requires_approval', 'minimum_order_quantity', 'maximum_order_quantity',
         'msrp', 'wholesale_price', 'last_cost_update', 'last_price_update',
@@ -59,10 +60,12 @@ class Product extends BaseModel
         'default_price' => 'decimal:4',
         'min_stock' => 'decimal:4',
         'reorder_point' => 'decimal:4',
+        'max_stock' => 'decimal:2',
         'reorder_qty' => 'decimal:4',
         'stock_quantity' => 'decimal:4',
         'stock_alert_threshold' => 'decimal:4',
         'reserved_quantity' => 'decimal:4',
+        'lead_time_days' => 'decimal:1',
         'hourly_rate' => 'decimal:2',
         'service_duration' => 'integer',
         'is_serialized' => 'boolean',

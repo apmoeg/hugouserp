@@ -90,7 +90,8 @@ class StockReorderService
                 return (float) $product->maximum_order_quantity;
             }
 
-            return round($optimalQty, 2);
+            // Use bcmath for precise quantity calculation
+            return (float) bcdiv((string) $optimalQty, '1', 2);
         }
 
         // Fallback: reorder to bring stock to 2x reorder point
@@ -137,7 +138,7 @@ class StockReorderService
                 'reorder_point' => $product->reorder_point,
                 'suggested_quantity' => $reorderQty,
                 'estimated_cost' => $reorderQty * ($product->standard_cost ?? 0),
-                'sales_velocity' => round($salesVelocity, 2),
+                'sales_velocity' => (float) bcdiv((string) $salesVelocity, '1', 2),
                 'days_until_stockout' => $daysUntilStockout,
                 'priority' => $this->calculatePriority($product, $daysUntilStockout),
                 'branch_id' => $product->branch_id,
@@ -251,7 +252,7 @@ class StockReorderService
             'products_needing_reorder' => $needsReorder,
             'products_low_stock' => $lowStock,
             'products_out_of_stock' => $outOfStock,
-            'total_estimated_cost' => round($totalEstimatedCost, 2),
+            'total_estimated_cost' => (float) bcdiv((string) $totalEstimatedCost, '1', 2),
             'high_priority_count' => collect($suggestions)->where('priority', '>=', 4)->count(),
         ];
     }

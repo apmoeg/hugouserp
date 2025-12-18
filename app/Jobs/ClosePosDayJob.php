@@ -31,8 +31,17 @@ class ClosePosDayJob implements ShouldQueue
             ->when($this->branchId, fn ($q) => $q->where('branch_id', $this->branchId))
             ->get(['grand_total', 'paid_total']);
 
-        $gross = (float) $sales->sum('grand_total');
-        $paid = (float) $sales->sum('paid_total');
+        // Use bcmath for precise financial totals
+        $grossString = '0.00';
+        $paidString = '0.00';
+        
+        foreach ($sales as $sale) {
+            $grossString = bcadd($grossString, (string) $sale->grand_total, 2);
+            $paidString = bcadd($paidString, (string) $sale->paid_total, 2);
+        }
+        
+        $gross = (float) $grossString;
+        $paid = (float) $paidString;
 
         // Save a closing record if you have a model/table for that
         if (class_exists(\App\Models\PosClosing::class)) {

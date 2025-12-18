@@ -26,7 +26,10 @@ class TaxService implements TaxServiceInterface
     {
         $r = $this->rate($taxId);
 
-        return round($base * ($r / 100), 2);
+        // Use bcmath for precise tax calculation (full bcmath chain)
+        $rateDecimal = bcdiv((string) $r, '100', 6);
+        $taxAmount = bcmul((string) $base, $rateDecimal, 4);
+        return (float) bcdiv($taxAmount, '1', 2);
     }
 
     public function amountFor(float $base, ?int $taxId): float
@@ -49,14 +52,18 @@ class TaxService implements TaxServiceInterface
                 }
 
                 if ($tax->is_inclusive ?? false) {
-                    $taxPortion = $base - ($base / (1 + $rate / 100));
+                    // Use bcmath for precise inclusive tax calculation
+                    $divisor = bcadd('1', bcdiv((string) $rate, '100', 6), 6);
+                    $baseExcl = bcdiv((string) $base, $divisor, 6);
+                    $taxPortion = bcsub((string) $base, $baseExcl, 6);
 
-                    return round($taxPortion, 4);
+                    return (float) bcdiv($taxPortion, '1', 4);
                 }
 
-                $taxAmount = $base * $rate / 100;
+                // Use bcmath for precise tax calculation
+                $taxAmount = bcmul((string) $base, bcdiv((string) $rate, '100', 6), 6);
 
-                return round($taxAmount, 4);
+                return (float) bcdiv($taxAmount, '1', 4);
             },
             operation: 'amountFor',
             context: ['base' => $base, 'tax_id' => $taxId],
@@ -69,23 +76,26 @@ class TaxService implements TaxServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($base, $taxId) {
                 if (! $taxId || ! class_exists(Tax::class)) {
-                    return round($base, 4);
+                    return (float) bcdiv((string) $base, '1', 4);
                 }
 
                 $tax = Tax::find($taxId);
                 if (! $tax) {
-                    return round($base, 4);
+                    return (float) bcdiv((string) $base, '1', 4);
                 }
 
                 if ($tax->is_inclusive ?? false) {
-                    return round($base, 4);
+                    return (float) bcdiv((string) $base, '1', 4);
                 }
 
-                return round($base + $this->amountFor($base, $taxId), 4);
+                // Use bcmath for precise total calculation
+                $taxAmount = $this->amountFor($base, $taxId);
+                $total = bcadd((string) $base, (string) $taxAmount, 6);
+                return (float) bcdiv($total, '1', 4);
             },
             operation: 'totalWithTax',
             context: ['base' => $base, 'tax_id' => $taxId],
-            defaultValue: round($base, 4)
+            defaultValue: (float) bcdiv((string) $base, '1', 4)
         );
     }
 }

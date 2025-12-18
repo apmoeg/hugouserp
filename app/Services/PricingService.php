@@ -26,7 +26,8 @@ class PricingService implements PricingServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($product, $priceGroupId, $override) {
                 if ($override !== null) {
-                    return round((float) $override, 4);
+                    // Use bcmath for consistent precision
+                    return (float) bcdiv((string) $override, '1', 4);
                 }
 
                 if ($priceGroupId && class_exists(PriceGroup::class)) {
@@ -34,14 +35,14 @@ class PricingService implements PricingServiceInterface
                     if ($pg && method_exists($pg, 'priceFor')) {
                         $p = $pg->priceFor($product->getKey());
                         if ($p !== null) {
-                            return round((float) $p, 4);
+                            return (float) bcdiv((string) $p, '1', 4);
                         }
                     }
                 }
 
                 $base = $product->default_price ?? 0.0;
 
-                return round((float) $base, 4);
+                return (float) bcdiv((string) $base, '1', 4);
             },
             operation: 'resolveUnitPrice',
             context: ['product_id' => $product->id, 'price_group_id' => $priceGroupId],
@@ -75,11 +76,12 @@ class PricingService implements PricingServiceInterface
                     ? $this->taxes->totalWithTax($baseAfterDiscount, (int) $taxId)
                     : $baseAfterDiscount;
 
+                // Use bcmath for consistent precision across all line totals
                 return [
-                    'subtotal' => round($subtotal, 2),
-                    'discount' => round($discount, 2),
-                    'tax' => round($taxAmount, 2),
-                    'total' => round($total, 2),
+                    'subtotal' => (float) bcdiv((string) $subtotal, '1', 2),
+                    'discount' => (float) bcdiv((string) $discount, '1', 2),
+                    'tax' => (float) bcdiv((string) $taxAmount, '1', 2),
+                    'total' => (float) bcdiv((string) $total, '1', 2),
                 ];
             },
             operation: 'lineTotals',

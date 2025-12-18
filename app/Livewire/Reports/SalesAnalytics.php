@@ -148,7 +148,7 @@ class SalesAnalytics extends Component
         $totalSales = (clone $query)->sum('grand_total') ?? 0;
         $totalOrders = (clone $query)->count();
         $completedOrders = (clone $query)->where('status', 'completed')->count();
-        $avgOrderValue = $totalOrders > 0 ? $totalSales / $totalOrders : 0;
+        $avgOrderValue = $totalOrders > 0 ? (float) bcdiv((string) $totalSales, (string) $totalOrders, 2) : 0;
         $totalDiscount = (clone $query)->sum('discount_total') ?? 0;
         $totalTax = (clone $query)->sum('tax_total') ?? 0;
         $refundedAmount = (clone $query)->where('status', 'refunded')->sum('grand_total') ?? 0;
@@ -164,9 +164,15 @@ class SalesAnalytics extends Component
         }
 
         $prevTotalSales = $prevPeriodQuery->sum('grand_total') ?? 0;
-        $salesGrowth = $prevTotalSales > 0
-            ? (($totalSales - $prevTotalSales) / $prevTotalSales) * 100
-            : ($totalSales > 0 ? 100 : 0);
+        
+        if (bccomp((string) $prevTotalSales, '0', 2) > 0) {
+            $diff = bcsub((string) $totalSales, (string) $prevTotalSales, 4);
+            $salesGrowth = (float) bcdiv(bcmul($diff, '100', 6), (string) $prevTotalSales, 1);
+        } else {
+            $salesGrowth = bccomp((string) $totalSales, '0', 2) > 0 ? 100.0 : 0.0;
+        }
+
+        $completionRate = $totalOrders > 0 ? (float) bcdiv(bcmul((string) $completedOrders, '100', 4), (string) $totalOrders, 1) : 0;
 
         $this->summaryStats = [
             'total_sales' => $totalSales,
@@ -176,8 +182,8 @@ class SalesAnalytics extends Component
             'total_discount' => $totalDiscount,
             'total_tax' => $totalTax,
             'refunded_amount' => $refundedAmount,
-            'sales_growth' => round($salesGrowth, 1),
-            'completion_rate' => $totalOrders > 0 ? round(($completedOrders / $totalOrders) * 100, 1) : 0,
+            'sales_growth' => $salesGrowth,
+            'completion_rate' => $completionRate,
         ];
     }
 

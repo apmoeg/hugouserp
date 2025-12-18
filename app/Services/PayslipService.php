@@ -68,44 +68,45 @@ class PayslipService
     protected function calculateAllowances(float $basicSalary): array
     {
         $allowances = [];
-        $total = 0.0;
+        $total = '0';
         
         // Transportation allowance (configurable percentage or fixed)
         $transportType = setting('hrm.transport_allowance_type', 'percentage');
         $transportValue = (float) setting('hrm.transport_allowance_value', 10);
         if ($transportType === 'percentage') {
-            $transportAmount = $basicSalary * ($transportValue / 100);
+            $transportAmount = bcmul((string) $basicSalary, bcdiv((string) $transportValue, '100', 4), 2);
         } else {
-            $transportAmount = $transportValue;
+            $transportAmount = bcdiv((string) $transportValue, '1', 2);
         }
-        if ($transportAmount > 0) {
-            $allowances['transport'] = round($transportAmount, 2);
-            $total += $transportAmount;
+        if (bccomp($transportAmount, '0', 2) > 0) {
+            $allowances['transport'] = (float) $transportAmount;
+            $total = bcadd($total, $transportAmount, 2);
         }
         
         // Housing allowance (configurable)
         $housingType = setting('hrm.housing_allowance_type', 'percentage');
         $housingValue = (float) setting('hrm.housing_allowance_value', 0);
         if ($housingType === 'percentage') {
-            $housingAmount = $basicSalary * ($housingValue / 100);
+            $housingAmount = bcmul((string) $basicSalary, bcdiv((string) $housingValue, '100', 4), 2);
         } else {
-            $housingAmount = $housingValue;
+            $housingAmount = bcdiv((string) $housingValue, '1', 2);
         }
-        if ($housingAmount > 0) {
-            $allowances['housing'] = round($housingAmount, 2);
-            $total += $housingAmount;
+        if (bccomp($housingAmount, '0', 2) > 0) {
+            $allowances['housing'] = (float) $housingAmount;
+            $total = bcadd($total, $housingAmount, 2);
         }
         
         // Meal allowance (fixed)
         $mealAllowance = (float) setting('hrm.meal_allowance', 0);
         if ($mealAllowance > 0) {
-            $allowances['meal'] = round($mealAllowance, 2);
-            $total += $mealAllowance;
+            $mealAllowanceStr = bcdiv((string) $mealAllowance, '1', 2);
+            $allowances['meal'] = (float) $mealAllowanceStr;
+            $total = bcadd($total, $mealAllowanceStr, 2);
         }
         
         return [
             'breakdown' => $allowances,
-            'total' => round($total, 2),
+            'total' => (float) $total,
         ];
     }
 
@@ -115,17 +116,17 @@ class PayslipService
     protected function calculateDeductions(float $grossSalary): array
     {
         $deductions = [];
-        $total = 0.0;
+        $total = '0';
         
-        // Social Insurance deduction
+        // Social Insurance deduction (use bcmath)
         $siConfig = config('hrm.social_insurance', []);
         $siRate = (float) ($siConfig['rate'] ?? 0.14);
         $siMaxSalary = (float) ($siConfig['max_salary'] ?? 12600);
-        $siBaseSalary = min($grossSalary, $siMaxSalary);
-        $socialInsurance = $siBaseSalary * $siRate;
-        if ($socialInsurance > 0) {
-            $deductions['social_insurance'] = round($socialInsurance, 2);
-            $total += $socialInsurance;
+        $siBaseSalary = bccomp((string) $grossSalary, (string) $siMaxSalary, 2) > 0 ? $siMaxSalary : $grossSalary;
+        $socialInsurance = bcmul((string) $siBaseSalary, (string) $siRate, 2);
+        if (bccomp($socialInsurance, '0', 2) > 0) {
+            $deductions['social_insurance'] = (float) $socialInsurance;
+            $total = bcadd($total, $socialInsurance, 2);
         }
         
         // Income Tax (progressive brackets)
@@ -156,13 +157,14 @@ class PayslipService
         // Additional fixed deductions from settings
         $healthInsurance = (float) setting('hrm.health_insurance_deduction', 0);
         if ($healthInsurance > 0) {
-            $deductions['health_insurance'] = round($healthInsurance, 2);
-            $total += $healthInsurance;
+            $healthInsuranceStr = bcdiv((string) $healthInsurance, '1', 2);
+            $deductions['health_insurance'] = (float) $healthInsuranceStr;
+            $total = bcadd($total, $healthInsuranceStr, 2);
         }
         
         return [
             'breakdown' => $deductions,
-            'total' => round($total, 2),
+            'total' => (float) $total,
         ];
     }
 
@@ -187,19 +189,19 @@ class PayslipService
         $deductionResult = $this->calculateDeductions($gross);
         $deductions = $deductionResult['total'];
         
-        // Net salary
-        $net = $gross - $deductions;
+        // Net salary (use bcmath)
+        $net = bcsub((string) $gross, (string) $deductions, 2);
         
         return [
             'employee_id' => $employeeId,
             'period' => $period,
-            'basic' => round($basic, 2),
-            'allowances' => round($allowances, 2),
+            'basic' => (float) bcdiv((string) $basic, '1', 2),
+            'allowances' => (float) bcdiv((string) $allowances, '1', 2),
             'allowance_breakdown' => $allowanceResult['breakdown'],
-            'deductions' => round($deductions, 2),
+            'deductions' => (float) bcdiv((string) $deductions, '1', 2),
             'deduction_breakdown' => $deductionResult['breakdown'],
-            'gross' => round($gross, 2),
-            'net' => round($net, 2),
+            'gross' => (float) bcdiv((string) $gross, '1', 2),
+            'net' => (float) $net,
             'status' => 'draft',
         ];
     }

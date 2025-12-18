@@ -68,11 +68,13 @@ class Index extends Component
                 $query->where('branch_id', $user->branch_id);
             }
 
+            $sales = $query->get();
+            
             return [
-                'total_sales' => $query->count(),
-                'total_revenue' => $query->sum('grand_total'),
-                'total_paid' => $query->sum('paid_total'),
-                'total_due' => $query->sum('due_total'),
+                'total_sales' => $sales->count(),
+                'total_revenue' => $sales->reduce(fn($carry, $sale) => bcadd((string)$carry, (string)($sale->grand_total ?? 0), 2), '0'),
+                'total_paid' => $sales->reduce(fn($carry, $sale) => bcadd((string)$carry, (string)($sale->paid_total ?? 0), 2), '0'),
+                'total_due' => $sales->reduce(fn($carry, $sale) => bcadd((string)$carry, (string)($sale->due_total ?? 0), 2), '0'),
             ];
         });
     }

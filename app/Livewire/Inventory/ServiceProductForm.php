@@ -171,12 +171,13 @@ class ServiceProductForm extends Component
     {
         if ($this->hourlyRate && $this->serviceDuration) {
             $hours = match ($this->durationUnit) {
-                'minutes' => $this->serviceDuration / 60,
-                'hours' => $this->serviceDuration,
-                'days' => $this->serviceDuration * 8,
-                default => $this->serviceDuration,
+                'minutes' => bcdiv((string) $this->serviceDuration, '60', 4),
+                'hours' => (string) $this->serviceDuration,
+                'days' => bcmul((string) $this->serviceDuration, '8', 4),
+                default => (string) $this->serviceDuration,
             };
-            $this->defaultPrice = round($this->hourlyRate * $hours, 2);
+            $calculated = bcmul((string) $this->hourlyRate, $hours, 4);
+            $this->defaultPrice = (float) bcdiv($calculated, '1', 2);
         }
     }
 }

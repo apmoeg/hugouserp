@@ -46,27 +46,30 @@ class DepreciationService
      */
     protected function calculateStraightLine(FixedAsset $asset, Carbon $date): array
     {
-        $depreciableAmount = ($asset->purchase_cost ?? 0) - ($asset->salvage_value ?? 0);
+        $depreciableAmount = bcsub((string)($asset->purchase_cost ?? 0), (string)($asset->salvage_value ?? 0), 2);
         $totalMonths = $asset->getTotalUsefulLifeMonths();
         
         if ($totalMonths <= 0) {
             return [
-                'depreciation_amount' => 0,
-                'accumulated_depreciation' => $asset->accumulated_depreciation,
-                'book_value' => $asset->book_value,
+                'depreciation_amount' => '0.00',
+                'accumulated_depreciation' => (string)$asset->accumulated_depreciation,
+                'book_value' => (string)$asset->book_value,
             ];
         }
 
-        $monthlyDepreciation = $depreciableAmount / $totalMonths;
+        $monthlyDepreciation = bcdiv($depreciableAmount, (string)$totalMonths, 2);
         
         // Don't depreciate below salvage value
-        $newAccumulated = min(
-            $asset->accumulated_depreciation + $monthlyDepreciation,
-            $depreciableAmount
-        );
+        $newAccumulated = bccomp(
+            bcadd((string)$asset->accumulated_depreciation, $monthlyDepreciation, 2),
+            $depreciableAmount,
+            2
+        ) <= 0
+            ? bcadd((string)$asset->accumulated_depreciation, $monthlyDepreciation, 2)
+            : $depreciableAmount;
         
-        $actualDepreciation = $newAccumulated - $asset->accumulated_depreciation;
-        $newBookValue = $asset->purchase_cost - $newAccumulated;
+        $actualDepreciation = bcsub($newAccumulated, (string)$asset->accumulated_depreciation, 2);
+        $newBookValue = bcsub((string)$asset->purchase_cost, $newAccumulated, 2);
 
         return [
             'depreciation_amount' => $actualDepreciation,
@@ -81,18 +84,20 @@ class DepreciationService
     protected function calculateDecliningBalance(FixedAsset $asset, Carbon $date): array
     {
         $rate = $asset->depreciation_rate ?? 20.0; // Default 20% per year
-        $monthlyRate = $rate / 100 / 12;
+        $monthlyRate = bcdiv(bcdiv((string)$rate, '100', 6), '12', 6);
         
-        $currentBookValue = $asset->book_value;
-        $depreciation = $currentBookValue * $monthlyRate;
+        $currentBookValue = (string)$asset->book_value;
+        $depreciation = bcmul($currentBookValue, $monthlyRate, 2);
         
         // Don't depreciate below salvage value
-        if ($currentBookValue - $depreciation < $asset->salvage_value) {
-            $depreciation = max(0, $currentBookValue - $asset->salvage_value);
+        $salvageValue = (string)$asset->salvage_value;
+        if (bccomp(bcsub($currentBookValue, $depreciation, 2), $salvageValue, 2) < 0) {
+            $diff = bcsub($currentBookValue, $salvageValue, 2);
+            $depreciation = bccomp($diff, '0', 2) > 0 ? $diff : '0.00';
         }
         
-        $newAccumulated = $asset->accumulated_depreciation + $depreciation;
-        $newBookValue = $asset->purchase_cost - $newAccumulated;
+        $newAccumulated = bcadd((string)$asset->accumulated_depreciation, $depreciation, 2);
+        $newBookValue = bcsub((string)$asset->purchase_cost, $newAccumulated, 2);
 
         return [
             'depreciation_amount' => $depreciation,
@@ -173,7 +178,7 @@ class DepreciationService
                 });
 
                 $results['processed']++;
-                $results['total_depreciation'] += $calculation['depreciation_amount'];
+                $results['total_depreciation'] = bcadd((string)$results['total_depreciation'], (string)$calculation['depreciation_amount'], 2);
             } catch (\Exception $e) {
                 $results['errors'][] = [
                     'asset_id' => $asset->id,

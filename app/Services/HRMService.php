@@ -138,13 +138,15 @@ class HRMService implements HRMServiceInterface
 
         $insurableSalary = min($grossSalary, $maxSalary);
 
-        return round($insurableSalary * $rate, 2);
+        // Use bcmath for precise social insurance calculation
+        $insurance = bcmul((string) $insurableSalary, (string) $rate, 4);
+        return (float) bcdiv($insurance, '1', 2);
     }
 
     protected function calculateTax(float $taxableIncome): float
     {
-        $annualIncome = $taxableIncome * 12;
-        $annualTax = 0;
+        // Use bcmath for all tax calculations
+        $annualIncome = bcmul((string) $taxableIncome, '12', 2);
 
         $brackets = config('hrm.tax_brackets', [
             ['limit' => 40000, 'rate' => 0],
@@ -155,18 +157,30 @@ class HRMService implements HRMServiceInterface
             ['limit' => PHP_FLOAT_MAX, 'rate' => 0.25],
         ]);
 
-        $previousLimit = 0;
+        $previousLimit = '0';
+        $annualTaxString = '0.00';
         foreach ($brackets as $bracket) {
-            if ($annualIncome <= $previousLimit) {
+            // Use bcmath comparison
+            if (bccomp($annualIncome, $previousLimit, 2) <= 0) {
                 break;
             }
 
-            $taxableInBracket = min($annualIncome, $bracket['limit']) - $previousLimit;
-            $annualTax += max(0, $taxableInBracket) * $bracket['rate'];
-            $previousLimit = $bracket['limit'];
+            // Use bcmath to calculate taxable amount in bracket
+            $bracketLimit = (string) $bracket['limit'];
+            $taxableUpToLimit = bccomp($annualIncome, $bracketLimit, 2) < 0 ? $annualIncome : $bracketLimit;
+            $taxableInBracket = bcsub($taxableUpToLimit, $previousLimit, 2);
+            
+            // Use bcmath for precise tax bracket calculation
+            if (bccomp($taxableInBracket, '0', 2) > 0) {
+                $bracketTax = bcmul($taxableInBracket, (string) $bracket['rate'], 4);
+                $annualTaxString = bcadd($annualTaxString, $bracketTax, 4);
+            }
+            $previousLimit = $bracketLimit;
         }
 
-        return round($annualTax / 12, 2);
+        // Use bcmath for precise monthly tax calculation
+        $monthlyTax = bcdiv($annualTaxString, '12', 4);
+        return (float) bcdiv($monthlyTax, '1', 2);
     }
 
     protected function calculateAbsenceDeduction(HREmployee $emp, string $period): float
@@ -192,7 +206,8 @@ class HRMService implements HRMServiceInterface
 
             $dailyRate = (float) $emp->salary / 30;
 
-            return round($dailyRate * $absenceDays, 2);
+            // Use bcmath for precise absence deduction
+            return (float) bcmul((string) $dailyRate, (string) $absenceDays, 2);
         } catch (\Exception $e) {
             Log::warning('Failed to calculate absence deduction', [
                 'employee_id' => $emp->getKey(),

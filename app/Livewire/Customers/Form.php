@@ -42,6 +42,16 @@ class Form extends Component
 
     public string $notes = '';
 
+    public float $discount_percentage = 0;
+
+    public string $payment_terms = '';
+
+    public int $payment_terms_days = 30;
+
+    public string $customer_group = '';
+
+    public string $preferred_payment_method = '';
+
     public bool $is_active = true;
 
     protected function rules(): array
@@ -58,6 +68,11 @@ class Form extends Component
             'company_name' => 'nullable|string|max:255',
             'customer_type' => 'required|in:individual,company',
             'credit_limit' => 'nullable|numeric|min:0',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'payment_terms' => 'nullable|in:immediate,net15,net30,net60,net90',
+            'payment_terms_days' => 'nullable|integer|min:0',
+            'customer_group' => 'nullable|string|max:191',
+            'preferred_payment_method' => 'nullable|string|max:191',
             'notes' => 'nullable|string',
             'is_active' => 'boolean',
         ];
@@ -69,7 +84,26 @@ class Form extends Component
             $this->authorize('customers.manage');
             $this->customer = $customer;
             $this->editMode = true;
-            $this->fill($customer->toArray());
+            
+            // Explicitly set all fields to ensure proper initialization
+            $this->name = $customer->name ?? '';
+            $this->email = $customer->email ?? '';
+            $this->phone = $customer->phone ?? '';
+            $this->phone2 = $customer->phone2 ?? '';
+            $this->address = $customer->address ?? '';
+            $this->city = $customer->city ?? '';
+            $this->country = $customer->country ?? '';
+            $this->tax_number = $customer->tax_number ?? '';
+            $this->company_name = $customer->company_name ?? '';
+            $this->customer_type = $customer->customer_type ?? 'individual';
+            $this->credit_limit = (float) ($customer->credit_limit ?? 0);
+            $this->discount_percentage = (float) ($customer->discount_percentage ?? 0);
+            $this->payment_terms = $customer->payment_terms ?? '';
+            $this->payment_terms_days = (int) ($customer->payment_terms_days ?? 30);
+            $this->customer_group = $customer->customer_group ?? '';
+            $this->preferred_payment_method = $customer->preferred_payment_method ?? '';
+            $this->notes = $customer->notes ?? '';
+            $this->is_active = (bool) ($customer->is_active ?? true);
         } else {
             $this->authorize('customers.manage');
         }

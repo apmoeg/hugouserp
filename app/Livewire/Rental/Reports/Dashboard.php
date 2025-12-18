@@ -70,11 +70,13 @@ class Dashboard extends Component
         $occupied = $statusCounts['occupied'] ?? 0;
         $vacant = $statusCounts['vacant'] ?? ($total - $occupied);
 
+        $occupancyRate = $total > 0 ? (float) bcdiv(bcmul((string) $occupied, '100', 4), (string) $total, 1) : 0;
+
         $this->unitsSummary = [
             'total' => $total,
             'occupied' => $occupied,
             'vacant' => max($vacant, 0),
-            'occupancy_rate' => $total > 0 ? round(($occupied / $total) * 100, 1) : 0,
+            'occupancy_rate' => $occupancyRate,
         ];
 
         $this->unitsChart = [

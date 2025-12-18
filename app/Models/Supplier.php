@@ -6,12 +6,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Supplier extends BaseModel
 {
-    use LogsActivity;
+    use LogsActivity, SoftDeletes;
 
     protected ?string $moduleKey = 'suppliers';
 
@@ -19,6 +20,7 @@ class Supplier extends BaseModel
         'branch_id', 'name', 'email', 'phone', 'address', 'tax_number', 'is_active',
         'balance', 'total_purchases', 'average_lead_time_days',
         'payment_terms', 'payment_due_days', 'preferred_currency',
+        'minimum_order_value', 'supplier_rating', 'last_purchase_date',
         'quality_rating', 'delivery_rating', 'service_rating', 'total_orders',
         'website', 'fax', 'contact_person', 'contact_person_phone', 'contact_person_email',
         'is_approved', 'notes', 'extra_attributes',
@@ -32,6 +34,8 @@ class Supplier extends BaseModel
         'total_purchases' => 'decimal:4',
         'average_lead_time_days' => 'decimal:2',
         'payment_due_days' => 'integer',
+        'minimum_order_value' => 'decimal:2',
+        'last_purchase_date' => 'datetime',
         'quality_rating' => 'decimal:2',
         'delivery_rating' => 'decimal:2',
         'service_rating' => 'decimal:2',

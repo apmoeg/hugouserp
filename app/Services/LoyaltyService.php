@@ -26,12 +26,15 @@ class LoyaltyService
                     return null;
                 }
 
-                $amountPerPoint = (float) $settings->amount_per_point;
-                if ($amountPerPoint <= 0) {
+                $amountPerPoint = (string) $settings->amount_per_point;
+                if (bccomp($amountPerPoint, '0', 2) <= 0) {
                     return null;
                 }
 
-                $points = (int) floor((float) $sale->grand_total / $amountPerPoint * (float) $settings->points_per_amount);
+                // Calculate points: (grand_total / amount_per_point) * points_per_amount
+                $ratio = bcdiv((string) $sale->grand_total, $amountPerPoint, 4);
+                $pointsDecimal = bcmul($ratio, (string) $settings->points_per_amount, 2);
+                $points = (int) floor((float) $pointsDecimal);
 
                 if ($points <= 0) {
                     return null;
@@ -93,7 +96,7 @@ class LoyaltyService
 
                     $this->updateCustomerTier($customer);
 
-                    $monetaryValue = $points * (float) $settings->redemption_rate;
+                    $monetaryValue = bcmul((string) $points, (string) $settings->redemption_rate, 2);
 
                     return LoyaltyTransaction::create([
                         'customer_id' => $customer->id,
@@ -202,7 +205,7 @@ class LoyaltyService
             return 0;
         }
 
-        return $points * (float) $settings->redemption_rate;
+        return (float) bcmul((string) $points, (string) $settings->redemption_rate, 2);
     }
 
     protected function updateCustomerTier(Customer $customer): void

@@ -52,14 +52,17 @@ class InstallmentService
 
                 $startDate = $startDate ?? now();
 
-                $totalWithInterest = $totalAmount * (1 + ($interestRate / 100));
-                $remainingAmount = $totalWithInterest - $downPayment;
+                // Use bcmath for precise interest and installment calculations
+                $interestMultiplier = bcadd('1', bcdiv((string) $interestRate, '100', 6), 6);
+                $totalWithInterest = bcmul((string) $totalAmount, $interestMultiplier, 2);
+                $remainingAmount = bcsub($totalWithInterest, (string) $downPayment, 2);
 
-                if ($remainingAmount <= 0) {
+                // Use bcmath comparison for precision
+                if (bccomp($remainingAmount, '0', 2) <= 0) {
                     throw new InvalidArgumentException(__('Remaining amount must be greater than zero'));
                 }
 
-                $installmentAmount = round($remainingAmount / $numInstallments, 2);
+                $installmentAmount = bcdiv($remainingAmount, (string) $numInstallments, 2);
                 $endDate = $startDate->copy()->addMonths($numInstallments);
 
                 return DB::transaction(function () use (
@@ -86,14 +89,18 @@ class InstallmentService
                     for ($i = 1; $i <= $numInstallments; $i++) {
                         $dueDate = $startDate->copy()->addMonths($i);
 
-                        $amount = ($i === $numInstallments)
-                            ? $remainingAmount - ($installmentAmount * ($numInstallments - 1))
-                            : $installmentAmount;
+                        // Use bcmath for final installment to account for rounding differences
+                        if ($i === $numInstallments) {
+                            $previousTotal = bcmul($installmentAmount, (string) ($numInstallments - 1), 2);
+                            $amount = bcsub($remainingAmount, $previousTotal, 2);
+                        } else {
+                            $amount = $installmentAmount;
+                        }
 
                         InstallmentPayment::create([
                             'installment_plan_id' => $plan->id,
                             'installment_number' => $i,
-                            'amount_due' => max(0, $amount),
+                            'amount_due' => max(0, (float) $amount),
                             'due_date' => $dueDate,
                             'status' => 'pending',
                         ]);
@@ -129,13 +136,14 @@ class InstallmentService
                 $actualPayment = min($amount, $remainingAmount);
 
                 return DB::transaction(function () use ($payment, $actualPayment, $paymentMethod, $reference, $userId) {
-                    $amountPaid = (float) ($payment->amount_paid ?? 0);
-                    $newAmountPaid = $amountPaid + $actualPayment;
-                    $amountDue = (float) $payment->amount_due;
-                    $newStatus = $newAmountPaid >= $amountDue ? 'paid' : 'partial';
+                    // Use bcmath for precise payment calculations
+                    $amountPaid = (string) ($payment->amount_paid ?? 0);
+                    $newAmountPaid = bcadd($amountPaid, (string) $actualPayment, 2);
+                    $amountDue = (string) $payment->amount_due;
+                    $newStatus = bccomp($newAmountPaid, $amountDue, 2) >= 0 ? 'paid' : 'partial';
 
                     $payment->update([
-                        'amount_paid' => $newAmountPaid,
+                        'amount_paid' => (float) $newAmountPaid,
                         'paid_at' => now(),
                         'payment_method' => $paymentMethod,
                         'payment_reference' => $reference,
@@ -146,8 +154,11 @@ class InstallmentService
                     $plan = $payment->plan;
                     $plan->refresh();
 
-                    $totalPaid = $plan->payments()->sum('amount_paid');
-                    $planRemainingAmount = max(0, (float) $plan->total_amount - (float) $plan->down_payment - $totalPaid);
+                    $totalPaid = (string) $plan->payments()->sum('amount_paid');
+                    // Use bcmath to calculate remaining amount precisely
+                    $totalAfterDown = bcsub((string) $plan->total_amount, (string) $plan->down_payment, 2);
+                    $planRemainingAmount = bcsub($totalAfterDown, $totalPaid, 2);
+                    $planRemainingAmount = max(0, (float) $planRemainingAmount);
 
                     $plan->update([
                         'remaining_amount' => $planRemainingAmount,

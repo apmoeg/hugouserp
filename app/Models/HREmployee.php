@@ -14,9 +14,20 @@ class HREmployee extends BaseModel
 
     protected ?string $moduleKey = 'hr';
 
-    protected $fillable = ['branch_id', 'user_id', 'code', 'name', 'position', 'salary', 'is_active', 'extra_attributes'];
+    protected $fillable = [
+        'branch_id', 'user_id', 'code', 'name', 'position', 'salary', 'is_active',
+        'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relation',
+        'contract_start_date', 'contract_end_date', 'work_permit_number', 'work_permit_expiry',
+        'extra_attributes'
+    ];
 
-    protected $casts = ['salary' => 'decimal:2', 'is_active' => 'bool'];
+    protected $casts = [
+        'salary' => 'decimal:2', 
+        'is_active' => 'bool',
+        'contract_start_date' => 'date',
+        'contract_end_date' => 'date',
+        'work_permit_expiry' => 'date'
+    ];
 
     public function branch(): BelongsTo
     {

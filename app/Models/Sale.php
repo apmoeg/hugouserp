@@ -6,13 +6,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 class Sale extends BaseModel
 {
-    use LogsActivity;
+    use LogsActivity, SoftDeletes;
     protected ?string $moduleKey = 'sales';
 
     protected $table = 'sales';
@@ -23,13 +24,13 @@ class Sale extends BaseModel
         'uuid', 'code', 'branch_id', 'warehouse_id', 'customer_id',
         'status', 'channel', 'currency',
         'sub_total', 'discount_total', 'discount_type', 'discount_value',
-        'tax_total', 'shipping_total', 'shipping_method', 'tracking_number',
-        'grand_total', 'paid_total', 'due_total', 'amount_paid', 'amount_due',
+        'tax_total', 'shipping_total', 'shipping_method', 'shipping_carrier', 'tracking_number',
+        'grand_total', 'estimated_profit_margin', 'paid_total', 'due_total', 'amount_paid', 'amount_due',
         'payment_status', 'payment_due_date',
-        'expected_delivery_date', 'actual_delivery_date',
+        'delivery_date', 'expected_delivery_date', 'actual_delivery_date',
         'reference_no', 'posted_at', 'sales_person',
         'store_order_id',
-        'notes', 'internal_notes', 'extra_attributes', 'created_by', 'updated_by',
+        'notes', 'customer_notes', 'internal_notes', 'extra_attributes', 'created_by', 'updated_by',
     ];
 
     protected $casts = [
@@ -39,12 +40,14 @@ class Sale extends BaseModel
         'tax_total' => 'decimal:4',
         'shipping_total' => 'decimal:4',
         'grand_total' => 'decimal:4',
+        'estimated_profit_margin' => 'decimal:4',
         'paid_total' => 'decimal:4',
         'due_total' => 'decimal:4',
         'amount_paid' => 'decimal:4',
         'amount_due' => 'decimal:4',
         'posted_at' => 'datetime',
         'payment_due_date' => 'date',
+        'delivery_date' => 'date',
         'expected_delivery_date' => 'date',
         'actual_delivery_date' => 'date',
         'extra_attributes' => 'array',

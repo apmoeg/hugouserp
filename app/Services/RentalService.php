@@ -222,8 +222,10 @@ class RentalService implements RentalServiceInterface
                     'created_by' => auth()->id(),
                 ]);
 
-                $i->paid_total = round(($i->paid_total ?? 0) + $amount, 2);
-                $i->status = $i->paid_total >= $i->amount ? 'paid' : 'unpaid';
+                // Use bcmath for precise payment tracking
+                $newPaidTotal = bcadd((string) ($i->paid_total ?? 0), (string) $amount, 2);
+                $i->paid_total = (float) $newPaidTotal;
+                $i->status = bccomp($newPaidTotal, (string) $i->amount, 2) >= 0 ? 'paid' : 'unpaid';
                 $i->save();
 
                 return $i;
@@ -247,7 +249,10 @@ class RentalService implements RentalServiceInterface
                 }
 
                 $i = $query->findOrFail($invoiceId);
-                $i->amount = round($i->amount + max($penalty, 0.0), 2);
+                // Use bcmath for precise penalty addition
+                $penaltyToAdd = bccomp((string) $penalty, '0', 2) > 0 ? $penalty : 0;
+                $newAmount = bcadd((string) $i->amount, (string) $penaltyToAdd, 2);
+                $i->amount = (float) $newAmount;
                 $i->save();
 
                 return $i;
@@ -363,8 +368,9 @@ class RentalService implements RentalServiceInterface
         $totalUnits = $stats->total_units ?? 0;
         $occupiedUnits = $stats->occupied_units ?? 0;
 
+        // Use bcmath for occupancy rate calculation
         $occupancyRate = $totalUnits > 0
-            ? round(($occupiedUnits / $totalUnits) * 100, 2)
+            ? (float) bcmul(bcdiv((string) $occupiedUnits, (string) $totalUnits, 4), '100', 2)
             : 0;
 
         return [
@@ -493,8 +499,9 @@ class RentalService implements RentalServiceInterface
         $totalAmount = $stats->total_amount ?? 0;
         $collectedAmount = $stats->collected_amount ?? 0;
 
+        // Use bcmath for collection rate calculation
         $collectionRate = $totalAmount > 0
-            ? round(($collectedAmount / $totalAmount) * 100, 2)
+            ? (float) bcmul(bcdiv((string) $collectedAmount, (string) $totalAmount, 4), '100', 2)
             : 0;
 
         return [

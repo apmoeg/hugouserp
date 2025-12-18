@@ -56,7 +56,7 @@ class SaleService implements SaleServiceInterface
                         'reason' => $reason,
                     ]);
 
-                    $refund = 0.0;
+                    $refund = '0.00';
                     foreach ($items as $it) {
                         // Validate required fields
                         if (!isset($it['product_id']) || !isset($it['qty'])) {
@@ -74,12 +74,15 @@ class SaleService implements SaleServiceInterface
                             continue;
                         }
                         
-                        $line = $qty * (float) $si->unit_price;
-                        $refund += $line;
+                        // Use bcmath for precise money calculation
+                        $line = bcmul((string) $qty, (string) $si->unit_price, 2);
+                        $refund = bcadd($refund, $line, 2);
                     }
 
                     $sale->status = 'returned';
-                    $sale->paid_total = max(0.0, (float) $sale->paid_total - $refund);
+                    // Use bcmath to prevent rounding errors in refund calculation
+                    $newPaidTotal = bcsub((string) $sale->paid_total, $refund, 2);
+                    $sale->paid_total = max(0.0, (float) $newPaidTotal);
                     $sale->save();
 
                     $this->logServiceInfo('handleReturn', 'Sale return processed', [

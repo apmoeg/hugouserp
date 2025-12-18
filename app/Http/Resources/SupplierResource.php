@@ -1,0 +1,61 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class SupplierResource extends JsonResource
+{
+    /**
+     * Format rating value (0-5 scale)
+     * Returns null for empty values, float for valid ratings
+     */
+    private function formatRating($value): ?float
+    {
+        return $value ? (float) $value : null;
+    }
+    
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'company_name' => $this->company_name,
+            'contact_person' => $this->contact_person,
+            'address' => $this->address,
+            'city' => $this->city,
+            'country' => $this->country,
+            'tax_number' => $this->tax_number,
+            'payment_terms' => $this->payment_terms,
+            'payment_due_days' => (int) ($this->payment_due_days ?? 30),
+            'minimum_order_value' => $this->when(
+                $request->user()?->can('suppliers.view-financial'),
+                (float) ($this->minimum_order_value ?? 0.0)
+            ),
+            'supplier_rating' => $this->supplier_rating,
+            'quality_rating' => $this->formatRating($this->quality_rating),
+            'delivery_rating' => $this->formatRating($this->delivery_rating),
+            'service_rating' => $this->formatRating($this->service_rating),
+            'last_purchase_date' => $this->last_purchase_date?->toIso8601String(),
+            'is_active' => (bool) $this->is_active,
+            'branch_id' => $this->branch_id,
+            'branch' => $this->whenLoaded('branch', fn () => new BranchResource($this->branch)),
+            'purchases_count' => $this->when(
+                $request->user()?->can('suppliers.view-purchases'),
+                $this->whenCounted('purchases')
+            ),
+            'total_purchases_amount' => $this->when(
+                $request->user()?->can('suppliers.view-financial') && $this->relationLoaded('purchases'),
+                fn () => (float) $this->purchases->sum('grand_total')
+            ),
+            'notes' => $this->notes,
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
+        ];
+    }
+}
