@@ -9,6 +9,15 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class SupplierResource extends JsonResource
 {
+    /**
+     * Format rating value (0-5 scale)
+     * Returns null for empty values, float for valid ratings
+     */
+    private function formatRating($value): ?float
+    {
+        return $value ? (float) $value : null;
+    }
+    
     public function toArray(Request $request): array
     {
         return [
@@ -29,9 +38,9 @@ class SupplierResource extends JsonResource
                 (float) ($this->minimum_order_value ?? 0.0)
             ),
             'supplier_rating' => $this->supplier_rating,
-            'quality_rating' => $this->quality_rating ? (float) $this->quality_rating : null,
-            'delivery_rating' => $this->delivery_rating ? (float) $this->delivery_rating : null,
-            'service_rating' => $this->service_rating ? (float) $this->service_rating : null,
+            'quality_rating' => $this->formatRating($this->quality_rating),
+            'delivery_rating' => $this->formatRating($this->delivery_rating),
+            'service_rating' => $this->formatRating($this->service_rating),
             'last_purchase_date' => $this->last_purchase_date?->toIso8601String(),
             'is_active' => (bool) $this->is_active,
             'branch_id' => $this->branch_id,

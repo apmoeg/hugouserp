@@ -11,7 +11,35 @@ namespace App\Http\Requests\Traits;
 trait HasDeliveryValidation
 {
     /**
-     * Get delivery date validation rules
+     * Get expected delivery date validation rules
+     */
+    protected function expectedDeliveryDateRules(bool $required = false): array
+    {
+        $base = ['nullable', 'date'];
+        
+        if ($required) {
+            $base[0] = 'required';
+        }
+        
+        return ['expected_delivery_date' => $base];
+    }
+    
+    /**
+     * Get actual delivery date validation rules
+     */
+    protected function actualDeliveryDateRules(bool $required = false): array
+    {
+        $base = ['nullable', 'date'];
+        
+        if ($required) {
+            $base[0] = 'required';
+        }
+        
+        return ['actual_delivery_date' => $base];
+    }
+    
+    /**
+     * Get delivery date validation rules (for sales)
      */
     protected function deliveryDateRules(bool $required = false): array
     {
@@ -21,10 +49,7 @@ trait HasDeliveryValidation
             $base[0] = 'required';
         }
         
-        return [
-            'expected_delivery_date' => $base,
-            'actual_delivery_date' => $base,
-        ];
+        return ['delivery_date' => $base];
     }
     
     /**
