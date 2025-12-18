@@ -28,7 +28,7 @@ class ProductStoreRequest extends FormRequest
             'min_stock' => ['nullable', 'numeric', 'min:0'],
             'max_stock' => ['nullable', 'numeric', 'min:0'],
             'reorder_point' => ['nullable', 'numeric', 'min:0'],
-            'lead_time_days' => ['nullable', 'numeric', 'min:0'],
+            'lead_time_days' => ['nullable', 'numeric', 'min:0', 'max:9999.9'],
             'location_code' => ['nullable', 'string', 'max:191'],
         ];
     }

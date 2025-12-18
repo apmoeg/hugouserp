@@ -30,7 +30,7 @@ class ProductUpdateRequest extends FormRequest
             'min_stock' => ['sometimes', 'numeric', 'min:0'],
             'max_stock' => ['sometimes', 'numeric', 'min:0'],
             'reorder_point' => ['sometimes', 'numeric', 'min:0'],
-            'lead_time_days' => ['sometimes', 'numeric', 'min:0'],
+            'lead_time_days' => ['sometimes', 'numeric', 'min:0', 'max:9999.9'],
             'location_code' => ['sometimes', 'string', 'max:191'],
         ];
     }

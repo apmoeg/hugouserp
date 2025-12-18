@@ -41,7 +41,7 @@ class EmployeeUpdateRequest extends FormRequest
             'emergency_contact_relation' => ['nullable', 'string', 'max:100'],
             // Contract fields
             'contract_start_date' => ['nullable', 'date'],
-            'contract_end_date' => ['nullable', 'date', 'after_or_equal:contract_start_date'],
+            'contract_end_date' => ['nullable', 'date'],
             // Work permit fields
             'work_permit_number' => ['nullable', 'string', 'max:100'],
             'work_permit_expiry' => ['nullable', 'date'],
