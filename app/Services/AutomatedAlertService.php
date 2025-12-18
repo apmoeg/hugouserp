@@ -152,10 +152,19 @@ class AutomatedAlertService
         $alerts = [];
 
         foreach ($customers as $customer) {
-            $utilization = ($customer->balance / $customer->credit_limit) * 100;
+            // Calculate utilization with bcmath precision
+            $utilization = (float) bcmul(
+                bcdiv((string) $customer->balance, (string) $customer->credit_limit, 6),
+                '100',
+                2
+            );
 
             $severity = $utilization >= 100 ? 'critical' : ($utilization >= 90 ? 'high' : 'medium');
             $action = $utilization >= 100 ? 'credit_hold' : 'review_credit';
+            
+            // Calculate available credit with bcmath
+            $availableCredit = (float) bcsub((string) $customer->credit_limit, (string) $customer->balance, 2);
+            $availableCredit = bccomp($availableCredit, '0', 2) < 0 ? 0 : $availableCredit;
             
             $alerts[] = [
                 'type' => 'credit_limit_warning',
@@ -164,10 +173,10 @@ class AutomatedAlertService
                 'customer_name' => $customer->name,
                 'current_balance' => $customer->balance,
                 'credit_limit' => $customer->credit_limit,
-                'utilization_percentage' => round($utilization, 2),
-                'available_credit' => max(0, $customer->credit_limit - $customer->balance),
+                'utilization_percentage' => $utilization,
+                'available_credit' => $availableCredit,
                 'branch_id' => $customer->branch_id,
-                'message' => "Credit limit warning: {$customer->name} is at " . round($utilization, 0) . "% of credit limit",
+                'message' => "Credit limit warning: {$customer->name} is at " . (int) $utilization . "% of credit limit",
                 'action_required' => $action,
             ];
         }
@@ -194,7 +203,8 @@ class AutomatedAlertService
         foreach ($products as $product) {
             $daysUntilExpiry = now()->diffInDays($product->expiry_date);
             $unitCost = $product->cost ? $product->cost : ($product->standard_cost ? $product->standard_cost : 0);
-            $estimatedLoss = $product->stock_quantity * $unitCost;
+            // Calculate estimated loss with bcmath precision
+            $estimatedLoss = (float) bcmul((string) $product->stock_quantity, (string) $unitCost, 2);
 
             $alerts[] = [
                 'type' => 'expiring_product',

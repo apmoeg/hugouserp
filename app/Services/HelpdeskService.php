@@ -273,7 +273,7 @@ class HelpdeskService
             return $ticket->getResponseTime();
         });
 
-        return round($totalMinutes / $tickets->count(), 2);
+        return (float) bcdiv((string) $totalMinutes, (string) $tickets->count(), 2);
     }
 
     /**
@@ -301,7 +301,7 @@ class HelpdeskService
             return $ticket->getResolutionTime();
         });
 
-        return round($totalMinutes / $tickets->count(), 2);
+        return (float) bcdiv((string) $totalMinutes, (string) $tickets->count(), 2);
     }
 
     /**
