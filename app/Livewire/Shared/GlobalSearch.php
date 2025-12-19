@@ -10,7 +10,11 @@ use App\Models\Purchase;
 use App\Models\Sale;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Models\Ticket;
+use App\Models\Project;
+use App\Models\Document;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 
 class GlobalSearch extends Component
@@ -22,6 +26,14 @@ class GlobalSearch extends Component
     public bool $showResults = false;
 
     public bool $isSearching = false;
+
+    protected function scopedQuery($query, User $user)
+    {
+        $model = $query->getModel();
+        $hasBranchColumn = Schema::hasColumn($model->getTable(), 'branch_id');
+
+        return $query->when($user->branch_id && $hasBranchColumn, fn ($q) => $q->where('branch_id', $user->branch_id));
+    }
 
     public function updatedQuery(): void
     {
@@ -46,15 +58,20 @@ class GlobalSearch extends Component
 
         $this->isSearching = true;
         $searchTerm = '%'.$this->query.'%';
+        $searchTermLower = '%'.mb_strtolower($this->query, 'UTF-8').'%';
 
         if ($user->can('inventory.products.view')) {
             $canEdit = $user->can('inventory.products.manage');
-            $products = Product::query()
-                ->where(function ($q) use ($searchTerm) {
+            $products = $this->scopedQuery(Product::query(), $user)
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($searchTerm, $searchTermLower) {
                     $q->where('name', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(name) LIKE ?', [$searchTermLower])
                         ->orWhere('sku', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(sku) LIKE ?', [$searchTermLower])
                         ->orWhere('barcode', 'like', $searchTerm);
                 })
+                ->orderByDesc('created_at')
                 ->limit(5)
                 ->get(['id', 'name', 'sku']);
 
@@ -77,12 +94,16 @@ class GlobalSearch extends Component
 
         if ($user->can('customers.view')) {
             $canEdit = $user->can('customers.manage');
-            $customers = Customer::query()
-                ->where(function ($q) use ($searchTerm) {
+            $customers = $this->scopedQuery(Customer::query(), $user)
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($searchTerm, $searchTermLower) {
                     $q->where('name', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(name) LIKE ?', [$searchTermLower])
                         ->orWhere('email', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(email) LIKE ?', [$searchTermLower])
                         ->orWhere('phone', 'like', $searchTerm);
                 })
+                ->orderByDesc('created_at')
                 ->limit(5)
                 ->get(['id', 'name']);
 
@@ -105,12 +126,16 @@ class GlobalSearch extends Component
 
         if ($user->can('suppliers.view')) {
             $canEdit = $user->can('suppliers.manage');
-            $suppliers = Supplier::query()
-                ->where(function ($q) use ($searchTerm) {
+            $suppliers = $this->scopedQuery(Supplier::query(), $user)
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($searchTerm, $searchTermLower) {
                     $q->where('name', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(name) LIKE ?', [$searchTermLower])
                         ->orWhere('email', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(email) LIKE ?', [$searchTermLower])
                         ->orWhere('phone', 'like', $searchTerm);
                 })
+                ->orderByDesc('created_at')
                 ->limit(5)
                 ->get(['id', 'name']);
 
@@ -132,13 +157,17 @@ class GlobalSearch extends Component
         }
 
         if ($user->can('sales.view')) {
-            $sales = Sale::query()
-                ->where(function ($q) use ($searchTerm) {
+            $sales = $this->scopedQuery(Sale::query(), $user)
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($searchTerm, $searchTermLower) {
                     $q->where('code', 'like', $searchTerm)
-                        ->orWhere('reference_no', 'like', $searchTerm);
+                        ->orWhereRaw('LOWER(code) LIKE ?', [$searchTermLower])
+                        ->orWhere('reference_no', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(reference_no) LIKE ?', [$searchTermLower]);
                 })
+                ->orderByDesc('created_at')
                 ->limit(5)
-                ->get(['id', 'code', 'status']);
+                ->get(['id', 'code', 'status', 'reference_no']);
 
             if ($sales->isNotEmpty()) {
                 $this->results['sales'] = [
@@ -147,7 +176,7 @@ class GlobalSearch extends Component
                     'route' => 'app.sales.index',
                     'items' => $sales->map(fn ($s) => [
                         'id' => $s->id,
-                        'title' => $s->code ?: '#'.$s->id,
+                        'title' => $s->reference_no ?: ($s->code ?: '#'.$s->id),
                         'subtitle' => ucfirst($s->status ?? 'pending'),
                         'route' => route('app.sales.show', $s->id),
                     ])->toArray(),
@@ -157,10 +186,13 @@ class GlobalSearch extends Component
 
         if ($user->can('purchases.view')) {
             $canEdit = $user->can('purchases.manage');
-            $purchases = Purchase::query()
-                ->where(function ($q) use ($searchTerm) {
-                    $q->where('reference_no', 'like', $searchTerm);
+            $purchases = $this->scopedQuery(Purchase::query(), $user)
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($searchTerm, $searchTermLower) {
+                    $q->where('reference_no', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(reference_no) LIKE ?', [$searchTermLower]);
                 })
+                ->orderByDesc('created_at')
                 ->limit(5)
                 ->get(['id', 'reference_no', 'status']);
 
@@ -176,6 +208,90 @@ class GlobalSearch extends Component
                         'route' => $canEdit
                             ? route('app.purchases.edit', $p->id)
                             : route('app.purchases.index', ['search' => $p->reference_no]),
+                    ])->toArray(),
+                ];
+            }
+        }
+
+        if ($user->can('helpdesk.view')) {
+            $tickets = $this->scopedQuery(Ticket::query(), $user)
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($searchTerm, $searchTermLower) {
+                    $q->where('ticket_number', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(ticket_number) LIKE ?', [$searchTermLower])
+                        ->orWhere('subject', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(subject) LIKE ?', [$searchTermLower]);
+                })
+                ->orderByDesc('created_at')
+                ->limit(5)
+                ->get(['id', 'ticket_number', 'subject', 'status']);
+
+            if ($tickets->isNotEmpty()) {
+                $this->results['tickets'] = [
+                    'label' => __('Tickets'),
+                    'icon' => '🎫',
+                    'route' => 'app.helpdesk.index',
+                    'items' => $tickets->map(fn ($t) => [
+                        'id' => $t->id,
+                        'title' => $t->ticket_number ?: '#'.$t->id,
+                        'subtitle' => $t->subject,
+                        'route' => route('app.helpdesk.tickets.show', $t->id),
+                    ])->toArray(),
+                ];
+            }
+        }
+
+        if ($user->can('projects.view')) {
+            $projects = $this->scopedQuery(Project::query(), $user)
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($searchTerm, $searchTermLower) {
+                    $q->where('code', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(code) LIKE ?', [$searchTermLower])
+                        ->orWhere('name', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(name) LIKE ?', [$searchTermLower]);
+                })
+                ->orderByDesc('created_at')
+                ->limit(5)
+                ->get(['id', 'code', 'name', 'status']);
+
+            if ($projects->isNotEmpty()) {
+                $this->results['projects'] = [
+                    'label' => __('Projects'),
+                    'icon' => '📂',
+                    'route' => 'app.projects.index',
+                    'items' => $projects->map(fn ($p) => [
+                        'id' => $p->id,
+                        'title' => $p->name,
+                        'subtitle' => $p->code ?: strtoupper(__('Project')),
+                        'route' => route('app.projects.show', $p->id),
+                    ])->toArray(),
+                ];
+            }
+        }
+
+        if ($user->can('documents.view')) {
+            $documents = $this->scopedQuery(Document::query(), $user)
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($searchTerm, $searchTermLower) {
+                    $q->where('title', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(title) LIKE ?', [$searchTermLower])
+                        ->orWhere('code', 'like', $searchTerm)
+                        ->orWhereRaw('LOWER(code) LIKE ?', [$searchTermLower]);
+                })
+                ->orderByDesc('created_at')
+                ->limit(5)
+                ->get(['id', 'title', 'code']);
+
+            if ($documents->isNotEmpty()) {
+                $this->results['documents'] = [
+                    'label' => __('Documents'),
+                    'icon' => '📄',
+                    'route' => 'app.documents.index',
+                    'items' => $documents->map(fn ($d) => [
+                        'id' => $d->id,
+                        'title' => $d->title ?: ($d->code ?: '#'.$d->id),
+                        'subtitle' => $d->code ?: __('Document'),
+                        'route' => route('app.documents.show', $d->id),
                     ])->toArray(),
                 ];
             }

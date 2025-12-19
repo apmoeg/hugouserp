@@ -34,6 +34,8 @@ class Index extends Component
 
     public bool $isAdmin = false;
 
+    public array $trendIndicators = [];
+
     protected int $cacheTtl = 300;
 
     public function mount(): void
@@ -53,6 +55,7 @@ class Index extends Component
         $this->loadChartData();
         $this->loadLowStockProducts();
         $this->loadRecentSales();
+        $this->loadTrendIndicators();
     }
 
     public function refreshData(): void
@@ -62,11 +65,13 @@ class Index extends Component
         Cache::forget("{$cacheKey}:chart_data");
         Cache::forget("{$cacheKey}:low_stock");
         Cache::forget("{$cacheKey}:recent_sales");
+        Cache::forget("{$cacheKey}:trends");
 
         $this->loadStats();
         $this->loadChartData();
         $this->loadLowStockProducts();
         $this->loadRecentSales();
+        $this->loadTrendIndicators();
     }
 
     protected function getCachePrefix(): string
@@ -246,7 +251,7 @@ class Index extends Component
                 ->get()
                 ->map(fn ($s) => [
                     'id' => $s->id,
-                    'reference' => $s->reference_number ?? "#{$s->id}",
+                    'reference' => $s->reference_no ?? "#{$s->id}",
                     'customer' => $s->customer?->name ?? __('Walk-in'),
                     'total' => number_format($s->grand_total ?? 0, 2),
                     'status' => $s->status,
@@ -254,6 +259,55 @@ class Index extends Component
                 ])
                 ->toArray();
         });
+    }
+
+    protected function loadTrendIndicators(): void
+    {
+        $cacheKey = "{$this->getCachePrefix()}:trends";
+
+        $this->trendIndicators = Cache::remember($cacheKey, $this->cacheTtl, function () {
+            $salesQuery = $this->scopeSalesQuery(Sale::query());
+
+            $currentWeekSales = (clone $salesQuery)
+                ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
+                ->sum('grand_total') ?? 0;
+
+            $previousWeekSales = (clone $salesQuery)
+                ->whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])
+                ->sum('grand_total') ?? 0;
+
+            $invoiceTotal = (clone $salesQuery)->count();
+            $invoiceCleared = (clone $salesQuery)->where('status', 'completed')->count();
+            $inventoryHealth = $this->stats['total_products'] ?? 0;
+            $lowStock = $this->stats['low_stock_count'] ?? 0;
+
+            return [
+                'weekly_sales' => [
+                    'current' => number_format($currentWeekSales, 2),
+                    'previous' => number_format($previousWeekSales, 2),
+                    'change' => $this->calculatePercentageChange($currentWeekSales, $previousWeekSales),
+                ],
+                'invoice_clear_rate' => $invoiceTotal > 0
+                    ? round(($invoiceCleared / $invoiceTotal) * 100, 1)
+                    : 0,
+                'inventory_health' => $inventoryHealth > 0
+                    ? round(max(0, min(100, 100 - (($lowStock / $inventoryHealth) * 100))), 1)
+                    : 100,
+            ];
+        });
+    }
+
+    protected function calculatePercentageChange(float $current, float $previous): float
+    {
+        if ($previous <= 0 && $current > 0) {
+            return 100.0;
+        }
+
+        if ($previous === 0.0) {
+            return 0.0;
+        }
+
+        return round((($current - $previous) / $previous) * 100, 1);
     }
 
     public function render()

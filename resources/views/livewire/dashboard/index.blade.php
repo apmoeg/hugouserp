@@ -31,6 +31,9 @@
         </button>
     </div>
 
+    {{-- Role-aware quick actions --}}
+    <x-dashboard.quick-actions />
+
     {{-- Quick Access Buttons Grid --}}
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
 
@@ -156,21 +159,130 @@
         </div>
     </div>
 
+    {{-- Performance insights --}}
+    <div class="grid gap-4 lg:grid-cols-3">
+        @php
+            $weeklyChange = $trendIndicators['weekly_sales']['change'] ?? 0;
+            $weeklyDirectionClass = $weeklyChange >= 0 ? 'text-emerald-600 bg-emerald-50' : 'text-rose-600 bg-rose-50';
+        @endphp
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-sm text-slate-500">{{ __('Weekly sales change') }}</p>
+                    <p class="mt-2 text-3xl font-bold text-slate-800">{{ $weeklyChange }}%</p>
+                    <p class="text-xs text-slate-500 mt-1">
+                        {{ __('Current week') }}: {{ $trendIndicators['weekly_sales']['current'] ?? '0.00' }}
+                        · {{ __('Previous') }}: {{ $trendIndicators['weekly_sales']['previous'] ?? '0.00' }}
+                    </p>
+                </div>
+                <span class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold {{ $weeklyDirectionClass }}">
+                    @if($weeklyChange >= 0)
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                        </svg>
+                        {{ __('Up vs last week') }}
+                    @else
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                        </svg>
+                        {{ __('Down vs last week') }}
+                    @endif
+                </span>
+            </div>
+        </div>
+
+        @php
+            $inventoryHealth = $trendIndicators['inventory_health'] ?? 100;
+        @endphp
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-500">{{ __('Inventory health') }}</p>
+                    <p class="mt-2 text-3xl font-bold text-slate-800">{{ $inventoryHealth }}%</p>
+                    <p class="text-xs text-slate-500 mt-1">{{ __('Based on low stock alerts vs total items.') }}</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-semibold">
+                    {{ max(0, min(99, $inventoryHealth)) }}%
+                </div>
+            </div>
+            <div class="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-emerald-400 to-emerald-600" style="width: {{ max(0, min(100, $inventoryHealth)) }}%"></div>
+            </div>
+        </div>
+
+        @php
+            $invoiceClearRate = $trendIndicators['invoice_clear_rate'] ?? 0;
+            $clearClass = $invoiceClearRate >= 80 ? 'bg-emerald-50 text-emerald-700' : ($invoiceClearRate >= 50 ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700');
+        @endphp
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <p class="text-sm text-slate-500">{{ __('Invoice clearance') }}</p>
+                    <p class="mt-2 text-3xl font-bold text-slate-800">{{ $invoiceClearRate }}%</p>
+                    <p class="text-xs text-slate-500 mt-1">{{ __('Completed invoices vs total recorded.') }}</p>
+                </div>
+                <span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold {{ $clearClass }}">
+                    {{ $invoiceClearRate >= 80 ? __('Healthy') : ($invoiceClearRate >= 50 ? __('Needs attention') : __('Action required')) }}
+                </span>
+            </div>
+            <div class="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-emerald-400 to-sky-500" style="width: {{ max(0, min(100, $invoiceClearRate)) }}%"></div>
+            </div>
+        </div>
+    </div>
+
     {{-- Charts Row --}}
-    <div class="grid gap-6 lg:grid-cols-2">
+    <div class="grid gap-6 xl:grid-cols-3">
         {{-- Sales Chart --}}
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm xl:col-span-2">
             <h3 class="text-lg font-semibold text-slate-800 mb-4">{{ __('Sales Trend (Last 7 Days)') }}</h3>
             <div class="h-64">
                 <canvas id="salesChart"></canvas>
             </div>
         </div>
 
-        {{-- Inventory Status Chart --}}
-        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <h3 class="text-lg font-semibold text-slate-800 mb-4">{{ __('Inventory Status') }}</h3>
-            <div class="h-64 flex items-center justify-center">
-                <canvas id="inventoryChart"></canvas>
+        <div class="space-y-6">
+            {{-- Inventory Status Chart --}}
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <h3 class="text-lg font-semibold text-slate-800 mb-4">{{ __('Inventory Status') }}</h3>
+                <div class="h-64 flex items-center justify-center">
+                    <canvas id="inventoryChart"></canvas>
+                </div>
+            </div>
+
+            {{-- Payment methods breakdown --}}
+            @php
+                $totalPayments = array_sum($paymentMethodsData['data'] ?? []);
+                $totalPaymentAmount = array_sum($paymentMethodsData['totals'] ?? []);
+            @endphp
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-semibold text-slate-800">{{ __('Payment mix (This month)') }}</h3>
+                    <span class="text-xs text-slate-500">{{ __('Total') }}: {{ number_format($totalPaymentAmount ?? 0, 2) }} {{ __('EGP') }}</span>
+                </div>
+                @if($totalPayments > 0)
+                    <div class="space-y-4">
+                        @foreach($paymentMethodsData['labels'] ?? [] as $index => $method)
+                            @php
+                                $methodCount = $paymentMethodsData['data'][$index] ?? 0;
+                                $methodTotal = $paymentMethodsData['totals'][$index] ?? 0;
+                                $percent = $totalPayments > 0 ? round(($methodCount / $totalPayments) * 100) : 0;
+                            @endphp
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between text-sm font-medium text-slate-700">
+                                    <span>{{ $method }}</span>
+                                    <span class="text-slate-500">{{ $percent }}% · {{ $methodCount }} {{ __('payments') }}</span>
+                                </div>
+                                <div class="h-2 rounded-full bg-slate-100 overflow-hidden">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600" style="width: {{ $percent }}%"></div>
+                                </div>
+                                <p class="text-xs text-slate-500">{{ __('Amount') }}: {{ number_format($methodTotal, 2) }} {{ __('EGP') }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-sm text-slate-500">{{ __('No payments recorded for this period.') }}</p>
+                @endif
             </div>
         </div>
     </div>

@@ -21,8 +21,12 @@
         return false;
     };
 
-    $safeRoute = function (?string $route) {
-        return $route && Route::has($route) ? route($route) : '#';
+    $routeExists = function (?string $route) {
+        return $route && Route::has($route);
+    };
+
+    $safeRoute = function (?string $route) use ($routeExists) {
+        return $routeExists($route) ? route($route) : '#';
     };
 
     $canAccess = function ($permission) use ($user) {
@@ -101,14 +105,23 @@
             'icon' => '💼',
             'items' => [
                 ['route' => 'app.sales.index', 'icon' => '💰', 'label' => __('Sales'), 'permission' => 'sales.view', 'children' => [
+                    ['route' => 'app.sales.create', 'icon' => '➕', 'label' => __('New Sale'), 'permission' => 'sales.manage'],
                     ['route' => 'app.sales.returns.index', 'icon' => '↩️', 'label' => __('Returns'), 'permission' => 'sales.return'],
                     ['route' => 'app.sales.analytics', 'icon' => '📈', 'label' => __('Analytics'), 'permission' => 'sales.view'],
                 ]],
                 ['route' => 'app.purchases.index', 'icon' => '🛒', 'label' => __('Purchases'), 'permission' => 'purchases.view', 'children' => [
+                    ['route' => 'app.purchases.create', 'icon' => '➕', 'label' => __('New Purchase'), 'permission' => 'purchases.manage'],
                     ['route' => 'app.purchases.returns.index', 'icon' => '↩️', 'label' => __('Returns'), 'permission' => 'purchases.return'],
+                    ['route' => 'app.purchases.requisitions.index', 'icon' => '🗒️', 'label' => __('Requisitions'), 'permission' => 'purchases.requisitions.view'],
+                    ['route' => 'app.purchases.quotations.index', 'icon' => '📑', 'label' => __('Quotations'), 'permission' => 'purchases.view'],
+                    ['route' => 'app.purchases.grn.index', 'icon' => '📦', 'label' => __('Goods Received'), 'permission' => 'purchases.view'],
                 ]],
-                ['route' => 'customers.index', 'icon' => '👤', 'label' => __('Customers'), 'permission' => 'customers.view'],
-                ['route' => 'suppliers.index', 'icon' => '🏭', 'label' => __('Suppliers'), 'permission' => 'suppliers.view'],
+                ['route' => 'customers.index', 'icon' => '👤', 'label' => __('Customers'), 'permission' => 'customers.view', 'children' => [
+                    ['route' => 'customers.create', 'icon' => '➕', 'label' => __('Add Customer'), 'permission' => 'customers.manage'],
+                ]],
+                ['route' => 'suppliers.index', 'icon' => '🏭', 'label' => __('Suppliers'), 'permission' => 'suppliers.view', 'children' => [
+                    ['route' => 'suppliers.create', 'icon' => '➕', 'label' => __('Add Supplier'), 'permission' => 'suppliers.manage'],
+                ]],
             ],
         ],
         [
@@ -116,6 +129,7 @@
             'icon' => '📦',
             'items' => [
                 ['route' => 'app.inventory.products.index', 'icon' => '📦', 'label' => __('Products'), 'permission' => 'inventory.products.view', 'children' => [
+                    ['route' => 'app.inventory.products.create', 'icon' => '➕', 'label' => __('Add Product'), 'permission' => 'inventory.products.view'],
                     ['route' => 'app.inventory.categories.index', 'icon' => '📂', 'label' => __('Categories'), 'permission' => 'inventory.products.view'],
                     ['route' => 'app.inventory.units.index', 'icon' => '📏', 'label' => __('Units'), 'permission' => 'inventory.products.view'],
                     ['route' => 'app.inventory.stock-alerts', 'icon' => '⚠️', 'label' => __('Stock Alerts'), 'permission' => 'inventory.stock.alerts.view'],
@@ -125,21 +139,37 @@
                     ['route' => 'app.inventory.vehicle-models', 'icon' => '🚗', 'label' => __('Vehicle Models'), 'permission' => 'spares.compatibility.manage'],
                 ]],
                 ['route' => 'app.inventory.index', 'icon' => '📊', 'label' => __('Inventory Overview'), 'permission' => 'inventory.products.view'],
-                ['route' => 'app.warehouse.index', 'icon' => '🏭', 'label' => __('Warehouse'), 'permission' => 'warehouse.view'],
+                ['route' => 'app.warehouse.index', 'icon' => '🏭', 'label' => __('Warehouse'), 'permission' => 'warehouse.view', 'children' => [
+                    ['route' => 'app.warehouse.locations.index', 'icon' => '📍', 'label' => __('Locations'), 'permission' => 'warehouse.view'],
+                    ['route' => 'app.warehouse.movements.index', 'icon' => '🔄', 'label' => __('Movements'), 'permission' => 'warehouse.view'],
+                    ['route' => 'app.warehouse.transfers.index', 'icon' => '🚚', 'label' => __('Transfers'), 'permission' => 'warehouse.view'],
+                    ['route' => 'app.warehouse.transfers.create', 'icon' => '➕', 'label' => __('New Transfer'), 'permission' => 'warehouse.manage'],
+                    ['route' => 'app.warehouse.adjustments.index', 'icon' => '⚖️', 'label' => __('Adjustments'), 'permission' => 'warehouse.view'],
+                    ['route' => 'app.warehouse.adjustments.create', 'icon' => '🛠️', 'label' => __('New Adjustment'), 'permission' => 'warehouse.manage'],
+                ]],
             ],
         ],
         [
             'title' => __('Finance & Banking'),
             'icon' => '💵',
             'items' => [
-                ['route' => 'app.accounting.index', 'icon' => '🧮', 'label' => __('Accounting'), 'permission' => 'accounting.view'],
+                ['route' => 'app.accounting.index', 'icon' => '🧮', 'label' => __('Accounting'), 'permission' => 'accounting.view', 'children' => [
+                    ['route' => 'app.accounting.accounts.create', 'icon' => '➕', 'label' => __('Add Account'), 'permission' => 'accounting.create'],
+                    ['route' => 'app.accounting.journal-entries.create', 'icon' => '📝', 'label' => __('Journal Entry'), 'permission' => 'accounting.create'],
+                ]],
                 ['route' => 'app.expenses.index', 'icon' => '💳', 'label' => __('Expenses'), 'permission' => 'expenses.view', 'children' => [
+                    ['route' => 'app.expenses.create', 'icon' => '➕', 'label' => __('New Expense'), 'permission' => 'expenses.manage'],
                     ['route' => 'app.expenses.categories.index', 'icon' => '📂', 'label' => __('Categories'), 'permission' => 'expenses.manage'],
                 ]],
                 ['route' => 'app.income.index', 'icon' => '💰', 'label' => __('Income'), 'permission' => 'income.view', 'children' => [
+                    ['route' => 'app.income.create', 'icon' => '➕', 'label' => __('New Income'), 'permission' => 'income.manage'],
                     ['route' => 'app.income.categories.index', 'icon' => '🗂️', 'label' => __('Categories'), 'permission' => 'income.manage'],
                 ]],
-                ['route' => 'app.banking.accounts.index', 'icon' => '🏦', 'label' => __('Banking'), 'permission' => 'banking.view'],
+                ['route' => 'app.banking.accounts.index', 'icon' => '🏦', 'label' => __('Banking'), 'permission' => 'banking.view', 'children' => [
+                    ['route' => 'app.banking.accounts.create', 'icon' => '➕', 'label' => __('Add Account'), 'permission' => 'banking.create'],
+                    ['route' => 'app.banking.transactions.index', 'icon' => '🔁', 'label' => __('Transactions'), 'permission' => 'banking.view'],
+                    ['route' => 'app.banking.reconciliation', 'icon' => '📘', 'label' => __('Reconciliation'), 'permission' => 'banking.reconcile'],
+                ]],
                 ['route' => 'admin.branches.index', 'icon' => '🏢', 'label' => __('Branches'), 'permission' => 'branches.view'],
             ],
         ],
@@ -232,24 +262,84 @@
     ];
 
     $menuSections = array_values(array_merge($baseSections, $dynamicSections));
+
+    // Filter sections based on permissions and route availability
+    $menuSections = collect($menuSections)->map(function ($section) use ($canAccess, $routeExists) {
+        $items = collect($section['items'] ?? [])->map(function ($item) use ($canAccess, $routeExists) {
+            if (! $canAccess($item['permission'] ?? null) || ! $routeExists($item['route'] ?? null)) {
+                return null;
+            }
+
+            $children = collect($item['children'] ?? [])->filter(function ($child) use ($canAccess, $routeExists) {
+                return $canAccess($child['permission'] ?? null) && $routeExists($child['route'] ?? null);
+            })->values()->all();
+
+            $item['children'] = $children;
+
+            return $item;
+        })->filter()->values()->all();
+
+        $section['items'] = $items;
+
+        return $section;
+    })->filter(fn ($section) => ! empty($section['items']))->values()->all();
+
+    // Build search index for Alpine filtering and suggestions
+    $searchIndex = [];
+    $searchEntries = [];
+    foreach ($menuSections as $sectionIndex => $section) {
+        $sectionKey = "section_{$sectionIndex}";
+        $sectionLabels = [$section['title']];
+
+        foreach ($section['items'] as $itemIndex => $item) {
+            $itemKey = "{$sectionKey}_item_{$itemIndex}";
+            $childLabels = collect($item['children'] ?? [])->pluck('label')->all();
+            $searchIndex[$itemKey] = Str::lower(trim(implode(' ', [
+                __($section['title'] ?? ''),
+                __($item['label'] ?? ''),
+                implode(' ', $childLabels),
+            ])));
+
+            $searchEntries[] = [
+                'key' => $itemKey,
+                'label' => __($item['label'] ?? ''),
+                'section' => __($section['title'] ?? ''),
+                'icon' => $item['icon'] ?? '•',
+                'url' => $safeRoute($item['route'] ?? null),
+                'search' => Str::lower(__(($section['title'] ?? '').' '.($item['label'] ?? ''))),
+            ];
+
+            foreach ($item['children'] ?? [] as $childIndex => $child) {
+                $childKey = "{$itemKey}_child_{$childIndex}";
+                $searchIndex[$childKey] = Str::lower(trim(implode(' ', [
+                    __($section['title'] ?? ''),
+                    __($item['label'] ?? ''),
+                    __($child['label'] ?? ''),
+                ])));
+
+                $searchEntries[] = [
+                    'key' => $childKey,
+                    'label' => __($child['label'] ?? ''),
+                    'section' => __($section['title'] ?? ''),
+                    'icon' => $child['icon'] ?? $item['icon'] ?? '•',
+                    'url' => $safeRoute($child['route'] ?? null),
+                    'search' => Str::lower(__(($section['title'] ?? '').' '.($item['label'] ?? '').' '.($child['label'] ?? ''))),
+                ];
+            }
+
+            $sectionLabels[] = $item['label'];
+            $sectionLabels = array_merge($sectionLabels, $childLabels);
+        }
+
+        $searchIndex[$sectionKey] = Str::lower(implode(' ', array_filter($sectionLabels)));
+    }
 @endphp
 
 <aside
     class="sidebar-enhanced fixed md:relative inset-y-0 {{ $dir === 'rtl' ? 'right-0' : 'left-0' }} w-72 lg:w-80 bg-slate-950/95 text-slate-100 shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ease-out"
     :class="sidebarOpen ? 'translate-x-0' : '{{ $dir === 'rtl' ? 'translate-x-full' : '-translate-x-full' }} md:translate-x-0'"
     x-cloak
-    x-data="{
-        groups: {},
-        init() {
-            Object.keys(localStorage)
-                .filter(key => key.startsWith('sidebar_section_'))
-                .forEach(key => this.groups[key.replace('sidebar_section_', '')] = localStorage.getItem(key) === 'true');
-        },
-        toggle(key) {
-            this.groups[key] = !this.groups[key];
-            localStorage.setItem('sidebar_section_' + key, this.groups[key]);
-        }
-    }"
+    x-data="sidebarState(@js($searchIndex), @js($searchEntries))"
 >
     {{-- Logo & User Section (Fixed at top) --}}
     <div class="sidebar-header flex-shrink-0 flex items-center justify-between px-4 py-4 border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-xl">
@@ -271,8 +361,80 @@
         </button>
     </div>
 
+    {{-- Inline search --}}
+    <div class="px-4 pt-3 pb-4 border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-xl">
+        <label class="block text-xs font-semibold text-slate-300 tracking-wide">
+            {{ __('Search menu') }}
+            <div class="relative mt-2">
+                <div class="absolute inset-y-0 {{ $dir === 'rtl' ? 'right-3' : 'left-3' }} flex items-center pointer-events-none text-slate-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <input
+                    type="text"
+                    x-model.debounce.200ms="searchTerm"
+                    placeholder="{{ __('Find a page...') }}"
+                    class="w-full rounded-xl bg-slate-800/70 border border-white/5 text-slate-100 placeholder:text-slate-400 text-sm py-2.5 pl-9 pr-9 focus:border-emerald-400 focus:ring-emerald-400/40 focus:ring-2 focus:outline-none transition"
+                />
+                <button
+                    x-show="query"
+                    @click="resetSearch"
+                    type="button"
+                    class="absolute inset-y-0 {{ $dir === 'rtl' ? 'left-2.5' : 'right-2.5' }} flex items-center justify-center text-slate-400 hover:text-white transition"
+                    aria-label="{{ __('Clear search') }}"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <p x-show="query" class="mt-2 text-[11px] text-slate-400">
+                {{ __('Filtering sidebar items for') }} <span class="font-semibold text-emerald-300" x-text="searchTerm"></span>
+            </p>
+        </label>
+
+        <div
+            x-show="query"
+            class="mt-3 space-y-1"
+        >
+            <template x-if="filteredSuggestions.length">
+                <div class="rounded-2xl border border-emerald-500/20 bg-slate-900/70 shadow-lg divide-y divide-slate-800/80">
+                    <template x-for="item in filteredSuggestions" :key="item.key">
+                        <a
+                            :href="item.url"
+                            @click="sidebarOpen = false"
+                            class="flex items-center gap-3 px-3 py-2 text-sm text-slate-100 hover:bg-emerald-500/10 transition"
+                        >
+                            <span class="text-base" x-text="item.icon"></span>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold truncate" x-text="item.label"></p>
+                                <p class="text-[11px] text-slate-400 truncate" x-text="item.section"></p>
+                            </div>
+                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                    </template>
+                </div>
+            </template>
+            <p
+                x-show="!filteredSuggestions.length"
+                class="text-xs text-slate-400 px-2"
+            >
+                {{ __('No quick matches yet — keep typing to search the full menu.') }}
+            </p>
+        </div>
+    </div>
+
     {{-- Scrollable Navigation (Independent scroll) --}}
     <nav class="sidebar-nav flex-1 overflow-y-auto py-4 px-3 space-y-3 custom-scrollbar">
+        <template x-if="query && !hasResults">
+            <div class="text-center text-sm text-slate-400 bg-slate-900/60 border border-dashed border-slate-800 rounded-xl py-6">
+                {{ __('No matching pages found') }}
+            </div>
+        </template>
+
         @foreach($menuSections as $sectionIndex => $section)
             @php
                 $sectionKey = 'section_' . $sectionIndex;
@@ -291,11 +453,17 @@
                 }
             @endphp
 
-            <div class="sidebar-section" x-init="groups['{{ $sectionKey }}'] = groups['{{ $sectionKey }}'] ?? {{ $hasActive ? 'true' : 'false' }}">
+            <div
+                class="sidebar-section"
+                x-init="groups['{{ $sectionKey }}'] = groups['{{ $sectionKey }}'] ?? {{ $hasActive ? 'true' : 'false' }}"
+                x-show="shouldShowSection('{{ $sectionKey }}')"
+                x-effect="if (query) { groups['{{ $sectionKey }}'] = shouldShowSection('{{ $sectionKey }}'); }"
+            >
                 <button
                     @click="toggle('{{ $sectionKey }}')"
                     class="sidebar-section__header"
                     type="button"
+                    :aria-expanded="groups['{{ $sectionKey }}']"
                 >
                     <div class="flex items-center gap-2">
                         <span class="text-lg">{{ $section['icon'] }}</span>
@@ -316,61 +484,63 @@
                     x-transition:leave-end="opacity-0 -translate-y-2"
                     class="space-y-1 mt-2"
                 >
-                    @foreach($section['items'] as $item)
-                        @if($canAccess($item['permission'] ?? null) && $safeRoute($item['route']) !== '#')
-                            <li x-data="{ open: {{ $isActive($item['route']) ? 'true' : 'false' }} }" class="sidebar-item">
-                                @if(!empty($item['children']))
-                                    <button
-                                        type="button"
-                                        @click="open = !open"
-                                        class="sidebar-link"
-                                    >
-                                        <span class="text-lg">{{ $item['icon'] }}</span>
-                                        <div class="flex-1 flex items-center justify-between gap-2">
-                                            <span class="text-sm font-medium">{{ $item['label'] }}</span>
-                                            <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                            </svg>
-                                        </div>
-                                        @if($isActive($item['route']))
-                                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        @endif
-                                    </button>
-
-                                    <ul x-show="open" x-transition class="sidebar-children mt-1 space-y-0.5">
-                                        @foreach($item['children'] as $child)
-                                            @if($canAccess($child['permission'] ?? null) && $safeRoute($child['route']) !== '#')
-                                                <li>
-                                                    <a
-                                                        href="{{ $safeRoute($child['route']) }}"
-                                                        @click="sidebarOpen = false"
-                                                        class="sidebar-link-secondary {{ $isActive($child['route']) ? 'active' : '' }}"
-                                                    >
-                                                        <span class="text-base">{{ $child['icon'] }}</span>
-                                                        <span class="text-sm">{{ $child['label'] }}</span>
-                                                        @if($isActive($child['route']))
-                                                            <span class="ml-auto rtl:mr-auto rtl:ml-0 w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                                        @endif
-                                                    </a>
-                                                </li>
-                                            @endif
-                                        @endforeach
-                                    </ul>
-                                @else
-                                    <a
-                                        href="{{ $safeRoute($item['route']) }}"
-                                        @click="sidebarOpen = false"
-                                        class="sidebar-link {{ $isActive($item['route']) ? 'active' : '' }}"
-                                    >
-                                        <span class="text-lg">{{ $item['icon'] }}</span>
+                    @foreach($section['items'] as $itemIndex => $item)
+                        <li
+                            x-data="{ open: {{ $isActive($item['route']) ? 'true' : 'false' }} }"
+                            class="sidebar-item"
+                            x-show="shouldShowItem('{{ $sectionKey }}', '{{ $itemIndex }}')"
+                            x-effect="if (query && shouldShowItem('{{ $sectionKey }}', '{{ $itemIndex }}')) { open = true; }"
+                        >
+                            @if(!empty($item['children']))
+                                <button
+                                    type="button"
+                                    @click="open = !open"
+                                    class="sidebar-link"
+                                    :aria-expanded="open"
+                                >
+                                    <span class="text-lg">{{ $item['icon'] }}</span>
+                                    <div class="flex-1 flex items-center justify-between gap-2">
                                         <span class="text-sm font-medium">{{ $item['label'] }}</span>
-                                        @if($isActive($item['route']))
-                                            <span class="ml-auto rtl:mr-auto rtl:ml-0 w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        @endif
-                                    </a>
-                                @endif
-                            </li>
-                        @endif
+                                        <svg class="w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                        </svg>
+                                    </div>
+                                    @if($isActive($item['route']))
+                                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    @endif
+                                </button>
+
+                                <ul x-show="open" x-transition class="sidebar-children mt-1 space-y-0.5">
+                                    @foreach($item['children'] as $childIndex => $child)
+                                        <li x-show="shouldShowChild('{{ $sectionKey }}', '{{ $itemIndex }}', '{{ $childIndex }}')">
+                                            <a
+                                                href="{{ $safeRoute($child['route']) }}"
+                                                @click="sidebarOpen = false"
+                                                class="sidebar-link-secondary {{ $isActive($child['route']) ? 'active' : '' }}"
+                                            >
+                                                <span class="text-base">{{ $child['icon'] }}</span>
+                                                <span class="text-sm">{{ $child['label'] }}</span>
+                                                @if($isActive($child['route']))
+                                                    <span class="ml-auto rtl:mr-auto rtl:ml-0 w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                                @endif
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <a
+                                    href="{{ $safeRoute($item['route']) }}"
+                                    @click="sidebarOpen = false"
+                                    class="sidebar-link {{ $isActive($item['route']) ? 'active' : '' }}"
+                                >
+                                    <span class="text-lg">{{ $item['icon'] }}</span>
+                                    <span class="text-sm font-medium">{{ $item['label'] }}</span>
+                                    @if($isActive($item['route']))
+                                        <span class="ml-auto rtl:mr-auto rtl:ml-0 w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    @endif
+                                </a>
+                            @endif
+                        </li>
                     @endforeach
                 </ul>
             </div>
@@ -479,6 +649,75 @@
 </style>
 
 <script>
+    window.sidebarState = function (index, entries) {
+        return {
+            groups: {},
+            searchTerm: '',
+            index,
+            entries,
+            get query() {
+                return this.searchTerm.trim().toLowerCase();
+            },
+            get hasResults() {
+                if (!this.query) {
+                    return true;
+                }
+
+                return Object.values(this.index).some(text => (text || '').includes(this.query));
+            },
+            get filteredSuggestions() {
+                if (!this.query) {
+                    return [];
+                }
+
+                return this.entries
+                    .filter(item => (item.search || '').includes(this.query))
+                    .slice(0, 8);
+            },
+            init() {
+                Object.keys(localStorage)
+                    .filter(key => key.startsWith('sidebar_section_'))
+                    .forEach(key => this.groups[key.replace('sidebar_section_', '')] = localStorage.getItem(key) === 'true');
+            },
+            toggle(key) {
+                this.groups[key] = !this.groups[key];
+                localStorage.setItem('sidebar_section_' + key, this.groups[key]);
+            },
+            matches(key) {
+                if (!this.query) {
+                    return true;
+                }
+
+                return (this.index[key] ?? '').includes(this.query);
+            },
+            shouldShowSection(sectionKey) {
+                if (!this.query) {
+                    return true;
+                }
+
+                return Object.keys(this.index).some(key => key.startsWith(sectionKey) && this.matches(key));
+            },
+            shouldShowItem(sectionKey, itemKey) {
+                if (!this.query) {
+                    return true;
+                }
+
+                const prefix = `${sectionKey}_item_${itemKey}`;
+                return Object.keys(this.index).some(key => key.startsWith(prefix) && this.matches(key));
+            },
+            shouldShowChild(sectionKey, itemKey, childKey) {
+                if (!this.query) {
+                    return true;
+                }
+
+                return this.matches(`${sectionKey}_item_${itemKey}_child_${childKey}`);
+            },
+            resetSearch() {
+                this.searchTerm = '';
+            }
+        }
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             const activeItem = document.querySelector('.sidebar-link.active') || document.querySelector('.sidebar-link-secondary.active');
