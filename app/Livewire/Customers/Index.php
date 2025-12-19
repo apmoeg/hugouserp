@@ -22,6 +22,10 @@ class Index extends Component
 
     public string $customerType = '';
 
+    public string $sortField = 'created_at';
+
+    public string $sortDirection = 'desc';
+
     public string $paginationMode = 'load-more';
 
     public int $perPage = 15;

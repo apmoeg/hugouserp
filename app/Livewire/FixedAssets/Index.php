@@ -27,6 +27,10 @@ class Index extends Component
     #[Url]
     public string $category = '';
 
+    public string $sortField = 'created_at';
+
+    public string $sortDirection = 'desc';
+
     /**
      * Define allowed sort columns to prevent SQL injection.
      */

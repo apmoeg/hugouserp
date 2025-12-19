@@ -27,6 +27,13 @@ class Index extends Component
 
     public string $dateTo = '';
 
+    /**
+     * Default sort field - overrides trait default to match expense_date.
+     */
+    public string $sortField = 'expense_date';
+
+    public string $sortDirection = 'desc';
+
     protected $queryString = ['search', 'categoryId'];
 
     /**

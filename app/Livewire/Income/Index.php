@@ -23,6 +23,13 @@ class Index extends Component
     #[Url]
     public string $search = '';
 
+    /**
+     * Default sort field - overrides trait default to match income_date.
+     */
+    public string $sortField = 'income_date';
+
+    public string $sortDirection = 'desc';
+
     public function mount(): void
     {
         $this->authorize('income.view');

@@ -24,6 +24,10 @@ class Index extends Component
     #[Url]
     public string $search = '';
 
+    public string $sortField = 'created_at';
+
+    public string $sortDirection = 'desc';
+
     public function mount(): void
     {
         $this->authorize('sales.view');

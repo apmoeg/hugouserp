@@ -20,6 +20,10 @@ class Index extends Component
 
     public string $search = '';
 
+    public string $sortField = 'created_at';
+
+    public string $sortDirection = 'desc';
+
     protected $queryString = ['search'];
 
     /**

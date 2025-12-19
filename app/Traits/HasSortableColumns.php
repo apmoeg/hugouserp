@@ -7,13 +7,13 @@ namespace App\Traits;
 /**
  * Trait for safely handling sortable columns in Livewire components.
  * Prevents SQL injection by whitelisting allowed sort columns and directions.
+ * 
+ * Classes using this trait MUST define these properties:
+ *   public string $sortField = 'your_default';
+ *   public string $sortDirection = 'desc';
  */
 trait HasSortableColumns
 {
-    public string $sortField = 'created_at';
-
-    public string $sortDirection = 'desc';
-
     /**
      * Get the list of allowed sortable columns.
      * Override this method in the component to define allowed columns.
