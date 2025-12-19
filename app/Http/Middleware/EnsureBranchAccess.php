@@ -29,7 +29,8 @@ class EnsureBranchAccess
             return $this->error('Unauthenticated.', 401);
         }
         if (! $branch instanceof Branch) {
-            return $this->error('Branch context missing.', 422);
+            // Some endpoints (e.g., file uploads) are authenticated but not branch-scoped.
+            return $next($request);
         }
 
         // Super admin shortcut

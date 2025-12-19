@@ -31,12 +31,20 @@ class UploadController extends Controller
         Gate::authorize('files.view');
 
         [$disk, $path] = [$this->resolveDisk($request), $this->normalizePath($fileId)];
+        $storage = Storage::disk($disk);
 
-        if (! Storage::disk($disk)->exists($path)) {
+        if (! $storage->exists($path)) {
             return $this->fail(__('File not found.'), 404);
         }
 
-        return Storage::disk($disk)->download($path);
+        // Files are capped at 10MB via validation, so reading into memory is acceptable here
+        $content = $storage->get($path);
+        $filename = str_replace(["\r", "\n", '"'], '', basename($path));
+
+        return response($content, 200, [
+            'Content-Type' => $storage->mimeType($path) ?: 'application/octet-stream',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
     }
 
     /**
@@ -201,7 +209,8 @@ class UploadController extends Controller
      */
     protected function resolveDisk(Request $request): string
     {
-        $disk = (string) $request->input('disk', config('filesystems.default', 'public'));
+        // Default to the public disk for API uploads to match UI expectations
+        $disk = (string) $request->input('disk', 'public');
 
         if (! in_array($disk, ['public', 'local', 'private'], true)) {
             throw new AuthorizationException(__('Invalid storage disk requested.'));
