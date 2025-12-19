@@ -19,7 +19,7 @@ class Show extends Component
         $user = auth()->user();
         throw_if(!$user?->can('sales.view'), new HttpException(403));
 
-        $branchId = $user->branch_id;
+        $branchId = $user?->branch_id;
         $isSuperAdmin = (bool) $user->hasRole('super-admin');
         $branchIdInt = $branchId !== null ? (int) $branchId : null;
 
