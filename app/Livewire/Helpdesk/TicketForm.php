@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\HelpdeskService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
+use Livewire\Features\SupportRedirects\Redirector;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -56,8 +57,13 @@ class TicketForm extends Component
 
     public function mount(?Ticket $ticket = null): void
     {
+        $user = auth()->user();
+
         if ($ticket && $ticket->exists) {
             $this->authorize('helpdesk.edit');
+            if ($user && $user->branch_id && $ticket->branch_id !== $user->branch_id && ! $user->hasRole('Super Admin')) {
+                abort(403);
+            }
             $this->isEdit = true;
             $this->ticket = $ticket;
             $this->fill($ticket->only([
@@ -69,8 +75,8 @@ class TicketForm extends Component
                 'assigned_to',
                 'sla_policy_id',
                 'status',
-                'tags',
             ]));
+            $this->tags = $ticket->tags ?? [];
             $this->due_date = $ticket->due_date ? $ticket->due_date->format('Y-m-d\TH:i') : '';
         } else {
             $this->authorize('helpdesk.create');
@@ -96,7 +102,7 @@ class TicketForm extends Component
         $this->tags = array_values(array_filter($this->tags, fn ($t) => $t !== $tag));
     }
 
-    public function save(): RedirectResponse
+    public function save(): RedirectResponse|Redirector
     {
         $data = [
             'subject' => $this->subject,
@@ -106,10 +112,22 @@ class TicketForm extends Component
             'priority_id' => $this->priority_id,
             'assigned_to' => $this->assigned_to,
             'sla_policy_id' => $this->sla_policy_id,
-            'tags' => $this->tags,
+            'tags' => array_values(array_filter(array_unique(array_map('trim', $this->tags)))),
+            'status' => $this->status ?: 'new',
         ];
 
-        $data['branch_id'] = auth()->user()?->branch_id ?? 1;
+        $user = auth()->user();
+        $branchId = $this->ticket?->branch_id ?? $user?->branch_id;
+
+        if (! $branchId && ! $user?->hasRole('Super Admin')) {
+            abort(403);
+        }
+
+        if ($this->ticket && $branchId && $this->ticket->branch_id !== $branchId && ! $user?->hasRole('Super Admin')) {
+            abort(403);
+        }
+
+        $data['branch_id'] = $branchId;
 
         if (! empty($this->due_date)) {
             $data['due_date'] = $this->due_date;
@@ -122,6 +140,12 @@ class TicketForm extends Component
                 'status' => 'required|in:new,open,pending,resolved,closed',
                 'category_id' => 'required|exists:ticket_categories,id',
                 'priority_id' => 'required|exists:ticket_priorities,id',
+                'customer_id' => 'nullable|exists:customers,id',
+                'assigned_to' => 'nullable|exists:users,id',
+                'sla_policy_id' => 'nullable|exists:ticket_sla_policies,id',
+                'tags' => 'array',
+                'tags.*' => 'string|max:50',
+                'due_date' => 'nullable|date_format:Y-m-d\TH:i',
             ]);
 
             $data['status'] = $this->status;
@@ -135,6 +159,13 @@ class TicketForm extends Component
                 'description' => 'required|string',
                 'category_id' => 'required|exists:ticket_categories,id',
                 'priority_id' => 'required|exists:ticket_priorities,id',
+                'customer_id' => 'nullable|exists:customers,id',
+                'assigned_to' => 'nullable|exists:users,id',
+                'sla_policy_id' => 'nullable|exists:ticket_sla_policies,id',
+                'tags' => 'array',
+                'tags.*' => 'string|max:50',
+                'due_date' => 'nullable|date_format:Y-m-d\TH:i',
+                'status' => 'required|in:new,open,pending,resolved,closed',
             ]);
 
             $this->ticket = $this->helpdeskService->createTicket($data);
@@ -147,7 +178,13 @@ class TicketForm extends Component
 
     public function render()
     {
-        $customers = Customer::orderBy('name')->get();
+        $user = auth()->user();
+        $branchId = $user?->branch_id;
+
+        $customers = Customer::query()
+            ->when(! $user?->hasRole('Super Admin') && $branchId, fn ($q) => $q->where('branch_id', $branchId))
+            ->orderBy('name')
+            ->get();
         $categories = TicketCategory::active()->ordered()->get();
         $priorities = TicketPriority::active()->ordered()->get();
         $slaPolicies = TicketSLAPolicy::active()->get();
@@ -155,7 +192,10 @@ class TicketForm extends Component
             $query->where('name', 'like', '%agent%')
                 ->orWhere('name', 'like', '%support%')
                 ->orWhere('name', 'Super Admin');
-        })->get();
+        })
+            ->when(! $user?->hasRole('Super Admin') && $branchId, fn ($q) => $q->where('branch_id', $branchId))
+            ->where('is_active', true)
+            ->get();
 
         return view('livewire.helpdesk.ticket-form', [
             'customers' => $customers,

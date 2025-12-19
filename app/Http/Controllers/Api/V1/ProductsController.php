@@ -130,6 +130,12 @@ class ProductsController extends BaseApiController
 
     public function store(Request $request): JsonResponse
     {
+        $store = $this->getStore($request);
+
+        if (! $store || ! $store->branch_id) {
+            return $this->errorResponse(__('Store authentication required'), 401);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'sku' => 'required|string|max:100|unique:products,sku',
@@ -145,8 +151,7 @@ class ProductsController extends BaseApiController
             'external_id' => 'nullable|string|max:100',
         ]);
 
-        $store = $this->getStore($request);
-        $validated['branch_id'] = $store?->branch_id;
+        $validated['branch_id'] = $store->branch_id;
 
         // Map API fields to database columns
         $validated['default_price'] = $validated['price'];
@@ -176,8 +181,12 @@ class ProductsController extends BaseApiController
     {
         $store = $this->getStore($request);
 
+        if (! $store || ! $store->branch_id) {
+            return $this->errorResponse(__('Store authentication required'), 401);
+        }
+
         $product = Product::query()
-            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
+            ->when($store->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
             ->find($id);
 
         if (! $product) {

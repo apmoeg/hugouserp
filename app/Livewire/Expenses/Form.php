@@ -48,7 +48,7 @@ class Form extends Component
             'amount' => 'required|numeric|min:0',
             'payment_method' => 'nullable|string|max:50',
             'description' => 'nullable|string',
-            'attachment' => 'nullable|file|max:5120',
+            'attachment' => 'nullable|file|max:5120|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx,csv,ppt,pptx',
             'is_recurring' => 'boolean',
             'recurrence_interval' => 'nullable|string|max:50',
         ];
@@ -58,24 +58,48 @@ class Form extends Component
     {
         $this->authorize('expenses.manage');
 
+        $user = auth()->user();
+
         $this->expense_date = now()->format('Y-m-d');
 
         if ($expense && $expense->exists) {
+            if ($user?->branch_id && $expense->branch_id !== $user->branch_id && ! $user->hasRole('Super Admin')) {
+                abort(403);
+            }
             $this->expense = $expense;
             $this->editMode = true;
-            $this->fill($expense->toArray());
+            $data = $expense->toArray();
+            unset($data['category_id']);
+            $this->fill($data);
             $this->expense_date = $expense->expense_date->format('Y-m-d');
+            $this->category_id = (string) ($expense->category_id ?? '');
+            $this->reference_number = $expense->reference_number ?? '';
+            $this->payment_method = $expense->payment_method ?? '';
+            $this->description = $expense->description ?? '';
+            $this->recurrence_interval = $expense->recurrence_interval ?? '';
         }
     }
 
     public function save(): void
     {
         $validated = $this->validate();
-        $validated['branch_id'] = auth()->user()->branches()->first()?->id;
+        $user = auth()->user();
+        $branchId = $this->expense?->branch_id ?? $user?->branch_id ?? $user?->branches()->first()?->id;
+
+        if (! $branchId && ! $user?->hasRole('Super Admin')) {
+            abort(403);
+        }
+
+        if ($this->expense && $branchId && $this->expense->branch_id !== $branchId && ! $user?->hasRole('Super Admin')) {
+            abort(403);
+        }
+
+        $validated['branch_id'] = $branchId;
+        $validated['reference_number'] = $validated['reference_number'] ?? 'EXP-'.now()->format('YmdHis').'-'.uniqid();
         $validated['created_by'] = auth()->id();
 
         if ($this->attachment) {
-            $validated['attachment'] = $this->attachment->store('expenses', 'public');
+            $validated['attachment'] = $this->attachment->store('expenses', 'local');
         }
 
         $this->handleOperation(
