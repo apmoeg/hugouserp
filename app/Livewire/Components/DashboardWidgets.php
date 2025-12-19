@@ -10,6 +10,7 @@ use App\Models\Sale;
 use App\Models\UserDashboardWidget;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class DashboardWidgets extends Component
@@ -77,14 +78,23 @@ class DashboardWidgets extends Component
             }
 
             return [
-                'total_sales_today' => $salesQuery->whereDate('created_at', today())->sum('grand_total') ?? 0,
-                'total_sales_week' => $salesQuery->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->sum('grand_total') ?? 0,
-                'total_sales_month' => $salesQuery->whereMonth('created_at', now()->month)->sum('grand_total') ?? 0,
-                'total_revenue_month' => $salesQuery->whereMonth('created_at', now()->month)->where('status', 'completed')->sum('grand_total') ?? 0,
-                'total_products' => $productsQuery->count(),
-                'active_products' => $productsQuery->where('is_active', true)->count(),
-                'total_customers' => $customersQuery->count(),
-                'new_customers_month' => $customersQuery->whereMonth('created_at', now()->month)->count(),
+                'total_sales_today' => (clone $salesQuery)
+                    ->whereDate('created_at', today())
+                    ->sum('grand_total') ?? 0,
+                'total_sales_week' => (clone $salesQuery)
+                    ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
+                    ->sum('grand_total') ?? 0,
+                'total_sales_month' => (clone $salesQuery)
+                    ->whereMonth('created_at', now()->month)
+                    ->sum('grand_total') ?? 0,
+                'total_revenue_month' => (clone $salesQuery)
+                    ->whereMonth('created_at', now()->month)
+                    ->where('status', 'completed')
+                    ->sum('grand_total') ?? 0,
+                'total_products' => (clone $productsQuery)->count(),
+                'active_products' => (clone $productsQuery)->where('is_active', true)->count(),
+                'total_customers' => (clone $customersQuery)->count(),
+                'new_customers_month' => (clone $customersQuery)->whereMonth('created_at', now()->month)->count(),
                 // Use indexed query with proper joins for better performance
                 'low_stock_count' => DB::table('products')
                     ->leftJoin('stock_movements', 'stock_movements.product_id', '=', 'products.id')
