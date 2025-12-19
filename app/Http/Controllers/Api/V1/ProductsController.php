@@ -77,10 +77,13 @@ class ProductsController extends BaseApiController
         $validated = $request->validate([
             'sort_by' => 'sometimes|string|in:created_at,id,name,sku,default_price',
             'sort_dir' => 'sometimes|string|in:asc,desc',
+            'per_page' => 'sometimes|integer|min:1|max:100',
         ]);
 
         $sortBy = $validated['sort_by'] ?? 'created_at';
         $sortDir = $validated['sort_dir'] ?? 'desc';
+        // Clamp per_page to a maximum of 100 to prevent DoS via large requests
+        $perPage = min((int) ($validated['per_page'] ?? 50), 100);
 
         $query = Product::query()
             ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
@@ -96,7 +99,7 @@ class ProductsController extends BaseApiController
             )
             ->orderBy($sortBy, $sortDir);
 
-        $products = $query->paginate($request->get('per_page', 50));
+        $products = $query->paginate($perPage);
 
         return $this->paginatedResponse($products, __('Products retrieved successfully'));
     }
@@ -151,8 +154,6 @@ class ProductsController extends BaseApiController
             'external_id' => 'nullable|string|max:100',
         ]);
 
-        $validated['branch_id'] = $store->branch_id;
-
         // Map API fields to database columns
         $validated['default_price'] = $validated['price'];
         unset($validated['price']);
@@ -162,7 +163,11 @@ class ProductsController extends BaseApiController
             unset($validated['cost_price']);
         }
 
-        $product = Product::create($validated);
+        // Create product and explicitly set guarded fields
+        $product = new Product($validated);
+        $product->branch_id = $store->branch_id;
+        $product->created_by = auth()->id();
+        $product->save();
 
         if ($store && $request->filled('external_id')) {
             ProductStoreMapping::create([
@@ -218,7 +223,9 @@ class ProductsController extends BaseApiController
             unset($validated['cost_price']);
         }
 
-        $product->update($validated);
+        $product->fill($validated);
+        $product->updated_by = auth()->id();
+        $product->save();
 
         return $this->successResponse($product, __('Product updated successfully'));
     }

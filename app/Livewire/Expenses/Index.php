@@ -7,6 +7,7 @@ namespace App\Livewire\Expenses;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Traits\HasExport;
+use App\Traits\HasSortableColumns;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -15,6 +16,7 @@ class Index extends Component
 {
     use AuthorizesRequests;
     use HasExport;
+    use HasSortableColumns;
     use WithPagination;
 
     public string $search = '';
@@ -25,11 +27,23 @@ class Index extends Component
 
     public string $dateTo = '';
 
-    public string $sortField = 'expense_date';
-
-    public string $sortDirection = 'desc';
-
     protected $queryString = ['search', 'categoryId'];
+
+    /**
+     * Define allowed sort columns to prevent SQL injection.
+     */
+    protected function allowedSortColumns(): array
+    {
+        return ['id', 'expense_date', 'amount', 'description', 'reference_number', 'created_at', 'updated_at'];
+    }
+
+    /**
+     * Get the default sort column for expenses.
+     */
+    protected function defaultSortColumn(): string
+    {
+        return 'expense_date';
+    }
 
     public function mount(): void
     {
@@ -41,16 +55,6 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function sortBy(string $field): void
-    {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortField = $field;
-            $this->sortDirection = 'asc';
-        }
-    }
-
     public function delete(int $id): void
     {
         $this->authorize('expenses.manage');
@@ -60,6 +64,9 @@ class Index extends Component
 
     public function export()
     {
+        $sortField = $this->getSortField();
+        $sortDirection = $this->getSortDirection();
+
         $data = Expense::query()
             ->leftJoin('expense_categories', 'expenses.category_id', '=', 'expense_categories.id')
             ->leftJoin('branches', 'expenses.branch_id', '=', 'branches.id')
@@ -68,7 +75,7 @@ class Index extends Component
             ->when($this->categoryId, fn ($q) => $q->where('expenses.category_id', $this->categoryId))
             ->when($this->dateFrom, fn ($q) => $q->whereDate('expenses.expense_date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn ($q) => $q->whereDate('expenses.expense_date', '<=', $this->dateTo))
-            ->orderBy('expenses.'.$this->sortField, $this->sortDirection)
+            ->orderBy('expenses.'.$sortField, $sortDirection)
             ->select([
                 'expenses.id',
                 'expenses.expense_date',
@@ -93,7 +100,7 @@ class Index extends Component
             ->when($this->categoryId, fn ($q) => $q->where('category_id', $this->categoryId))
             ->when($this->dateFrom, fn ($q) => $q->whereDate('expense_date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn ($q) => $q->whereDate('expense_date', '<=', $this->dateTo))
-            ->orderBy($this->sortField, $this->sortDirection)
+            ->orderBy($this->getSortField(), $this->getSortDirection())
             ->paginate(15);
 
         $categories = ExpenseCategory::active()->get();

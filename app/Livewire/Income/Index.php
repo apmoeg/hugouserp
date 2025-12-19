@@ -6,6 +6,7 @@ namespace App\Livewire\Income;
 
 use App\Models\Income;
 use App\Models\IncomeCategory;
+use App\Traits\HasSortableColumns;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
@@ -16,6 +17,7 @@ use Livewire\WithPagination;
 class Index extends Component
 {
     use AuthorizesRequests;
+    use HasSortableColumns;
     use WithPagination;
 
     #[Url]
@@ -35,23 +37,25 @@ class Index extends Component
     #[Url]
     public string $dateTo = '';
 
-    public string $sortField = 'income_date';
+    /**
+     * Define allowed sort columns to prevent SQL injection.
+     */
+    protected function allowedSortColumns(): array
+    {
+        return ['id', 'income_date', 'amount', 'description', 'reference_number', 'created_at', 'updated_at'];
+    }
 
-    public string $sortDirection = 'desc';
+    /**
+     * Get the default sort column for income.
+     */
+    protected function defaultSortColumn(): string
+    {
+        return 'income_date';
+    }
 
     public function updatingSearch(): void
     {
         $this->resetPage();
-    }
-
-    public function sortBy(string $field): void
-    {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortField = $field;
-            $this->sortDirection = 'asc';
-        }
     }
 
     public function delete(int $id): void
@@ -68,23 +72,22 @@ class Index extends Component
         $cacheKey = 'income_stats_'.($user?->branch_id ?? 'all');
 
         return Cache::remember($cacheKey, 300, function () use ($user) {
-            $query = Income::query();
-
-            if ($user && $user->branch_id) {
-                $query->where('branch_id', $user->branch_id);
-            }
-
-            $thisMonth = Income::query()
+            // Use a single query with conditional aggregations to optimize DB queries
+            $stats = Income::query()
                 ->when($user && $user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))
-                ->whereMonth('income_date', now()->month)
-                ->whereYear('income_date', now()->year)
-                ->sum('amount');
+                ->selectRaw('
+                    COUNT(*) as total_count,
+                    COALESCE(SUM(amount), 0) as total_amount,
+                    CASE WHEN COUNT(*) > 0 THEN AVG(amount) ELSE 0 END as avg_amount,
+                    COALESCE(SUM(CASE WHEN MONTH(income_date) = ? AND YEAR(income_date) = ? THEN amount ELSE 0 END), 0) as this_month
+                ', [now()->month, now()->year])
+                ->first();
 
             return [
-                'total_count' => $query->count(),
-                'total_amount' => $query->sum('amount'),
-                'this_month' => $thisMonth,
-                'avg_amount' => $query->count() > 0 ? $query->avg('amount') : 0,
+                'total_count' => $stats->total_count ?? 0,
+                'total_amount' => $stats->total_amount ?? 0,
+                'this_month' => $stats->this_month ?? 0,
+                'avg_amount' => $stats->avg_amount ?? 0,
             ];
         });
     }
@@ -104,7 +107,7 @@ class Index extends Component
             ->when($this->categoryId, fn ($q) => $q->where('category_id', $this->categoryId))
             ->when($this->dateFrom, fn ($q) => $q->whereDate('income_date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn ($q) => $q->whereDate('income_date', '<=', $this->dateTo))
-            ->orderBy($this->sortField, $this->sortDirection)
+            ->orderBy($this->getSortField(), $this->getSortDirection())
             ->paginate(15);
 
         $categories = Cache::remember('income_categories', 600, fn () => IncomeCategory::all());

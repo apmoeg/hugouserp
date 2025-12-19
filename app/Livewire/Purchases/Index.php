@@ -6,6 +6,7 @@ namespace App\Livewire\Purchases;
 
 use App\Models\Purchase;
 use App\Traits\HasExport;
+use App\Traits\HasSortableColumns;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
@@ -17,6 +18,7 @@ class Index extends Component
 {
     use AuthorizesRequests;
     use HasExport;
+    use HasSortableColumns;
     use WithPagination;
 
     #[Url]
@@ -37,23 +39,17 @@ class Index extends Component
     #[Url]
     public string $dateTo = '';
 
-    public string $sortField = 'created_at';
-
-    public string $sortDirection = 'desc';
+    /**
+     * Define allowed sort columns to prevent SQL injection.
+     */
+    protected function allowedSortColumns(): array
+    {
+        return ['id', 'code', 'reference_no', 'grand_total', 'paid_total', 'due_total', 'status', 'created_at', 'updated_at'];
+    }
 
     public function updatingSearch(): void
     {
         $this->resetPage();
-    }
-
-    public function sortBy(string $field): void
-    {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortField = $field;
-            $this->sortDirection = 'asc';
-        }
     }
 
     public function getStatistics(): array
@@ -80,6 +76,8 @@ class Index extends Component
     public function export()
     {
         $user = auth()->user();
+        $sortField = $this->getSortField();
+        $sortDirection = $this->getSortDirection();
 
         $data = Purchase::query()
             ->leftJoin('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
@@ -93,7 +91,7 @@ class Index extends Component
             ->when($this->status, fn ($q) => $q->where('purchases.status', $this->status))
             ->when($this->dateFrom, fn ($q) => $q->whereDate('purchases.created_at', '>=', $this->dateFrom))
             ->when($this->dateTo, fn ($q) => $q->whereDate('purchases.created_at', '<=', $this->dateTo))
-            ->orderBy('purchases.'.$this->sortField, $this->sortDirection)
+            ->orderBy('purchases.'.$sortField, $sortDirection)
             ->select([
                 'purchases.id',
                 'purchases.code as reference',
@@ -126,7 +124,7 @@ class Index extends Component
             ->when($this->status, fn ($q) => $q->where('status', $this->status))
             ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
             ->when($this->dateTo, fn ($q) => $q->whereDate('created_at', '<=', $this->dateTo))
-            ->orderBy($this->sortField, $this->sortDirection)
+            ->orderBy($this->getSortField(), $this->getSortDirection())
             ->paginate(15);
 
         $stats = $this->getStatistics();

@@ -6,21 +6,21 @@ namespace App\Livewire\Customers;
 
 use App\Models\Customer;
 use App\Traits\HasExport;
+use App\Traits\HasSortableColumns;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class Index extends Component
 {
+    use AuthorizesRequests;
     use HasExport;
+    use HasSortableColumns;
     use WithPagination;
 
     public string $search = '';
 
     public string $customerType = '';
-
-    public string $sortField = 'created_at';
-
-    public string $sortDirection = 'desc';
 
     public string $paginationMode = 'load-more';
 
@@ -35,6 +35,14 @@ class Index extends Component
     public bool $isSuperAdmin = false;
 
     protected $queryString = ['search', 'customerType'];
+
+    /**
+     * Define allowed sort columns to prevent SQL injection.
+     */
+    protected function allowedSortColumns(): array
+    {
+        return ['id', 'name', 'email', 'phone', 'balance', 'customer_type', 'created_at', 'updated_at'];
+    }
 
     public function mount(): void
     {
@@ -59,8 +67,16 @@ class Index extends Component
         $this->loadMorePage++;
     }
 
+    /**
+     * Override sortBy to also reset load more pagination.
+     */
     public function sortBy(string $field): void
     {
+        // Validate field is in allowed list
+        if (!in_array($field, $this->allowedSortColumns(), true)) {
+            return;
+        }
+
         if ($this->sortField === $field) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
@@ -97,7 +113,7 @@ class Index extends Component
                 });
             })
             ->when($this->customerType, fn ($q) => $q->where('customer_type', $this->customerType))
-            ->orderBy($this->sortField, $this->sortDirection);
+            ->orderBy($this->getSortField(), $this->getSortDirection());
 
         if ($this->paginationMode === 'load-more') {
             $total = (clone $query)->count();
@@ -127,7 +143,7 @@ class Index extends Component
                 });
             })
             ->when($this->customerType, fn ($q) => $q->where('customer_type', $this->customerType))
-            ->orderBy($this->sortField, $this->sortDirection)
+            ->orderBy($this->getSortField(), $this->getSortDirection())
             ->select(['id', 'name', 'email', 'phone', 'address', 'balance', 'created_at'])
             ->get();
 
