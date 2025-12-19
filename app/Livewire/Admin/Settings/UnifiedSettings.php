@@ -185,8 +185,10 @@ class UnifiedSettings extends Component
         $this->multi_branch = (bool) ($settings['system.multi_branch'] ?? false);
         $this->require_branch_selection = (bool) ($settings['system.require_branch_selection'] ?? true);
 
-        // Load security settings
-        $this->require_2fa = (bool) ($settings['security.require_2fa'] ?? false);
+        // Load security settings (supporting legacy key for backward compatibility)
+        $this->require_2fa = (bool) ($settings['security.2fa_required']
+            ?? $settings['security.require_2fa']
+            ?? false);
         $this->session_timeout = (int) ($settings['security.session_timeout'] ?? 120);
         $this->enable_audit_log = (bool) ($settings['security.enable_audit_log'] ?? true);
 
@@ -292,7 +294,9 @@ class UnifiedSettings extends Component
             'session_timeout' => 'required|integer|min:5|max:1440',
         ]);
 
-        $this->setSetting('security.require_2fa', $this->require_2fa, 'security');
+        // Normalize to the current key and remove the legacy one to avoid drift
+        SystemSetting::where('key', 'security.require_2fa')->delete();
+        $this->setSetting('security.2fa_required', $this->require_2fa, 'security');
         $this->setSetting('security.session_timeout', $this->session_timeout, 'security');
         $this->setSetting('security.enable_audit_log', $this->enable_audit_log, 'security');
 
