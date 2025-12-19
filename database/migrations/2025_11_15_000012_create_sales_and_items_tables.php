@@ -50,6 +50,7 @@ return new class extends Migration
 
             $table->index(['branch_id', 'customer_id', 'status'], 'sales_br_cust_stat_idx');
             $table->index('branch_id');
+            $table->unique(['branch_id', 'reference_no'], 'sales_branch_reference_unique');
         });
 
         Schema::create('sale_items', function (Blueprint $table) {

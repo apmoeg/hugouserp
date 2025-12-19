@@ -11,6 +11,8 @@ use App\Models\Sale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class OrdersController extends BaseApiController
 {
@@ -77,15 +79,23 @@ class OrdersController extends BaseApiController
             'discount' => 'nullable|numeric|min:0',
             'tax' => 'nullable|numeric|min:0',
             'shipping' => 'nullable|numeric|min:0',
-            'payment_method' => 'nullable|string|max:50',
             'notes' => 'nullable|string',
             'external_id' => 'nullable|string|max:100',
+            'warehouse_id' => 'nullable|integer|exists:warehouses,id',
         ]);
 
         $store = $this->getStore($request);
 
         try {
             $order = DB::transaction(function () use ($validated, $store) {
+                $branchId = $store?->branch_id ?? auth()->user()?->branch_id;
+
+                if (! $branchId) {
+                    throw ValidationException::withMessages([
+                        'branch_id' => [__('Branch is required for order creation.')],
+                    ]);
+                }
+
                 $customerId = $validated['customer_id'] ?? null;
 
                 if (! $customerId && isset($validated['customer'])) {
@@ -105,81 +115,106 @@ class OrdersController extends BaseApiController
                             'name' => $customerData['name'],
                             'email' => $customerData['email'] ?? null,
                             'phone' => $customerData['phone'] ?? null,
-                            'branch_id' => $store?->branch_id,
+                            'branch_id' => $branchId,
                         ]);
                     }
 
                     $customerId = $customer->id;
                 }
 
-                $subtotal = 0;
+                $warehouseId = $this->resolveWarehouseId($validated['warehouse_id'] ?? null, $branchId);
+
+                if (! $warehouseId) {
+                    throw ValidationException::withMessages([
+                        'warehouse_id' => [__('Warehouse is required for order creation.')],
+                    ]);
+                }
+
+                // Idempotency: reuse existing sale by external reference for the same branch
+                if (! empty($validated['external_id'])) {
+                    $existing = Sale::query()
+                        ->where('branch_id', $branchId)
+                        ->where('reference_no', $validated['external_id'])
+                        ->first();
+
+                    if ($existing) {
+                        return $existing->load(['customer', 'items.product']);
+                    }
+                }
+
+                $subTotal = 0;
+                $itemDiscountTotal = 0;
                 $itemsData = [];
 
                 foreach ($validated['items'] as $item) {
                     $product = null;
 
                     if (isset($item['product_id'])) {
-                        // Restrict product lookup to current store branch
-                        $query = Product::query();
-                        if ($store?->branch_id) {
-                            $query->where('branch_id', $store->branch_id);
-                        }
-                        $product = $query->find($item['product_id']);
+                        $product = Product::query()
+                            ->where('branch_id', $branchId)
+                            ->find($item['product_id']);
                     } elseif (isset($item['external_id']) && $store) {
                         $mapping = ProductStoreMapping::where('store_id', $store->id)
                             ->where('external_id', $item['external_id'])
                             ->first();
 
-                        if ($mapping) {
-                            // Verify product belongs to current branch
-                            if ($store->branch_id && $mapping->product->branch_id !== $store->branch_id) {
-                                $product = null;
-                            } else {
-                                $product = $mapping->product;
-                            }
+                        if ($mapping && $mapping->product->branch_id === $branchId) {
+                            $product = $mapping->product;
                         }
                     }
 
                     if (! $product) {
-                        throw new \Exception(__('Product not available for this branch').': '.($item['product_id'] ?? $item['external_id']));
+                        throw ValidationException::withMessages([
+                            'items' => [__('Product not available for this branch')],
+                        ]);
                     }
 
-                    // Support fractional quantities (e.g., 0.5 kg, 2.75 meters)
                     $lineSubtotal = (float) $item['price'] * (float) $item['quantity'];
                     $lineDiscount = max(0, (float) ($item['discount'] ?? 0));
                     $lineDiscount = min($lineDiscount, $lineSubtotal);
 
                     $lineTotal = $lineSubtotal - $lineDiscount;
-                    $subtotal += $lineTotal;
+                    $subTotal += $lineSubtotal;
+                    $itemDiscountTotal += $lineDiscount;
 
                     $itemsData[] = [
                         'product_id' => $product->id,
-                        'quantity' => $item['quantity'],
+                        'branch_id' => $branchId,
+                        'qty' => $item['quantity'],
                         'unit_price' => $item['price'],
                         'discount' => $lineDiscount,
-                        'total' => $lineTotal,
+                        'tax_rate' => 0,
+                        'line_total' => $lineTotal,
                     ];
                 }
 
-                $discount = max(0, (float) ($validated['discount'] ?? 0));
-                $discount = min($discount, $subtotal);
-                $tax = $validated['tax'] ?? 0;
-                $shipping = $validated['shipping'] ?? 0;
-                $total = $subtotal - $discount + $tax + $shipping;
+                $orderDiscount = max(0, (float) ($validated['discount'] ?? 0));
+                $orderDiscount = min($orderDiscount, max(0, $subTotal - $itemDiscountTotal));
+                $tax = max(0, (float) ($validated['tax'] ?? 0));
+                $shipping = max(0, (float) ($validated['shipping'] ?? 0));
+                $grandTotal = $subTotal - ($itemDiscountTotal + $orderDiscount) + $tax + $shipping;
 
                 $sale = Sale::create([
-                    'branch_id' => $store?->branch_id,
+                    'branch_id' => $branchId,
+                    'warehouse_id' => $warehouseId,
                     'customer_id' => $customerId,
-                    'user_id' => auth()->id(),
-                    'subtotal' => $subtotal,
-                    'discount' => $discount,
-                    'tax' => $tax,
-                    'total' => $total,
-                    'payment_method' => $validated['payment_method'] ?? 'online',
-                    'status' => 'pending',
+                    'status' => 'draft',
+                    'channel' => 'api',
+                    'sub_total' => $subTotal,
+                    'discount_total' => $itemDiscountTotal + $orderDiscount,
+                    'discount_type' => 'fixed',
+                    'discount_value' => $orderDiscount,
+                    'tax_total' => $tax,
+                    'shipping_total' => $shipping,
+                    'grand_total' => $grandTotal,
+                    'paid_total' => 0,
+                    'amount_paid' => 0,
+                    'due_total' => $grandTotal,
+                    'amount_due' => $grandTotal,
+                    'payment_status' => 'unpaid',
                     'notes' => $validated['notes'] ?? null,
-                    'source' => 'api',
-                    'external_reference' => $validated['external_id'] ?? null,
+                    'reference_no' => $validated['external_id'] ?? null,
+                    'created_by' => auth()->id(),
                 ]);
 
                 foreach ($itemsData as $itemData) {
@@ -190,15 +225,23 @@ class OrdersController extends BaseApiController
             });
 
             return $this->successResponse($order, __('Order created successfully'), 201);
-        } catch (\Exception $e) {
-            return $this->errorResponse($e->getMessage(), 400);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            Log::error('API order creation failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'store_id' => $store?->id,
+            ]);
+
+            return $this->errorResponse(__('Unable to create order at this time.'), 500);
         }
     }
 
     public function updateStatus(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
-            'status' => 'required|in:pending,processing,completed,cancelled,refunded',
+            'status' => 'required|in:draft,pending,processing,completed,cancelled,refunded',
         ]);
 
         $store = $this->getStore($request);
@@ -211,9 +254,39 @@ class OrdersController extends BaseApiController
             return $this->errorResponse(__('Order not found'), 404);
         }
 
-        $order->update(['status' => $validated['status']]);
+        $allowedTransitions = [
+            'draft' => ['pending', 'cancelled'],
+            'pending' => ['processing', 'cancelled'],
+            'processing' => ['completed', 'cancelled'],
+            'completed' => ['refunded'],
+            'cancelled' => [],
+            'refunded' => [],
+        ];
 
-        return $this->successResponse($order, __('Order status updated successfully'));
+        $current = $order->status ?? 'draft';
+        $next = $validated['status'];
+
+        if (! in_array($next, $allowedTransitions[$current] ?? [], true)) {
+            return $this->errorResponse(__('Invalid status transition'), 422);
+        }
+
+        if ($next === 'completed' && $order->due_total > 0) {
+            return $this->errorResponse(__('Cannot complete unpaid order'), 422);
+        }
+
+        DB::transaction(function () use ($order, $next) {
+            $order->status = $next;
+            // Align payment tracking fields
+            $order->payment_status = $order->paid_total >= $order->grand_total
+                ? 'paid'
+                : ($order->paid_total > 0 ? 'partial' : 'unpaid');
+            $order->amount_paid = $order->paid_total;
+            $order->amount_due = max(0, (float) $order->grand_total - (float) $order->paid_total);
+            $order->due_total = $order->amount_due;
+            $order->save();
+        });
+
+        return $this->successResponse($order->fresh(), __('Order status updated successfully'));
     }
 
     public function byExternalId(Request $request, string $externalId): JsonResponse
@@ -231,5 +304,31 @@ class OrdersController extends BaseApiController
         }
 
         return $this->successResponse($order, __('Order retrieved successfully'));
+    }
+
+    protected function resolveWarehouseId(?int $preferredId, ?int $branchId = null): ?int
+    {
+        if ($preferredId !== null) {
+            return $preferredId;
+        }
+
+        $defaultWarehouseId = setting('default_warehouse_id');
+        if ($defaultWarehouseId !== null) {
+            return (int) $defaultWarehouseId;
+        }
+
+        if ($branchId !== null) {
+            $branchWarehouse = \App\Models\Warehouse::where('branch_id', $branchId)
+                ->where('status', 'active')
+                ->first();
+
+            if ($branchWarehouse) {
+                return $branchWarehouse->id;
+            }
+        }
+
+        $firstWarehouse = \App\Models\Warehouse::where('status', 'active')->first();
+
+        return $firstWarehouse?->id;
     }
 }

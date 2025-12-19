@@ -6,6 +6,7 @@ namespace App\Livewire\Profile;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -83,8 +84,12 @@ class Edit extends Component
         $user = Auth::user();
 
         $this->validate([
-            'avatar' => ['required', 'image', 'max:2048'],
+            'avatar' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', 'max:2048'],
         ]);
+
+        if ($this->currentAvatar) {
+            Storage::disk('public')->delete($this->currentAvatar);
+        }
 
         $path = $this->avatar->store('avatars', 'public');
 
@@ -101,6 +106,10 @@ class Edit extends Component
     public function removeAvatar(): void
     {
         $user = Auth::user();
+
+        if ($this->currentAvatar) {
+            Storage::disk('public')->delete($this->currentAvatar);
+        }
 
         $user->update([
             'avatar' => null,

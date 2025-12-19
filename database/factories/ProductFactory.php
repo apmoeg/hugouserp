@@ -18,9 +18,10 @@ class ProductFactory extends Factory
             'name' => fake()->words(3, true),
             'sku' => fake()->unique()->lexify('SKU-????-####'),
             'barcode' => fake()->unique()->ean13(),
-            'price' => fake()->randomFloat(2, 10, 1000),
+            'default_price' => fake()->randomFloat(2, 10, 1000),
+            'standard_cost' => fake()->randomFloat(2, 5, 500),
             'cost' => fake()->randomFloat(2, 5, 500),
-            'quantity' => fake()->numberBetween(0, 100),
+            'stock_quantity' => fake()->numberBetween(0, 100),
             'min_stock' => fake()->numberBetween(5, 20),
             'max_stock' => fake()->numberBetween(50, 200),
             'reorder_point' => fake()->numberBetween(10, 30),
@@ -29,7 +30,7 @@ class ProductFactory extends Factory
             'status' => 'active',
             'type' => 'stock',
             'branch_id' => Branch::factory(),
-            'created_by' => 1,
+            'created_by' => null,
         ];
     }
 

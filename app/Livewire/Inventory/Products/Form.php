@@ -60,6 +60,10 @@ class Form extends Component
     
     public array $availableCurrencies = [];
 
+    public array $categories = [];
+
+    public array $units = [];
+
     protected ModuleProductService $moduleProductService;
     protected ProductService $productService;
 
@@ -75,10 +79,17 @@ class Form extends Component
 
         $user = Auth::user();
         $this->productId = $product;
-        $this->form['branch_id'] = (int) ($user?->branch_id ?? 1);
+        $this->form['branch_id'] = (int) ($user?->branch_id ?? 0);
+
+        if ($this->form['branch_id'] === 0) {
+            abort(403);
+        }
         
         // Load currencies once and cache in component property
         $this->availableCurrencies = Currency::active()->ordered()->get(['code', 'name', 'symbol'])->toArray();
+
+        $this->categories = \App\Models\ProductCategory::active()->orderBy('name')->get(['id', 'name'])->toArray();
+        $this->units = \App\Models\UnitOfMeasure::active()->orderBy('name')->get(['id', 'name', 'symbol'])->toArray();
         
         // Set default currency from base currency
         $baseCurrency = Currency::getBaseCurrency();
@@ -87,7 +98,13 @@ class Form extends Component
         $this->form['cost_currency'] = $defaultCurrency;
 
         if ($this->productId) {
-            $p = Product::with(['fieldValues.field'])->findOrFail($this->productId);
+            $p = Product::with(['fieldValues.field'])
+                ->where('branch_id', $this->form['branch_id'])
+                ->find($this->productId);
+
+            if (! $p) {
+                abort(403);
+            }
 
             $this->form['name'] = (string) $p->name;
             $this->form['sku'] = $p->sku ?? '';
@@ -223,7 +240,7 @@ class Form extends Component
             'form.cost_currency' => ['required', 'string', Rule::in($validCurrencies)],
             'form.status' => ['required', 'string', Rule::in(['active', 'inactive'])],
             'form.type' => ['required', 'string', Rule::in(['stock', 'service'])],
-            'form.branch_id' => ['required', 'integer'],
+            'form.branch_id' => ['required', 'integer', Rule::in([$this->form['branch_id']])],
             'form.module_id' => ['nullable', 'integer', 'exists:modules,id'],
             'form.category_id' => ['nullable', 'integer', 'exists:product_categories,id'],
             'form.unit_id' => ['nullable', 'integer', 'exists:units_of_measure,id'],
@@ -257,6 +274,12 @@ class Form extends Component
 
     public function save(): void
     {
+        $user = Auth::user();
+        $this->form['branch_id'] = (int) ($user?->branch_id ?? $this->form['branch_id']);
+        if ($this->form['branch_id'] === 0) {
+            abort(403);
+        }
+
         $this->validate();
 
         try {
@@ -284,7 +307,7 @@ class Form extends Component
 
             if ($this->productId) {
                 // Update existing product
-                $product = Product::findOrFail($this->productId);
+                $product = Product::where('branch_id', $this->form['branch_id'])->findOrFail($this->productId);
                 $this->productService->updateProductForModule(
                     $product,
                     $data,
@@ -362,8 +385,8 @@ class Form extends Component
         return view('livewire.inventory.products.form', [
             'modules' => $modules,
             'currencies' => $this->availableCurrencies,
-            'categories' => \App\Models\ProductCategory::active()->orderBy('name')->get(['id', 'name']),
-            'units' => \App\Models\UnitOfMeasure::active()->orderBy('name')->get(['id', 'name', 'symbol']),
+            'categories' => $this->categories,
+            'units' => $this->units,
         ]);
     }
 }

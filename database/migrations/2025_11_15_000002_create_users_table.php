@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('phone')->nullable()->comment('phone');
             $table->boolean('is_active')->default(true)->comment('is_active');
             $table->string('username')->nullable()->unique()->comment('username');
+            $table->string('avatar')->nullable()->comment('avatar');
             $table->string('locale', 10)->nullable()->comment('locale');
             $table->string('timezone')->nullable()->comment('timezone');
             $table->unsignedBigInteger('branch_id')->nullable(); // primaryBranch

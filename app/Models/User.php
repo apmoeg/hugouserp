@@ -52,6 +52,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         'two_factor_confirmed_at',
         'max_sessions',
         'password_changed_at',
+        'avatar',
     ];
 
     protected $hidden = [

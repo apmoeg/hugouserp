@@ -37,6 +37,7 @@ return new class extends Migration
             $table->unsignedBigInteger('tax_id')->nullable()->comment('tax_id');
             $table->unsignedBigInteger('price_list_id')->nullable()->comment('price_list_id');
             $table->decimal('default_price', 18, 4)->default(0)->comment('default_price');
+            $table->decimal('price', 18, 4)->default(0)->comment('price');
             $table->string('price_currency', 3)->nullable()->comment('price_currency');
             $table->decimal('min_stock', 18, 4)->default(0)->comment('min_stock');
             $table->decimal('reorder_point', 18, 4)->default(0)->comment('reorder_point');
