@@ -100,7 +100,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('document_id')->constrained('documents')->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->enum('action', ['created', 'viewed', 'downloaded', 'edited', 'shared', 'deleted', 'restored', 'version_created']);
+            $table->enum('action', ['created', 'viewed', 'downloaded', 'edited', 'shared', 'unshared', 'deleted', 'restored', 'version_created']);
             $table->text('description')->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->string('user_agent')->nullable();

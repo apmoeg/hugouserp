@@ -7,6 +7,7 @@ namespace App\Livewire\Purchases;
 use App\Models\Purchase;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 #[Layout('layouts.app')]
 class Show extends Component
@@ -15,18 +16,14 @@ class Show extends Component
 
     public function mount(Purchase $purchase): void
     {
-        $this->authorize('purchases.view');
         $user = auth()->user();
-        $branchId = $user?->branch_id;
-        $isSuperAdmin = (bool) $user?->hasRole('super-admin');
+        abort_if(!$user || !$user->can('purchases.view'), 403);
 
-        if (!$isSuperAdmin && !$branchId) {
-            abort(403, __('You must be assigned to a branch to view purchases.'));
-        }
+        $branchId = (int) $user->branch_id;
+        $isSuperAdmin = (bool) $user->hasRole('super-admin');
 
-        if (!$isSuperAdmin && $branchId !== $purchase->branch_id) {
-            abort(403);
-        }
+        throw_if(!$isSuperAdmin && !$branchId, new HttpException(403, __('You must be assigned to a branch to view purchases.')));
+        throw_if(!$isSuperAdmin && $branchId !== (int) $purchase->branch_id, new HttpException(403));
 
         $this->purchase = $purchase->load(['items.product', 'supplier', 'branch']);
     }
