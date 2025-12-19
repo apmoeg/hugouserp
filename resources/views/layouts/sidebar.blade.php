@@ -38,17 +38,29 @@
             return true;
         }
 
+        if (is_array($permission)) {
+            foreach ($permission as $perm) {
+                if ($perm && ! $user->can($perm)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         return $user->can($permission);
     };
 
     $mapNavItem = null;
     $mapNavItem = function (array $item) use (&$mapNavItem) {
+        $children = collect($item['children'] ?? [])->map($mapNavItem)->values()->all();
+
         return [
             'route' => $item['route'] ?? null,
             'icon' => $item['icon'] ?? '🧭',
             'label' => $item['label'] ?? __('Navigation'),
-            'permission' => null,
-            'children' => collect($item['children'] ?? [])->map($mapNavItem)->values()->all(),
+            'permission' => $item['permissions'] ?? ($item['permission'] ?? null),
+            'children' => $children,
         ];
     };
 

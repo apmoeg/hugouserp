@@ -103,20 +103,55 @@ class SystemSettings extends Component
 
     public function save(): void
     {
+        $user = Auth::user();
+        if (! $user || ! $user->can('settings.update')) {
+            abort(403);
+        }
+
+        $this->resetErrorBag();
+
         // validation خفيفة: لازم key + value على الأقل
         $clean = [];
-        foreach ($this->rows as $row) {
+        $seenKeys = [];
+        foreach ($this->rows as $index => $row) {
             $key = trim((string) ($row['key'] ?? ''));
-            if ($key === '') {
+            $value = (string) ($row['value'] ?? '');
+            $group = trim((string) ($row['group'] ?? ''));
+            $isPublic = (bool) ($row['is_public'] ?? false);
+
+            // Allow skipping completely empty rows
+            if ($key === '' && $value === '' && $group === '' && $isPublic === false) {
                 continue;
             }
+
+            if ($key === '') {
+                $this->addError("rows.$index.key", __('A key is required.'));
+                continue;
+            }
+
+            if (mb_strlen($key) > 191) {
+                $this->addError("rows.$index.key", __('Keys must be 191 characters or fewer.'));
+                continue;
+            }
+
+            if (isset($seenKeys[$key])) {
+                $this->addError("rows.$index.key", __('Duplicate setting key.'));
+                continue;
+            }
+
+            $seenKeys[$key] = true;
+
             $clean[] = [
                 'id' => isset($row['id']) ? (int) $row['id'] : null,
                 'key' => $key,
-                'value' => (string) ($row['value'] ?? ''),
-                'group' => $row['group'] !== '' ? $row['group'] : null,
-                'is_public' => (bool) ($row['is_public'] ?? false),
+                'value' => $value,
+                'group' => $group !== '' ? $group : null,
+                'is_public' => $isPublic,
             ];
+        }
+
+        if ($this->getErrorBag()->isNotEmpty()) {
+            return;
         }
 
         // نقرأ الإعدادات القديمة عشان نقدر نسجل الـ changes في الـ audit log

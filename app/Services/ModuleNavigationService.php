@@ -71,6 +71,8 @@ class ModuleNavigationService
             'label' => $item->localized_label,
             'route' => $item->route_name,
             'icon' => $item->icon,
+            'permission' => $item->required_permissions[0] ?? null,
+            'permissions' => $item->required_permissions ?? [],
             'module_id' => $item->module_id,
             'module_key' => $item->module?->key,
             'children' => [],

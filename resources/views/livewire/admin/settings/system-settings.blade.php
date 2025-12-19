@@ -38,6 +38,12 @@
                 <div class="px-4 py-3">
                     <form wire:submit.prevent="save" class="space-y-3">
 
+                        @if($errors->any())
+                            <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 shadow-sm dark:border-red-700/70 dark:bg-red-900/40 dark:text-red-50">
+                                {{ __('Please fix the highlighted setting keys before saving.') }}
+                            </div>
+                        @endif
+
                         <div class="border border-slate-200/70 dark:border-slate-700/70 rounded-xl overflow-hidden bg-white/80 dark:bg-slate-900/80">
                             <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700 text-xs sm:text-sm">
                                 <thead class="bg-slate-50/90 dark:bg-slate-800/70">
@@ -67,6 +73,9 @@
                                                        wire:model="rows.{{ $index }}.key"
                                                        placeholder="app.locale"
                                                        class="w-full rounded-md border border-slate-200/80 dark:border-slate-700/70 bg-white/80 dark:bg-slate-900/80 px-2 py-1 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500">
+                                                @error("rows.$index.key")
+                                                    <p class="mt-1 text-[11px] font-medium text-red-600 dark:text-red-300">{{ $message }}</p>
+                                                @enderror
                                             </td>
                                             <td class="px-3 py-2 align-top">
                                                 <input type="text"
