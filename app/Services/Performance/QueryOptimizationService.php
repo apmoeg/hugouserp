@@ -6,6 +6,7 @@ namespace App\Services\Performance;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 /**
  * QueryOptimizationService - Advanced Query Performance Optimization
@@ -100,14 +101,21 @@ class QueryOptimizationService
      */
     public function suggestIndexes(string $tableName): array
     {
+        $this->assertValidIdentifier($tableName);
+
+        if (DB::getDriverName() !== 'mysql') {
+            throw new InvalidArgumentException('Index suggestions are only supported on MySQL-compatible drivers.');
+        }
+
+        $wrappedTable = DB::getQueryGrammar()->wrapTable($tableName);
         $recommendations = [];
 
         // Get existing indexes
-        $existingIndexes = DB::select("SHOW INDEXES FROM {$tableName}");
+        $existingIndexes = DB::select("SHOW INDEXES FROM {$wrappedTable}");
         $indexedColumns = array_column($existingIndexes, 'Column_name');
 
         // Get table columns
-        $columns = DB::select("SHOW COLUMNS FROM {$tableName}");
+        $columns = DB::select("SHOW COLUMNS FROM {$wrappedTable}");
 
         foreach ($columns as $column) {
             $columnName = $column->Field;
@@ -159,8 +167,17 @@ class QueryOptimizationService
     public function optimizeTable(string $tableName): array
     {
         try {
-            DB::statement("OPTIMIZE TABLE {$tableName}");
-            
+            $this->assertValidIdentifier($tableName);
+
+            $table = DB::getQueryGrammar()->wrapTable($tableName);
+            $optimizeStatement = match (DB::getDriverName()) {
+                'pgsql' => "ANALYZE VERBOSE {$table}",
+                'sqlite' => "ANALYZE {$table}",
+                default => "OPTIMIZE TABLE {$table}",
+            };
+
+            DB::statement($optimizeStatement);
+
             return [
                 'success' => true,
                 'table' => $tableName,
@@ -185,8 +202,12 @@ class QueryOptimizationService
     public function explainQuery(string $query): array
     {
         try {
-            $explainResults = DB::select("EXPLAIN {$query}");
-            
+            $trimmedQuery = trim($query);
+            $this->assertExplainableQuery($trimmedQuery);
+
+            $keyword = DB::getDriverName() === 'sqlite' ? 'EXPLAIN QUERY PLAN' : 'EXPLAIN';
+            $explainResults = DB::select("{$keyword} {$trimmedQuery}");
+
             return [
                 'success' => true,
                 'plan' => $explainResults,
@@ -243,6 +264,36 @@ class QueryOptimizationService
         }
 
         return $recommendations;
+    }
+
+    /**
+     * Validate table or schema.table identifier to avoid SQL injection.
+     */
+    protected function assertValidIdentifier(string $identifier): void
+    {
+        if (! preg_match('/^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$/', $identifier)) {
+            throw new InvalidArgumentException('Invalid table name provided for optimization.');
+        }
+    }
+
+    /**
+     * Ensure the query passed to EXPLAIN is a single data statement without stacked statements.
+     */
+    protected function assertExplainableQuery(string &$query): void
+    {
+        $query = rtrim($query, ';');
+
+        if ($query === '') {
+            throw new InvalidArgumentException('Query cannot be empty.');
+        }
+
+        if (str_contains($query, ';')) {
+            throw new InvalidArgumentException('Multiple statements are not allowed in EXPLAIN.');
+        }
+
+        if (! preg_match('/^(select|insert|update|delete)\s/i', $query)) {
+            throw new InvalidArgumentException('Only SELECT/INSERT/UPDATE/DELETE statements can be explained.');
+        }
     }
 
     /**
