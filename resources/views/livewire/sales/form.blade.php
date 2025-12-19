@@ -234,7 +234,10 @@
 
         <div class="flex justify-end gap-3">
             <a href="{{ route('app.sales.index') }}" class="erp-btn erp-btn-secondary">{{ __('Cancel') }}</a>
-            <button type="submit" class="erp-btn erp-btn-primary">{{ $editMode ? __('Update Sale') : __('Create Sale') }}</button>
+            <button type="submit" class="erp-btn erp-btn-primary" wire:loading.attr="disabled" wire:target="save">
+                <span wire:loading.remove wire:target="save">{{ $editMode ? __('Update Sale') : __('Create Sale') }}</span>
+                <span wire:loading wire:target="save">{{ __('Processing...') }}</span>
+            </button>
         </div>
     </form>
 </div>

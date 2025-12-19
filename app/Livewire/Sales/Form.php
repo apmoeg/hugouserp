@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Sales;
 
+use App\Events\SaleCompleted;
 use App\Livewire\Concerns\HandlesErrors;
 use App\Models\Customer;
 use App\Models\Product;
@@ -13,6 +14,7 @@ use App\Models\SalePayment;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class Form extends Component
@@ -60,11 +62,62 @@ class Form extends Component
 
     public float $payment_amount = 0;
 
+    public bool $isSubmitting = false;
+
+    /**
+     * Get the user's branch ID with strict validation.
+     * Returns null if user has no branch assigned.
+     */
+    protected function getUserBranchId(): ?int
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return null;
+        }
+
+        // First check direct branch_id assignment
+        if ($user->branch_id) {
+            return (int) $user->branch_id;
+        }
+
+        // Then check branches relationship
+        $firstBranch = $user->branches()->first();
+        if ($firstBranch) {
+            return (int) $firstBranch->id;
+        }
+
+        return null;
+    }
+
     protected function rules(): array
     {
+        $branchId = $this->getUserBranchId();
+
         return [
-            'customer_id' => 'nullable|exists:customers,id',
-            'warehouse_id' => 'nullable|exists:warehouses,id',
+            'customer_id' => [
+                'nullable',
+                'exists:customers,id',
+                function ($attribute, $value, $fail) use ($branchId) {
+                    if ($value && $branchId) {
+                        $customer = Customer::find($value);
+                        if ($customer && $customer->branch_id && $customer->branch_id !== $branchId) {
+                            $fail(__('The selected customer does not belong to your branch.'));
+                        }
+                    }
+                },
+            ],
+            'warehouse_id' => [
+                'nullable',
+                'exists:warehouses,id',
+                function ($attribute, $value, $fail) use ($branchId) {
+                    if ($value && $branchId) {
+                        $warehouse = Warehouse::find($value);
+                        if ($warehouse && $warehouse->branch_id && $warehouse->branch_id !== $branchId) {
+                            $fail(__('The selected warehouse does not belong to your branch.'));
+                        }
+                    }
+                },
+            ],
             'reference_no' => 'nullable|string|max:100',
             'status' => 'required|in:draft,pending,completed,cancelled,refunded',
             'currency' => 'nullable|string|max:3',
@@ -81,7 +134,16 @@ class Form extends Component
             'items.*.qty' => 'required|numeric|min:0.0001',
             'items.*.unit_price' => 'required|numeric|min:0',
             'payment_method' => 'required|string|in:cash,card,bank_transfer,cheque',
-            'payment_amount' => 'required|numeric|min:0',
+            'payment_amount' => [
+                'required',
+                'numeric',
+                'min:0',
+                function ($attribute, $value, $fail) {
+                    if ($value > $this->grandTotal) {
+                        $fail(__('Payment amount cannot exceed the grand total.'));
+                    }
+                },
+            ],
         ];
     }
 
@@ -89,7 +151,18 @@ class Form extends Component
     {
         $this->authorize('sales.manage');
 
+        // BUG-001 Fix: Validate user has a branch assigned
+        $branchId = $this->getUserBranchId();
+        if (! $branchId) {
+            abort(403, __('You must be assigned to a branch to create or edit sales.'));
+        }
+
         if ($sale && $sale->exists) {
+            // BUG-001 Fix: Verify sale belongs to user's branch
+            if ($sale->branch_id !== $branchId) {
+                abort(403, __('You do not have permission to edit this sale.'));
+            }
+
             $this->sale = $sale;
             $this->editMode = true;
             $this->customer_id = (string) ($sale->customer_id ?? '');
@@ -133,12 +206,25 @@ class Form extends Component
             return;
         }
 
-        $this->searchResults = Product::query()
+        $branchId = $this->getUserBranchId();
+
+        // BUG-003 Fix: Filter products by branch
+        $query = Product::query()
             ->where(function ($q) {
                 $q->where('name', 'like', "%{$this->productSearch}%")
                     ->orWhere('sku', 'like', "%{$this->productSearch}%");
             })
-            ->where('status', 'active')
+            ->where('status', 'active');
+
+        // Filter by branch if user has one
+        if ($branchId) {
+            $query->where(function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId)
+                    ->orWhereNull('branch_id');
+            });
+        }
+
+        $this->searchResults = $query
             ->limit(10)
             ->get(['id', 'name', 'sku', 'default_price'])
             ->toArray();
@@ -146,7 +232,18 @@ class Form extends Component
 
     public function addProduct(int $productId): void
     {
-        $product = Product::find($productId);
+        $branchId = $this->getUserBranchId();
+
+        // BUG-003 Fix: Validate product belongs to user's branch
+        $query = Product::query()->where('id', $productId);
+        if ($branchId) {
+            $query->where(function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId)
+                    ->orWhereNull('branch_id');
+            });
+        }
+
+        $product = $query->first();
         if (! $product) {
             return;
         }
@@ -201,84 +298,143 @@ class Form extends Component
 
     public function save(): void
     {
-        $this->validate();
+        // BUG-010 Fix: Prevent double submission
+        if ($this->isSubmitting) {
+            return;
+        }
+        $this->isSubmitting = true;
 
-        $user = auth()->user();
+        try {
+            $this->validate();
 
-        $this->handleOperation(
-            operation: function () use ($user) {
-                DB::transaction(function () use ($user) {
-                    $saleData = [
-                        'branch_id' => $user->branch_id ?? $user->branches()->first()?->id ?? 1,
-                        'customer_id' => $this->customer_id ?: null,
-                        'warehouse_id' => $this->warehouse_id ?: null,
-                        'reference_no' => $this->reference_no,
-                        'status' => $this->status,
-                        'currency' => $this->currency,
-                        'notes' => $this->notes,
-                        'customer_notes' => $this->customer_notes,
-                        'internal_notes' => $this->internal_notes,
-                        'delivery_date' => $this->delivery_date ?: null,
-                        'shipping_method' => $this->shipping_method,
-                        'tracking_number' => $this->tracking_number,
-                        'sub_total' => $this->subTotal,
-                        'discount_total' => $this->discount_total,
-                        'tax_total' => $this->taxTotal,
-                        'shipping_total' => $this->shipping_total,
-                        'grand_total' => $this->grandTotal,
-                        'paid_total' => $this->payment_amount,
-                        'due_total' => $this->grandTotal - $this->payment_amount,
-                        'updated_by' => $user->id,
-                    ];
+            $user = auth()->user();
 
-                    if ($this->editMode) {
-                        $this->sale->update($saleData);
-                        $sale = $this->sale;
-                        $sale->items()->delete();
-                        $sale->payments()->delete();
-                    } else {
-                        $saleData['created_by'] = $user->id;
-                        $sale = Sale::create($saleData);
-                    }
+            // BUG-001 Fix: Strict branch validation
+            $branchId = $this->getUserBranchId();
+            if (! $branchId) {
+                throw ValidationException::withMessages([
+                    'branch' => [__('You must be assigned to a branch to create or edit sales.')],
+                ]);
+            }
 
-                    foreach ($this->items as $item) {
-                        $lineTotal = ($item['qty'] * $item['unit_price']) - ($item['discount'] ?? 0);
-                        $lineTotal += $lineTotal * (($item['tax_rate'] ?? 0) / 100);
+            $this->handleOperation(
+                operation: function () use ($user, $branchId) {
+                    DB::transaction(function () use ($user, $branchId) {
+                        // BUG-005 Fix: Ensure due_total is non-negative
+                        $dueTotal = max(0, $this->grandTotal - $this->payment_amount);
 
-                        SaleItem::create([
-                            'sale_id' => $sale->id,
-                            'product_id' => $item['product_id'],
-                            'branch_id' => $sale->branch_id,
-                            'qty' => $item['qty'],
-                            'unit_price' => $item['unit_price'],
-                            'discount' => $item['discount'] ?? 0,
-                            'tax_rate' => $item['tax_rate'] ?? 0,
-                            'line_total' => $lineTotal,
-                            'created_by' => $user->id,
-                        ]);
-                    }
+                        $saleData = [
+                            'branch_id' => $branchId,
+                            'customer_id' => $this->customer_id ?: null,
+                            'warehouse_id' => $this->warehouse_id ?: null,
+                            'reference_no' => $this->reference_no,
+                            'status' => $this->status,
+                            'currency' => $this->currency,
+                            'notes' => $this->notes,
+                            'customer_notes' => $this->customer_notes,
+                            'internal_notes' => $this->internal_notes,
+                            'delivery_date' => $this->delivery_date ?: null,
+                            'shipping_method' => $this->shipping_method,
+                            'tracking_number' => $this->tracking_number,
+                            'sub_total' => $this->subTotal,
+                            'discount_total' => $this->discount_total,
+                            'tax_total' => $this->taxTotal,
+                            'shipping_total' => $this->shipping_total,
+                            'grand_total' => $this->grandTotal,
+                            'paid_total' => $this->payment_amount,
+                            'due_total' => $dueTotal,
+                            'updated_by' => $user->id,
+                        ];
 
-                    if ($this->payment_amount > 0) {
-                        SalePayment::create([
-                            'sale_id' => $sale->id,
-                            'branch_id' => $sale->branch_id,
-                            'payment_method' => $this->payment_method,
-                            'amount' => $this->payment_amount,
-                            'payment_date' => now(),
-                            'created_by' => $user->id,
-                        ]);
-                    }
-                });
-            },
-            successMessage: $this->editMode ? __('Sale updated successfully') : __('Sale created successfully'),
-            redirectRoute: 'app.sales.index'
-        );
+                        if ($this->editMode) {
+                            // BUG-008 Fix: Verify branch hasn't changed on edit
+                            if ($this->sale->branch_id !== $branchId) {
+                                throw ValidationException::withMessages([
+                                    'branch' => [__('You do not have permission to edit this sale.')],
+                                ]);
+                            }
+
+                            $this->sale->update($saleData);
+                            $sale = $this->sale;
+                            $sale->items()->delete();
+                            $sale->payments()->delete();
+                        } else {
+                            $saleData['created_by'] = $user->id;
+                            $sale = Sale::create($saleData);
+                        }
+
+                        foreach ($this->items as $item) {
+                            $lineTotal = ($item['qty'] * $item['unit_price']) - ($item['discount'] ?? 0);
+                            $lineTotal += $lineTotal * (($item['tax_rate'] ?? 0) / 100);
+
+                            SaleItem::create([
+                                'sale_id' => $sale->id,
+                                'product_id' => $item['product_id'],
+                                'branch_id' => $sale->branch_id,
+                                'qty' => $item['qty'],
+                                'unit_price' => $item['unit_price'],
+                                'discount' => $item['discount'] ?? 0,
+                                'tax_rate' => $item['tax_rate'] ?? 0,
+                                'line_total' => $lineTotal,
+                                'created_by' => $user->id,
+                            ]);
+                        }
+
+                        if ($this->payment_amount > 0) {
+                            SalePayment::create([
+                                'sale_id' => $sale->id,
+                                'branch_id' => $sale->branch_id,
+                                'payment_method' => $this->payment_method,
+                                'amount' => $this->payment_amount,
+                                'payment_date' => now(),
+                                'created_by' => $user->id,
+                            ]);
+                        }
+
+                        // BUG-005 Fix: Update payment status after payment
+                        $sale->updatePaymentStatus();
+
+                        // BUG-006 Fix: Dispatch SaleCompleted event for inventory updates
+                        // Only dispatch for completed sales to trigger stock deduction
+                        if ($sale->status === 'completed') {
+                            event(new SaleCompleted($sale->fresh()));
+                        }
+                    });
+                },
+                successMessage: $this->editMode ? __('Sale updated successfully') : __('Sale created successfully'),
+                redirectRoute: 'app.sales.index'
+            );
+        } finally {
+            $this->isSubmitting = false;
+        }
     }
 
     public function render()
     {
-        $customers = Customer::where('is_active', true)->orderBy('name')->get(['id', 'name']);
-        $warehouses = Warehouse::where('status', 'active')->orderBy('name')->get(['id', 'name']);
+        $branchId = $this->getUserBranchId();
+
+        // BUG-003 Fix: Filter customers by branch
+        $customersQuery = Customer::where('is_active', true)->orderBy('name');
+        if ($branchId) {
+            $customersQuery->where(function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId)
+                    ->orWhereNull('branch_id');
+            });
+        }
+        // BUG-009 Fix: Limit results for performance
+        $customers = $customersQuery->limit(100)->get(['id', 'name']);
+
+        // BUG-003 Fix: Filter warehouses by branch
+        $warehousesQuery = Warehouse::where('status', 'active')->orderBy('name');
+        if ($branchId) {
+            $warehousesQuery->where(function ($q) use ($branchId) {
+                $q->where('branch_id', $branchId)
+                    ->orWhereNull('branch_id');
+            });
+        }
+        // BUG-009 Fix: Limit results for performance
+        $warehouses = $warehousesQuery->limit(50)->get(['id', 'name']);
+
         $currencies = \App\Models\Currency::active()->ordered()->get(['code', 'name', 'symbol']);
 
         return view('livewire.sales.form', [
