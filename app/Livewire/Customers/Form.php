@@ -7,6 +7,7 @@ namespace App\Livewire\Customers;
 use App\Livewire\Concerns\HandlesErrors;
 use App\Models\Customer;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 
 class Form extends Component
@@ -54,6 +55,8 @@ class Form extends Component
 
     public bool $is_active = true;
 
+    private static array $customerColumns = [];
+
     protected function rules(): array
     {
         return [
@@ -80,8 +83,13 @@ class Form extends Component
 
     public function mount(?Customer $customer = null): void
     {
+        $user = auth()->user();
+
         if ($customer && $customer->exists) {
             $this->authorize('customers.manage');
+            if ($user?->branch_id && $customer->branch_id !== $user->branch_id && ! $user->hasRole('Super Admin')) {
+                abort(403);
+            }
             $this->customer = $customer;
             $this->editMode = true;
             
@@ -115,7 +123,11 @@ class Form extends Component
         
         // Get the user's branch - handle both direct branch_id and relationship
         $user = auth()->user();
-        $branchId = $user->branch_id ?? $user->branches()->first()?->id ?? 1;
+        $branchId = $this->customer?->branch_id ?? $user?->branch_id ?? $user?->branches()->first()?->id;
+
+        if (! $branchId && ! $user?->hasRole('Super Admin')) {
+            abort(403);
+        }
         
         $validated['branch_id'] = $branchId;
         
@@ -123,6 +135,12 @@ class Form extends Component
         if (!$this->editMode) {
             $validated['created_by'] = auth()->id();
         }
+
+        if (empty(self::$customerColumns)) {
+            self::$customerColumns = Schema::getColumnListing('customers');
+        }
+
+        $validated = array_intersect_key($validated, array_flip(self::$customerColumns));
 
         $this->handleOperation(
             operation: function () use ($validated) {

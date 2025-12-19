@@ -103,7 +103,7 @@ class Index extends Component
                 'products.barcode',
                 'products.type',
                 'products.cost as standard_cost',
-                'products.price as default_price',
+                'products.default_price as default_price',
                 'products.min_stock',
                 'products.status',
                 'modules.name as module_name',
