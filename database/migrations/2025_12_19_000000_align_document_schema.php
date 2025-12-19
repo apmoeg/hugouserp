@@ -49,7 +49,7 @@ return new class extends Migration
 
         if (Schema::hasTable('document_activities')) {
             $actionValues = ['created', 'viewed', 'downloaded', 'edited', 'shared', 'unshared', 'deleted', 'restored', 'version_created'];
-            $actionEnumList = "'".implode("','", $actionValues)."'";
+            $actionEnumList = implode(',', array_map(fn ($value) => "'".str_replace("'", "''", $value)."'", $actionValues));
             $driver = Schema::getConnection()->getDriverName();
             if (in_array($driver, ['mysql', 'mariadb'])) {
                 DB::statement("ALTER TABLE document_activities MODIFY action ENUM({$actionEnumList}) NOT NULL");

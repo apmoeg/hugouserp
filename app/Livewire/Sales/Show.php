@@ -21,9 +21,10 @@ class Show extends Component
 
         $branchId = $user->branch_id;
         $isSuperAdmin = (bool) $user->hasRole('super-admin');
+        $branchIdInt = $branchId !== null ? (int) $branchId : null;
 
-        throw_if(!$isSuperAdmin && !$branchId, new HttpException(403, __('You must be assigned to a branch to view sales.')));
-        throw_if(!$isSuperAdmin && (int) $branchId !== (int) $sale->branch_id, new HttpException(403));
+        throw_if(!$isSuperAdmin && $branchIdInt === null, new HttpException(403, __('You must be assigned to a branch to view sales.')));
+        throw_if(!$isSuperAdmin && $branchIdInt !== (int) $sale->branch_id, new HttpException(403));
 
         $this->sale = $sale->load(['items.product', 'customer', 'branch', 'payments']);
     }
