@@ -81,7 +81,9 @@ class MediaLibrary extends Component
     public function delete(int $id): void
     {
         $user = auth()->user();
-        $media = Media::findOrFail($id);
+        
+        // Enforce branch isolation: scope lookup to user's branch
+        $media = Media::where('branch_id', $user->branch_id)->findOrFail($id);
 
         // Check permissions
         $canDelete = $user->can('media.manage') || 
@@ -130,7 +132,18 @@ class MediaLibrary extends Component
 
     protected function guardAgainstHtmlPayload($file): void
     {
-        $contents = strtolower((string) $file->get());
+        // Only read first 8KB for HTML pattern detection to avoid memory issues
+        $maxBytesToRead = 8192; // 8KB should be sufficient for HTML detection
+        
+        // Get file stream and read only the beginning
+        $stream = fopen($file->getRealPath(), 'r');
+        if ($stream === false) {
+            abort(422, __('Unable to read uploaded file.'));
+        }
+        
+        $contents = strtolower((string) fread($stream, $maxBytesToRead));
+        fclose($stream);
+        
         $patterns = ['<script', '<iframe', '<html', '<object', '<embed', '&lt;script'];
 
         if (collect($patterns)->contains(fn ($needle) => str_contains($contents, $needle))) {

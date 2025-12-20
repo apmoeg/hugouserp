@@ -6,12 +6,19 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Product;
 use App\Models\ProductStoreMapping;
+use App\Models\Warehouse;
+use App\Services\Contracts\InventoryServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class ProductsController extends BaseApiController
 {
+    public function __construct(
+        protected InventoryServiceInterface $inventoryService
+    ) {}
+
     /**
      * Search products by name, SKU, or barcode for POS terminal.
      * This endpoint is used by the frontend POS system.
@@ -82,6 +89,11 @@ class ProductsController extends BaseApiController
     {
         $store = $this->getStore($request);
 
+        // Require store authentication with valid branch
+        if (! $store || ! $store->branch_id) {
+            return $this->errorResponse(__('Store authentication required'), 401);
+        }
+
         $validated = $request->validate([
             'sort_by' => 'sometimes|string|in:created_at,id,name,sku,default_price',
             'sort_dir' => 'sometimes|string|in:asc,desc',
@@ -94,7 +106,7 @@ class ProductsController extends BaseApiController
         $perPage = min((int) ($validated['per_page'] ?? 50), 100);
 
         $query = Product::query()
-            ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
+            ->where('branch_id', $store->branch_id) // Mandatory branch filter
             ->when($request->filled('search'), function ($q) use ($request) {
                 $search = $request->string('search');
                 $q->where(function ($searchQuery) use ($search) {
@@ -176,24 +188,68 @@ class ProductsController extends BaseApiController
             unset($validated['cost_price']);
         }
 
-        // Create product and explicitly set guarded fields
-        $product = new Product($validated);
-        $product->branch_id = $store->branch_id;
-        $product->created_by = auth()->id();
-        $product->stock_quantity = $quantity;
-        $product->save();
+        // Wrap product creation, mapping, and inventory in a transaction
+        try {
+            $product = DB::transaction(function () use ($validated, $store, $request, $quantity) {
+                // Create product
+                $product = new Product($validated);
+                $product->branch_id = $store->branch_id;
+                $product->created_by = auth()->id();
+                $product->stock_quantity = 0; // Will be updated by stock movement
+                $product->save();
 
-        if ($store && $request->filled('external_id')) {
-            ProductStoreMapping::create([
-                'product_id' => $product->id,
-                'store_id' => $store->id,
-                'external_id' => $request->external_id,
-                'external_sku' => $request->external_sku ?? $product->sku,
-                'last_synced_at' => now(),
-            ]);
+                // Create store mapping if external_id provided
+                if ($store && $request->filled('external_id')) {
+                    ProductStoreMapping::create([
+                        'product_id' => $product->id,
+                        'store_id' => $store->id,
+                        'external_id' => $request->external_id,
+                        'external_sku' => $request->external_sku ?? $product->sku,
+                        'last_synced_at' => now(),
+                    ]);
+                }
+
+                // Record stock movement if quantity > 0
+                if ($quantity > 0) {
+                    // Get warehouse or use default for the branch
+                    $warehouseId = $validated['warehouse_id'] ?? null;
+                    if (! $warehouseId) {
+                        $defaultWarehouse = Warehouse::where('branch_id', $store->branch_id)
+                            ->where('is_default', true)
+                            ->first();
+                        if (! $defaultWarehouse) {
+                            $defaultWarehouse = Warehouse::where('branch_id', $store->branch_id)->first();
+                        }
+                        $warehouseId = $defaultWarehouse?->id;
+                    }
+
+                    if ($warehouseId) {
+                        $this->inventoryService->recordStockAdjustment([
+                            'product_id' => $product->id,
+                            'warehouse_id' => $warehouseId,
+                            'branch_id' => $store->branch_id,
+                            'direction' => 'in',
+                            'qty' => $quantity,
+                            'reason' => 'Initial stock from API product creation',
+                            'meta' => [
+                                'source' => 'api',
+                                'external_id' => $request->external_id,
+                            ],
+                        ]);
+
+                        // Update product stock_quantity based on actual movements
+                        $product->stock_quantity = $this->inventoryService->getStockLevel($product->id);
+                        $product->save();
+                    }
+                }
+
+                return $product;
+            });
+
+            return $this->successResponse($product, __('Product created successfully'), 201);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 500);
         }
-
-        return $this->successResponse($product, __('Product created successfully'), 201);
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -239,16 +295,66 @@ class ProductsController extends BaseApiController
             $validated['cost'] = $validated['cost_price'];
             unset($validated['cost_price']);
         }
+
+        // Handle quantity changes through inventory service
+        $newQuantity = null;
         if (array_key_exists('quantity', $validated)) {
-            $product->stock_quantity = (float) $validated['quantity'];
+            $newQuantity = (float) $validated['quantity'];
             unset($validated['quantity']);
         }
 
-        $product->fill($validated);
-        $product->updated_by = auth()->id();
-        $product->save();
+        try {
+            DB::transaction(function () use ($product, $validated, $store, $newQuantity, $request) {
+                // Update product fields
+                $product->fill($validated);
+                $product->updated_by = auth()->id();
+                $product->save();
 
-        return $this->successResponse($product, __('Product updated successfully'));
+                // Handle quantity adjustment if provided
+                if ($newQuantity !== null) {
+                    $currentQty = $this->inventoryService->getStockLevel($product->id);
+                    $difference = $newQuantity - $currentQty;
+
+                    if (abs($difference) > 0.001) {
+                        // Get warehouse
+                        $warehouseId = $validated['warehouse_id'] ?? null;
+                        if (! $warehouseId) {
+                            $defaultWarehouse = Warehouse::where('branch_id', $store->branch_id)
+                                ->where('is_default', true)
+                                ->first();
+                            if (! $defaultWarehouse) {
+                                $defaultWarehouse = Warehouse::where('branch_id', $store->branch_id)->first();
+                            }
+                            $warehouseId = $defaultWarehouse?->id;
+                        }
+
+                        if ($warehouseId) {
+                            $this->inventoryService->recordStockAdjustment([
+                                'product_id' => $product->id,
+                                'warehouse_id' => $warehouseId,
+                                'branch_id' => $store->branch_id,
+                                'direction' => $difference > 0 ? 'in' : 'out',
+                                'qty' => abs($difference),
+                                'reason' => 'Stock adjustment from API product update',
+                                'meta' => [
+                                    'source' => 'api',
+                                    'previous_qty' => $currentQty,
+                                    'new_qty' => $newQuantity,
+                                ],
+                            ]);
+
+                            // Update product stock_quantity based on actual movements
+                            $product->stock_quantity = $this->inventoryService->getStockLevel($product->id);
+                            $product->save();
+                        }
+                    }
+                }
+            });
+
+            return $this->successResponse($product, __('Product updated successfully'));
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 500);
+        }
     }
 
     public function destroy(Request $request, int $id): JsonResponse

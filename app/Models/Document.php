@@ -136,7 +136,12 @@ class Document extends Model
 
     public function canBeAccessedBy(User $user): bool
     {
-        // Public documents can be accessed by anyone
+        // Enforce branch isolation: reject access if document has a branch and user's branch doesn't match
+        if ($this->branch_id && $user->branch_id && $this->branch_id !== $user->branch_id) {
+            return false;
+        }
+
+        // Public documents can be accessed by anyone (within same branch)
         if ($this->is_public || $this->access_level === 'public') {
             return true;
         }
