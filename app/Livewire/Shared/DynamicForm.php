@@ -11,7 +11,7 @@ class DynamicForm extends Component
 {
     use WithFileUploads;
 
-    public array $schema = [];
+    protected array $schema = [];
 
     public array $data = [];
 
@@ -32,6 +32,9 @@ class DynamicForm extends Component
     private array $defaultFileMimes = [
         'pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt',
     ];
+
+    // Whitelist of allowed storage disks for security
+    private array $allowedDisks = ['local', 'private'];
 
     protected $listeners = ['resetForm' => 'resetFormData'];
 
@@ -97,7 +100,13 @@ class DynamicForm extends Component
             if ($type === 'file' && $name && isset($this->data[$name])) {
                 $file = $this->data[$name];
                 if ($file && method_exists($file, 'store')) {
-                    $disk = $field['disk'] ?? 'local';
+                    // Security: Only allow whitelisted disks, default to 'local' (private)
+                    $requestedDisk = $field['disk'] ?? 'local';
+                    $disk = in_array($requestedDisk, $this->allowedDisks, true) ? $requestedDisk : 'local';
+                    
+                    // Security: Validate file against server-side rules
+                    $this->validateFileUpload($file, $field);
+                    
                     $path = $file->store('dynamic-uploads', $disk);
                     $this->data[$name] = $path;
                 }
@@ -113,6 +122,14 @@ class DynamicForm extends Component
                 $this->data[$name] = $field['default'] ?? '';
             }
         }
+    }
+
+    /**
+     * Get schema for view rendering (read-only access)
+     */
+    public function getSchemaProperty(): array
+    {
+        return $this->schema;
     }
 
     protected function buildValidationRules(): array
@@ -159,6 +176,59 @@ class DynamicForm extends Component
         }
 
         return array_values(array_unique($rules));
+    }
+
+    /**
+     * Validate file upload against server-side security rules (BUG-003 fix)
+     */
+    private function validateFileUpload($file, array $field): void
+    {
+        // Get allowed MIME types from field or use default
+        $allowedMimes = $field['mimes'] ?? $this->defaultFileMimes;
+        
+        // Get file extension
+        $extension = strtolower($file->getClientOriginalExtension());
+        
+        // Security: Block potentially dangerous file types
+        $blockedExtensions = ['php', 'phtml', 'php3', 'php4', 'php5', 'phar', 'exe', 'sh', 'bat', 'cmd', 'com'];
+        if (in_array($extension, $blockedExtensions, true)) {
+            throw new \Illuminate\Validation\ValidationException(
+                validator([], [])
+                    ->errors()
+                    ->add('file', 'This file type is not allowed for security reasons.')
+            );
+        }
+        
+        // Security: Check MIME type matches allowed types
+        if (!in_array($extension, $allowedMimes, true)) {
+            throw new \Illuminate\Validation\ValidationException(
+                validator([], [])
+                    ->errors()
+                    ->add('file', 'Only the following file types are allowed: ' . implode(', ', $allowedMimes))
+            );
+        }
+        
+        // Security: Scan for HTML/script content in uploads
+        if (in_array($extension, ['html', 'htm', 'svg'], true)) {
+            $content = file_get_contents($file->getRealPath());
+            if (preg_match('/<script|<iframe|javascript:|onerror=/i', $content)) {
+                throw new \Illuminate\Validation\ValidationException(
+                    validator([], [])
+                        ->errors()
+                        ->add('file', 'File contains potentially malicious content.')
+                );
+            }
+        }
+        
+        // Security: Enforce max file size
+        $maxSize = ($field['max'] ?? 10240) * 1024; // Convert KB to bytes
+        if ($file->getSize() > $maxSize) {
+            throw new \Illuminate\Validation\ValidationException(
+                validator([], [])
+                    ->errors()
+                    ->add('file', 'File size exceeds maximum allowed size.')
+            );
+        }
     }
 
     protected function validationAttributes(): array
