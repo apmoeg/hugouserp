@@ -39,13 +39,13 @@ class DynamicFormSecurityTest extends TestCase
             'schema' => $schema,
         ]);
 
-        // Attempt to modify schema from client (should not be possible since it's protected)
-        // The schema property should not be directly modifiable
-        $reflection = new \ReflectionClass($component->instance());
+        // Verify that schema is protected with Locked attribute
+        $reflection = new \ReflectionClass(DynamicForm::class);
         $schemaProperty = $reflection->getProperty('schema');
         
-        // Verify that schema is protected
-        $this->assertTrue($schemaProperty->isProtected());
+        // Check if the property has the Locked attribute
+        $attributes = $schemaProperty->getAttributes(\Livewire\Attributes\Locked::class);
+        $this->assertNotEmpty($attributes, 'Schema property should have Locked attribute');
     }
 
     public function test_file_upload_respects_server_disk_whitelist(): void

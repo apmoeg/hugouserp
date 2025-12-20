@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Shared;
 
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -11,7 +12,8 @@ class DynamicForm extends Component
 {
     use WithFileUploads;
 
-    protected array $schema = [];
+    #[Locked]
+    public array $schema = [];
 
     public array $data = [];
 
@@ -124,14 +126,6 @@ class DynamicForm extends Component
         }
     }
 
-    /**
-     * Get schema for view rendering (read-only access)
-     */
-    public function getSchemaProperty(): array
-    {
-        return $this->schema;
-    }
-
     protected function buildValidationRules(): array
     {
         $rules = [];
@@ -192,42 +186,34 @@ class DynamicForm extends Component
         // Security: Block potentially dangerous file types
         $blockedExtensions = ['php', 'phtml', 'php3', 'php4', 'php5', 'phar', 'exe', 'sh', 'bat', 'cmd', 'com'];
         if (in_array($extension, $blockedExtensions, true)) {
-            throw new \Illuminate\Validation\ValidationException(
-                validator([], [])
-                    ->errors()
-                    ->add('file', 'This file type is not allowed for security reasons.')
-            );
+            $validator = validator([], []);
+            $validator->errors()->add('file', 'This file type is not allowed for security reasons.');
+            throw new \Illuminate\Validation\ValidationException($validator);
         }
         
         // Security: Check MIME type matches allowed types
         if (!in_array($extension, $allowedMimes, true)) {
-            throw new \Illuminate\Validation\ValidationException(
-                validator([], [])
-                    ->errors()
-                    ->add('file', 'Only the following file types are allowed: ' . implode(', ', $allowedMimes))
-            );
+            $validator = validator([], []);
+            $validator->errors()->add('file', 'Only the following file types are allowed: ' . implode(', ', $allowedMimes));
+            throw new \Illuminate\Validation\ValidationException($validator);
         }
         
         // Security: Scan for HTML/script content in uploads
         if (in_array($extension, ['html', 'htm', 'svg'], true)) {
             $content = file_get_contents($file->getRealPath());
             if (preg_match('/<script|<iframe|javascript:|onerror=/i', $content)) {
-                throw new \Illuminate\Validation\ValidationException(
-                    validator([], [])
-                        ->errors()
-                        ->add('file', 'File contains potentially malicious content.')
-                );
+                $validator = validator([], []);
+                $validator->errors()->add('file', 'File contains potentially malicious content.');
+                throw new \Illuminate\Validation\ValidationException($validator);
             }
         }
         
         // Security: Enforce max file size
         $maxSize = ($field['max'] ?? 10240) * 1024; // Convert KB to bytes
         if ($file->getSize() > $maxSize) {
-            throw new \Illuminate\Validation\ValidationException(
-                validator([], [])
-                    ->errors()
-                    ->add('file', 'File size exceeds maximum allowed size.')
-            );
+            $validator = validator([], []);
+            $validator->errors()->add('file', 'File size exceeds maximum allowed size.');
+            throw new \Illuminate\Validation\ValidationException($validator);
         }
     }
 

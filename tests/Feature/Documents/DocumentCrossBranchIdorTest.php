@@ -80,30 +80,36 @@ class DocumentCrossBranchIdorTest extends TestCase
     {
         $this->actingAs($this->userBranchA);
 
-        // Try to view document from Branch B
-        $response = $this->get(route('app.documents.show', $this->documentBranchB->id));
+        // Try to view document from Branch B - should get 403
+        $this->withoutExceptionHandling();
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectExceptionMessage('You cannot access documents from other branches.');
 
-        $response->assertStatus(403);
+        $this->get(route('app.documents.show', $this->documentBranchB->id));
     }
 
     public function test_user_cannot_edit_document_from_other_branch(): void
     {
         $this->actingAs($this->userBranchA);
 
-        // Try to edit document from Branch B
-        $response = $this->get(route('app.documents.edit', $this->documentBranchB->id));
+        // Try to edit document from Branch B - should get 403
+        $this->withoutExceptionHandling();
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectExceptionMessage('You cannot access documents from other branches.');
 
-        $response->assertStatus(403);
+        $this->get(route('app.documents.edit', $this->documentBranchB->id));
     }
 
     public function test_user_cannot_download_document_from_other_branch(): void
     {
         $this->actingAs($this->userBranchA);
 
-        // Try to download document from Branch B
-        $response = $this->get(route('app.documents.download', $this->documentBranchB->id));
+        // Try to download document from Branch B - should get 403
+        $this->withoutExceptionHandling();
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+        $this->expectExceptionMessage('You cannot download documents from other branches.');
 
-        $response->assertStatus(403);
+        $this->get(route('app.documents.download', $this->documentBranchB->id));
     }
 
     public function test_user_can_view_own_branch_document(): void

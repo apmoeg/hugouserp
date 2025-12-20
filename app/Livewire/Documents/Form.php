@@ -26,13 +26,13 @@ class Form extends Component
 
     public string $title = '';
 
-    public string $description = '';
+    public ?string $description = null;
 
     public ?UploadedFile $file = null;
 
-    public string $folder = '';
+    public ?string $folder = null;
 
-    public string $category = '';
+    public ?string $category = null;
 
     public bool $is_public = false;
 

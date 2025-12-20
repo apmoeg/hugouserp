@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\Sale;
 use App\Models\User;
+use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -19,13 +20,23 @@ class SalesCacheInvalidationTest extends TestCase
     protected User $user;
     protected Branch $branch;
     protected Customer $customer;
+    protected Warehouse $warehouse;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->branch = Branch::create(['name' => 'Test Branch', 'code' => 'TB001']);
-        $this->customer = Customer::factory()->create(['branch_id' => $this->branch->id]);
+        $this->warehouse = Warehouse::create([
+            'name' => 'Test Warehouse',
+            'code' => 'WH001',
+            'branch_id' => $this->branch->id,
+        ]);
+        $this->customer = Customer::create([
+            'name' => 'Test Customer',
+            'phone' => '1234567890',
+            'branch_id' => $this->branch->id,
+        ]);
         $this->user = User::factory()->create(['branch_id' => $this->branch->id]);
     }
 
@@ -42,6 +53,8 @@ class SalesCacheInvalidationTest extends TestCase
         Sale::create([
             'code' => 'SALE-001',
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
+            
             'customer_id' => $this->customer->id,
             'status' => 'completed',
             'grand_total' => 100.00,
@@ -60,6 +73,7 @@ class SalesCacheInvalidationTest extends TestCase
         $sale = Sale::create([
             'code' => 'SALE-002',
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
             'customer_id' => $this->customer->id,
             'status' => 'pending',
             'grand_total' => 100.00,
@@ -88,6 +102,7 @@ class SalesCacheInvalidationTest extends TestCase
         $sale = Sale::create([
             'code' => 'SALE-003',
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
             'customer_id' => $this->customer->id,
             'status' => 'completed',
             'grand_total' => 100.00,
@@ -113,7 +128,11 @@ class SalesCacheInvalidationTest extends TestCase
     public function test_only_relevant_branch_cache_is_cleared(): void
     {
         $branch2 = Branch::create(['name' => 'Branch 2', 'code' => 'TB002']);
-        $customer2 = Customer::factory()->create(['branch_id' => $branch2->id]);
+        $customer2 = Customer::create([
+            'name' => 'Test Customer 2',
+            'phone' => '0987654321',
+            'branch_id' => $branch2->id,
+        ]);
 
         // Pre-populate cache for both branches
         $cacheKey1 = 'sales_stats_' . $this->branch->id;
@@ -130,6 +149,7 @@ class SalesCacheInvalidationTest extends TestCase
         Sale::create([
             'code' => 'SALE-004',
             'branch_id' => $this->branch->id,
+            'warehouse_id' => $this->warehouse->id,
             'customer_id' => $this->customer->id,
             'status' => 'completed',
             'grand_total' => 100.00,
