@@ -50,7 +50,7 @@ class MediaLibrary extends Component
         }
 
         $optimizationService = app(ImageOptimizationService::class);
-        $disk = 'local';
+        $disk = config('filesystems.media_disk', 'public');
 
         foreach ($this->files as $file) {
             $this->guardAgainstHtmlPayload($file);
