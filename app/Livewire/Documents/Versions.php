@@ -33,6 +33,11 @@ class Versions extends Component
         $this->authorize('documents.versions.manage');
         $this->document = $document->load(['versions.uploader']);
 
+        $user = auth()->user();
+        if ($user && $user->branch_id && $document->branch_id && $user->branch_id !== $document->branch_id) {
+            abort(403, 'You cannot manage versions for documents from other branches.');
+        }
+
         // Check if user can access this document
         if (!$document->canBeAccessedBy(auth()->user())) {
             abort(403, 'You do not have permission to manage versions for this document');

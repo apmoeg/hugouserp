@@ -105,6 +105,11 @@ class DocumentService
     {
         $this->validateFile($file);
 
+        $user = auth()->user();
+        if ($user && $user->branch_id && $document->branch_id && $user->branch_id !== $document->branch_id) {
+            throw new AuthorizationException('You cannot upload versions for documents outside your branch.');
+        }
+
         return DB::transaction(function () use ($document, $file, $changeNotes) {
             // Store the file on the configured private disk
             $disk = $this->documentsDisk;

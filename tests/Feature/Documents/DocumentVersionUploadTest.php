@@ -19,9 +19,9 @@ class DocumentVersionUploadTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function makeDocument(User $user): Document
+    private function makeDocument(User $user, ?Branch $branch = null): Document
     {
-        $branch = Branch::factory()->create();
+        $branch ??= Branch::factory()->create();
 
         return Document::create([
             'code' => 'DOC-' . uniqid(),
@@ -104,5 +104,27 @@ class DocumentVersionUploadTest extends TestCase
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             $document->mime_type
         );
+    }
+
+    public function test_user_cannot_upload_version_for_document_in_other_branch(): void
+    {
+        Storage::fake('local');
+        config(['filesystems.document_disk' => 'local']);
+        Gate::define('documents.versions.manage', fn () => true);
+
+        $branchA = Branch::factory()->create();
+        $branchB = Branch::factory()->create();
+
+        $owner = User::factory()->create(['branch_id' => $branchB->id]);
+        $document = $this->makeDocument($owner, $branchB);
+        $otherUser = User::factory()->create(['branch_id' => $branchA->id]);
+
+        Livewire::actingAs($otherUser)
+            ->test(Versions::class, ['document' => $document])
+            ->set('file', UploadedFile::fake()->create('contract.pdf', 10, 'application/pdf'))
+            ->call('uploadVersion')
+            ->assertForbidden();
+
+        $this->assertSame(0, $document->versions()->count());
     }
 }
