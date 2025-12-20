@@ -913,6 +913,9 @@ Route::get('/attachments/{attachment}/download', \App\Http\Controllers\Attachmen
         Route::get('/media', \App\Livewire\Admin\MediaLibrary::class)
             ->name('media.index')
             ->middleware('can:media.view');
+        Route::get('/media/{media}/download', \App\Http\Controllers\Admin\MediaDownloadController::class)
+            ->name('media.download')
+            ->middleware(['auth', 'can:media.view']);
 
         // Audit Logs
         Route::get('/logs/audit', AuditLogPage::class)

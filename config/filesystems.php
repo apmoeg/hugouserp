@@ -16,6 +16,7 @@ return [
     'default' => env('FILESYSTEM_DISK', env('APP_ENV') === 'production' ? 'public' : 'local'),
 
     'document_disk' => env('DOCUMENTS_DISK', 'local'),
+    'media_disk' => env('MEDIA_DISK', 'public'),
 
     /*
     |--------------------------------------------------------------------------

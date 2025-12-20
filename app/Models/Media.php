@@ -53,17 +53,7 @@ class Media extends Model
 
     public function getUrlAttribute(): string
     {
-        $disk = Storage::disk($this->disk);
-
-        if (method_exists($disk, 'temporaryUrl')) {
-            try {
-                return $disk->temporaryUrl($this->file_path, now()->addMinutes(10));
-            } catch (\Exception) {
-                // fallback below
-            }
-        }
-
-        return $disk->url($this->file_path);
+        return $this->generateAccessibleUrl($this->file_path);
     }
 
     public function getThumbnailUrlAttribute(): ?string
@@ -71,17 +61,8 @@ class Media extends Model
         if (!$this->thumbnail_path) {
             return null;
         }
-        $disk = Storage::disk($this->disk);
 
-        if (method_exists($disk, 'temporaryUrl')) {
-            try {
-                return $disk->temporaryUrl($this->thumbnail_path, now()->addMinutes(10));
-            } catch (\Exception) {
-                // fallback below
-            }
-        }
-
-        return $disk->url($this->thumbnail_path);
+        return $this->generateAccessibleUrl($this->thumbnail_path, true);
     }
 
     public function getHumanSizeAttribute(): string
@@ -166,5 +147,27 @@ class Media extends Model
     public function scopeCollection($query, string $collection)
     {
         return $query->where('collection', $collection);
+    }
+
+    protected function generateAccessibleUrl(string $path, bool $isThumbnail = false): string
+    {
+        $disk = Storage::disk($this->disk);
+
+        if (method_exists($disk, 'temporaryUrl')) {
+            try {
+                return $disk->temporaryUrl($path, now()->addMinutes(10));
+            } catch (\Exception) {
+                // fallback below
+            }
+        }
+
+        try {
+            return $disk->url($path);
+        } catch (\Exception) {
+            return route('app.media.download', array_filter([
+                'media' => $this->id,
+                'thumbnail' => $isThumbnail ? 1 : null,
+            ]));
+        }
     }
 }
