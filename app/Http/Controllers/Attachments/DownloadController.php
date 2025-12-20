@@ -26,13 +26,18 @@ class DownloadController extends Controller
 
         abort_unless(Storage::disk($attachment->disk)->exists($attachment->path), 404);
 
-        $disposition = $attachment->isImage() || $attachment->isPdf() ? 'inline' : 'attachment';
+        $realMime = Storage::disk($attachment->disk)->mimeType($attachment->path) ?? $attachment->mime_type;
+        if ($realMime !== $attachment->mime_type) {
+            abort(415, __('File type mismatch'));
+        }
+
+        $disposition = str_starts_with($realMime, 'image/') || $realMime === 'application/pdf' ? 'inline' : 'attachment';
 
         return Storage::disk($attachment->disk)->response(
             $attachment->path,
             $attachment->original_filename,
             [
-                'Content-Type' => $attachment->mime_type,
+                'Content-Type' => $realMime,
                 'Content-Disposition' => $disposition.'; filename="'.addslashes($attachment->original_filename).'"',
             ]
         );
