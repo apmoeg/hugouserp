@@ -44,8 +44,38 @@ class Expenses extends Component
         $this->user_id = auth()->id();
     }
 
+    /**
+     * Get array of branch IDs accessible by the current user.
+     */
+    protected function getUserBranchIds(): array
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return [];
+        }
+
+        $branchIds = [];
+
+        // Check if branches relation exists
+        if (method_exists($user, 'branches')) {
+            // Force load the relation if not already loaded
+            if (! $user->relationLoaded('branches')) {
+                $user->load('branches');
+            }
+            $branchIds = $user->branches->pluck('id')->toArray();
+        }
+
+        if ($user->branch_id && ! in_array($user->branch_id, $branchIds)) {
+            $branchIds[] = $user->branch_id;
+        }
+
+        return $branchIds;
+    }
+
     public function rules(): array
     {
+        $userBranchIds = $this->getUserBranchIds();
+
         return [
             'category' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0.01'],
@@ -53,7 +83,11 @@ class Expenses extends Component
             'vendor' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'billable' => ['boolean'],
-            'user_id' => ['required', 'exists:users,id'],
+            // BUG-009 FIX: Scope user_id validation to user's branches
+            'user_id' => [
+                'required',
+                Rule::exists('users', 'id')->whereIn('branch_id', $userBranchIds),
+            ],
             'task_id' => [
                 'nullable',
                 Rule::exists('project_tasks', 'id')->where('project_id', $this->project->id),
@@ -142,7 +176,11 @@ class Expenses extends Component
             ->orderBy('expense_date', 'desc')
             ->paginate(15);
 
-        $users = User::orderBy('name')->get();
+        // BUG-009 FIX: Scope users to user's branches
+        $userBranchIds = $this->getUserBranchIds();
+        $users = User::whereIn('branch_id', $userBranchIds)
+            ->orderBy('name')
+            ->get();
 
         // Statistics
         $stats = [

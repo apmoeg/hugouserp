@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire\Projects;
 
+use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -31,6 +33,7 @@ class Form extends Component
     public string $status = 'planning';
     public float $budget_amount = 0;
     public ?string $notes = null;
+    public ?string $currency = null;
 
     public function mount(?int $id = null): void
     {
@@ -47,7 +50,7 @@ class Form extends Component
             $this->projectId = $id;
             $this->fill($this->project->only([
                 'branch_id', 'name', 'code', 'description', 'client_id', 'project_manager_id',
-                'start_date', 'end_date', 'status', 'budget_amount', 'notes'
+                'start_date', 'end_date', 'status', 'budget_amount', 'notes', 'currency'
             ]));
         } else {
             $this->authorize('projects.create');
@@ -55,20 +58,66 @@ class Form extends Component
         }
     }
 
+    /**
+     * Get array of branch IDs accessible by the current user.
+     */
+    protected function getUserBranchIds(): array
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return [];
+        }
+
+        $branchIds = [];
+
+        // Check if branches relation exists and is loaded
+        if (method_exists($user, 'branches')) {
+            // Force load the relation if not already loaded
+            if (! $user->relationLoaded('branches')) {
+                $user->load('branches');
+            }
+            $branchIds = $user->branches->pluck('id')->toArray();
+        }
+
+        if ($user->branch_id && ! in_array($user->branch_id, $branchIds)) {
+            $branchIds[] = $user->branch_id;
+        }
+
+        return $branchIds;
+    }
+
     public function rules(): array
     {
+        $userBranchIds = $this->getUserBranchIds();
+
         return [
-            'branch_id' => ['required', 'exists:branches,id'],
+            'branch_id' => [
+                'required',
+                Rule::exists('branches', 'id'),
+                Rule::in($userBranchIds),
+            ],
             'name' => ['required', 'string', 'max:255'],
             'code' => ['required', 'string', 'max:50', 'unique:projects,code,' . $this->project?->id],
             'description' => ['required', 'string'],
-            'client_id' => ['nullable', 'exists:customers,id'],
-            'project_manager_id' => ['nullable', 'exists:users,id'],
+            'client_id' => [
+                'nullable',
+                Rule::exists('customers', 'id')->whereIn('branch_id', $userBranchIds),
+            ],
+            'project_manager_id' => [
+                'nullable',
+                Rule::exists('users', 'id')->whereIn('branch_id', $userBranchIds),
+            ],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after:start_date'],
             'status' => ['required', 'in:planning,active,on_hold,completed,cancelled'],
             'budget_amount' => ['required', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],
+            'currency' => [
+                'nullable',
+                'string',
+                'max:3',
+                Rule::exists('currencies', 'code')->where('is_active', true),
+            ],
         ];
     }
 
@@ -76,17 +125,23 @@ class Form extends Component
     {
         $this->validate();
 
+        // Server-side enforcement: ensure branch_id is within user's branches
+        $userBranchIds = $this->getUserBranchIds();
+        if (! in_array($this->branch_id, $userBranchIds)) {
+            abort(403, 'You are not authorized to create/edit projects in this branch.');
+        }
+
         if ($this->project) {
             $this->project->update($this->only([
                 'branch_id', 'name', 'code', 'description', 'client_id', 'project_manager_id',
-                'start_date', 'end_date', 'status', 'budget_amount', 'notes'
+                'start_date', 'end_date', 'status', 'budget_amount', 'notes', 'currency'
             ]));
             session()->flash('success', __('Project updated successfully'));
         } else {
             Project::create(array_merge(
                 $this->only([
                     'branch_id', 'name', 'code', 'description', 'client_id', 'project_manager_id',
-                    'start_date', 'end_date', 'status', 'budget_amount', 'notes'
+                    'start_date', 'end_date', 'status', 'budget_amount', 'notes', 'currency'
                 ]),
                 ['created_by' => auth()->id()]
             ));
@@ -98,12 +153,24 @@ class Form extends Component
 
     public function render()
     {
-        $clients = Customer::orderBy('name')->get();
-        $managers = User::orderBy('name')->get();
+        $userBranchIds = $this->getUserBranchIds();
+
+        // BUG-002 FIX: Scope customers and managers to user's branches
+        $clients = Customer::whereIn('branch_id', $userBranchIds)
+            ->orderBy('name')
+            ->get();
+
+        $managers = User::whereIn('branch_id', $userBranchIds)
+            ->orderBy('name')
+            ->get();
+
+        // BUG-010 FIX: Get available currencies for validation
+        $currencies = Currency::active()->ordered()->get();
 
         return view('livewire.projects.form', [
             'clients' => $clients,
             'managers' => $managers,
+            'currencies' => $currencies,
         ]);
     }
 }

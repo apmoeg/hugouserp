@@ -45,12 +45,46 @@ class Tasks extends Component
             ->findOrFail($projectId);
     }
 
+    /**
+     * Get array of branch IDs accessible by the current user.
+     */
+    protected function getUserBranchIds(): array
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return [];
+        }
+
+        $branchIds = [];
+
+        // Check if branches relation exists
+        if (method_exists($user, 'branches')) {
+            // Force load the relation if not already loaded
+            if (! $user->relationLoaded('branches')) {
+                $user->load('branches');
+            }
+            $branchIds = $user->branches->pluck('id')->toArray();
+        }
+
+        if ($user->branch_id && ! in_array($user->branch_id, $branchIds)) {
+            $branchIds[] = $user->branch_id;
+        }
+
+        return $branchIds;
+    }
+
     public function rules(): array
     {
+        $userBranchIds = $this->getUserBranchIds();
+
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'assigned_to' => ['nullable', 'exists:users,id'],
+            // Scope assigned_to validation to user's branches
+            'assigned_to' => [
+                'nullable',
+                Rule::exists('users', 'id')->whereIn('branch_id', $userBranchIds),
+            ],
             'parent_task_id' => [
                 'nullable',
                 Rule::exists('project_tasks', 'id')->where('project_id', $this->project->id)
@@ -143,7 +177,12 @@ class Tasks extends Component
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $users = User::orderBy('name')->get();
+        // Scope users to user's branches
+        $userBranchIds = $this->getUserBranchIds();
+        $users = User::whereIn('branch_id', $userBranchIds)
+            ->orderBy('name')
+            ->get();
+
         $availableTasks = $this->project->tasks()
             ->when($this->editingTask, fn($q) => $q->where('id', '!=', $this->editingTask->id))
             ->orderBy('title')

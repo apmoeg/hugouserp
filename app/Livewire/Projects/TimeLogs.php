@@ -9,6 +9,7 @@ use App\Models\ProjectTask;
 use App\Models\ProjectTimeLog;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -34,16 +35,57 @@ class TimeLogs extends Component
     public function mount(int $projectId): void
     {
         $this->authorize('projects.timelogs.view');
-        $this->project = Project::findOrFail($projectId);
+        // BUG-003 FIX: Scope project access to user's branches
+        $this->project = Project::query()
+            ->forUserBranches(auth()->user())
+            ->findOrFail($projectId);
         $this->date = now()->format('Y-m-d');
         $this->employee_id = auth()->id();
     }
 
+    /**
+     * Get array of branch IDs accessible by the current user.
+     */
+    protected function getUserBranchIds(): array
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return [];
+        }
+
+        $branchIds = [];
+
+        // Check if branches relation exists
+        if (method_exists($user, 'branches')) {
+            // Force load the relation if not already loaded
+            if (! $user->relationLoaded('branches')) {
+                $user->load('branches');
+            }
+            $branchIds = $user->branches->pluck('id')->toArray();
+        }
+
+        if ($user->branch_id && ! in_array($user->branch_id, $branchIds)) {
+            $branchIds[] = $user->branch_id;
+        }
+
+        return $branchIds;
+    }
+
     public function rules(): array
     {
+        $userBranchIds = $this->getUserBranchIds();
+
         return [
-            'task_id' => ['nullable', 'exists:project_tasks,id'],
-            'employee_id' => ['required', 'exists:users,id'],
+            // BUG-004 FIX: Ensure task belongs to this project
+            'task_id' => [
+                'nullable',
+                Rule::exists('project_tasks', 'id')->where('project_id', $this->project->id),
+            ],
+            // BUG-004/008 FIX: Ensure employee belongs to user's branches
+            'employee_id' => [
+                'required',
+                Rule::exists('users', 'id')->whereIn('branch_id', $userBranchIds),
+            ],
             'date' => ['required', 'date'],
             'hours' => ['required', 'numeric', 'min:0.1', 'max:24'],
             'is_billable' => ['boolean'],
@@ -134,24 +176,36 @@ class TimeLogs extends Component
             ->paginate(15);
 
         $tasks = $this->project->tasks()->orderBy('name')->get();
-        $employees = User::orderBy('name')->get();
 
-        $totalHours = $this->project->timeLogs()->sum('hours');
+        // BUG-008 FIX: Scope employees to user's branches
+        $userBranchIds = $this->getUserBranchIds();
+        $employees = User::whereIn('branch_id', $userBranchIds)
+            ->orderBy('name')
+            ->get();
 
-        // Statistics
-        $stats = [
-            'total_hours' => $totalHours,
-            'billable_hours' => $this->project->timeLogs()->billable()->sum('hours'),
-            'non_billable_hours' => $this->project->timeLogs()->nonBillable()->sum('hours'),
-            'total_cost' => $this->project->timeLogs()->get()->sum(fn($log) => $log->getCost()),
+        // BUG-005 FIX: Consolidate aggregate queries into a single query
+        $stats = $this->project->timeLogs()
+            ->selectRaw('
+                COALESCE(SUM(hours), 0) as total_hours,
+                COALESCE(SUM(CASE WHEN billable = 1 OR is_billable = 1 THEN hours ELSE 0 END), 0) as billable_hours,
+                COALESCE(SUM(CASE WHEN billable = 0 AND (is_billable = 0 OR is_billable IS NULL) THEN hours ELSE 0 END), 0) as non_billable_hours,
+                COALESCE(SUM(hours * hourly_rate), 0) as total_cost
+            ')
+            ->first();
+
+        $statsArray = [
+            'total_hours' => (float) ($stats->total_hours ?? 0),
+            'billable_hours' => (float) ($stats->billable_hours ?? 0),
+            'non_billable_hours' => (float) ($stats->non_billable_hours ?? 0),
+            'total_cost' => (float) ($stats->total_cost ?? 0),
         ];
 
         return view('livewire.projects.time-logs', [
             'timeLogs' => $timeLogs,
             'tasks' => $tasks,
             'employees' => $employees,
-            'totalHours' => $totalHours,
-            'stats' => $stats,
+            'totalHours' => $statsArray['total_hours'],
+            'stats' => $statsArray,
         ]);
     }
 }

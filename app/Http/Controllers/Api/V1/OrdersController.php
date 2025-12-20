@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\ProductStoreMapping;
 use App\Models\Sale;
+use App\Models\Warehouse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -122,6 +123,7 @@ class OrdersController extends BaseApiController
                     $customerId = $customer->id;
                 }
 
+                // BUG-006 FIX: Enforce warehouse scoping to branch
                 $warehouseId = $this->resolveWarehouseId($validated['warehouse_id'] ?? null, $branchId);
 
                 if (! $warehouseId) {
@@ -293,10 +295,11 @@ class OrdersController extends BaseApiController
     {
         $store = $this->getStore($request);
 
+        // BUG-007 FIX: Use reference_no instead of external_reference to match order creation
         $order = Sale::query()
             ->with(['customer', 'items.product'])
             ->when($store?->branch_id, fn ($q) => $q->where('branch_id', $store->branch_id))
-            ->where('external_reference', $externalId)
+            ->where('reference_no', $externalId)
             ->first();
 
         if (! $order) {
@@ -306,19 +309,45 @@ class OrdersController extends BaseApiController
         return $this->successResponse($order, __('Order retrieved successfully'));
     }
 
+    /**
+     * Resolve the warehouse ID for order creation.
+     * BUG-006 FIX: Enforce warehouse must belong to the specified branch.
+     */
     protected function resolveWarehouseId(?int $preferredId, ?int $branchId = null): ?int
     {
-        if ($preferredId !== null) {
-            return $preferredId;
+        // If a preferred warehouse ID is provided, validate it belongs to the branch
+        if ($preferredId !== null && $branchId !== null) {
+            $warehouse = Warehouse::where('id', $preferredId)
+                ->where('branch_id', $branchId)
+                ->where('status', 'active')
+                ->first();
+
+            if ($warehouse) {
+                return $warehouse->id;
+            }
+
+            // Preferred warehouse doesn't belong to branch - reject it
+            throw ValidationException::withMessages([
+                'warehouse_id' => [__('The selected warehouse does not belong to the store\'s branch.')],
+            ]);
         }
 
+        // If no preferred ID, try default warehouse scoped to branch
         $defaultWarehouseId = setting('default_warehouse_id');
-        if ($defaultWarehouseId !== null) {
-            return (int) $defaultWarehouseId;
+        if ($defaultWarehouseId !== null && $branchId !== null) {
+            $defaultWarehouse = Warehouse::where('id', $defaultWarehouseId)
+                ->where('branch_id', $branchId)
+                ->where('status', 'active')
+                ->first();
+
+            if ($defaultWarehouse) {
+                return $defaultWarehouse->id;
+            }
         }
 
+        // Fall back to any active warehouse in the branch
         if ($branchId !== null) {
-            $branchWarehouse = \App\Models\Warehouse::where('branch_id', $branchId)
+            $branchWarehouse = Warehouse::where('branch_id', $branchId)
                 ->where('status', 'active')
                 ->first();
 
@@ -327,8 +356,7 @@ class OrdersController extends BaseApiController
             }
         }
 
-        $firstWarehouse = \App\Models\Warehouse::where('status', 'active')->first();
-
-        return $firstWarehouse?->id;
+        // BUG-006 FIX: Do not fall back to a global warehouse outside the branch
+        return null;
     }
 }
