@@ -59,7 +59,9 @@ class AuthController extends Controller
 
     protected function throttleKey(Request $request): string
     {
-        return sha1(sprintf('login|%s|%s', $request->input('email'), $request->ip()));
+        $email = strtolower((string) $request->input('email'));
+
+        return sha1(sprintf('login|%s|%s', $email, $request->ip()));
     }
 
     public function me(Request $request)
