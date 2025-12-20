@@ -249,6 +249,52 @@ class CurrencyService
         );
     }
 
+    /**
+     * Retrieve latest rates for a base currency in a single query.
+     *
+     * @param  string  $baseCurrency  The currency code to convert from.
+     * @param  array  $targets  Target currency codes to resolve.
+     * @return array<string,float>  Map of currency code to rate. Falls back to reverse rates when direct rates are missing.
+     */
+    public function getRatesFor(string $baseCurrency, array $targets): array
+    {
+        $targets = collect($targets)
+            ->filter(fn ($code) => strtoupper($code) !== strtoupper($baseCurrency))
+            ->map(fn ($code) => strtoupper($code))
+            ->unique()
+            ->values();
+
+        if ($targets->isEmpty()) {
+            return [];
+        }
+
+        $rates = CurrencyRate::query()
+            ->where('from_currency', strtoupper($baseCurrency))
+            ->whereIn('to_currency', $targets->all())
+            ->orderByDesc('effective_date')
+            ->get()
+            ->unique('to_currency')
+            ->pluck('rate', 'to_currency')
+            ->toArray();
+
+        // Fallback to reverse rates when direct rate is missing
+        foreach ($targets as $code) {
+            if (! array_key_exists($code, $rates)) {
+                $reverse = CurrencyRate::query()
+                    ->where('from_currency', $code)
+                    ->where('to_currency', strtoupper($baseCurrency))
+                    ->orderByDesc('effective_date')
+                    ->first();
+
+                if ($reverse && $reverse->rate > 0) {
+                    $rates[$code] = 1 / $reverse->rate;
+                }
+            }
+        }
+
+        return $rates;
+    }
+
     public function clearCurrencyCache(): void
     {
         Cache::forget('supported_currencies');
