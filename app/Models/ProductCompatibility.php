@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductCompatibility extends Model
 {
+    protected $table = 'product_compatibilities';
+
     protected $fillable = [
         'product_id',
         'vehicle_model_id',

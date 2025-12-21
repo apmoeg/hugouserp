@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InventoryBatch extends Model
 {
+    protected $table = 'inventory_batches';
+
     protected $fillable = [
         'product_id',
         'warehouse_id',

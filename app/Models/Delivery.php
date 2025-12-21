@@ -10,6 +10,8 @@ class Delivery extends BaseModel
 {
     protected ?string $moduleKey = 'sales';
 
+    protected $table = 'deliveries';
+
     protected $fillable = ['sale_id', 'delivered_at', 'delivered_by', 'status', 'notes', 'extra_attributes'];
 
     protected $casts = ['delivered_at' => 'datetime'];

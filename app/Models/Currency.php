@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Cache;
 
 class Currency extends Model
 {
+    protected $table = 'currencies';
+
     protected $fillable = [
         'code',
         'name',

@@ -10,6 +10,8 @@ class TicketReply extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'ticket_replies';
+
     protected $fillable = [
         'ticket_id',
         'user_id',
