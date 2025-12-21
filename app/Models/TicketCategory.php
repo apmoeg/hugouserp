@@ -10,6 +10,8 @@ class TicketCategory extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'ticket_categories';
+
     protected $fillable = [
         'name',
         'name_ar',

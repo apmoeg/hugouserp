@@ -12,6 +12,8 @@ class ModulePolicy extends Model
 {
     use HasFactory;
 
+    protected $table = 'module_policies';
+
     protected $fillable = [
         'module_id',
         'branch_id',

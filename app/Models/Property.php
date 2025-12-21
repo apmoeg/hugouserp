@@ -11,6 +11,8 @@ class Property extends BaseModel
 {
     protected ?string $moduleKey = 'rentals';
 
+    protected $table = 'properties';
+
     protected $fillable = ['branch_id', 'name', 'address', 'notes', 'extra_attributes'];
 
     protected $casts = ['extra_attributes' => 'array'];

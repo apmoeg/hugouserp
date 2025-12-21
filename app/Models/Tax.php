@@ -10,6 +10,8 @@ class Tax extends BaseModel
 {
     protected ?string $moduleKey = 'pricing';
 
+    protected $table = 'taxes';
+
     protected $fillable = ['branch_id', 'code', 'name', 'description', 'rate', 'type', 'is_inclusive', 'is_active', 'extra_attributes'];
 
     protected $casts = [

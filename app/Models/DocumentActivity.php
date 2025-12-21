@@ -12,6 +12,8 @@ class DocumentActivity extends Model
 {
     use HasFactory;
 
+    protected $table = 'document_activities';
+
     public $timestamps = false;
 
     protected $fillable = [
