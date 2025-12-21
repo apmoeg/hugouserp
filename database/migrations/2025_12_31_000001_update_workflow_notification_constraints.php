@@ -16,7 +16,7 @@ return new class extends Migration
             if (Schema::hasColumn('workflow_instances', 'branch_id')) {
                 try {
                     $table->dropForeign(['branch_id']);
-                } catch (\Exception $e) {
+                } catch (QueryException $e) {
                     // Foreign key may not exist, continue
                 }
                 $table->foreign('branch_id')
