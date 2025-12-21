@@ -20,13 +20,13 @@ return new class extends Migration
         if (Schema::hasTable('ticket_replies')) {
             Schema::table('ticket_replies', function (Blueprint $table): void {
                 if (!Schema::hasColumn('ticket_replies', 'read_at')) {
-                    $table->timestamp('read_at')->nullable()->after('metadata');
+                    $table->timestamp('read_at')->nullable();
                 }
                 if (!Schema::hasColumn('ticket_replies', 'created_by')) {
-                    $table->foreignId('created_by')->nullable()->after('read_at')->constrained('users')->nullOnDelete();
+                    $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
                 }
                 if (!Schema::hasColumn('ticket_replies', 'updated_by')) {
-                    $table->foreignId('updated_by')->nullable()->after('created_by')->constrained('users')->nullOnDelete();
+                    $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
                 }
             });
         }
