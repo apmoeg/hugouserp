@@ -49,13 +49,28 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('sales', function (Blueprint $table) {
-            $table->dropForeign(['store_order_id']);
-            $table->dropColumn('store_order_id');
-        });
+        if (Schema::hasTable('sales')) {
+            Schema::table('sales', function (Blueprint $table) {
+                try {
+                    $table->dropForeign(['store_order_id']);
+                } catch (\Throwable $e) {
+                    // FK may not exist; safe to continue
+                }
 
-        Schema::table('store_orders', function (Blueprint $table) {
-            $table->dropForeign(['branch_id']);
-        });
+                if (Schema::hasColumn('sales', 'store_order_id')) {
+                    $table->dropColumn('store_order_id');
+                }
+            });
+        }
+
+        if (Schema::hasTable('store_orders')) {
+            Schema::table('store_orders', function (Blueprint $table) {
+                try {
+                    $table->dropForeign(['branch_id']);
+                } catch (\Throwable $e) {
+                    // FK may not exist; safe to continue
+                }
+            });
+        }
     }
 };

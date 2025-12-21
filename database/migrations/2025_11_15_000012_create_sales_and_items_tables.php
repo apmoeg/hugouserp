@@ -44,6 +44,7 @@ return new class extends Migration
             $table->date('expected_delivery_date')->nullable()->comment('Expected delivery date');
             $table->date('actual_delivery_date')->nullable()->comment('Actual delivery date');
             $table->string('reference_no')->nullable()->comment('reference_no');
+            // store_order_id is added later (2025_11_27_000002) once store_orders table exists
             $table->timestamp('posted_at')->nullable()->comment('posted_at');
             $table->string('sales_person')->nullable()->comment('Sales person name or user ID');
             $table->text('notes')->nullable()->comment('notes');
