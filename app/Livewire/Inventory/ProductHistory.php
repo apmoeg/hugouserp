@@ -19,6 +19,8 @@ class ProductHistory extends Component
 
     public ?Product $product = null;
 
+    protected int $branchId;
+
     public string $filterType = 'all';
 
     public ?string $dateFrom = null;
@@ -32,10 +34,17 @@ class ProductHistory extends Component
             abort(403);
         }
 
+        if (! $user->branch_id) {
+            abort(403);
+        }
+
+        $this->branchId = (int) $user->branch_id;
+
         if ($product) {
-            $this->product = Product::find($product);
+            $this->product = Product::where('branch_id', $this->branchId)
+                ->find($product);
             if (! $this->product) {
-                abort(404);
+                abort(403);
             }
         }
     }
@@ -48,6 +57,7 @@ class ProductHistory extends Component
 
         if ($this->product) {
             $movementQuery = StockMovement::where('product_id', $this->product->id)
+                ->where('branch_id', $this->branchId)
                 ->with(['user', 'warehouse'])
                 ->when($this->filterType !== 'all' && $this->filterType !== 'audit', fn ($q) => $q->where('type', $this->filterType))
                 ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
@@ -61,6 +71,7 @@ class ProductHistory extends Component
             if ($this->filterType === 'all' || $this->filterType === 'audit') {
                 $auditLogs = AuditLog::where('auditable_type', Product::class)
                     ->where('auditable_id', $this->product->id)
+                    ->where('branch_id', $this->branchId)
                     ->with('user')
                     ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
                     ->when($this->dateTo, fn ($q) => $q->whereDate('created_at', '<=', $this->dateTo))
@@ -70,6 +81,7 @@ class ProductHistory extends Component
             }
 
             $currentStock = StockMovement::where('product_id', $this->product->id)
+                ->where('branch_id', $this->branchId)
                 ->selectRaw("SUM(CASE WHEN direction = 'in' THEN qty ELSE -qty END) as stock")
                 ->value('stock') ?? 0;
         }

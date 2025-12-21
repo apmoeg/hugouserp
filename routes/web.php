@@ -51,6 +51,7 @@ use App\Livewire\Suppliers\Form as SupplierFormPage;
 use App\Livewire\Suppliers\Index as SuppliersIndexPage;
 use App\Livewire\Warehouse\Index as WarehouseIndexPage;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 /*
 |--------------------------------------------------------------------------
@@ -102,21 +103,32 @@ Route::get('/csrf-token', function () {
 // Export download endpoint - handles file downloads from exports
 Route::get('/download/export', function () {
     $exportInfo = session()->pull('export_file');
-    
-    if (!$exportInfo || !isset($exportInfo['path']) || !file_exists($exportInfo['path'])) {
+
+    if (! $exportInfo || ! isset($exportInfo['path'], $exportInfo['name'], $exportInfo['user_id'])) {
         abort(404, 'Export file not found or expired');
     }
-    
+
+    if ((int) $exportInfo['user_id'] !== auth()->id()) {
+        abort(403, 'You are not authorized to download this export');
+    }
+
+    $resolvedPath = realpath($exportInfo['path']);
+    $allowedBase = realpath(storage_path('app/exports')) ?: storage_path('app/exports');
+
+    if (! $resolvedPath || ! Str::startsWith($resolvedPath, $allowedBase) || ! file_exists($resolvedPath)) {
+        abort(403, 'Invalid export path');
+    }
+
     // Check if file is too old (older than 5 minutes)
     if (isset($exportInfo['time']) && (now()->timestamp - $exportInfo['time']) > 300) {
-        if (file_exists($exportInfo['path'])) {
-            unlink($exportInfo['path']);
+        if (file_exists($resolvedPath)) {
+            unlink($resolvedPath);
         }
         abort(410, 'Export file has expired');
     }
-    
-    return response()->download($exportInfo['path'], $exportInfo['name'])->deleteFileAfterSend(true);
-})->middleware(['web', 'auth'])->name('download.export');
+
+    return response()->download($resolvedPath, $exportInfo['name'])->deleteFileAfterSend(true);
+})->middleware(['web', 'auth', 'can:reports.download'])->name('download.export');
 
 /*
 |--------------------------------------------------------------------------

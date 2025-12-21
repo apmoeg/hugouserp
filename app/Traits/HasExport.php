@@ -108,6 +108,7 @@ trait HasExport
             'path' => $filepath,
             'name' => $downloadName,
             'time' => now()->timestamp,
+            'user_id' => auth()->id(),
         ]);
 
         // Use JavaScript to trigger download via a dedicated route

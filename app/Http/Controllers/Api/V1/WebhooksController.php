@@ -126,7 +126,7 @@ class WebhooksController extends BaseApiController
             return false;
         }
 
-        return $this->reserveDelivery($deliveryId);
+        return $this->reserveDelivery($deliveryId, $store->id);
     }
 
     protected function verifyWooCommerceWebhook(Request $request, Store $store): bool
@@ -150,7 +150,7 @@ class WebhooksController extends BaseApiController
             return false;
         }
 
-        return $this->reserveDelivery($deliveryId);
+        return $this->reserveDelivery($deliveryId, $store->id);
     }
 
     /**
@@ -216,7 +216,7 @@ class WebhooksController extends BaseApiController
             return false;
         }
 
-        return $this->reserveDelivery($deliveryId);
+        return $this->reserveDelivery($deliveryId, $store->id);
     }
 
     protected function handleLaravelProductDelete(Store $store, array $data): void
@@ -257,7 +257,7 @@ class WebhooksController extends BaseApiController
         }
     }
 
-    protected function isFresh(?string $timestamp, int $allowedSkewSeconds = 300): bool
+    protected function isFresh(?string $timestamp, int $allowedSkewSeconds = 180): bool
     {
         if (! $timestamp) {
             return false;
@@ -272,12 +272,12 @@ class WebhooksController extends BaseApiController
         return abs(now()->diffInSeconds($time, false)) <= $allowedSkewSeconds;
     }
 
-    protected function reserveDelivery(?string $deliveryId): bool
+    protected function reserveDelivery(?string $deliveryId, int $storeId): bool
     {
         if (! $deliveryId) {
             return false;
         }
 
-        return Cache::add('webhook_delivery_'.$deliveryId, true, now()->addMinutes(10));
+        return Cache::add('webhook_delivery_'.$storeId.'_'.$deliveryId, true, now()->addHours(24));
     }
 }
