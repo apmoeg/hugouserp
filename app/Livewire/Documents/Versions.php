@@ -46,8 +46,11 @@ class Versions extends Component
 
     public function uploadVersion(): void
     {
+        $allowedExtensions = implode(',', DocumentService::ALLOWED_EXTENSIONS);
+        $allowedMimeTypes = implode(',', DocumentService::ALLOWED_MIME_TYPES);
+
         $this->validate([
-            'file' => 'required|file|max:51200|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,png,jpg,jpeg,gif,csv,txt',
+            'file' => "required|file|max:51200|mimes:{$allowedExtensions}|mimetypes:{$allowedMimeTypes}",
             'changeNotes' => 'nullable|string',
         ]);
 

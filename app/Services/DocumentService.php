@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -79,6 +80,7 @@ class DocumentService
             // Store the file on the configured private disk
             $disk = $this->documentsDisk;
             $path = $file->store('documents', $disk);
+            $this->assertStoredMimeIsAllowed($file, $path, $disk);
             $isPublic = (bool) ($data['is_public'] ?? false);
 
             $user = auth()->user();
@@ -148,6 +150,7 @@ class DocumentService
             // Store the file on the configured private disk
             $disk = $this->documentsDisk;
             $path = $file->store('documents', $disk);
+            $this->assertStoredMimeIsAllowed($file, $path, $disk);
 
             // Get next version number
             $nextVersion = $document->versions()->max('version_number') + 1;
@@ -386,6 +389,24 @@ class DocumentService
         abort(503, 'File temporarily unavailable');
 
         return $primaryDisk;
+    }
+
+    private function assertStoredMimeIsAllowed(UploadedFile $file, string $path, string $disk): void
+    {
+        $storedMime = Storage::disk($disk)->mimeType($path) ?? $file->getMimeType();
+        $clientMime = $file->getMimeType();
+
+        if (
+            ! in_array($storedMime, self::ALLOWED_MIME_TYPES, true)
+            || ! in_array($clientMime, self::ALLOWED_MIME_TYPES, true)
+            || $storedMime !== $clientMime
+        ) {
+            Storage::disk($disk)->delete($path);
+
+            throw ValidationException::withMessages([
+                'file' => [__('Uploaded file type is not allowed after verification.')],
+            ]);
+        }
     }
 
     private function validateFile(UploadedFile $file): void

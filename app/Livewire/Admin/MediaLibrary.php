@@ -121,7 +121,7 @@ class MediaLibrary extends Component
             ->findOrFail($id);
 
         // Check permissions
-        $canDelete = ($user->can('media.manage') && $canBypassBranch) ||
+        $canDelete = $user->can('media.manage') ||
                      ($user->can('media.delete') && $media->user_id === $user->id);
 
         if (!$canDelete) {
