@@ -15,10 +15,22 @@ class MediaDownloadController extends Controller
     public function __invoke(Media $media, Request $request): StreamedResponse
     {
         $user = $request->user();
+        $canManageAll = $user?->can('media.manage-all') ?? false;
 
         abort_unless($user?->can('media.view'), 403, __('You do not have permission to view media files.'));
 
-        if (!$user->can('media.view-others') && $media->user_id !== $user->id) {
+        $canBypassBranch = ! $user?->branch_id || $canManageAll;
+
+        if (
+            $user?->branch_id
+            && $media->branch_id
+            && $user->branch_id !== $media->branch_id
+            && ! $canBypassBranch
+        ) {
+            abort(403, __('You do not have permission to access this file.'));
+        }
+
+        if (! $canManageAll && ! $user->can('media.view-others') && $media->user_id !== $user->id) {
             abort(403, __('You do not have permission to access this file.'));
         }
 
