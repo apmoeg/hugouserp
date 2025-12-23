@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Branch;
 use App\Models\Media;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,6 +25,7 @@ class MediaDownloadControllerTest extends TestCase
 
         Permission::create(['name' => 'media.view', 'guard_name' => 'web']);
         Permission::create(['name' => 'media.view-others', 'guard_name' => 'web']);
+        Permission::create(['name' => 'media.manage-all', 'guard_name' => 'web']);
     }
 
     public function test_user_can_stream_own_media_from_local_disk(): void
@@ -83,5 +85,74 @@ class MediaDownloadControllerTest extends TestCase
         $this->actingAs($viewer)
             ->get(route('app.media.download', $media))
             ->assertForbidden();
+    }
+
+    public function test_user_cannot_download_media_from_other_branch_without_manage_all(): void
+    {
+        Storage::fake('local');
+
+        $branchA = Branch::factory()->create();
+        $branchB = Branch::factory()->create();
+
+        $owner = User::factory()->for($branchB)->create();
+        $owner->givePermissionTo(['media.view', 'media.view-others']);
+
+        $viewer = User::factory()->for($branchA)->create();
+        $viewer->givePermissionTo(['media.view', 'media.view-others']);
+
+        $path = 'media/branch-secret.txt';
+        Storage::disk('local')->put($path, 'branch secret');
+
+        $media = Media::create([
+            'name' => 'Branch Secret',
+            'original_name' => 'branch-secret.txt',
+            'file_path' => $path,
+            'mime_type' => 'text/plain',
+            'extension' => 'txt',
+            'size' => 13,
+            'disk' => 'local',
+            'collection' => 'general',
+            'user_id' => $owner->id,
+            'branch_id' => $branchB->id,
+        ]);
+
+        $this->actingAs($viewer)
+            ->get(route('app.media.download', $media))
+            ->assertForbidden();
+    }
+
+    public function test_user_with_manage_all_can_download_across_branches(): void
+    {
+        Storage::fake('local');
+
+        $branchA = Branch::factory()->create();
+        $branchB = Branch::factory()->create();
+
+        $owner = User::factory()->for($branchB)->create();
+        $owner->givePermissionTo(['media.view', 'media.view-others']);
+
+        $viewer = User::factory()->for($branchA)->create();
+        $viewer->givePermissionTo(['media.view', 'media.manage-all']);
+
+        $path = 'media/branch-shared.txt';
+        Storage::disk('local')->put($path, 'shared file');
+
+        $media = Media::create([
+            'name' => 'Branch Shared',
+            'original_name' => 'branch-shared.txt',
+            'file_path' => $path,
+            'mime_type' => 'text/plain',
+            'extension' => 'txt',
+            'size' => 11,
+            'disk' => 'local',
+            'collection' => 'general',
+            'user_id' => $owner->id,
+            'branch_id' => $branchB->id,
+        ]);
+
+        $response = $this->actingAs($viewer)->get(route('app.media.download', $media));
+
+        $response->assertOk();
+        $response->assertSee('shared file');
     }
 }
