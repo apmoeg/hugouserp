@@ -1007,6 +1007,14 @@ Route::get('/app/media/{media}/download', \App\Http\Controllers\Admin\MediaDownl
             ->name('currencies.index')
             ->middleware('can:settings.view');
 
+        Route::get('/currencies/create', \App\Livewire\Admin\Currency\Form::class)
+            ->name('currencies.create')
+            ->middleware('can:settings.currency.manage');
+
+        Route::get('/currencies/{currency}/edit', \App\Livewire\Admin\Currency\Form::class)
+            ->name('currencies.edit')
+            ->middleware('can:settings.currency.manage');
+
         Route::get('/currency-rates', \App\Livewire\Admin\CurrencyRates::class)
             ->name('currency-rates.index')
             ->middleware('can:settings.view');

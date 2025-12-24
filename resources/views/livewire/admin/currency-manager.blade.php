@@ -4,10 +4,10 @@
             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ __('Currency Management') }}</h2>
             <p class="text-gray-500 dark:text-gray-400 text-sm">{{ __('Manage supported currencies and their settings') }}</p>
         </div>
-        <button wire:click="openModal" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2">
+        <a href="{{ route('app.admin.currencies.create') }}" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2">
             <x-icon name="plus" class="w-5 h-5" />
             {{ __('Add Currency') }}
-        </button>
+        </a>
     </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
@@ -71,9 +71,9 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <div class="flex items-center justify-end gap-2">
-                                    <button wire:click="edit({{ $currency->id }})" class="text-gray-400 hover:text-blue-500">
+                                    <a href="{{ route('app.admin.currencies.edit', $currency->id) }}" class="text-gray-400 hover:text-blue-500">
                                         <x-icon name="pencil" class="w-4 h-4" />
-                                    </button>
+                                    </a>
                                     @if(!$currency->is_base)
                                         <button wire:click="delete({{ $currency->id }})" 
                                                 wire:confirm="{{ __('Delete this currency?') }}"
@@ -99,93 +99,4 @@
             {{ $currencies->links() }}
         </div>
     </div>
-
-    @if($showModal)
-        <div class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-                <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" wire:click="closeModal"></div>
-                
-                <div class="relative inline-block w-full max-w-md p-6 overflow-hidden text-left align-middle transition-all transform bg-white dark:bg-gray-800 rounded-xl shadow-xl">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                        {{ $editingId ? __('Edit Currency') : __('Add Currency') }}
-                    </h3>
-                    
-                    <form wire:submit="save" class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Currency Code') }} *</label>
-                                <input type="text" wire:model="code" maxlength="3"
-                                       placeholder="{{ __('e.g., USD') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white uppercase"
-                                       @if($editingId) readonly @endif>
-                                @error('code') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Symbol') }} *</label>
-                                <input type="text" wire:model="symbol" maxlength="10"
-                                       placeholder="{{ __('e.g., $') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
-                                @error('symbol') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Name (English)') }} *</label>
-                            <input type="text" wire:model="name"
-                                   placeholder="{{ __('e.g., US Dollar') }}"
-                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
-                            @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Name (Arabic)') }}</label>
-                            <input type="text" wire:model="nameAr" dir="rtl"
-                                   placeholder="{{ __('e.g., دولار أمريكي') }}"
-                                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
-                            @error('nameAr') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Decimal Places') }}</label>
-                                <select wire:model="decimalPlaces" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
-                                    <option value="0">0</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Sort Order') }}</label>
-                                <input type="number" wire:model="sortOrder" min="0"
-                                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-6">
-                            <label class="flex items-center gap-2">
-                                <input type="checkbox" wire:model="isActive" 
-                                       class="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500">
-                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ __('Active') }}</span>
-                            </label>
-                            <label class="flex items-center gap-2">
-                                <input type="checkbox" wire:model="isBase"
-                                       class="w-4 h-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500">
-                                <span class="text-sm text-gray-700 dark:text-gray-300">{{ __('Set as Base Currency') }}</span>
-                            </label>
-                        </div>
-
-                        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <button type="button" wire:click="closeModal" 
-                                    class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
-                                {{ __('Cancel') }}
-                            </button>
-                            <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">
-                                {{ $editingId ? __('Update') : __('Save') }}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    @endif
 </div>
