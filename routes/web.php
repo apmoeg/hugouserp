@@ -353,6 +353,14 @@ Route::middleware('auth')->group(function () {
             ->name('categories.index')
             ->middleware('can:inventory.categories.view');
 
+        Route::get('/categories/create', \App\Livewire\Admin\Categories\Form::class)
+            ->name('categories.create')
+            ->middleware('can:inventory.categories.manage');
+
+        Route::get('/categories/{category}/edit', \App\Livewire\Admin\Categories\Form::class)
+            ->name('categories.edit')
+            ->middleware('can:inventory.categories.manage');
+
         // Units
         Route::get('/units', \App\Livewire\Admin\UnitsOfMeasure\Index::class)
             ->name('units.index')

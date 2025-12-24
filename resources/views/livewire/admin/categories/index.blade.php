@@ -9,12 +9,12 @@
             </h1>
             <p class="text-sm text-slate-500">{{ __('Manage product categories for organizing inventory') }}</p>
         </div>
-        <button wire:click="openModal" class="erp-btn-primary">
+        <a href="{{ route('app.admin.categories.create') }}" class="erp-btn-primary">
             <svg class="w-5 h-5 ltr:mr-1 rtl:ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
             {{ __('Add Category') }}
-        </button>
+        </a>
     </div>
 
     @if(session('success'))
@@ -83,13 +83,13 @@
                         </td>
                         <td class="text-center">
                             <div class="flex items-center justify-center gap-1">
-                                <button wire:click="edit({{ $category->id }})" 
+                                <a href="{{ route('app.admin.categories.edit', $category->id) }}" 
                                         class="erp-btn-icon" 
                                         title="{{ __('Edit') }}">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
-                                </button>
+                                </a>
                                 <button wire:click="delete({{ $category->id }})" 
                                         wire:confirm="{{ __('Are you sure you want to delete this category?') }}"
                                         class="erp-btn-icon text-red-500 hover:text-red-700 hover:bg-red-50"
@@ -118,81 +118,4 @@
     <div class="mt-4">
         {{ $categories->links() }}
     </div>
-
-    @if($showModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" wire:click.self="closeModal">
-            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden">
-                <div class="px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
-                    <h3 class="text-lg font-semibold flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                        </svg>
-                        {{ $editingId ? __('Edit Category') : __('Add Category') }}
-                    </h3>
-                </div>
-                <form wire:submit.prevent="save" class="p-6 space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="erp-label">{{ __('Name') }} <span class="text-red-500">*</span></label>
-                            <input type="text" wire:model="name" class="erp-input mt-1" placeholder="{{ __('Category name') }}">
-                            @error('name') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label class="erp-label">{{ __('Arabic Name') }}</label>
-                            <input type="text" wire:model="nameAr" class="erp-input mt-1" dir="rtl" placeholder="{{ __('اسم التصنيف') }}">
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="erp-label">{{ __('Parent Category') }}</label>
-                        <select wire:model="parentId" class="erp-input mt-1">
-                            <option value="">{{ __('No parent (Root category)') }}</option>
-                            @foreach($parentCategories as $parent)
-                                @if($parent->id !== $editingId)
-                                    <option value="{{ $parent->id }}">{{ $parent->name }}</option>
-                                @endif
-                            @endforeach
-                        </select>
-                        @error('parentId') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    
-                    <div>
-                        <label class="erp-label">{{ __('Description') }}</label>
-                        <textarea wire:model="description" rows="2" class="erp-input mt-1" placeholder="{{ __('Optional description') }}"></textarea>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="erp-label">{{ __('Sort Order') }}</label>
-                            <input type="number" wire:model="sortOrder" min="0" class="erp-input mt-1">
-                        </div>
-                        <div class="flex items-center pt-6">
-                            <label class="inline-flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" wire:model="isActive" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                                <span class="text-sm text-slate-700">{{ __('Active') }}</span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                        <button type="button" wire:click="closeModal" class="erp-btn-secondary" wire:loading.attr="disabled">
-                            {{ __('Cancel') }}
-                        </button>
-                        <button type="submit" class="erp-btn-primary" wire:loading.attr="disabled">
-                            <span wire:loading.remove wire:target="save">
-                                {{ $editingId ? __('Save Changes') : __('Create Category') }}
-                            </span>
-                            <span wire:loading wire:target="save">
-                                <svg class="animate-spin h-5 w-5 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                {{ __('Saving...') }}
-                            </span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    @endif
 </div>

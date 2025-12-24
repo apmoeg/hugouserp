@@ -6,8 +6,6 @@ namespace App\Livewire\Admin\Categories;
 
 use App\Models\ProductCategory;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -18,22 +16,6 @@ class Index extends Component
     use WithPagination;
 
     public string $search = '';
-
-    public bool $showModal = false;
-
-    public ?int $editingId = null;
-
-    public string $name = '';
-
-    public string $nameAr = '';
-
-    public ?int $parentId = null;
-
-    public string $description = '';
-
-    public int $sortOrder = 0;
-
-    public bool $isActive = true;
 
     protected $queryString = ['search'];
 
@@ -67,106 +49,6 @@ class Index extends Component
             'categories' => $categories,
             'parentCategories' => $parentCategories,
         ]);
-    }
-
-    public function openModal(): void
-    {
-        $this->resetForm();
-        $this->sortOrder = ProductCategory::max('sort_order') + 1;
-        $this->showModal = true;
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetForm();
-    }
-
-    public function resetForm(): void
-    {
-        $this->editingId = null;
-        $this->name = '';
-        $this->nameAr = '';
-        $this->parentId = null;
-        $this->description = '';
-        $this->sortOrder = 0;
-        $this->isActive = true;
-        $this->resetValidation();
-    }
-
-    public function edit(int $id): void
-    {
-        $category = ProductCategory::find($id);
-        if ($category) {
-            $this->editingId = $id;
-            $this->name = $category->name;
-            $this->nameAr = $category->name_ar ?? '';
-            $this->parentId = $category->parent_id;
-            $this->description = $category->description ?? '';
-            $this->sortOrder = $category->sort_order;
-            $this->isActive = $category->is_active;
-            $this->showModal = true;
-        }
-    }
-
-    public function save(): void
-    {
-        $rules = [
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                $this->editingId 
-                    ? Rule::unique('product_categories', 'name')->ignore($this->editingId) 
-                    : Rule::unique('product_categories', 'name'),
-            ],
-            'nameAr' => 'nullable|string|max:255',
-            'parentId' => [
-                'nullable',
-                'exists:product_categories,id',
-                function ($attribute, $value, $fail) {
-                    if ($this->editingId && $value == $this->editingId) {
-                        $fail(__('A category cannot be its own parent'));
-                    }
-                },
-            ],
-            'description' => 'nullable|string|max:1000',
-            'sortOrder' => 'integer|min:0',
-        ];
-
-        $this->validate($rules);
-
-        $user = Auth::user();
-
-        $data = [
-            'name' => $this->name,
-            'name_ar' => $this->nameAr ?: null,
-            'parent_id' => $this->parentId,
-            'description' => $this->description ?: null,
-            'sort_order' => $this->sortOrder,
-            'is_active' => $this->isActive,
-            'updated_by' => $user?->id,
-        ];
-
-        try {
-            if ($this->editingId) {
-                $category = ProductCategory::findOrFail($this->editingId);
-                $data['slug'] = Str::slug($this->name).'-'.Str::random(4);
-                $category->update($data);
-                session()->flash('success', __('Category updated successfully'));
-            } else {
-                $data['slug'] = Str::slug($this->name).'-'.Str::random(4);
-                $data['created_by'] = $user?->id;
-                $data['branch_id'] = $user?->branch_id;
-                ProductCategory::create($data);
-                session()->flash('success', __('Category created successfully'));
-            }
-
-            $this->closeModal();
-            $this->resetPage();
-        } catch (\Exception $e) {
-            $this->addError('name', __('Failed to save category. Please try again.'));
-        }
     }
 
     public function delete(int $id): void
