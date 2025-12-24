@@ -1031,6 +1031,14 @@ Route::get('/app/media/{media}/download', \App\Http\Controllers\Admin\MediaDownl
             ->name('currency-rates.index')
             ->middleware('can:settings.view');
 
+        Route::get('/currency-rates/create', \App\Livewire\Admin\CurrencyRate\Form::class)
+            ->name('currency-rates.create')
+            ->middleware('can:settings.manage');
+
+        Route::get('/currency-rates/{currencyRate}/edit', \App\Livewire\Admin\CurrencyRate\Form::class)
+            ->name('currency-rates.edit')
+            ->middleware('can:settings.manage');
+
         // Unified Settings (NEW)
         Route::get('/settings', UnifiedSettings::class)
             ->name('settings')
