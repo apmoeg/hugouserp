@@ -198,7 +198,7 @@ class Form extends Component
     {
         return view('livewire.purchases.quotations.form', [
             'requisitions' => PurchaseRequisition::where('status', 'approved')
-                ->whereNull('converted_to_po_at')
+                ->where('is_converted', false)
                 ->orderBy('created_at', 'desc')
                 ->get(),
             'suppliers' => Supplier::active()->orderBy('name')->get(),

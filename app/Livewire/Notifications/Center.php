@@ -71,7 +71,7 @@ class Center extends Component
     public function render()
     {
         return view('livewire.notifications.center', [
-            'items' => $this->notifications,
+            'items' => $this->getNotificationsProperty(),
         ]);
     }
 }

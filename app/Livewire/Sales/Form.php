@@ -414,7 +414,7 @@ class Form extends Component
         $branchId = $this->getUserBranchId();
 
         // BUG-003 Fix: Filter customers by branch
-        $customersQuery = Customer::where('is_active', true)->orderBy('name');
+        $customersQuery = Customer::active()->orderBy('name');
         if ($branchId) {
             $customersQuery->where(function ($q) use ($branchId) {
                 $q->where('branch_id', $branchId)
