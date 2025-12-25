@@ -17,7 +17,7 @@ $sizeClasses = match($size) {
 <div 
     wire:loading{{ $target ? ".delay.flex" : ".flex" }}
     @if($target) wire:target="{{ $target }}" @endif
-    class="fixed inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-50 items-center justify-center"
+    class="loading-overlay bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm items-center justify-center"
     x-data="{ show: false }"
     x-show="show"
     x-on:livewire:navigate-start="show = true"

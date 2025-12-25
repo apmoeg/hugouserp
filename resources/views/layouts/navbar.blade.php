@@ -1,13 +1,17 @@
 {{-- resources/views/layouts/navbar.blade.php --}}
-<header class="border-b border-emerald-100/70 bg-white/80 dark:bg-slate-900/90 backdrop-blur">
+<header class="erp-navbar border-b border-emerald-100/70 bg-white/80 dark:bg-slate-900/90 backdrop-blur">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-14 items-center justify-between gap-3">
 
             <div class="flex items-center gap-2">
+                {{-- Mobile Menu Toggle --}}
                 <button type="button"
-                        class="md:hidden inline-flex items-center justify-center rounded-md border border-emerald-100 bg-white px-2.5 py-1.5 text-slate-700 shadow-sm shadow-emerald-500/20 hover:bg-emerald-50"
-                        @click="sidebarOpen = !sidebarOpen">
-                    ☰
+                        class="erp-menu-toggle"
+                        @click="sidebarOpen = !sidebarOpen"
+                        aria-label="{{ __('Toggle menu') }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
                 </button>
 
                 @hasSection('page-title')
@@ -62,7 +66,7 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute {{ app()->getLocale() === 'ar' ? 'left-0' : 'right-0' }} mt-2 w-56 rounded-xl border border-slate-200 bg-white shadow-lg z-50"
+                         class="absolute {{ app()->getLocale() === 'ar' ? 'left-0' : 'right-0' }} mt-2 w-56 rounded-xl border border-slate-200 bg-white shadow-lg z-popover"
                          style="display: none;">
                         <div class="p-3 border-b border-slate-100">
                             <p class="text-sm font-medium text-slate-800">{{ auth()->user()->name ?? __('User') }}</p>

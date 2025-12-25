@@ -85,10 +85,10 @@
             </div>
             
             <div class="mb-4">
-                <div class="relative">
+                <div class="relative search-dropdown-wrapper">
                     <input type="text" wire:model.live.debounce.300ms="productSearch" placeholder="{{ __('Search products by name or SKU...') }}" class="erp-input">
                     @if(count($searchResults) > 0)
-                        <div class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        <div class="search-dropdown mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                             @foreach($searchResults as $product)
                                 <button type="button" wire:click="addProduct({{ $product['id'] }})" class="w-full px-4 py-2 text-left hover:bg-emerald-50 flex justify-between items-center">
                                     <span class="font-medium text-slate-800">{{ $product['name'] }}</span>

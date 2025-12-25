@@ -7,7 +7,7 @@
 ])
 
 @if($show)
-<div {{ $attributes->merge(['class' => 'fixed inset-0 z-50 flex items-center justify-center']) }}>
+<div {{ $attributes->merge(['class' => 'loading-overlay flex items-center justify-center']) }}>
     @if($backdrop)
     <div class="absolute inset-0 bg-slate-900/50 dark:bg-slate-950/70 backdrop-blur-sm transition-opacity"></div>
     @endif

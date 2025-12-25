@@ -33,7 +33,7 @@ $maxWidthClass = match($maxWidth) {
 };
 @endphp
 
-<div {{ $attributes->merge(['class' => 'fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto']) }}>
+<div {{ $attributes->merge(['class' => 'fixed inset-0 z-modal flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto']) }}>
     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full {{ $maxWidthClass }} mx-auto my-auto max-h-[90vh] overflow-y-auto">
         {{ $slot }}
     </div>

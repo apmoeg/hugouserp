@@ -30,7 +30,7 @@
     </div>
 
     @if($showResults)
-        <div class="absolute z-50 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200 max-h-[70vh] overflow-hidden"
+        <div class="absolute z-popover w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200 max-h-[70vh] overflow-hidden"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 transform scale-95"
              x-transition:enter-end="opacity-100 transform scale-100">

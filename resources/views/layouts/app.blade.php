@@ -106,24 +106,13 @@
       x-data="{ sidebarOpen: false }"
       @keydown.escape.window="sidebarOpen = false">
 
-{{-- Mobile sidebar overlay --}}
-<div x-show="sidebarOpen" 
-     x-transition:enter="transition-opacity ease-out duration-300"
-     x-transition:enter-start="opacity-0"
-     x-transition:enter-end="opacity-100"
-     x-transition:leave="transition-opacity ease-in duration-200"
-     x-transition:leave-start="opacity-100"
-     x-transition:leave-end="opacity-0"
-     @click="sidebarOpen = false"
-     class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"></div>
+{{-- Main Layout Container with new sidebar --}}
+<div class="erp-layout">
+    {{-- New Sidebar (includes overlay) --}}
+    @includeIf('layouts.sidebar-new')
 
-<div class="min-h-screen flex {{ $dir === 'rtl' ? 'flex-row-reverse' : 'flex-row' }}">
-
-    {{-- Sidebar --}}
-    @includeIf('layouts.sidebar')
-
-    {{-- Main --}}
-    <div class="flex-1 flex flex-col min-h-screen w-full">
+    {{-- Main Content Wrapper --}}
+    <div class="erp-main-wrapper">
 
         {{-- Navbar --}}
         @includeIf('layouts.navbar')
@@ -380,10 +369,10 @@
     });
 </script>
 
-    <div id="erp-toast-root" class="fixed inset-0 pointer-events-none flex flex-col items-end justify-start px-4 py-6 space-y-2 z-[9999]"></div>
+    <div id="erp-toast-root" class="toast-container flex flex-col items-end justify-start px-4 py-6 space-y-2 inset-inline-end-0 inset-block-start-0 inset-inline-start-auto inset-block-end-auto"></div>
 
 {{-- Loading indicator --}}
-<div id="page-loading" class="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-blue-500 to-emerald-500 transform -translate-x-full transition-transform duration-300 z-[10000]" style="display:none;"></div>
+<div id="page-loading" class="loading-overlay h-1 inset-block-end-auto bg-gradient-to-r from-emerald-500 via-blue-500 to-emerald-500 transform -translate-x-full transition-transform duration-300" style="display:none;"></div>
 
 <script>
     // Intelligent prefetching - preload links on hover
