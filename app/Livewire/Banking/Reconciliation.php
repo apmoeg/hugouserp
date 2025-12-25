@@ -25,7 +25,7 @@ class Reconciliation extends Component
     public function render()
     {
         $accounts = BankAccount::where('branch_id', auth()->user()->branch_id)
-            ->orderBy('name')
+            ->orderBy('account_name')
             ->get();
 
         return view('livewire.banking.reconciliation', [

@@ -52,8 +52,11 @@ class CashFlowForecastService
      */
     private function getCurrentCashPosition()
     {
-        $balance = BankAccount::sum('balance');
-        return (string)$balance;
+        // Use the current_balance column (not a non-existent `balance` field)
+        // and normalize to a bcmath-friendly string to keep precision
+        $balance = BankAccount::sum('current_balance');
+
+        return bcadd((string) $balance, '0', 2);
     }
 
     /**

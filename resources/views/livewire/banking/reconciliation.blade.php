@@ -14,7 +14,7 @@
                     <select wire:model="accountId" class="erp-input">
                         <option value="">{{ __('Select Account') }}</option>
                         @foreach($accounts as $account)
-                            <option value="{{ $account->id }}">{{ $account->name }}</option>
+                            <option value="{{ $account->id }}">{{ $account->account_name }}</option>
                         @endforeach
                     </select>
                 </div>

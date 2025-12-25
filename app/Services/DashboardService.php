@@ -479,8 +479,14 @@ class DashboardService
     private function generateCashBankBalanceData(?int $branchId): array
     {
         $query = DB::table('bank_accounts')
-            ->select('id', 'name', 'account_type', 'balance', 'currency')
-            ->where('is_active', true);
+            ->select([
+                'id',
+                'account_name as name',
+                'account_type',
+                'current_balance as balance',
+                'currency',
+            ])
+            ->where('status', 'active');
 
         if ($branchId) {
             $query->where('branch_id', $branchId);
