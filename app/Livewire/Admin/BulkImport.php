@@ -64,7 +64,29 @@ class BulkImport extends Component
             return;
         }
 
+        // Validate entity type against allowed values
+        $allowedEntities = array_keys($this->importService->getImportableEntities());
+        if (!in_array($this->entityType, $allowedEntities, true)) {
+            session()->flash('error', __('Invalid entity type selected'));
+            return;
+        }
+
         try {
+            // Additional file validation
+            $mimeType = $this->importFile->getMimeType();
+            $allowedMimes = [
+                'text/csv',
+                'application/csv',
+                'text/plain',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ];
+            
+            if (!in_array($mimeType, $allowedMimes, true)) {
+                session()->flash('error', __('Invalid file type. Please upload CSV, XLS or XLSX file.'));
+                return;
+            }
+
             $path = $this->importFile->getRealPath();
             $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
             $worksheet = $spreadsheet->getActiveSheet();
@@ -127,6 +149,13 @@ class BulkImport extends Component
 
     public function downloadTemplate(): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
+        // Validate entity type
+        $allowedEntities = array_keys($this->importService->getImportableEntities());
+        if (!in_array($this->entityType, $allowedEntities, true)) {
+            session()->flash('error', __('Invalid entity type selected'));
+            return back();
+        }
+
         $path = $this->importService->generateTemplate($this->entityType);
         
         if (!$path) {
@@ -134,9 +163,12 @@ class BulkImport extends Component
             return back();
         }
 
+        // Sanitize filename - only allow alphanumeric and underscore
+        $safeEntityType = preg_replace('/[^a-zA-Z0-9_]/', '_', $this->entityType);
+
         return response()->download(
             Storage::disk('local')->path($path),
-            "import_template_{$this->entityType}.xlsx"
+            "import_template_{$safeEntityType}.xlsx"
         )->deleteFileAfterSend(true);
     }
 
@@ -144,6 +176,13 @@ class BulkImport extends Component
     {
         if (!$this->importFile || !$this->entityType) {
             session()->flash('error', __('Please upload a file and select entity type'));
+            return;
+        }
+
+        // Validate entity type against allowed values
+        $allowedEntities = array_keys($this->importService->getImportableEntities());
+        if (!in_array($this->entityType, $allowedEntities, true)) {
+            session()->flash('error', __('Invalid entity type selected'));
             return;
         }
 

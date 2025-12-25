@@ -6,6 +6,7 @@ namespace App\Livewire\Income;
 
 use App\Models\Income;
 use App\Models\IncomeCategory;
+use App\Traits\HasExport;
 use App\Traits\HasSortableColumns;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Cache;
@@ -17,6 +18,7 @@ use Livewire\WithPagination;
 class Index extends Component
 {
     use AuthorizesRequests;
+    use HasExport;
     use HasSortableColumns;
     use WithPagination;
 
@@ -33,6 +35,36 @@ class Index extends Component
     public function mount(): void
     {
         $this->authorize('income.view');
+        $this->initializeExport('incomes');
+    }
+
+    public function export(): void
+    {
+        $user = auth()->user();
+        
+        $data = Income::query()
+            ->with(['category', 'branch', 'creator'])
+            ->when($user && $user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))
+            ->when($this->search, fn ($q) => $q->where(function ($query) {
+                $query->where('description', 'like', "%{$this->search}%")
+                    ->orWhere('reference_number', 'like', "%{$this->search}%");
+            }))
+            ->when($this->categoryId, fn ($q) => $q->where('category_id', $this->categoryId))
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('income_date', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('income_date', '<=', $this->dateTo))
+            ->orderBy($this->getSortField(), $this->getSortDirection())
+            ->get()
+            ->map(fn ($income) => [
+                'id' => $income->id,
+                'income_date' => $income->income_date?->format('Y-m-d'),
+                'category_name' => $income->category?->name ?? '-',
+                'description' => $income->description,
+                'amount' => $income->amount,
+                'branch_name' => $income->branch?->name ?? '-',
+                'created_at' => $income->created_at?->format('Y-m-d H:i'),
+            ]);
+
+        $this->performExport('incomes', $data, __('Income Export'));
     }
 
     #[Url]
