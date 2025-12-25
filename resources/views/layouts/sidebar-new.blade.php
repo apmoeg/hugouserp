@@ -22,7 +22,16 @@
     $isActive = function ($routes) use ($currentRoute) {
         $routes = (array) $routes;
         foreach ($routes as $route) {
-            if ($route && str_starts_with($currentRoute, $route)) {
+            if (!$route) {
+                continue;
+            }
+
+            if (str_starts_with($currentRoute, $route)) {
+                return true;
+            }
+
+            $baseRoute = Str::beforeLast($route, '.');
+            if ($baseRoute && str_starts_with($currentRoute, $baseRoute)) {
                 return true;
             }
         }
@@ -469,7 +478,7 @@
         searchQuery: '',
         searchResults: [],
         showSearchResults: false,
-        allMenuItems: @js(collect($filteredSections)->flatMap(function($section) use ($safeRoute) {
+        allMenuItems: @js(collect($filteredSections)->flatMap(function($section) use ($safeRoute, $isActive) {
             // Define keyword mappings for bilingual search (English -> Arabic and vice versa)
             $keywordMappings = [
                 'dashboard' => ['لوحة التحكم', 'لوحة', 'home', 'الرئيسية'],
@@ -526,12 +535,13 @@
                     'url' => Route::has($item['route']) ? route($item['route']) : '#',
                     'section' => $section['title'],
                     'icon' => $item['icon'],
-                    'keywords' => implode(' ', $keywords)
+                    'keywords' => implode(' ', $keywords),
+                    'active' => $isActive($item['route'])
                 ]];
                 foreach ($item['children'] ?? [] as $child) {
                     $childRouteKey = strtolower(last(explode('.', $child['route'])));
                     $childKeywords = $keywordMappings[$childRouteKey] ?? [];
-                    
+
                     $items[] = [
                         'label' => $child['label'],
                         'route' => $child['route'],
@@ -539,7 +549,8 @@
                         'section' => $section['title'],
                         'parent' => $item['label'],
                         'icon' => $item['icon'],
-                        'keywords' => implode(' ', array_merge($keywords, $childKeywords))
+                        'keywords' => implode(' ', array_merge($keywords, $childKeywords)),
+                        'active' => $isActive($child['route'])
                     ];
                 }
                 return $items;
@@ -577,19 +588,98 @@
         isExpanded(key) {
             return this.expandedSections[key] ?? false;
         },
+        normalizeText(text) {
+            if (!text) return '';
+            return text
+                .toString()
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[\u064B-\u065F\u0670]/g, '')
+                .replace(/ـ/g, '')
+                .trim();
+        },
+        transliterateArabicToLatin(text) {
+            const map = {
+                'ا': 'a','أ': 'a','إ': 'a','آ': 'aa','ء': 'a','ؤ': 'o','ئ': 'e',
+                'ب': 'b','ت': 't','ث': 'th','ج': 'j','ح': 'h','خ': 'kh','د': 'd',
+                'ذ': 'th','ر': 'r','ز': 'z','س': 's','ش': 'sh','ص': 's','ض': 'd',
+                'ط': 't','ظ': 'z','ع': 'a','غ': 'gh','ف': 'f','ق': 'q','ك': 'k',
+                'ل': 'l','م': 'm','ن': 'n','ه': 'h','و': 'w','ي': 'y','ى': 'a',
+                'ة': 'h','ﻻ': 'la','لا': 'la','٠': '0','١': '1','٢': '2','٣': '3',
+                '٤': '4','٥': '5','٦': '6','٧': '7','٨': '8','٩': '9'
+            };
+
+            return this.normalizeText(text)
+                .split('')
+                .map(char => map[char] ?? char)
+                .join('');
+        },
+        sequentialScore(query, text) {
+            if (!query || !text) return 0;
+            if (text.includes(query)) return 1;
+
+            let matches = 0;
+            let textIndex = 0;
+
+            for (const char of query) {
+                textIndex = text.indexOf(char, textIndex);
+                if (textIndex === -1) continue;
+                matches++;
+                textIndex++;
+            }
+
+            return matches / query.length;
+        },
+        getMatchScore(query, text) {
+            const normalizedQuery = this.normalizeText(query);
+            const normalizedText = this.normalizeText(text);
+
+            if (!normalizedQuery || !normalizedText) return 0;
+
+            const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
+
+            const directScore = this.sequentialScore(normalizedQuery, normalizedText);
+            const tokenScore = queryTokens.length
+                ? queryTokens.reduce((acc, token) => acc + this.sequentialScore(token, normalizedText), 0) / queryTokens.length
+                : 0;
+
+            const transliteratedQuery = this.transliterateArabicToLatin(normalizedQuery);
+            const transliteratedText = this.transliterateArabicToLatin(normalizedText);
+            const translitScore = transliteratedQuery && transliteratedText
+                ? this.sequentialScore(transliteratedQuery, transliteratedText)
+                : 0;
+
+            return Math.max(directScore, tokenScore, translitScore);
+        },
         performSearch() {
-            if (this.searchQuery.length < 1) {
+            const query = this.searchQuery.trim();
+            if (query.length < 1) {
                 this.searchResults = [];
                 this.showSearchResults = false;
                 return;
             }
-            const query = this.searchQuery.toLowerCase();
-            this.searchResults = this.allMenuItems.filter(item => 
-                item.label.toLowerCase().includes(query) ||
-                item.section.toLowerCase().includes(query) ||
-                (item.parent && item.parent.toLowerCase().includes(query)) ||
-                (item.keywords && item.keywords.toLowerCase().includes(query))
-            ).slice(0, 10);
+
+            const normalizedQuery = this.normalizeText(query);
+
+            this.searchResults = this.allMenuItems
+                .map(item => {
+                    const scores = [
+                        this.getMatchScore(normalizedQuery, item.label),
+                        this.getMatchScore(normalizedQuery, item.section),
+                        this.getMatchScore(normalizedQuery, item.parent),
+                        this.getMatchScore(normalizedQuery, item.keywords),
+                    ];
+
+                    return {
+                        ...item,
+                        score: Math.max(...scores, 0),
+                    };
+                })
+                .filter(item => item.score >= 0.6)
+                .sort((a, b) => (b.score - a.score) || ((b.active ? 1 : 0) - (a.active ? 1 : 0)))
+                .slice(0, 12);
+
             this.showSearchResults = true;
         },
         navigateTo(url) {
@@ -601,6 +691,9 @@
             this.searchQuery = '';
             this.searchResults = [];
             this.showSearchResults = false;
+        },
+        isSearching() {
+            return this.showSearchResults && this.searchQuery.trim().length > 0;
         }
     }"
     @click.away="showSearchResults = false"
@@ -630,13 +723,13 @@
     </div>
 
     {{-- Search Box --}}
-    <div class="px-3 py-2 relative">
+    <div class="px-3 py-2">
         <div class="relative">
-            <input 
-                type="text" 
+            <input
+                type="text"
                 x-model="searchQuery"
                 @input.debounce.200ms="performSearch()"
-                @focus="searchQuery.length >= 2 && (showSearchResults = true)"
+                @focus="searchQuery.length >= 1 && (showSearchResults = true)"
                 @keydown.escape="clearSearch()"
                 placeholder="{{ __('Search...') }}"
                 class="w-full bg-slate-800/60 border border-slate-700/50 rounded-lg px-3 py-2 ps-9 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 transition-all"
@@ -644,7 +737,7 @@
             <svg class="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            <button 
+            <button
                 x-show="searchQuery.length > 0"
                 @click="clearSearch()"
                 class="absolute end-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-slate-700/50 text-slate-500 hover:text-slate-300 transition-colors"
@@ -654,52 +747,46 @@
                 </svg>
             </button>
         </div>
-        
-        {{-- Search Results Dropdown --}}
-        <div 
-            x-show="showSearchResults && searchResults.length > 0"
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 -translate-y-1"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-1"
-            class="absolute start-3 end-3 top-full mt-1 bg-slate-800 border border-slate-700/50 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto"
-        >
-            <template x-for="(result, index) in searchResults" :key="index">
-                <button 
-                    @click="navigateTo(result.url)"
-                    class="w-full flex items-center gap-3 px-3 py-2.5 text-start hover:bg-slate-700/50 transition-colors border-b border-slate-700/30 last:border-0"
-                >
-                    <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-slate-700/50 text-emerald-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" :d="result.icon"/>
-                        </svg>
-                    </span>
-                    <div class="min-w-0 flex-1">
-                        <div class="text-sm text-slate-200 truncate" x-text="result.label"></div>
-                        <div class="text-xs text-slate-500 truncate">
-                            <span x-text="result.section"></span>
-                            <template x-if="result.parent">
-                                <span> → <span x-text="result.parent"></span></span>
-                            </template>
+    </div>
+
+    {{-- Search Suggestions (inline) --}}
+    <div class="erp-sidebar-nav" x-show="isSearching()" x-cloak>
+        <div class="erp-sidebar-section">
+            <div class="px-3 py-2">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ __('Search Results') }}</span>
+            </div>
+            <div class="erp-sidebar-items">
+                <template x-if="searchResults.length === 0">
+                    <div class="px-3 py-2 text-sm text-slate-500">{{ __('No results found') }}</div>
+                </template>
+                <template x-for="(result, index) in searchResults" :key="index">
+                    <button
+                        @click="navigateTo(result.url)"
+                        class="w-full flex items-center gap-3 px-3 py-2 text-start hover:bg-slate-800/50 transition-colors border-b border-slate-800/60 last:border-0"
+                        :class="result.active ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-100' : ''"
+                    >
+                        <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-slate-800/70 text-emerald-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" :d="result.icon"/>
+                            </svg>
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <div class="text-sm text-slate-200 truncate" x-text="result.label"></div>
+                            <div class="text-xs text-slate-500 truncate">
+                                <span x-text="result.section"></span>
+                                <template x-if="result.parent">
+                                    <span> → <span x-text="result.parent"></span></span>
+                                </template>
+                            </div>
                         </div>
-                    </div>
-                </button>
-            </template>
-        </div>
-        
-        {{-- No Results Message --}}
-        <div 
-            x-show="showSearchResults && searchQuery.length >= 2 && searchResults.length === 0"
-            class="absolute start-3 end-3 top-full mt-1 bg-slate-800 border border-slate-700/50 rounded-lg shadow-xl p-4 text-center"
-        >
-            <p class="text-sm text-slate-500">{{ __('No results found') }}</p>
+                    </button>
+                </template>
+            </div>
         </div>
     </div>
 
     {{-- Sidebar Navigation --}}
-    <nav class="erp-sidebar-nav">
+    <nav class="erp-sidebar-nav" x-show="!isSearching()">
         @foreach($filteredSections as $sectionIndex => $section)
             <div class="erp-sidebar-section">
                 {{-- Section Header --}}
