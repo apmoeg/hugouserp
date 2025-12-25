@@ -1073,9 +1073,17 @@ Route::get('/app/media/{media}/download', \App\Http\Controllers\Admin\MediaDownl
             ->middleware('can:stores.view');
 
         // Translation Management
-        Route::get('/translations', \App\Livewire\Admin\TranslationManager::class)
+        Route::get('/translations', \App\Livewire\Admin\Translations\Index::class)
             ->name('translations.index')
             ->middleware('can:settings.view');
+
+        Route::get('/translations/create', \App\Livewire\Admin\Translations\Form::class)
+            ->name('translations.create')
+            ->middleware('can:settings.translations.manage');
+
+        Route::get('/translations/edit', \App\Livewire\Admin\Translations\Form::class)
+            ->name('translations.edit')
+            ->middleware('can:settings.translations.manage');
 
         // Currency Management
         Route::get('/currencies', \App\Livewire\Admin\CurrencyManager::class)

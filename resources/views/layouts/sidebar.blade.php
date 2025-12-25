@@ -249,7 +249,9 @@
                     ['route' => 'admin.stores.orders', 'icon' => '📦', 'label' => __('Store Orders'), 'permission' => 'stores.view'],
                     ['route' => 'admin.api-docs', 'icon' => '📖', 'label' => __('API Docs'), 'permission' => 'stores.view'],
                 ]],
-                ['route' => 'admin.translations.index', 'icon' => '🌍', 'label' => __('Translations'), 'permission' => 'settings.view'],
+                ['route' => 'admin.translations.index', 'icon' => '🌍', 'label' => __('Translations'), 'permission' => 'settings.view', 'children' => [
+                    ['route' => 'admin.translations.create', 'icon' => '➕', 'label' => __('Add Translation'), 'permission' => 'settings.translations.manage'],
+                ]],
                 ['route' => 'admin.currencies.index', 'icon' => '💱', 'label' => __('Currencies'), 'permission' => 'settings.view', 'children' => [
                     ['route' => 'admin.currency-rates.index', 'icon' => '📈', 'label' => __('Exchange Rates'), 'permission' => 'settings.view'],
                 ]],
