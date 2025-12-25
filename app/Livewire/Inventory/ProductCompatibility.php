@@ -45,9 +45,9 @@ class ProductCompatibility extends Component
 
     public bool $isVerified = false;
 
-    public bool $showVehicleModal = false;
+    public bool $showVehicleForm = false;
 
-    public bool $showCompatibilityModal = false;
+    public bool $showCompatibilityForm = false;
 
     protected SparePartsService $sparePartsService;
 
@@ -98,15 +98,15 @@ class ProductCompatibility extends Component
         ]);
     }
 
-    public function openVehicleModal(): void
+    public function openVehicleForm(): void
     {
         $this->resetVehicleForm();
-        $this->showVehicleModal = true;
+        $this->showVehicleForm = true;
     }
 
-    public function closeVehicleModal(): void
+    public function closeVehicleForm(): void
     {
-        $this->showVehicleModal = false;
+        $this->showVehicleForm = false;
         $this->resetVehicleForm();
     }
 
@@ -132,7 +132,7 @@ class ProductCompatibility extends Component
             $this->newYearTo = $vehicle->year_to;
             $this->newCategory = $vehicle->category ?? '';
             $this->newEngineType = $vehicle->engine_type ?? '';
-            $this->showVehicleModal = true;
+            $this->showVehicleForm = true;
         }
     }
 
@@ -163,7 +163,7 @@ class ProductCompatibility extends Component
             $this->dispatch('notify', type: 'success', message: __('Vehicle model created successfully'));
         }
 
-        $this->closeVehicleModal();
+        $this->closeVehicleForm();
     }
 
     public function deleteVehicle(int $id): void
@@ -172,15 +172,15 @@ class ProductCompatibility extends Component
         $this->dispatch('notify', type: 'success', message: __('Vehicle model deleted successfully'));
     }
 
-    public function openCompatibilityModal(): void
+    public function openCompatibilityForm(): void
     {
         $this->resetCompatibilityForm();
-        $this->showCompatibilityModal = true;
+        $this->showCompatibilityForm = true;
     }
 
-    public function closeCompatibilityModal(): void
+    public function closeCompatibilityForm(): void
     {
-        $this->showCompatibilityModal = false;
+        $this->showCompatibilityForm = false;
         $this->resetCompatibilityForm();
     }
 
@@ -213,7 +213,7 @@ class ProductCompatibility extends Component
         );
 
         $this->dispatch('notify', type: 'success', message: __('Compatibility added successfully'));
-        $this->closeCompatibilityModal();
+        $this->closeCompatibilityForm();
     }
 
     public function quickAddCompatibility(int $vehicleModelId): void
