@@ -76,6 +76,7 @@ class SlowMovingStockService
         return [
             'expiring_products' => $products->map(function($product) {
                 $daysToExpiry = Carbon::now()->diffInDays($product->expiry_date, false);
+                // Cost priority: actual cost -> standard cost -> 0 (for products without cost data)
                 $potentialLoss = bcmul((string)$product->stock_quantity, (string)($product->cost ?? $product->standard_cost ?? 0), 2);
                 
                 return [
@@ -92,6 +93,7 @@ class SlowMovingStockService
             }),
             'total_expiring' => $products->count(),
             'total_potential_loss' => (float)$products->sum(function($product) {
+                // Cost priority: actual cost -> standard cost -> 0 (for products without cost data)
                 return bcmul((string)$product->stock_quantity, (string)($product->cost ?? $product->standard_cost ?? 0), 2);
             }),
         ];
