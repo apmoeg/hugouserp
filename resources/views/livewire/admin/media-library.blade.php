@@ -10,7 +10,7 @@
             alert(@js(__('Failed to copy link')));
         });
     }
-}" @copy-link.window="copyToClipboard($event.detail)">
+}">
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-slate-800">{{ __('Media Library') }}</h1>
