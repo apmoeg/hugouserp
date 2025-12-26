@@ -44,7 +44,8 @@ class Form extends Component
         $user = Auth::user();
 
         // Check appropriate permission based on create/edit mode
-        $requiredPermission = $branch ? 'branches.edit' : 'branches.create';
+        // Using config-based permission check to align with routes
+        $requiredPermission = config('screen_permissions.admin.branches.index', 'branches.view');
         if (! $user || ! $user->can($requiredPermission)) {
             abort(403, __('Unauthorized access'));
         }

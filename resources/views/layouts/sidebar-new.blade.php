@@ -37,6 +37,14 @@
             if (str_starts_with($currentRoute, $route . '.')) {
                 return true;
             }
+            
+            // Check if current route shares the same base (for edit/create routes)
+            // e.g., admin.branches.edit is active when checking admin.branches.index
+            $routeBase = preg_replace('/\.(index|create|edit|show)$/', '', $route);
+            $currentBase = preg_replace('/\.(index|create|edit|show)$/', '', $currentRoute);
+            if ($routeBase && $routeBase === $currentBase) {
+                return true;
+            }
         }
         return false;
     };
@@ -374,6 +382,10 @@
                     'label' => __('Branches'),
                     'permission' => 'branches.view',
                     'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
+                    'children' => [
+                        ['route' => 'admin.branches.index', 'label' => __('All Branches'), 'permission' => 'branches.view'],
+                        ['route' => 'admin.branches.create', 'label' => __('Add Branch'), 'permission' => 'branches.view'],
+                    ],
                 ],
                 [
                     'route' => 'admin.modules.index',
@@ -533,9 +545,15 @@
             // Helper to check if route is active (inline version for this scope)
             $checkActive = function ($route) use ($currentRoute) {
                 if (!$route) return false;
-                if (str_starts_with($currentRoute, $route)) return true;
-                $baseRoute = Str::beforeLast($route, '.');
-                return $baseRoute && str_starts_with($currentRoute, $baseRoute);
+                if ($currentRoute === $route) return true;
+                if (str_starts_with($currentRoute, $route . '.')) return true;
+                
+                // Check if current route shares the same base (for edit/create routes)
+                $routeBase = preg_replace('/\.(index|create|edit|show)$/', '', $route);
+                $currentBase = preg_replace('/\.(index|create|edit|show)$/', '', $currentRoute);
+                if ($routeBase && $routeBase === $currentBase) return true;
+                
+                return false;
             };
             
             return collect($section['items'])->flatMap(function($item) use ($section, $keywordMappings, $checkActive) {

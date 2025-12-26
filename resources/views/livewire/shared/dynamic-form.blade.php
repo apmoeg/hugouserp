@@ -54,26 +54,26 @@
 
                             @case('textarea')
                                 <textarea 
-                                    wire:model.blur="data.{{ $name }}"
+                                    wire:model="data.{{ $name }}"
                                     id="field-{{ $name }}"
                                     rows="{{ $rows }}"
                                     placeholder="{{ __($placeholder) }}"
                                     class="erp-input min-h-[80px] resize-y @error('data.' . $name) border-red-300 focus:border-red-500 focus:ring-red-500 @enderror"
                                     {{ $disabled ? 'disabled' : '' }}
                                     {{ $readonly ? 'readonly' : '' }}
-                                ></textarea>
+                                >{{ $data[$name] ?? '' }}</textarea>
                                 @break
 
                             @case('select')
                                 <select 
-                                    wire:model.blur="data.{{ $name }}"
+                                    wire:model="data.{{ $name }}"
                                     id="field-{{ $name }}"
                                     class="erp-input @error('data.' . $name) border-red-300 focus:border-red-500 focus:ring-red-500 @enderror"
                                     {{ $disabled ? 'disabled' : '' }}
                                 >
                                     <option value="">{{ __($placeholder ?: 'Choose...') }}</option>
                                     @foreach ($options as $value => $text)
-                                        <option value="{{ $value }}">{{ __($text) }}</option>
+                                        <option value="{{ $value }}" {{ isset($data[$name]) && $data[$name] == $value ? 'selected' : '' }}>{{ __($text) }}</option>
                                     @endforeach
                                 </select>
                                 @break
@@ -84,8 +84,9 @@
                                         <label class="inline-flex items-center gap-2 cursor-pointer">
                                             <input 
                                                 type="radio" 
-                                                wire:model.blur="data.{{ $name }}"
+                                                wire:model="data.{{ $name }}"
                                                 value="{{ $value }}"
+                                                {{ isset($data[$name]) && $data[$name] == $value ? 'checked' : '' }}
                                                 class="w-4 h-4 text-emerald-600 border-slate-300 focus:ring-emerald-500"
                                                 {{ $disabled ? 'disabled' : '' }}
                                             >
@@ -100,9 +101,11 @@
                                 <label class="inline-flex items-center gap-2.5 cursor-pointer mt-1">
                                     <input 
                                         type="checkbox"
-                                        wire:model.blur="data.{{ $name }}"
+                                        wire:model="data.{{ $name }}"
                                         id="field-{{ $name }}"
                                         class="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 focus:ring-offset-0"
+                                        value="1"
+                                        {{ isset($data[$name]) && $data[$name] ? 'checked' : '' }}
                                         {{ $disabled ? 'disabled' : '' }}
                                     >
                                     <span class="text-sm text-slate-600 dark:text-slate-400">{{ __($hint ?: $label) }}</span>
@@ -112,9 +115,10 @@
                             @case('number')
                                 <input 
                                     type="number"
-                                    wire:model.blur="data.{{ $name }}"
+                                    wire:model="data.{{ $name }}"
                                     id="field-{{ $name }}"
                                     placeholder="{{ __($placeholder) }}"
+                                    value="{{ $data[$name] ?? '' }}"
                                     class="erp-input @error('data.' . $name) border-red-300 focus:border-red-500 focus:ring-red-500 @enderror"
                                     {{ $min !== null ? 'min=' . $min : '' }}
                                     {{ $max !== null ? 'max=' . $max : '' }}
@@ -127,8 +131,9 @@
                             @case('date')
                                 <input 
                                     type="date"
-                                    wire:model.blur="data.{{ $name }}"
+                                    wire:model="data.{{ $name }}"
                                     id="field-{{ $name }}"
+                                    value="{{ $data[$name] ?? '' }}"
                                     class="erp-input @error('data.' . $name) border-red-300 focus:border-red-500 focus:ring-red-500 @enderror"
                                     {{ $min ? 'min=' . $min : '' }}
                                     {{ $max ? 'max=' . $max : '' }}
@@ -162,9 +167,10 @@
                             @case('email')
                                 <input 
                                     type="email"
-                                    wire:model.blur="data.{{ $name }}"
+                                    wire:model="data.{{ $name }}"
                                     id="field-{{ $name }}"
                                     placeholder="{{ __($placeholder) }}"
+                                    value="{{ $data[$name] ?? '' }}"
                                     class="erp-input @error('data.' . $name) border-red-300 focus:border-red-500 focus:ring-red-500 @enderror"
                                     {{ $disabled ? 'disabled' : '' }}
                                     {{ $readonly ? 'readonly' : '' }}
@@ -187,9 +193,10 @@
                             @case('phone')
                                 <input 
                                     type="tel"
-                                    wire:model.blur="data.{{ $name }}"
+                                    wire:model="data.{{ $name }}"
                                     id="field-{{ $name }}"
                                     placeholder="{{ __($placeholder) }}"
+                                    value="{{ $data[$name] ?? '' }}"
                                     class="erp-input @error('data.' . $name) border-red-300 focus:border-red-500 focus:ring-red-500 @enderror"
                                     {{ $disabled ? 'disabled' : '' }}
                                     {{ $readonly ? 'readonly' : '' }}
@@ -199,9 +206,10 @@
                             @case('url')
                                 <input 
                                     type="url"
-                                    wire:model.blur="data.{{ $name }}"
+                                    wire:model="data.{{ $name }}"
                                     id="field-{{ $name }}"
                                     placeholder="{{ __($placeholder ?: 'https://') }}"
+                                    value="{{ $data[$name] ?? '' }}"
                                     class="erp-input @error('data.' . $name) border-red-300 focus:border-red-500 focus:ring-red-500 @enderror"
                                     {{ $disabled ? 'disabled' : '' }}
                                     {{ $readonly ? 'readonly' : '' }}
@@ -249,9 +257,10 @@
                             @default
                                 <input 
                                     type="text"
-                                    wire:model.blur="data.{{ $name }}"
+                                    wire:model="data.{{ $name }}"
                                     id="field-{{ $name }}"
                                     placeholder="{{ __($placeholder) }}"
+                                    value="{{ $data[$name] ?? '' }}"
                                     class="erp-input @error('data.' . $name) border-red-300 focus:border-red-500 focus:ring-red-500 @enderror"
                                     {{ $disabled ? 'disabled' : '' }}
                                     {{ $readonly ? 'readonly' : '' }}
