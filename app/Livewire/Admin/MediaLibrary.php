@@ -185,9 +185,12 @@ class MediaLibrary extends Component
         }
         
         $this->isLoading = true;
-        $this->page++;
-        $this->loadMedia();
-        $this->isLoading = false;
+        try {
+            $this->page++;
+            $this->loadMedia();
+        } finally {
+            $this->isLoading = false;
+        }
     }
     
     protected function formatMediaItem(Media $media): array
