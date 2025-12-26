@@ -333,9 +333,12 @@ class MediaPicker extends Component
         }
         
         $this->isLoadingMore = true;
-        $this->page++;
-        $this->loadMedia();
-        $this->isLoadingMore = false;
+        try {
+            $this->page++;
+            $this->loadMedia();
+        } finally {
+            $this->isLoadingMore = false;
+        }
     }
     
     /**
