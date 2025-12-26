@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin\Settings;
 
+use App\Models\Media;
 use App\Models\SystemSetting;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 #[Layout('layouts.app')]
@@ -45,8 +47,10 @@ class UnifiedSettings extends Component
     public string $default_currency = 'USD';
 
     // Branding settings
-    public string $branding_logo = '';
-    public string $branding_favicon = '';
+    public ?int $branding_logo_id = null;
+    public ?int $branding_favicon_id = null;
+    public string $branding_logo = '';  // Legacy URL support
+    public string $branding_favicon = '';  // Legacy URL support
     public string $branding_primary_color = '#10b981';
     public string $branding_secondary_color = '#3b82f6';
     public string $branding_tagline = '';
@@ -118,8 +122,13 @@ class UnifiedSettings extends Component
             abort(403);
         }
 
-        // Get tab from query string
+        // Get tab from query string (supports both ?tab= and hash via JS)
         $this->activeTab = request()->query('tab', 'general');
+        
+        // Validate the tab exists
+        if (!array_key_exists($this->activeTab, $this->tabs)) {
+            $this->activeTab = 'general';
+        }
         
         $this->loadSettings();
     }
@@ -140,8 +149,10 @@ class UnifiedSettings extends Component
         $this->default_currency = $settings['general.default_currency'] ?? 'USD';
 
         // Load branding settings
-        $this->branding_logo = $settings['branding.logo'] ?? '';
-        $this->branding_favicon = $settings['branding.favicon'] ?? '';
+        $this->branding_logo_id = isset($settings['branding.logo_id']) ? (int) $settings['branding.logo_id'] : null;
+        $this->branding_favicon_id = isset($settings['branding.favicon_id']) ? (int) $settings['branding.favicon_id'] : null;
+        $this->branding_logo = $settings['branding.logo'] ?? '';  // Legacy support
+        $this->branding_favicon = $settings['branding.favicon'] ?? '';  // Legacy support
         $this->branding_primary_color = $settings['branding.primary_color'] ?? '#10b981';
         $this->branding_secondary_color = $settings['branding.secondary_color'] ?? '#3b82f6';
         $this->branding_tagline = $settings['branding.tagline'] ?? '';
@@ -233,6 +244,8 @@ class UnifiedSettings extends Component
     {
         if (array_key_exists($tab, $this->tabs)) {
             $this->activeTab = $tab;
+            // Update URL with the new tab (dispatched to JS)
+            $this->dispatch('tab-changed', tab: $tab);
         }
     }
 
@@ -259,6 +272,30 @@ class UnifiedSettings extends Component
         session()->flash('success', __('General settings saved successfully'));
     }
 
+    #[On('media-selected')]
+    public function handleMediaSelected(string $fieldId, int $mediaId, array $media): void
+    {
+        if ($fieldId === 'branding-logo') {
+            $this->branding_logo_id = $mediaId;
+            $this->branding_logo = $media['url'] ?? '';
+        } elseif ($fieldId === 'branding-favicon') {
+            $this->branding_favicon_id = $mediaId;
+            $this->branding_favicon = $media['url'] ?? '';
+        }
+    }
+
+    #[On('media-cleared')]
+    public function handleMediaCleared(string $fieldId): void
+    {
+        if ($fieldId === 'branding-logo') {
+            $this->branding_logo_id = null;
+            $this->branding_logo = '';
+        } elseif ($fieldId === 'branding-favicon') {
+            $this->branding_favicon_id = null;
+            $this->branding_favicon = '';
+        }
+    }
+
     public function saveBranding(): void
     {
         $this->validate([
@@ -267,8 +304,26 @@ class UnifiedSettings extends Component
             'branding_tagline' => 'nullable|string|max:255',
         ]);
 
-        $this->setSetting('branding.logo', $this->branding_logo, 'branding');
-        $this->setSetting('branding.favicon', $this->branding_favicon, 'branding');
+        // Save media IDs (preferred) and also URLs for backward compatibility
+        $this->setSetting('branding.logo_id', $this->branding_logo_id, 'branding');
+        $this->setSetting('branding.favicon_id', $this->branding_favicon_id, 'branding');
+        
+        // Get URLs from media if IDs are set, otherwise use the legacy URL values
+        $logoUrl = $this->branding_logo;
+        $faviconUrl = $this->branding_favicon;
+        
+        if ($this->branding_logo_id) {
+            $logoMedia = Media::find($this->branding_logo_id);
+            $logoUrl = $logoMedia?->url ?? $this->branding_logo;
+        }
+        
+        if ($this->branding_favicon_id) {
+            $faviconMedia = Media::find($this->branding_favicon_id);
+            $faviconUrl = $faviconMedia?->url ?? $this->branding_favicon;
+        }
+        
+        $this->setSetting('branding.logo', $logoUrl, 'branding');
+        $this->setSetting('branding.favicon', $faviconUrl, 'branding');
         $this->setSetting('branding.primary_color', $this->branding_primary_color, 'branding');
         $this->setSetting('branding.secondary_color', $this->branding_secondary_color, 'branding');
         $this->setSetting('branding.tagline', $this->branding_tagline, 'branding');

@@ -600,32 +600,61 @@
             
             // Auto-scroll to active item after DOM is ready
             this.$nextTick(() => {
-                setTimeout(() => {
-                    // Find the active item (either parent or child)
-                    const activeItem = this.$el.querySelector('.erp-sidebar-item.active, .erp-sidebar-subitem.active');
-                    if (activeItem) {
-                        const nav = this.$el.querySelector('.erp-sidebar-nav');
-                        if (nav) {
-                            // Get the bounding rectangles
-                            const navRect = nav.getBoundingClientRect();
-                            const itemRect = activeItem.getBoundingClientRect();
-                            
-                            // Calculate the scroll position to center the active item
-                            const scrollTop = nav.scrollTop + (itemRect.top - navRect.top) - (navRect.height / 2) + (itemRect.height / 2);
-                            
-                            // Ensure the scroll position is within valid bounds
-                            const maxScroll = nav.scrollHeight - nav.clientHeight;
-                            const finalScrollTop = Math.max(0, Math.min(scrollTop, maxScroll));
-                            
-                            // Smooth scroll to the active item
-                            nav.scrollTo({ 
-                                top: finalScrollTop, 
-                                behavior: 'smooth' 
-                            });
-                        }
-                    }
-                }, this.AUTO_SCROLL_DELAY_MS); // Use configured delay constant
+                this.scrollToActiveItem();
             });
+            
+            // Also handle Turbo/SPA navigation if Turbo is loaded
+            if (typeof Turbo !== 'undefined') {
+                document.addEventListener('turbo:render', () => {
+                    this.$nextTick(() => this.scrollToActiveItem());
+                });
+            }
+            
+            // Handle Livewire navigation
+            if (typeof Livewire !== 'undefined') {
+                document.addEventListener('livewire:navigated', () => {
+                    this.$nextTick(() => this.scrollToActiveItem());
+                });
+            }
+        },
+        scrollToActiveItem() {
+            // Use a small delay to ensure DOM is fully rendered and any collapse animations complete
+            setTimeout(() => {
+                // Find the main navigation container using data attribute
+                const nav = this.$el.querySelector('[data-sidebar-main-nav]');
+                if (!nav) return;
+                
+                // Find the active item (prefer sub-item, then parent item)
+                const activeSubItem = nav.querySelector('.erp-sidebar-subitem.active');
+                const activeParentItem = nav.querySelector('.erp-sidebar-item.active');
+                const activeItem = activeSubItem || activeParentItem;
+                
+                if (!activeItem) return;
+                
+                // Get the bounding rectangles
+                const navRect = nav.getBoundingClientRect();
+                const itemRect = activeItem.getBoundingClientRect();
+                
+                // Check if item is already visible in the viewport
+                const isVisible = itemRect.top >= navRect.top && 
+                                  itemRect.bottom <= navRect.bottom;
+                
+                // Only scroll if the item is not visible
+                if (!isVisible) {
+                    // Calculate the scroll position to center the active item
+                    const scrollTop = nav.scrollTop + (itemRect.top - navRect.top) - (navRect.height / 2) + (itemRect.height / 2);
+                    
+                    // Ensure the scroll position is within valid bounds
+                    const maxScroll = nav.scrollHeight - nav.clientHeight;
+                    const finalScrollTop = Math.max(0, Math.min(scrollTop, maxScroll));
+                    
+                    // Scroll to the active item (instant to avoid layout jank on initial load)
+                    nav.scrollTo({ 
+                        top: finalScrollTop, 
+                        behavior: 'instant' 
+                    });
+                }
+            }, this.AUTO_SCROLL_DELAY_MS);
         },
         toggle(key) {
             this.expandedSections[key] = !this.expandedSections[key];
@@ -831,7 +860,7 @@
     </div>
 
     {{-- Sidebar Navigation --}}
-    <nav class="erp-sidebar-nav" x-show="!isSearching()">
+    <nav class="erp-sidebar-nav" x-show="!isSearching()" data-sidebar-main-nav>
         @foreach($filteredSections as $sectionIndex => $section)
             <div class="erp-sidebar-section">
                 {{-- Section Header --}}

@@ -1,4 +1,33 @@
-<div class="container mx-auto px-4 py-6">
+<div class="container mx-auto px-4 py-6"
+    x-data="{
+        init() {
+            // Handle hash on initial load
+            const hash = window.location.hash.slice(1);
+            if (hash && document.querySelector('[data-tab-key]')) {
+                this.switchToTab(hash);
+            }
+            
+            // Handle browser back/forward
+            window.addEventListener('popstate', () => {
+                const hash = window.location.hash.slice(1);
+                if (hash) {
+                    this.switchToTab(hash);
+                }
+            });
+        },
+        switchToTab(tab) {
+            // Only switch if tab exists in the available tabs
+            @this.switchTab(tab);
+        }
+    }"
+    x-on:tab-changed.window="
+        const tab = $event.detail.tab;
+        // Update URL hash without triggering navigation
+        const url = new URL(window.location);
+        url.hash = tab;
+        history.pushState({}, '', url);
+    "
+>
     <div class="mb-6">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ __('Settings') }}</h1>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Manage your system settings') }}</p>
@@ -28,6 +57,7 @@
                 @foreach($tabs as $tabKey => $tabLabel)
                     <button
                         wire:click="switchTab('{{ $tabKey }}')"
+                        data-tab-key="{{ $tabKey }}"
                         class="px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-colors
                             {{ $activeTab === $tabKey
                                 ? 'border-blue-500 text-blue-600 dark:text-blue-400'
@@ -158,25 +188,27 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Logo') }}</label>
-                                <p class="text-xs text-gray-500 mb-2">{{ __('Upload your company logo from the Media Library') }}</p>
-                                <input type="text" wire:model="branding_logo" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-                                    placeholder="{{ __('Enter logo URL or path') }}">
-                                @if($branding_logo)
-                                    <img src="{{ $branding_logo }}" alt="Logo Preview" class="mt-2 h-16 object-contain">
-                                @endif
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __('Logo') }}</label>
+                                <p class="text-xs text-gray-500 mb-3">{{ __('Select your company logo from the Media Library. Recommended: max 400px width.') }}</p>
+                                <livewire:components.media-picker 
+                                    :value="$branding_logo_id"
+                                    :accept-types="['image']"
+                                    :max-size="2048"
+                                    field-id="branding-logo"
+                                    :key="'logo-picker-' . ($branding_logo_id ?? 'new')"
+                                />
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Favicon') }}</label>
-                                <p class="text-xs text-gray-500 mb-2">{{ __('Upload your favicon from the Media Library') }}</p>
-                                <input type="text" wire:model="branding_favicon" 
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-                                    placeholder="{{ __('Enter favicon URL or path') }}">
-                                @if($branding_favicon)
-                                    <img src="{{ $branding_favicon }}" alt="Favicon Preview" class="mt-2 h-8 object-contain">
-                                @endif
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ __('Favicon') }}</label>
+                                <p class="text-xs text-gray-500 mb-3">{{ __('Select your favicon from the Media Library. Recommended: 32x32 or 64x64 pixels.') }}</p>
+                                <livewire:components.media-picker 
+                                    :value="$branding_favicon_id"
+                                    :accept-types="['image']"
+                                    :max-size="1024"
+                                    field-id="branding-favicon"
+                                    :key="'favicon-picker-' . ($branding_favicon_id ?? 'new')"
+                                />
                             </div>
                         </div>
 
