@@ -102,6 +102,7 @@ class ImageOptimizationServiceTest extends TestCase
         $thumbnailPath = Storage::disk('local')->path($result['thumbnail_path']);
         $size = getimagesize($thumbnailPath);
         
+        $this->assertNotFalse($size, 'Thumbnail should be a valid image');
         $this->assertEquals(150, $size[0]); // width
         $this->assertEquals(150, $size[1]); // height
     }

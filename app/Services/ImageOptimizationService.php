@@ -171,6 +171,8 @@ class ImageOptimizationService
 
     /**
      * Create GD image resource from uploaded file
+     * 
+     * @return \GdImage|false Returns GD image resource on success, false on failure
      */
     protected function createImageFromFile(UploadedFile $file)
     {
@@ -201,7 +203,18 @@ class ImageOptimizationService
     }
 
     /**
+     * PNG quality conversion divisor (PNG uses 0-9 scale, we use 0-100)
+     */
+    private const PNG_QUALITY_DIVISOR = 11;
+
+    /**
      * Save GD image resource to file
+     * 
+     * @param \GdImage $image The GD image resource to save
+     * @param string $path Target file path
+     * @param string $extension File extension (determines output format)
+     * @param int $quality Output quality (0-100)
+     * @return bool Returns true on success, false on failure
      */
     protected function saveImage($image, string $path, string $extension, int $quality): bool
     {
@@ -212,7 +225,7 @@ class ImageOptimizationService
                     return imagejpeg($image, $path, $quality);
                 case 'png':
                     // PNG quality is 0-9, convert from 0-100
-                    $pngQuality = (int) round((100 - $quality) / 11);
+                    $pngQuality = (int) round((100 - $quality) / self::PNG_QUALITY_DIVISOR);
                     return imagepng($image, $path, $pngQuality);
                 case 'gif':
                     return imagegif($image, $path);
