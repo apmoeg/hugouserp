@@ -63,6 +63,12 @@ class Form extends Component
                 $currencies = $this->getDefaultCurrencies();
             }
         } catch (\Illuminate\Database\QueryException | \PDOException $e) {
+            // Log the error for debugging while providing fallback for user
+            \Log::warning('Currency table access failed, using default currencies', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+            
             // Fallback if currencies table doesn't exist or has database errors
             $currencies = $this->getDefaultCurrencies();
         }
