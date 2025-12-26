@@ -60,6 +60,7 @@ class MediaPicker extends Component
     // Search and filters
     public string $search = '';
     public string $filterType = 'all';
+    public string $sortBy = 'newest'; // newest, oldest, name_asc, name_desc
     
     // Accept mode: 'image' | 'file' | 'mixed'
     // This is the PRIMARY configuration that controls type-scoping
@@ -420,6 +421,13 @@ class MediaPicker extends Component
         $this->loadMedia();
     }
     
+    public function updatedSortBy(): void
+    {
+        $this->page = 1;
+        $this->loadedMedia = [];
+        $this->loadMedia();
+    }
+    
     public function updatedFilterType(): void
     {
         // Only allow filter type changes in mixed mode
@@ -466,8 +474,24 @@ class MediaPicker extends Component
             });
         }
 
-        $results = $query->orderBy('created_at', 'desc')
-            ->paginate($this->perPage, ['*'], 'page', $this->page);
+        // Apply sorting
+        switch ($this->sortBy) {
+            case 'oldest':
+                $query->orderBy('created_at', 'asc');
+                break;
+            case 'name_asc':
+                $query->orderBy('original_name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('original_name', 'desc');
+                break;
+            case 'newest':
+            default:
+                $query->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $results = $query->paginate($this->perPage, ['*'], 'page', $this->page);
         
         $newItems = $results->items();
         

@@ -219,8 +219,8 @@
             @endif
 
             {{-- Search & Filter (Sticky with Header) --}}
-            <div class="flex-shrink-0 px-6 py-3 flex gap-3 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-                <div class="flex-1 relative">
+            <div class="flex-shrink-0 px-6 py-3 flex flex-wrap gap-3 bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+                <div class="flex-1 min-w-[200px] relative">
                     <input 
                         type="text" 
                         wire:model.live.debounce.300ms="search" 
@@ -239,6 +239,7 @@
                     </button>
                     @endif
                 </div>
+                
                 @if($canSwitchFilter)
                 <select 
                     wire:model.live="filterType" 
@@ -261,6 +262,16 @@
                     @endif
                 </div>
                 @endif
+                
+                <select 
+                    wire:model.live="sortBy" 
+                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                    <option value="newest">{{ __('Newest First') }}</option>
+                    <option value="oldest">{{ __('Oldest First') }}</option>
+                    <option value="name_asc">{{ __('Name A→Z') }}</option>
+                    <option value="name_desc">{{ __('Name Z→A') }}</option>
+                </select>
             </div>
 
             {{-- Media Grid (Scrollable Area) --}}
@@ -310,32 +321,42 @@
                                 >
                             @else
                                 {{-- File card view for non-images --}}
-                                <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-700 p-2">
+                                <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 p-3">
                                     @php
                                         $ext = strtolower($item['extension'] ?? '');
+                                        $extColor = match($ext) {
+                                            'pdf' => 'text-red-500',
+                                            'doc', 'docx' => 'text-blue-500',
+                                            'xls', 'xlsx', 'csv' => 'text-green-500',
+                                            'ppt', 'pptx' => 'text-orange-500',
+                                            'txt' => 'text-gray-500',
+                                            default => 'text-gray-400'
+                                        };
                                     @endphp
                                     @if(in_array($ext, ['pdf']))
-                                        <svg class="h-10 w-10 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                                        <svg class="h-12 w-12 {{ $extColor }}" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M9.5,16V18H8V16H9.5M11,18V16H11.5A1.5,1.5 0 0,0 13,14.5V14.5A1.5,1.5 0 0,0 11.5,13H10V18H11M15,18V13H16V18H15M11.5,14H11V15.5H11.5A0.5,0.5 0 0,0 12,15V14.5A0.5,0.5 0 0,0 11.5,14M13,9V3.5L18.5,9H13Z"/>
                                         </svg>
                                     @elseif(in_array($ext, ['doc', 'docx']))
-                                        <svg class="h-10 w-10 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                                        <svg class="h-12 w-12 {{ $extColor }}" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M15.2,20H13.8L12,13.2L10.2,20H8.8L6.6,11H8.1L9.5,17.8L11.3,11H12.6L14.4,17.8L15.8,11H17.3L15.2,20M13,9V3.5L18.5,9H13Z"/>
                                         </svg>
                                     @elseif(in_array($ext, ['xls', 'xlsx', 'csv']))
-                                        <svg class="h-10 w-10 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                                        <svg class="h-12 w-12 {{ $extColor }}" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M10,19H8V14H10V19M14,19H12V14H14V19M16,11H8V9H16V11M13,9V3.5L18.5,9H13Z"/>
                                         </svg>
                                     @elseif(in_array($ext, ['ppt', 'pptx']))
-                                        <svg class="h-10 w-10 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                                        <svg class="h-12 w-12 {{ $extColor }}" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M9.5,11.5C9.5,10.12 10.62,9 12,9C13.38,9 14.5,10.12 14.5,11.5C14.5,12.88 13.38,14 12,14H10V18H8V9H10V11.5H11C11,10.95 11.45,10.5 12,10.5C12.55,10.5 13,10.95 13,11.5C13,12.05 12.55,12.5 12,12.5H10V11.5H9.5M13,9V3.5L18.5,9H13Z"/>
                                         </svg>
                                     @else
-                                        <svg class="h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="h-12 w-12 {{ $extColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                                         </svg>
                                     @endif
-                                    <span class="text-xs text-gray-500 mt-1 uppercase">{{ $ext }}</span>
+                                    <div class="mt-2 px-2 py-1 bg-white dark:bg-gray-900 rounded text-xs font-semibold {{ $extColor }} uppercase">
+                                        {{ $ext }}
+                                    </div>
                                 </div>
                             @endif
                             
