@@ -162,7 +162,7 @@
             @endif
 
             {{-- Upload Section --}}
-            @can('media.upload')
+            @if($isDirectMode || auth()->user()?->can('media.upload'))
             <div class="px-6 pt-4">
                 <div 
                     class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-emerald-500 transition-colors cursor-pointer"
@@ -201,7 +201,7 @@
                     </div>
                 </div>
             </div>
-            @endcan
+            @endif
 
             {{-- Search & Filter --}}
             <div class="px-6 py-3 flex gap-3">
@@ -237,25 +237,29 @@
             {{-- Media Grid --}}
             <div class="flex-1 overflow-y-auto px-6 pb-4">
                 {{-- Loading skeleton --}}
-                <div wire:loading.delay wire:target="loadMedia, loadMore" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                <div wire:loading.delay wire:target="loadMedia, loadMore, loadExistingFiles" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                     @for($i = 0; $i < 10; $i++)
                     <div class="aspect-square rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
                     @endfor
                 </div>
 
-                <div wire:loading.remove wire:target="loadMedia, loadMore" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                <div wire:loading.remove wire:target="loadMedia, loadMore, loadExistingFiles" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                     @forelse($media as $item)
                         <button
                             type="button"
-                            wire:click="selectMedia({{ $item['id'] }})"
+                            @if($isDirectMode && isset($item['path']))
+                                wire:click="selectFile('{{ $item['path'] }}')"
+                            @else
+                                wire:click="selectMedia({{ $item['id'] }})"
+                            @endif
                             class="group relative aspect-square rounded-lg overflow-hidden border-2 transition-all
-                                {{ $selectedMediaId === $item['id'] 
+                                {{ ($isDirectMode ? $selectedFilePath === ($item['path'] ?? '') : $selectedMediaId === $item['id'])
                                     ? 'border-emerald-500 ring-2 ring-emerald-500/30' 
                                     : 'border-gray-200 dark:border-gray-600 hover:border-emerald-400' }}"
                         >
-                            @if($item['is_image'] && $item['thumbnail_url'])
+                            @if($item['is_image'] && ($item['thumbnail_url'] ?? $item['url']))
                                 <img 
-                                    src="{{ $item['thumbnail_url'] }}" 
+                                    src="{{ $item['thumbnail_url'] ?? $item['url'] }}" 
                                     alt="{{ $item['name'] }}" 
                                     class="w-full h-full object-cover"
                                     loading="lazy"
@@ -303,7 +307,7 @@
                                 <p class="text-xs text-white truncate font-medium">{{ $item['original_name'] }}</p>
                                 <div class="flex items-center gap-2 text-xs text-gray-300">
                                     <span>{{ $item['human_size'] }}</span>
-                                    @if($item['created_at'])
+                                    @if($item['created_at'] ?? null)
                                         <span>·</span>
                                         <span>{{ $item['created_at'] }}</span>
                                     @endif
@@ -311,7 +315,7 @@
                             </div>
 
                             {{-- Selected checkmark --}}
-                            @if($selectedMediaId === $item['id'])
+                            @if(($isDirectMode ? $selectedFilePath === ($item['path'] ?? '') : $selectedMediaId === $item['id']))
                                 <div class="absolute top-2 right-2 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg">
                                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
@@ -342,8 +346,8 @@
                     @endforelse
                 </div>
 
-                {{-- Load More Button --}}
-                @if($hasMorePages)
+                {{-- Load More Button (only for media mode) --}}
+                @if(!$isDirectMode && $hasMorePages)
                     <div class="mt-6 text-center">
                         <button 
                             type="button"

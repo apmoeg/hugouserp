@@ -12,12 +12,13 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 
 /**
- * Reusable Media Library Picker Component with Type-Scoping
+ * Reusable Media Library Picker Component with Type-Scoping and Storage Scoping
  * 
  * Usage in Blade (listen for events in parent component):
  * <livewire:components.media-picker 
  *     :value="$branding_logo_id"
  *     accept-mode="image"
+ *     storage-scope="media"
  *     :max-size="2048"
  *     :constraints="['maxWidth' => 400, 'maxHeight' => 100]"
  *     field-id="logo-picker"
@@ -28,9 +29,16 @@ use Livewire\WithFileUploads;
  * - "file": Only show/accept non-image files (pdf, doc, xls, etc.)
  * - "mixed": Show and accept both images and files
  * 
+ * Storage scopes (determines where files are stored and listed from):
+ * - "media": Global Media Library (default) - stored in media/, listed from Media model
+ * - "direct": Direct upload mode - files uploaded directly, returns path instead of media_id
+ *   Use for: incomes, expenses, avatars, contracts, documents, etc.
+ *   Pass storage-path to specify the folder (e.g., "incomes", "expenses", "avatars")
+ * 
  * Parent component should listen for events:
  * #[On('media-selected')] public function handleMediaSelected(string $fieldId, int $mediaId, array $media)
  * #[On('media-cleared')] public function handleMediaCleared(string $fieldId)
+ * #[On('file-uploaded')] public function handleFileUploaded(string $fieldId, string $path, array $fileInfo)
  */
 class MediaPicker extends Component
 {
@@ -43,6 +51,9 @@ class MediaPicker extends Component
     public ?int $selectedMediaId = null;
     public ?array $selectedMedia = null;
     
+    // For direct upload mode - stores the file path instead of media_id
+    public ?string $selectedFilePath = null;
+    
     // Upload
     public $uploadFile = null;
     
@@ -53,6 +64,17 @@ class MediaPicker extends Component
     // Accept mode: 'image' | 'file' | 'mixed'
     // This is the PRIMARY configuration that controls type-scoping
     public string $acceptMode = 'mixed';
+    
+    // Storage scope: 'media' | 'direct'
+    // - 'media': Use global Media Library (saves to media table)
+    // - 'direct': Direct file upload (saves to specified path, no media record)
+    public string $storageScope = 'media';
+    
+    // Storage path for direct mode (e.g., 'incomes', 'expenses', 'avatars')
+    public string $storagePath = '';
+    
+    // Storage disk for direct mode
+    public string $storageDisk = 'local';
     
     // Legacy support - will be converted to acceptMode
     public array $acceptTypes = ['image']; // ['image', 'document', 'all']
@@ -76,6 +98,9 @@ class MediaPicker extends Component
     public bool $hasMorePages = false;
     public array $loadedMedia = [];
     public bool $isLoadingMore = false;
+    
+    // For direct mode - list of existing files in the storage path
+    public array $existingFiles = [];
 
     protected $listeners = ['openMediaPicker'];
     
@@ -130,7 +155,11 @@ class MediaPicker extends Component
 
     public function mount(
         ?int $value = null,
+        ?string $filePath = null, // For direct mode - existing file path
         string $acceptMode = 'mixed',
+        string $storageScope = 'media',
+        string $storagePath = '',
+        string $storageDisk = 'local',
         array $acceptTypes = ['image'], // Legacy - will be converted to acceptMode
         int $maxSize = 10240,
         array $constraints = [],
@@ -138,10 +167,14 @@ class MediaPicker extends Component
         string $fieldId = 'media-picker'
     ): void {
         $this->selectedMediaId = $value;
+        $this->selectedFilePath = $filePath;
         $this->maxSize = $maxSize;
         $this->constraints = $constraints;
         $this->fieldId = $fieldId;
         $this->allowedMimes = $allowedMimes;
+        $this->storageScope = $storageScope;
+        $this->storagePath = $storagePath;
+        $this->storageDisk = $storageDisk ?: 'local';
         
         // Convert legacy acceptTypes to new acceptMode if acceptMode wasn't explicitly set
         // This maintains backward compatibility while preferring the new acceptMode
@@ -166,10 +199,66 @@ class MediaPicker extends Component
         // Set initial filter based on acceptMode
         $this->filterType = $this->getDefaultFilterType();
         
-        // Load existing media if ID provided
-        if ($this->selectedMediaId) {
+        // Load existing media/file based on storage scope
+        if ($this->storageScope === 'media' && $this->selectedMediaId) {
             $this->loadSelectedMedia();
+        } elseif ($this->storageScope === 'direct' && $this->selectedFilePath) {
+            $this->loadSelectedFile();
         }
+    }
+    
+    /**
+     * Load selected file info for direct mode
+     */
+    protected function loadSelectedFile(): void
+    {
+        if (!$this->selectedFilePath) {
+            $this->selectedMedia = null;
+            $this->previewUrl = null;
+            $this->previewName = null;
+            return;
+        }
+        
+        $disk = Storage::disk($this->storageDisk);
+        if (!$disk->exists($this->selectedFilePath)) {
+            $this->selectedFilePath = null;
+            return;
+        }
+        
+        $fileName = basename($this->selectedFilePath);
+        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+        $mimeType = $disk->mimeType($this->selectedFilePath) ?? 'application/octet-stream';
+        $size = $disk->size($this->selectedFilePath);
+        $isImage = str_starts_with($mimeType, 'image/');
+        
+        $this->selectedMedia = [
+            'id' => null, // No ID in direct mode
+            'name' => pathinfo($fileName, PATHINFO_FILENAME),
+            'original_name' => $fileName,
+            'path' => $this->selectedFilePath,
+            'url' => $disk->url($this->selectedFilePath),
+            'thumbnail_url' => $isImage ? $disk->url($this->selectedFilePath) : null,
+            'mime_type' => $mimeType,
+            'extension' => $extension,
+            'size' => $size,
+            'human_size' => $this->formatFileSize($size),
+            'width' => null,
+            'height' => null,
+            'is_image' => $isImage,
+        ];
+        
+        $this->previewUrl = $isImage ? $disk->url($this->selectedFilePath) : null;
+        $this->previewName = $fileName;
+    }
+    
+    /**
+     * Format file size to human readable
+     */
+    protected function formatFileSize(int $bytes): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $factor = floor((strlen((string) $bytes) - 1) / 3);
+        return sprintf("%.1f %s", $bytes / pow(1024, $factor), $units[$factor] ?? 'B');
     }
     
     /**
@@ -225,9 +314,14 @@ class MediaPicker extends Component
     public function openModal(): void
     {
         $user = auth()->user();
-        if (!$user || !$user->can('media.view')) {
-            session()->flash('error', __('You do not have permission to access the media library'));
-            return;
+        
+        // For direct mode, we don't require media.view permission
+        // The permission is controlled by the parent form's permission
+        if ($this->storageScope === 'media') {
+            if (!$user || !$user->can('media.view')) {
+                session()->flash('error', __('You do not have permission to access the media library'));
+                return;
+            }
         }
         
         $this->showModal = true;
@@ -235,10 +329,73 @@ class MediaPicker extends Component
         $this->filterType = $this->getDefaultFilterType();
         $this->page = 1;
         $this->loadedMedia = [];
+        $this->existingFiles = [];
         $this->hasMorePages = false;
         
-        // Load initial media
-        $this->loadMedia();
+        // Load initial media/files based on storage scope
+        if ($this->storageScope === 'media') {
+            $this->loadMedia();
+        } else {
+            $this->loadExistingFiles();
+        }
+    }
+    
+    /**
+     * Load existing files from storage path for direct mode
+     */
+    protected function loadExistingFiles(): void
+    {
+        if (!$this->storagePath) {
+            $this->existingFiles = [];
+            return;
+        }
+        
+        $disk = Storage::disk($this->storageDisk);
+        $files = $disk->files($this->storagePath);
+        
+        $this->existingFiles = collect($files)
+            ->map(function ($path) use ($disk) {
+                $fileName = basename($path);
+                $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                $mimeType = $disk->mimeType($path) ?? 'application/octet-stream';
+                $size = $disk->size($path);
+                $isImage = str_starts_with($mimeType, 'image/');
+                
+                // Apply type filtering
+                if ($this->acceptMode === 'image' && !$isImage) {
+                    return null;
+                }
+                if ($this->acceptMode === 'file' && $isImage) {
+                    return null;
+                }
+                
+                // Apply search filter
+                if ($this->search && !str_contains(strtolower($fileName), strtolower($this->search))) {
+                    return null;
+                }
+                
+                return [
+                    'id' => null,
+                    'name' => pathinfo($fileName, PATHINFO_FILENAME),
+                    'original_name' => $fileName,
+                    'path' => $path,
+                    'url' => $disk->url($path),
+                    'thumbnail_url' => $isImage ? $disk->url($path) : null,
+                    'mime_type' => $mimeType,
+                    'extension' => $extension,
+                    'size' => $size,
+                    'human_size' => $this->formatFileSize($size),
+                    'width' => null,
+                    'height' => null,
+                    'is_image' => $isImage,
+                    'created_at' => date('Y-m-d H:i', $disk->lastModified($path)),
+                    'user_name' => __('Unknown'),
+                ];
+            })
+            ->filter()
+            ->sortByDesc('created_at')
+            ->values()
+            ->toArray();
     }
 
     public function closeModal(): void
@@ -396,12 +553,16 @@ class MediaPicker extends Component
 
     public function updatedUploadFile(): void
     {
-        // Check permission first before processing the file
         $user = auth()->user();
-        if (!$user || !$user->can('media.upload')) {
-            $this->uploadFile = null;
-            session()->flash('error', __('You do not have permission to upload files'));
-            return;
+        
+        // For direct mode, we don't require media.upload permission
+        // The permission is controlled by the parent form's permission
+        if ($this->storageScope === 'media') {
+            if (!$user || !$user->can('media.upload')) {
+                $this->uploadFile = null;
+                session()->flash('error', __('You do not have permission to upload files'));
+                return;
+            }
         }
 
         $allowedExtensions = $this->getAllowedExtensions();
@@ -413,10 +574,79 @@ class MediaPicker extends Component
                 . '|mimetypes:' . implode(',', $allowedMimeTypes),
         ]);
 
+        $this->guardAgainstHtmlPayload($this->uploadFile);
+        
+        if ($this->storageScope === 'direct') {
+            // Direct mode: upload to specified storage path
+            $this->handleDirectUpload();
+        } else {
+            // Media mode: upload to Media Library
+            $this->handleMediaUpload();
+        }
+    }
+    
+    /**
+     * Handle direct file upload (stores file without Media record)
+     */
+    protected function handleDirectUpload(): void
+    {
+        $user = auth()->user();
+        $disk = $this->storageDisk;
+        $path = $this->storagePath;
+        
+        // Store the file
+        $storedPath = $this->uploadFile->store($path, $disk);
+        
+        $fileName = basename($storedPath);
+        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+        $mimeType = $this->uploadFile->getMimeType() ?? 'application/octet-stream';
+        $size = $this->uploadFile->getSize();
+        $isImage = str_starts_with($mimeType, 'image/');
+        
+        $storage = Storage::disk($disk);
+        
+        $this->selectedFilePath = $storedPath;
+        $this->selectedMedia = [
+            'id' => null,
+            'name' => pathinfo($fileName, PATHINFO_FILENAME),
+            'original_name' => $this->uploadFile->getClientOriginalName(),
+            'path' => $storedPath,
+            'url' => $storage->url($storedPath),
+            'thumbnail_url' => $isImage ? $storage->url($storedPath) : null,
+            'mime_type' => $mimeType,
+            'extension' => $extension,
+            'size' => $size,
+            'human_size' => $this->formatFileSize($size),
+            'width' => null,
+            'height' => null,
+            'is_image' => $isImage,
+        ];
+        
+        $this->previewUrl = $isImage ? $storage->url($storedPath) : null;
+        $this->previewName = $this->uploadFile->getClientOriginalName();
+        
+        // Dispatch event to parent with the uploaded file info
+        $this->dispatch('file-uploaded', 
+            fieldId: $this->fieldId,
+            path: $storedPath,
+            fileInfo: $this->selectedMedia
+        );
+        
+        $this->uploadFile = null;
+        $this->closeModal();
+        
+        session()->flash('upload-success', __('File uploaded successfully'));
+    }
+    
+    /**
+     * Handle Media Library upload (stores file with Media record)
+     */
+    protected function handleMediaUpload(): void
+    {
+        $user = auth()->user();
         $optimizationService = app(ImageOptimizationService::class);
         $disk = config('filesystems.media_disk', 'local');
 
-        $this->guardAgainstHtmlPayload($this->uploadFile);
         $result = $optimizationService->optimizeUploadedFile($this->uploadFile, 'general', $disk);
 
         $media = Media::create([
@@ -446,6 +676,64 @@ class MediaPicker extends Component
         $this->loadMedia();
         
         session()->flash('upload-success', __('File uploaded successfully'));
+    }
+    
+    /**
+     * Select a file in direct mode
+     */
+    public function selectFile(string $path): void
+    {
+        $disk = Storage::disk($this->storageDisk);
+        
+        if (!$disk->exists($path)) {
+            session()->flash('error', __('File not found'));
+            return;
+        }
+        
+        $fileName = basename($path);
+        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+        $mimeType = $disk->mimeType($path) ?? 'application/octet-stream';
+        $size = $disk->size($path);
+        $isImage = str_starts_with($mimeType, 'image/');
+        
+        // Check type constraints
+        if ($this->acceptMode === 'image' && !$isImage) {
+            session()->flash('error', __('Please select an image file'));
+            return;
+        }
+        if ($this->acceptMode === 'file' && $isImage) {
+            session()->flash('error', __('Please select a document file, not an image'));
+            return;
+        }
+        
+        $this->selectedFilePath = $path;
+        $this->selectedMedia = [
+            'id' => null,
+            'name' => pathinfo($fileName, PATHINFO_FILENAME),
+            'original_name' => $fileName,
+            'path' => $path,
+            'url' => $disk->url($path),
+            'thumbnail_url' => $isImage ? $disk->url($path) : null,
+            'mime_type' => $mimeType,
+            'extension' => $extension,
+            'size' => $size,
+            'human_size' => $this->formatFileSize($size),
+            'width' => null,
+            'height' => null,
+            'is_image' => $isImage,
+        ];
+        
+        $this->previewUrl = $isImage ? $disk->url($path) : null;
+        $this->previewName = $fileName;
+        
+        // Dispatch event to parent with the selected file info
+        $this->dispatch('file-uploaded', 
+            fieldId: $this->fieldId,
+            path: $path,
+            fileInfo: $this->selectedMedia
+        );
+        
+        $this->closeModal();
     }
 
     public function selectMedia(int $mediaId): void
@@ -510,11 +798,16 @@ class MediaPicker extends Component
     public function clearSelection(): void
     {
         $this->selectedMediaId = null;
+        $this->selectedFilePath = null;
         $this->selectedMedia = null;
         $this->previewUrl = null;
         $this->previewName = null;
         
-        $this->dispatch('media-cleared', fieldId: $this->fieldId);
+        if ($this->storageScope === 'direct') {
+            $this->dispatch('file-cleared', fieldId: $this->fieldId);
+        } else {
+            $this->dispatch('media-cleared', fieldId: $this->fieldId);
+        }
     }
 
     protected function checkConstraints(Media $media): bool
@@ -660,12 +953,16 @@ class MediaPicker extends Component
 
     public function render()
     {
+        // For direct mode, use existingFiles; for media mode, use loadedMedia
+        $items = $this->storageScope === 'direct' ? $this->existingFiles : $this->loadedMedia;
+        
         return view('livewire.components.media-picker', [
-            'media' => $this->loadedMedia,
+            'media' => $items,
             'allowedExtensions' => $this->getAllowedExtensions(),
             'acceptAttribute' => $this->getAcceptAttribute(),
             'allowedTypesDescription' => $this->getAllowedTypesDescription(),
             'canSwitchFilter' => $this->canSwitchFilterType(),
+            'isDirectMode' => $this->storageScope === 'direct',
         ]);
     }
 }
