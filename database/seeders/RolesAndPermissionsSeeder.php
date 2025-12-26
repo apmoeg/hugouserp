@@ -309,6 +309,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'media.upload',
             'media.delete',
             'media.manage',
+            'media.manage-all',
             'media.view-others',
         ];
 

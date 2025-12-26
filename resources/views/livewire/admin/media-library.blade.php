@@ -16,6 +16,14 @@
             <h1 class="text-2xl font-bold text-slate-800">{{ __('Media Library') }}</h1>
             <p class="text-sm text-slate-500">{{ __('Manage your uploaded files and images') }}</p>
         </div>
+        @can('documents.view')
+            <a href="{{ route('app.documents.index') }}" class="erp-btn erp-btn-secondary flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                {{ __('Documents') }}
+            </a>
+        @endcan
     </div>
 
     @if(session()->has('success'))
@@ -116,7 +124,7 @@
                         </a>
                         <button 
                             type="button"
-                            @click="copyToClipboard('{{ route('app.media.download', $item->id) }}')"
+                            @click="copyToClipboard('{{ $item->url }}')"
                             class="p-2 bg-white rounded-full hover:bg-slate-100"
                             title="{{ __('Copy Link') }}"
                         >
@@ -274,7 +282,7 @@
                                 </a>
                                 <button 
                                     type="button"
-                                    @click="copyToClipboard('{{ route('app.media.download', $previewImage['id']) }}')"
+                                    @click="copyToClipboard('{{ $previewImage['url'] }}')"
                                     class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
