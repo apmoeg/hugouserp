@@ -100,8 +100,6 @@ class ERPEnhancementsTest extends TestCase
         $this->assertSame('إنشاء أمر شراء', __('Create Purchase Order'));
 
         app()->setLocale($originalLocale);
-
-        echo "✓ Quick action strings have Arabic translations\n";
     }
 
     /** @test */
