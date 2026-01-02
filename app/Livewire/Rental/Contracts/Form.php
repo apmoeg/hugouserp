@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Rental\Contracts;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use App\Models\RentalContract;
 use App\Models\RentalPeriod;
 use App\Models\RentalUnit;
@@ -19,6 +20,7 @@ use Livewire\WithFileUploads;
 class Form extends Component
 {
     use WithFileUploads;
+    use HasMultilingualValidation;
 
     public ?int $contractId = null;
 

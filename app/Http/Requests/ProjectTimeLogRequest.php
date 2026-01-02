@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProjectTimeLogRequest extends FormRequest
 {
+    use HasMultilingualValidation;
+
     public function authorize(): bool
     {
         return $this->user()->can('projects.timelogs.manage');
@@ -23,7 +26,7 @@ class ProjectTimeLogRequest extends FormRequest
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'hours' => ['nullable', 'numeric', 'min:0'],
-            'description' => ['required', 'string'],
+            'description' => $this->unicodeText(required: true),
             'is_billable' => ['boolean'],
             'hourly_rate' => ['nullable', 'numeric', 'min:0'],
         ];
