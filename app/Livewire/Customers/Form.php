@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Customers;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use App\Livewire\Concerns\HandlesErrors;
 use App\Models\Customer;
 use App\Models\User;
@@ -15,6 +16,7 @@ class Form extends Component
 {
     use AuthorizesRequests;
     use HandlesErrors;
+    use HasMultilingualValidation;
 
     public ?Customer $customer = null;
 
@@ -48,10 +50,10 @@ class Form extends Component
 
     private static array $customerColumns = [];
 
-    protected function rules(): array
+    protected function getRules(): array
     {
         return [
-            'name' => 'required|string|max:255',
+            'name' => $this->multilingualString(required: true, max: 255),
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:50',
             'tax_number' => 'nullable|string|max:50',
@@ -60,10 +62,10 @@ class Form extends Component
             'payment_terms' => 'nullable|in:immediate,net15,net30,net60,net90',
             'payment_due_days' => 'nullable|integer|min:0',
             'preferred_currency' => 'nullable|string|size:3',
-            'billing_address' => 'nullable|string|max:500',
-            'shipping_address' => 'nullable|string|max:500',
+            'billing_address' => $this->unicodeText(required: false, max: 500),
+            'shipping_address' => $this->unicodeText(required: false, max: 500),
             'status' => 'required|in:active,inactive',
-            'notes' => 'nullable|string',
+            'notes' => $this->unicodeText(required: false),
         ];
     }
 
@@ -100,7 +102,7 @@ class Form extends Component
 
     public function save(): void
     {
-        $validated = $this->validate();
+        $validated = $this->validate($this->getRules());
         
         // Get the user's branch - handle both direct branch_id and relationship
         $user = auth()->user();
