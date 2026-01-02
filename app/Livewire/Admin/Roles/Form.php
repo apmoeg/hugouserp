@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin\Roles;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use App\Livewire\Concerns\HandlesErrors;
 use Livewire\Component;
 use Spatie\Permission\Models\Permission;
@@ -12,6 +13,7 @@ use Spatie\Permission\Models\Role;
 class Form extends Component
 {
     use HandlesErrors;
+    use HasMultilingualValidation;
 
     public ?Role $role = null;
 

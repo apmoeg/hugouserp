@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class WorkCenterRequest extends FormRequest
 {
+    use HasMultilingualValidation;
+
     public function authorize(): bool
     {
         return $this->user()->can('manufacturing.create') || $this->user()->can('manufacturing.update');
@@ -17,9 +20,9 @@ class WorkCenterRequest extends FormRequest
     {
         return [
             'code' => ['required', 'string', 'max:50', 'unique:work_centers,code,' . ($this->route('workCenter') ? $this->route('workCenter')->id : 'NULL')],
-            'name' => ['required', 'string', 'max:255'],
-            'name_ar' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'name' => $this->multilingualString(required: true, max: 255),
+            'name_ar' => $this->arabicName(required: false, max: 255),
+            'description' => $this->unicodeText(required: false),
             'capacity_per_hour' => ['required', 'numeric', 'min:0.01'],
             'cost_per_hour' => ['nullable', 'numeric', 'min:0'],
             'efficiency_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
