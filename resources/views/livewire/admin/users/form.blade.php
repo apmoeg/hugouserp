@@ -73,8 +73,8 @@
                     {{ __('Language') }}
                 </label>
                 <select wire:model="form.locale" class="erp-input">
-                    <option value="ar">العربية (Arabic)</option>
-                    <option value="en">English</option>
+                    <option value="ar">{{ __('Arabic') }}</option>
+                    <option value="en">{{ __('English') }}</option>
                 </select>
                 @error('form.locale')
                     <p class="mt-1 text-xs text-red-600">{{ $message }}</p>

@@ -91,9 +91,9 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Output Format') }}</label>
                     <select wire:model="format" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
-                        <option value="pdf">PDF</option>
-                        <option value="excel">Excel</option>
-                        <option value="csv">CSV</option>
+                        <option value="pdf">{{ __('PDF') }}</option>
+                        <option value="excel">{{ __('Excel') }}</option>
+                        <option value="csv">{{ __('CSV') }}</option>
                     </select>
                 </div>
                 <div class="flex items-center pt-6">
