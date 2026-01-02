@@ -108,11 +108,11 @@
             <div class="flex items-end gap-2 pt-2 border-t">
                 <div class="flex-1">
                     <label class="block text-xs text-slate-500 mb-1">{{ __('Key') }}</label>
-                    <input type="text" wire:model="newOptionKey" class="erp-input w-full text-sm font-mono" placeholder="option_key">
+                    <input type="text" wire:model="newOptionKey" class="erp-input w-full text-sm font-mono" placeholder="{{ __('option_key') }}">
                 </div>
                 <div class="flex-1">
                     <label class="block text-xs text-slate-500 mb-1">{{ __('Value') }}</label>
-                    <input type="text" wire:model="newOptionValue" class="erp-input w-full text-sm" placeholder="Option Label">
+                    <input type="text" wire:model="newOptionValue" class="erp-input w-full text-sm" placeholder="{{ __('Option Label') }}">
                 </div>
                 <button type="button" wire:click="addOption" class="px-3 py-2 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>

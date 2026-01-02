@@ -188,7 +188,7 @@
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('English Value') }}</label>
                                 <textarea wire:model="newValueEn" rows="2"
                                           class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                          placeholder="English translation"></textarea>
+                                          placeholder="{{ __('English translation') }}"></textarea>
                                 @error('newValueEn') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
                             
@@ -196,7 +196,7 @@
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ __('Arabic Value') }}</label>
                                 <textarea wire:model="newValueAr" rows="2" dir="rtl"
                                           class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                          placeholder="الترجمة العربية"></textarea>
+                                          placeholder="{{ __('Arabic translation') }}"></textarea>
                                 @error('newValueAr') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
                         </div>

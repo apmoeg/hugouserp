@@ -138,12 +138,12 @@
                     </div>
                     <div>
                         <label class="erp-label">{{ __('Arabic Translation') }} 🇪🇬</label>
-                        <input type="text" wire:model="newValueAr" class="erp-input mt-1" dir="rtl" placeholder="الترجمة بالعربية">
+                        <input type="text" wire:model="newValueAr" class="erp-input mt-1" dir="rtl" placeholder="{{ __('Arabic translation') }}">
                         @error('newValueAr') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label class="erp-label">{{ __('English Translation') }} 🇬🇧</label>
-                        <input type="text" wire:model="newValueEn" class="erp-input mt-1" dir="ltr" placeholder="English translation">
+                        <input type="text" wire:model="newValueEn" class="erp-input mt-1" dir="ltr" placeholder="{{ __('English translation') }}">
                         @error('newValueEn') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
