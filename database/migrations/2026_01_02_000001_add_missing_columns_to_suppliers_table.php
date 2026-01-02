@@ -18,47 +18,63 @@ return new class extends Migration
     {
         if (Schema::hasTable('suppliers')) {
             Schema::table('suppliers', function (Blueprint $table) {
+                // Add company_name column (used in form but missing from DB)
+                // Place after name column for logical grouping
+                if (!Schema::hasColumn('suppliers', 'company_name')) {
+                    if (Schema::hasColumn('suppliers', 'name')) {
+                        $table->string('company_name')->nullable()->after('name')->comment('Company Name');
+                    } else {
+                        $table->string('company_name')->nullable()->comment('Company Name');
+                    }
+                }
+                
                 // Add city column (used in form but missing from DB)
                 if (!Schema::hasColumn('suppliers', 'city')) {
-                    $table->string('city', 100)->nullable()->after('address')->comment('City');
+                    if (Schema::hasColumn('suppliers', 'address')) {
+                        $table->string('city', 100)->nullable()->after('address')->comment('City');
+                    } else {
+                        $table->string('city', 100)->nullable()->comment('City');
+                    }
                 }
                 
                 // Add country column (used in form but missing from DB)
                 if (!Schema::hasColumn('suppliers', 'country')) {
-                    $table->string('country', 100)->nullable()->after('city')->comment('Country');
-                }
-                
-                // Add company_name column (used in form but missing from DB)
-                if (!Schema::hasColumn('suppliers', 'company_name')) {
-                    $table->string('company_name')->nullable()->after('name')->comment('Company Name');
+                    if (Schema::hasColumn('suppliers', 'city')) {
+                        $table->string('country', 100)->nullable()->after('city')->comment('Country');
+                    } else {
+                        $table->string('country', 100)->nullable()->comment('Country');
+                    }
                 }
                 
                 // Add minimum_order_value column (used in form but missing from DB)
                 if (!Schema::hasColumn('suppliers', 'minimum_order_value')) {
-                    $table->decimal('minimum_order_value', 18, 2)->default(0)->after('preferred_currency')->comment('Minimum order value');
+                    $table->decimal('minimum_order_value', 18, 2)->default(0)->comment('Minimum order value');
                 }
                 
                 // Add supplier_rating column (used in form but missing from DB)
                 if (!Schema::hasColumn('suppliers', 'supplier_rating')) {
-                    $table->string('supplier_rating', 191)->nullable()->after('minimum_order_value')->comment('Supplier rating (text field)');
+                    $table->string('supplier_rating', 191)->nullable()->comment('Supplier rating (text field)');
                 }
                 
                 // Add last_purchase_date column (referenced in model)
                 if (!Schema::hasColumn('suppliers', 'last_purchase_date')) {
-                    $table->timestamp('last_purchase_date')->nullable()->after('supplier_rating')->comment('Last purchase date');
+                    $table->timestamp('last_purchase_date')->nullable()->comment('Last purchase date');
                 }
                 
-                // Add created_by column for audit trail
+                // Add created_by column for audit trail (if not exists from original table)
                 if (!Schema::hasColumn('suppliers', 'created_by')) {
-                    $table->unsignedBigInteger('created_by')->nullable()->after('last_purchase_date')->comment('created_by');
+                    $table->unsignedBigInteger('created_by')->nullable()->comment('created_by');
                 }
                 
-                // Add updated_by column for audit trail
+                // Add updated_by column for audit trail (if not exists from original table)
                 if (!Schema::hasColumn('suppliers', 'updated_by')) {
-                    $table->unsignedBigInteger('updated_by')->nullable()->after('created_by')->comment('updated_by');
+                    $table->unsignedBigInteger('updated_by')->nullable()->comment('updated_by');
                 }
-                
-                // Add foreign keys if columns were just created
+            });
+            
+            // Add foreign keys in separate schema call to avoid issues
+            Schema::table('suppliers', function (Blueprint $table) {
+                // Add foreign keys if columns exist and foreign keys don't
                 if (Schema::hasColumn('suppliers', 'created_by') && !$this->foreignKeyExists('suppliers', 'suppliers_created_by_foreign')) {
                     $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
                 }
