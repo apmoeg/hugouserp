@@ -169,9 +169,9 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('Export Format') }}</label>
                         <select wire:model="exportFormat" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500">
-                            <option value="xlsx">Excel (.xlsx)</option>
-                            <option value="csv">CSV (.csv)</option>
-                            <option value="pdf">PDF (.pdf)</option>
+                            <option value="xlsx">{{ __('Excel (.xlsx)') }}</option>
+                            <option value="csv">{{ __('CSV (.csv)') }}</option>
+                            <option value="pdf">{{ __('PDF (.pdf)') }}</option>
                         </select>
                     </div>
                     

@@ -488,4 +488,190 @@ class TranslationCompletenessTest extends TestCase
 
         return false;
     }
+
+    /**
+     * Test that all critical UI sections have proper translations.
+     * This is a comprehensive test covering all major areas of the application.
+     */
+    public function test_comprehensive_ui_section_translations(): void
+    {
+        $enJson = $this->getEnglishTranslations();
+        $arJson = $this->getArabicTranslations();
+
+        // Categories of critical UI strings organized by section
+        $criticalSections = [
+            'Sidebar Navigation' => [
+                'Workspace', 'Sales & Purchases', 'Inventory & Warehouse', 
+                'Finance & Banking', 'People & HR', 'Operations', 'Administration',
+                'Dashboard', 'POS Terminal', 'Reports Hub', 'Sales', 'Purchases',
+                'Customers', 'Suppliers', 'Products', 'Warehouse', 'Accounting',
+                'Expenses', 'Income', 'Banking', 'Human Resources', 'Rental',
+                'Manufacturing', 'Fixed Assets', 'Projects', 'Documents', 'Helpdesk',
+                'Settings', 'Users', 'Roles', 'Branches', 'Modules', 'Audit Logs',
+            ],
+            'Form Labels' => [
+                'Name', 'Email', 'Phone', 'Address', 'City', 'Country',
+                'Description', 'Notes', 'Status', 'Type', 'Code', 'Date',
+                'Amount', 'Quantity', 'Price', 'Total', 'Branch', 'Category',
+                'Position / title', 'Linked user (optional)', 'Base salary',
+            ],
+            'Buttons & Actions' => [
+                'Save', 'Cancel', 'Delete', 'Edit', 'Create', 'Update',
+                'Add', 'Remove', 'Close', 'Confirm', 'Apply', 'Clear',
+                'Search', 'Filter', 'Export', 'Import', 'Print', 'Download',
+                'Upload', 'Refresh', 'Back', 'Next', 'Previous', 'Submit',
+                'View', 'New Return', 'Process Return',
+            ],
+            'Status Labels' => [
+                'Active', 'Inactive', 'Pending', 'Completed', 'Approved',
+                'Rejected', 'Draft', 'Open', 'Closed', 'Cancelled',
+                'In Progress', 'On Hold', 'Not linked',
+            ],
+            'Table Headers' => [
+                'ID', 'Actions', 'Created At', 'Updated At', 'Date',
+                'Customer', 'Supplier', 'Product', 'Warehouse', 'Total',
+                'Status', 'Cashier', 'Code', 'Invoice', 'Reason',
+            ],
+            'Dropdown Defaults' => [
+                'Select...', 'All', 'None', 'Optional',
+                'All Branches', 'All Categories', 'All Status',
+            ],
+            'Empty States' => [
+                'No data found', 'No results found', 'No returns found',
+                'No sales found for this date',
+            ],
+            'Reports & Analytics' => [
+                'Total Sales', 'Total Purchases', 'Total Revenue', 'Total Expenses',
+                'Daily Report', 'POS Daily Report', 'Sales Analytics',
+                'Payment Methods Breakdown', 'Sessions',
+            ],
+        ];
+
+        $missing = [];
+        $untranslated = [];
+
+        foreach ($criticalSections as $section => $strings) {
+            foreach ($strings as $string) {
+                if (!isset($enJson[$string])) {
+                    $missing[] = "[$section] '$string' missing in EN";
+                } elseif (!isset($arJson[$string])) {
+                    $missing[] = "[$section] '$string' missing in AR";
+                } elseif ($arJson[$string] === $enJson[$string] && !$this->isTechnicalTerm($string)) {
+                    $untranslated[] = "[$section] '$string' not translated to Arabic";
+                }
+            }
+        }
+
+        $this->assertEmpty(
+            $missing,
+            "Critical UI strings missing:\n" . implode("\n", $missing)
+        );
+
+        // Allow a small percentage of untranslated strings for technical terms
+        $this->assertLessThan(
+            5,
+            count($untranslated),
+            "Too many untranslated critical UI strings:\n" . implode("\n", $untranslated)
+        );
+    }
+
+    /**
+     * Test that validation attribute names are properly translated.
+     * These appear in validation error messages.
+     */
+    public function test_validation_attributes_are_translated(): void
+    {
+        $enJson = $this->getEnglishTranslations();
+        $arJson = $this->getArabicTranslations();
+
+        // Common validation attribute names
+        $attributes = [
+            'name', 'email', 'phone', 'password', 'address', 'city',
+            'country', 'description', 'notes', 'amount', 'quantity',
+            'price', 'date', 'status', 'type', 'code',
+        ];
+
+        // These may appear as form labels or in validation messages
+        $missing = [];
+        foreach ($attributes as $attr) {
+            $ucfirst = ucfirst($attr);
+            if (isset($enJson[$ucfirst]) && isset($arJson[$ucfirst])) {
+                if ($arJson[$ucfirst] === $enJson[$ucfirst]) {
+                    $missing[] = $ucfirst;
+                }
+            }
+        }
+
+        $this->assertEmpty(
+            $missing,
+            'Validation attributes not translated: ' . implode(', ', $missing)
+        );
+    }
+
+    /**
+     * Test that modal/dialog strings are translated.
+     */
+    public function test_modal_dialog_strings_are_translated(): void
+    {
+        $enJson = $this->getEnglishTranslations();
+        $arJson = $this->getArabicTranslations();
+
+        // Common modal/dialog strings
+        $modalStrings = [
+            'Confirm', 'Cancel', 'Yes', 'No', 'OK', 'Close',
+            'Are you sure?', 'Confirm Delete', 'Warning',
+            'Success', 'Error', 'Info', 'Loading...',
+        ];
+
+        $untranslated = [];
+        foreach ($modalStrings as $string) {
+            if (isset($enJson[$string]) && isset($arJson[$string])) {
+                if ($arJson[$string] === $enJson[$string] && !$this->isTechnicalTerm($string)) {
+                    $untranslated[] = $string;
+                }
+            }
+        }
+
+        $this->assertEmpty(
+            $untranslated,
+            'Modal/dialog strings not translated: ' . implode(', ', $untranslated)
+        );
+    }
+
+    /**
+     * Test that the sidebar-new.blade.php file uses translation functions.
+     */
+    public function test_sidebar_new_uses_translation_functions(): void
+    {
+        $sidebarFile = resource_path('views/layouts/sidebar-new.blade.php');
+        if (!file_exists($sidebarFile)) {
+            $this->markTestSkipped('sidebar-new.blade.php not found');
+        }
+
+        $content = file_get_contents($sidebarFile);
+
+        // Check that section titles use __() function
+        preg_match_all("/'title'\s*=>\s*__\('([^']+)'\)/", $content, $titleMatches);
+        $this->assertGreaterThan(0, count($titleMatches[1]), 'Sidebar section titles should use __() function');
+
+        // Check that menu item labels use __() function
+        preg_match_all("/'label'\s*=>\s*__\('([^']+)'\)/", $content, $labelMatches);
+        $this->assertGreaterThan(0, count($labelMatches[1]), 'Sidebar menu labels should use __() function');
+
+        // Verify all found labels exist in translations
+        $enJson = $this->getEnglishTranslations();
+        $arJson = $this->getArabicTranslations();
+        $missing = [];
+
+        foreach (array_merge($titleMatches[1], $labelMatches[1]) as $label) {
+            if (!isset($enJson[$label]) || !isset($arJson[$label])) {
+                $missing[] = $label;
+            }
+        }
+
+        $this->assertEmpty(
+            $missing,
+            'Sidebar labels missing translations: ' . implode(', ', $missing)
+        );
+    }
 }
