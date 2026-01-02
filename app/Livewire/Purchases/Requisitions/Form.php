@@ -39,7 +39,7 @@ class Form extends Component
 
     public array $products = [];
 
-    protected function getRules(): array
+    public function getRules(): array
     {
         return [
             'subject' => $this->multilingualString(required: true, max: 255),

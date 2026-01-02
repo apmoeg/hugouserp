@@ -50,7 +50,7 @@ class Form extends Component
 
     private static array $customerColumns = [];
 
-    protected function getRules(): array
+    public function getRules(): array
     {
         return [
             'name' => $this->multilingualString(required: true, max: 255),
