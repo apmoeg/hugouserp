@@ -24,12 +24,12 @@
     {{-- Turbo.js for SPA-like navigation (optional enhancement) --}}
     <script type="module">
         // Turbo.js loaded via CDN as optional enhancement
-        // If CDN fails, navigation falls back to standard page loads
+        // If CDN fails, navigation falls back to standard page loads silently
         try {
             const turbo = await import('https://cdn.skypack.dev/@hotwired/turbo');
             window.TurboLoaded = true;
         } catch (e) {
-            console.info('Turbo.js not loaded, using standard navigation');
+            // Silently fall back to standard navigation - no console message needed
             window.TurboLoaded = false;
         }
     </script>
