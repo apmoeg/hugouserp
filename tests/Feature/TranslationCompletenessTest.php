@@ -14,12 +14,43 @@ class TranslationCompletenessTest extends TestCase
     private const MIN_COVERAGE_PERCENT = 85.0;
 
     /**
+     * Cached translation arrays.
+     */
+    private ?array $enJson = null;
+
+    private ?array $arJson = null;
+
+    /**
+     * Get English translations array.
+     */
+    private function getEnglishTranslations(): array
+    {
+        if ($this->enJson === null) {
+            $this->enJson = json_decode(file_get_contents(lang_path('en.json')), true);
+        }
+
+        return $this->enJson;
+    }
+
+    /**
+     * Get Arabic translations array.
+     */
+    private function getArabicTranslations(): array
+    {
+        if ($this->arJson === null) {
+            $this->arJson = json_decode(file_get_contents(lang_path('ar.json')), true);
+        }
+
+        return $this->arJson;
+    }
+
+    /**
      * Test that all translation keys used in the app exist in both English and Arabic.
      */
     public function test_all_translation_keys_exist_in_both_languages(): void
     {
-        $enJson = json_decode(file_get_contents(lang_path('en.json')), true);
-        $arJson = json_decode(file_get_contents(lang_path('ar.json')), true);
+        $enJson = $this->getEnglishTranslations();
+        $arJson = $this->getArabicTranslations();
 
         $this->assertIsArray($enJson, 'English JSON translations should be valid');
         $this->assertIsArray($arJson, 'Arabic JSON translations should be valid');
@@ -46,8 +77,8 @@ class TranslationCompletenessTest extends TestCase
      */
     public function test_arabic_translations_are_properly_translated(): void
     {
-        $enJson = json_decode(file_get_contents(lang_path('en.json')), true);
-        $arJson = json_decode(file_get_contents(lang_path('ar.json')), true);
+        $enJson = $this->getEnglishTranslations();
+        $arJson = $this->getArabicTranslations();
 
         $untranslated = [];
 
@@ -94,8 +125,8 @@ class TranslationCompletenessTest extends TestCase
         // Check that all label attributes use translation
         preg_match_all('/label="([^"]+)"/', $content, $matches);
 
-        $enJson = json_decode(file_get_contents(lang_path('en.json')), true);
-        $arJson = json_decode(file_get_contents(lang_path('ar.json')), true);
+        $enJson = $this->getEnglishTranslations();
+        $arJson = $this->getArabicTranslations();
 
         $missingLabels = [];
 
@@ -124,8 +155,8 @@ class TranslationCompletenessTest extends TestCase
         // Extract section headers
         preg_match_all("/__\('([^']+)'\)/", $content, $matches);
 
-        $enJson = json_decode(file_get_contents(lang_path('en.json')), true);
-        $arJson = json_decode(file_get_contents(lang_path('ar.json')), true);
+        $enJson = $this->getEnglishTranslations();
+        $arJson = $this->getArabicTranslations();
 
         $missingHeaders = [];
 
@@ -152,8 +183,8 @@ class TranslationCompletenessTest extends TestCase
             'Settings', 'Reports', 'Users', 'Yes', 'No'
         ];
 
-        $enJson = json_decode(file_get_contents(lang_path('en.json')), true);
-        $arJson = json_decode(file_get_contents(lang_path('ar.json')), true);
+        $enJson = $this->getEnglishTranslations();
+        $arJson = $this->getArabicTranslations();
 
         $missing = [];
 
@@ -175,7 +206,7 @@ class TranslationCompletenessTest extends TestCase
      */
     public function test_arabic_locale_smoke_test(): void
     {
-        $arJson = json_decode(file_get_contents(lang_path('ar.json')), true);
+        $arJson = $this->getArabicTranslations();
         
         // Common English UI tokens that should NOT appear in Arabic translations
         // (except as part of technical terms or placeholders)
@@ -205,7 +236,7 @@ class TranslationCompletenessTest extends TestCase
      */
     public function test_english_locale_smoke_test(): void
     {
-        $enJson = json_decode(file_get_contents(lang_path('en.json')), true);
+        $enJson = $this->getEnglishTranslations();
         
         $arabicPattern = '/[\x{0600}-\x{06FF}]/u'; // Arabic Unicode range
         $violations = [];
@@ -219,6 +250,186 @@ class TranslationCompletenessTest extends TestCase
         $this->assertEmpty(
             $violations,
             'English translations contain Arabic text: ' . implode(', ', array_slice($violations, 0, 10))
+        );
+    }
+
+    /**
+     * Test that critical UI elements mentioned in issue have translations.
+     * These are specific strings that were reported as showing in wrong language.
+     */
+    public function test_critical_ui_elements_are_translated(): void
+    {
+        $enJson = $this->getEnglishTranslations();
+        $arJson = $this->getArabicTranslations();
+
+        // Critical strings mentioned in the issue that must be translated
+        $criticalStrings = [
+            'Position / title',
+            'Linked user (optional)',
+            'Not linked',
+            'Multi-Level BOM',
+            'POS Daily Report',
+            'New Return',
+            'Manage product returns and refunds',
+            'Business Modules',
+            'Contacts',
+            'Operations',
+            'Administration',
+            'Select...',
+            'No data found',
+            'No results found',
+        ];
+
+        $missing = [];
+        $untranslated = [];
+
+        foreach ($criticalStrings as $string) {
+            if (!isset($enJson[$string])) {
+                $missing[] = "$string (missing in EN)";
+            }
+            if (!isset($arJson[$string])) {
+                $missing[] = "$string (missing in AR)";
+            }
+            // Check if Arabic translation is different from English (i.e., actually translated)
+            if (isset($enJson[$string]) && isset($arJson[$string]) && $arJson[$string] === $enJson[$string]) {
+                $untranslated[] = $string;
+            }
+        }
+
+        $this->assertEmpty(
+            $missing,
+            'Critical UI strings missing: ' . implode(', ', $missing)
+        );
+
+        $this->assertEmpty(
+            $untranslated,
+            'Critical UI strings not translated to Arabic: ' . implode(', ', $untranslated)
+        );
+    }
+
+    /**
+     * Test that dropdown/select related strings are translated.
+     * Dropdowns are a common source of mixed-language UI.
+     */
+    public function test_dropdown_strings_are_translated(): void
+    {
+        $enJson = $this->getEnglishTranslations();
+        $arJson = $this->getArabicTranslations();
+
+        // Common dropdown-related strings
+        $dropdownStrings = [
+            'Select...',
+            'Please select',
+            'Select Option',
+            'Select All',
+            'Select One',
+            'None',
+            'All',
+            'Optional',
+            'Choose',
+        ];
+
+        foreach ($dropdownStrings as $string) {
+            if (isset($enJson[$string]) && isset($arJson[$string])) {
+                $this->assertNotEquals(
+                    $enJson[$string],
+                    $arJson[$string],
+                    "Dropdown string '$string' should be translated to Arabic"
+                );
+            }
+        }
+    }
+
+    /**
+     * Test that form-related strings are translated.
+     */
+    public function test_form_strings_are_translated(): void
+    {
+        $enJson = $this->getEnglishTranslations();
+        $arJson = $this->getArabicTranslations();
+
+        // Common form-related strings
+        $formStrings = [
+            'Save',
+            'Cancel',
+            'Submit',
+            'Reset',
+            'Required',
+            'Optional',
+            'Name',
+            'Email',
+            'Phone',
+            'Address',
+            'Description',
+            'Notes',
+        ];
+
+        $untranslated = [];
+
+        foreach ($formStrings as $string) {
+            if (isset($enJson[$string]) && isset($arJson[$string])) {
+                if ($arJson[$string] === $enJson[$string]) {
+                    $untranslated[] = $string;
+                }
+            }
+        }
+
+        $this->assertEmpty(
+            $untranslated,
+            'Form strings not translated to Arabic: ' . implode(', ', $untranslated)
+        );
+    }
+
+    /**
+     * Test that button/action strings are translated.
+     */
+    public function test_button_strings_are_translated(): void
+    {
+        $enJson = $this->getEnglishTranslations();
+        $arJson = $this->getArabicTranslations();
+
+        // Common button/action strings
+        $buttonStrings = [
+            'Add',
+            'Edit',
+            'Delete',
+            'Create',
+            'Update',
+            'Save',
+            'Cancel',
+            'Close',
+            'Confirm',
+            'Apply',
+            'Clear',
+            'Search',
+            'Filter',
+            'Export',
+            'Import',
+            'Print',
+            'Download',
+            'Upload',
+            'Refresh',
+            'Back',
+            'Next',
+            'Previous',
+            'Submit',
+            'View',
+            'New',
+        ];
+
+        $untranslated = [];
+
+        foreach ($buttonStrings as $string) {
+            if (isset($enJson[$string]) && isset($arJson[$string])) {
+                if ($arJson[$string] === $enJson[$string]) {
+                    $untranslated[] = $string;
+                }
+            }
+        }
+
+        $this->assertEmpty(
+            $untranslated,
+            'Button strings not translated to Arabic: ' . implode(', ', $untranslated)
         );
     }
 
