@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Accounting\Accounts;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use App\Livewire\Concerns\HandlesErrors;
 use App\Models\Account;
 use App\Models\Currency;
@@ -18,6 +19,7 @@ class Form extends Component
 {
     use AuthorizesRequests;
     use HandlesErrors;
+    use HasMultilingualValidation;
 
     public ?int $accountId = null;
 

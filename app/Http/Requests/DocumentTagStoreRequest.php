@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class DocumentTagStoreRequest extends FormRequest
 {
+    use HasMultilingualValidation;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -22,9 +25,9 @@ class DocumentTagStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:100', 'unique:document_tags,name'],
+            'name' => array_merge($this->multilingualString(required: true, max: 100), ['unique:document_tags,name']),
             'color' => ['nullable', 'string', 'max:20'],
-            'description' => ['nullable', 'string', 'max:500'],
+            'description' => $this->unicodeText(required: false, max: 500),
             'branch_id' => ['nullable', 'exists:branches,id'],
         ];
     }

@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class BillOfMaterialRequest extends FormRequest
 {
+    use HasMultilingualValidation;
+
     public function authorize(): bool
     {
         return $this->user()->can('manufacturing.create') || $this->user()->can('manufacturing.update');
@@ -17,9 +20,9 @@ class BillOfMaterialRequest extends FormRequest
     {
         return [
             'product_id' => ['required', 'exists:products,id'],
-            'name' => ['required', 'string', 'max:255'],
-            'name_ar' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'name' => $this->multilingualString(required: true, max: 255),
+            'name_ar' => $this->arabicName(required: false, max: 255),
+            'description' => $this->unicodeText(required: false),
             'quantity' => ['required', 'numeric', 'min:0.01'],
             'status' => ['sometimes', 'in:draft,active,archived'],
             'scrap_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],

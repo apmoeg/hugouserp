@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TicketSLAPolicyRequest extends FormRequest
 {
+    use HasMultilingualValidation;
+
     public function authorize(): bool
     {
         return $this->user()->can('helpdesk.manage');
@@ -16,8 +19,8 @@ class TicketSLAPolicyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'name' => $this->multilingualString(required: true, max: 255),
+            'description' => $this->unicodeText(required: false),
             'response_time_minutes' => ['required', 'integer', 'min:1'],
             'resolution_time_minutes' => ['required', 'integer', 'min:1'],
             'business_hours_only' => ['boolean'],

@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class DocumentStoreRequest extends FormRequest
 {
+    use HasMultilingualValidation;
+
     public function authorize(): bool
     {
         return $this->user()->can('documents.create');
@@ -16,11 +19,11 @@ class DocumentStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'title' => $this->multilingualString(required: true, max: 255),
+            'description' => $this->unicodeText(required: false),
             'file' => ['required', 'file', 'max:51200'], // 50MB max
-            'folder' => ['nullable', 'string', 'max:255'],
-            'category' => ['nullable', 'string', 'max:100'],
+            'folder' => $this->multilingualString(required: false, max: 255),
+            'category' => $this->multilingualString(required: false, max: 100),
             'is_public' => ['boolean'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['exists:document_tags,id'],

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\FixedAssets;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use App\Models\FixedAsset;
 use App\Models\Supplier;
 use App\Models\User;
@@ -14,6 +15,7 @@ use Livewire\Component;
 class Form extends Component
 {
     use AuthorizesRequests;
+    use HasMultilingualValidation;
 
     public ?FixedAsset $asset = null;
     public bool $isEditing = false;
@@ -40,9 +42,8 @@ class Form extends Component
 
     protected function rules(): array
     {
-        return [
+        return array_merge([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
             'category' => 'required|string|max:255',
             'location' => 'nullable|string|max:255',
             'purchase_date' => 'required|date',
@@ -53,13 +54,16 @@ class Form extends Component
             'depreciation_method' => 'required|in:straight_line,declining_balance,units_of_production',
             'depreciation_rate' => 'nullable|numeric|min:0|max:100',
             'supplier_id' => 'nullable|exists:suppliers,id',
-            'serial_number' => 'nullable|string|max:255',
-            'model' => 'nullable|string|max:255',
-            'manufacturer' => 'nullable|string|max:255',
             'warranty_expiry' => 'nullable|date',
             'assigned_to' => 'nullable|exists:users,id',
-            'notes' => 'nullable|string',
-        ];
+        ], [
+            // Use multilingual validation for text fields
+            'description' => $this->unicodeText(required: false),
+            'serial_number' => $this->flexibleCode(required: false, max: 255),
+            'model' => $this->multilingualString(required: false, max: 255),
+            'manufacturer' => $this->multilingualString(required: false, max: 255),
+            'notes' => $this->unicodeText(required: false),
+        ]);
     }
 
     public function mount(?FixedAsset $asset = null): void

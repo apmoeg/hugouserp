@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use App\Http\Requests\Traits\HasPaymentTermsValidation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CustomerUpdateRequest extends FormRequest
 {
     use HasPaymentTermsValidation;
+    use HasMultilingualValidation;
 
     public function authorize(): bool
     {
@@ -21,18 +23,18 @@ class CustomerUpdateRequest extends FormRequest
         $customer = $this->route('customer'); // Model binding
 
         return array_merge([
-            'name' => ['sometimes', 'string', 'max:255'],
+            'name' => $this->multilingualString(required: false, max: 255), // 'sometimes' handled by Laravel automatically
             'phone' => ['sometimes', 'string', 'max:100'],
             'email' => ['sometimes', 'nullable', 'email', 'max:190', 'unique:customers,email,'.$customer?->id],
-            'billing_address' => ['sometimes', 'nullable', 'string', 'max:500'],
-            'shipping_address' => ['sometimes', 'nullable', 'string', 'max:500'],
+            'billing_address' => array_merge(['sometimes', 'nullable'], $this->unicodeText(required: false, max: 500)),
+            'shipping_address' => array_merge(['sometimes', 'nullable'], $this->unicodeText(required: false, max: 500)),
             'tax_number' => ['sometimes', 'nullable', 'string', 'max:50'],
             // Financial fields
             'credit_limit' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'discount_percentage' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:100'],
             'payment_due_days' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'preferred_currency' => ['sometimes', 'nullable', 'string', 'size:3'],
-            'notes' => ['sometimes', 'nullable', 'string'],
+            'notes' => array_merge(['sometimes', 'nullable'], $this->unicodeText(required: false)),
         ],
         $this->paymentTermsRules(false),
         $this->paymentDueDaysRules(false)

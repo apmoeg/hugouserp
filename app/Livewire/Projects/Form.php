@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Projects;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\Project;
@@ -19,6 +20,7 @@ use Livewire\Component;
 class Form extends Component
 {
     use AuthorizesRequests;
+    use HasMultilingualValidation;
 
     public ?Project $project = null;
     public ?int $projectId = null;

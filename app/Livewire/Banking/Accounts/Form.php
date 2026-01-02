@@ -13,6 +13,7 @@ use Livewire\Component;
 class Form extends Component
 {
     use AuthorizesRequests;
+    use \App\Http\Requests\Traits\HasMultilingualValidation;
 
     public ?BankAccount $account = null;
     public bool $isEditing = false;
@@ -36,16 +37,16 @@ class Form extends Component
     {
         return [
             'account_number' => 'required|string|max:255|unique:bank_accounts,account_number,' . ($this->account->id ?? 'NULL'),
-            'account_name' => 'required|string|max:255',
-            'bank_name' => 'required|string|max:255',
-            'bank_branch' => 'nullable|string|max:255',
+            'account_name' => $this->multilingualString(required: true, max: 255),
+            'bank_name' => $this->multilingualString(required: true, max: 255),
+            'bank_branch' => $this->multilingualString(required: false, max: 255),
             'swift_code' => 'nullable|string|max:255',
             'iban' => 'nullable|string|max:255',
             'currency' => 'required|string|size:3',
             'account_type' => 'required|in:checking,savings,credit',
             'opening_balance' => 'required|numeric',
             'opening_date' => 'required|date',
-            'notes' => 'nullable|string',
+            'notes' => $this->unicodeText(required: false),
         ];
     }
 

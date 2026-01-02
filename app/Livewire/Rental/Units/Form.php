@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Rental\Units;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use App\Models\Property;
 use App\Models\RentalUnit;
 use App\Services\Contracts\ModuleFieldServiceInterface;
@@ -14,6 +15,7 @@ use Livewire\Component;
 
 class Form extends Component
 {
+    use HasMultilingualValidation;
     public ?int $unitId = null;
 
     /**

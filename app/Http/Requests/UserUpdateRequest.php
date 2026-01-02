@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class UserUpdateRequest extends FormRequest
 {
+    use HasMultilingualValidation;
+
     public function authorize(): bool
     {
         return $this->user()?->can('users.edit') ?? false;
@@ -20,7 +23,7 @@ class UserUpdateRequest extends FormRequest
         $userId = $this->route('user')?->id ?? $this->route('user');
 
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'name' => $this->multilingualString(required: true, max: 255),
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'username' => ['nullable', 'string', 'max:100', Rule::unique('users', 'username')->ignore($userId)],
             'password' => ['nullable', 'confirmed', Password::defaults()],

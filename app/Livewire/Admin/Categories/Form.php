@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin\Categories;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use App\Models\ProductCategory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -13,6 +14,7 @@ use Livewire\Component;
 
 class Form extends Component
 {
+    use HasMultilingualValidation;
     public ?int $categoryId = null;
 
     public string $name = '';

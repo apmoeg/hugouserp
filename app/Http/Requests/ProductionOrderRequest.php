@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProductionOrderRequest extends FormRequest
 {
+    use HasMultilingualValidation;
+
     public function authorize(): bool
     {
         return $this->user()->can('manufacturing.create') || $this->user()->can('manufacturing.update');
@@ -24,7 +27,7 @@ class ProductionOrderRequest extends FormRequest
             'priority' => ['required', 'in:low,medium,high,urgent'],
             'status' => ['sometimes', 'in:draft,planned,in_progress,completed,cancelled'],
             'work_center_id' => ['nullable', 'exists:work_centers,id'],
-            'notes' => ['nullable', 'string'],
+            'notes' => $this->unicodeText(required: false),
             'branch_id' => ['nullable', 'exists:branches,id'],
         ];
     }

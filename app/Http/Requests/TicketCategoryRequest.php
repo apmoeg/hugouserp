@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TicketCategoryRequest extends FormRequest
 {
+    use HasMultilingualValidation;
+
     public function authorize(): bool
     {
         return $this->user()->can('helpdesk.manage');
@@ -16,9 +19,9 @@ class TicketCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'name_ar' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'name' => $this->multilingualString(required: true, max: 255),
+            'name_ar' => $this->arabicName(required: false, max: 255),
+            'description' => $this->unicodeText(required: false),
             'parent_id' => ['nullable', 'exists:ticket_categories,id'],
             'default_assignee_id' => ['nullable', 'exists:users,id'],
             'sla_policy_id' => ['nullable', 'exists:ticket_sla_policies,id'],

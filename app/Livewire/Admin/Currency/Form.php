@@ -68,7 +68,8 @@ class Form extends Component
     protected function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'size:3', 'alpha', $this->currencyId ? 'unique:currencies,code,'.$this->currencyId : 'unique:currencies,code'],
+            // Removed 'alpha' validation to support non-Latin currency codes (e.g., Arabic)
+            'code' => ['required', 'string', 'size:3', 'regex:/^[\p{L}\p{M}]+$/u', $this->currencyId ? 'unique:currencies,code,'.$this->currencyId : 'unique:currencies,code'],
             'name' => ['required', 'string', 'max:100'],
             'nameAr' => ['nullable', 'string', 'max:100'],
             'symbol' => ['required', 'string', 'max:10'],
