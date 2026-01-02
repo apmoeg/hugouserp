@@ -35,7 +35,7 @@ class ExportSystemTest extends TestCase
         Permission::findOrCreate('customers.view', 'web');
         Permission::findOrCreate('customers.manage.all', 'web');
         Permission::findOrCreate('suppliers.view', 'web');
-        Permission::findOrCreate('reports.download', 'web');
+        // Note: reports.download permission removed - download route now validates user ownership instead
     }
 
     public function test_export_respects_locale_for_column_headers(): void
@@ -62,7 +62,7 @@ class ExportSystemTest extends TestCase
         
         $branch = Branch::factory()->create();
         $user = User::factory()->create(['branch_id' => $branch->id]);
-        $user->givePermissionTo('reports.download');
+        // No specific export permission needed - user can export what they can view
 
         // No products created - empty dataset
         Livewire::actingAs($user)
@@ -79,7 +79,7 @@ class ExportSystemTest extends TestCase
         
         $branch = Branch::factory()->create();
         $user = User::factory()->create(['branch_id' => $branch->id]);
-        $user->givePermissionTo('reports.download');
+        // No specific export permission needed - user can export what they can view
 
         // Create products
         Product::create([
@@ -116,7 +116,7 @@ class ExportSystemTest extends TestCase
         
         $branch = Branch::factory()->create();
         $user = User::factory()->create(['branch_id' => $branch->id]);
-        $user->givePermissionTo('reports.download');
+        // No specific export permission needed - user can export what they can view
 
         Product::create([
             'name' => 'Test Product',
@@ -140,7 +140,7 @@ class ExportSystemTest extends TestCase
         
         $branch = Branch::factory()->create();
         $user = User::factory()->create(['branch_id' => $branch->id]);
-        $user->givePermissionTo('reports.download');
+        // No specific export permission needed - user can export what they can view
 
         Product::create([
             'name' => 'Excel Product',
@@ -163,7 +163,7 @@ class ExportSystemTest extends TestCase
         
         $branch = Branch::factory()->create();
         $user = User::factory()->create(['branch_id' => $branch->id]);
-        $user->givePermissionTo('reports.download');
+        // No specific export permission needed - user can export what they can view
 
         Product::create([
             'name' => 'PDF Product',
@@ -233,7 +233,7 @@ class ExportSystemTest extends TestCase
     {
         $branch = Branch::factory()->create();
         $user = User::factory()->create(['branch_id' => $branch->id]);
-        $user->givePermissionTo(['customers.view', 'reports.download']);
+        $user->givePermissionTo('customers.view');
 
         Customer::create([
             'name' => 'VIP Customer',
@@ -264,7 +264,7 @@ class ExportSystemTest extends TestCase
         
         $branch = Branch::factory()->create();
         $user = User::factory()->create(['branch_id' => $branch->id]);
-        $user->givePermissionTo('reports.download');
+        // No specific export permission needed - user can export what they can view
 
         Supplier::create([
             'name' => 'Test Supplier',
