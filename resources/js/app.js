@@ -98,7 +98,7 @@ window.erpShowToast = function (message, type = 'success') {
         } else if (type === 'error') {
             el.className += ' border-rose-300 shadow-rose-200';
         }
-        el.innerText = message || 'Saved';
+        el.innerText = message || window.Laravel?.translations?.['Saved'] || 'Saved';
         root.appendChild(el);
         setTimeout(() => {
             el.classList.add('opacity-0', 'translate-y-1');
@@ -158,14 +158,14 @@ window.erpSetNotificationVolume = function (volume) {
 
 window.erpConfirm = function (options = {}) {
     const defaults = {
-        title: 'Are you sure?',
-        text: 'This action cannot be undone.',
+        title: window.Laravel?.translations?.['Are you sure?'] || 'Are you sure?',
+        text: window.Laravel?.translations?.['This action cannot be undone.'] || 'This action cannot be undone.',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#10b981',
         cancelButtonColor: '#ef4444',
-        confirmButtonText: 'Yes, proceed',
-        cancelButtonText: 'Cancel'
+        confirmButtonText: window.Laravel?.translations?.['Yes, proceed'] || 'Yes, proceed',
+        cancelButtonText: window.Laravel?.translations?.['Cancel'] || 'Cancel'
     };
     
     return Swal.fire({ ...defaults, ...options });
@@ -180,9 +180,9 @@ window.erpAlert = function (title, text = '', icon = 'info') {
     });
 };
 
-window.erpLoading = function (title = 'Loading...') {
+window.erpLoading = function (title = null) {
     Swal.fire({
-        title,
+        title: title || window.Laravel?.translations?.['Loading...'] || 'Loading...',
         allowOutsideClick: false,
         allowEscapeKey: false,
         showConfirmButton: false,
@@ -206,12 +206,12 @@ document.addEventListener('livewire:navigated', () => {
 
 window.addEventListener('swal:success', event => {
     const playSound = event.detail.playSound ?? false;
-    window.erpShowNotification(event.detail.message || 'Success!', 'success', playSound);
+    window.erpShowNotification(event.detail.message || window.Laravel?.translations?.['Success!'] || 'Success!', 'success', playSound);
 });
 
 window.addEventListener('swal:error', event => {
     const playSound = event.detail.playSound ?? false;
-    window.erpShowNotification(event.detail.message || 'Error occurred!', 'error', playSound);
+    window.erpShowNotification(event.detail.message || window.Laravel?.translations?.['Error occurred!'] || 'Error occurred!', 'error', playSound);
 });
 
 window.addEventListener('play-notification-sound', () => {
@@ -220,10 +220,10 @@ window.addEventListener('play-notification-sound', () => {
 
 window.addEventListener('swal:confirm', event => {
     window.erpConfirm({
-        title: event.detail.title || 'Are you sure?',
+        title: event.detail.title || window.Laravel?.translations?.['Are you sure?'] || 'Are you sure?',
         text: event.detail.text || '',
-        confirmButtonText: event.detail.confirmText || 'Yes',
-        cancelButtonText: event.detail.cancelText || 'Cancel'
+        confirmButtonText: event.detail.confirmText || window.Laravel?.translations?.['Yes'] || 'Yes',
+        cancelButtonText: event.detail.cancelText || window.Laravel?.translations?.['Cancel'] || 'Cancel'
     }).then((result) => {
         if (result.isConfirmed && event.detail.callback) {
             window.Livewire.dispatch(event.detail.callback, event.detail.params || {});

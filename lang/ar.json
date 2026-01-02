@@ -4780,5 +4780,9 @@
     "Action completed": "اكتمل الإجراء",
     "Action cancelled": "تم إلغاء الإجراء",
     "Action failed": "فشل الإجراء",
-    "Status changed": "تم تغيير الحالة"
+    "Status changed": "تم تغيير الحالة",
+    "This action cannot be undone.": "لا يمكن التراجع عن هذا الإجراء.",
+    "Yes, proceed": "نعم، تابع",
+    "Success!": "نجح!",
+    "Error occurred!": "حدث خطأ!"
 }

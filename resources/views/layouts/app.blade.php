@@ -19,6 +19,25 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
+    {{-- Make translations available to JavaScript --}}
+    <script>
+        window.Laravel = {
+            userId: {{ auth()->id() ?? 'null' }},
+            locale: '{{ app()->getLocale() }}',
+            translations: {
+                'Saved': '{{ __('Saved') }}',
+                'Are you sure?': '{{ __('Are you sure?') }}',
+                'This action cannot be undone.': '{{ __('This action cannot be undone.') }}',
+                'Yes, proceed': '{{ __('Yes, proceed') }}',
+                'Cancel': '{{ __('Cancel') }}',
+                'Loading...': '{{ __('Loading...') }}',
+                'Success!': '{{ __('Success!') }}',
+                'Error occurred!': '{{ __('Error occurred!') }}',
+                'Yes': '{{ __('Yes') }}'
+            }
+        };
+    </script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     {{-- Turbo.js for SPA-like navigation (optional enhancement) --}}

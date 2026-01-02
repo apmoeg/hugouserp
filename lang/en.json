@@ -4780,5 +4780,9 @@
     "Action completed": "Action completed",
     "Action cancelled": "Action cancelled",
     "Action failed": "Action failed",
-    "Status changed": "Status changed"
+    "Status changed": "Status changed",
+    "This action cannot be undone.": "This action cannot be undone.",
+    "Yes, proceed": "Yes, proceed",
+    "Success!": "Success!",
+    "Error occurred!": "Error occurred!"
 }
