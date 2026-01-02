@@ -59,7 +59,7 @@ class Form extends Component
 
     use \App\Http\Requests\Traits\HasMultilingualValidation;
 
-    protected function getRules(): array
+    public function getRules(): array
     {
         return [
             'field_key' => 'required|string|max:100|regex:/^[a-z_]+$/',
