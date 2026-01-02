@@ -17,12 +17,15 @@ use Tests\TestCase;
  * This test prevents the bug where multiple instances of Livewire/Alpine
  * are initialized, causing console warnings and broken Livewire behavior.
  * 
- * Root cause: When Livewire's `inject_assets` config is set to true,
- * Livewire v3 automatically injects both Livewire scripts AND Alpine.js.
- * Combined with manual @livewireScripts/@livewireStyles in layouts,
- * this causes duplicate initialization and console errors:
- * - "Detected multiple instances of Livewire running"
- * - "Detected multiple instances of Alpine running"
+ * In Livewire v4:
+ * - Alpine.js is bundled with Livewire
+ * - When inject_assets is false, we use manual @livewireScripts/@livewireStyles
+ * - This ensures a single instance of both Livewire and Alpine
+ * 
+ * Root cause of duplicate issues (when misconfigured):
+ * - inject_assets = true AND manual @livewireScripts/@livewireStyles = double injection
+ * - Manual Alpine.js import in npm + Livewire's bundled Alpine = double Alpine
+ * - Turbo.js conflicts with Livewire's wire:navigate feature
  */
 class DuplicateScriptsRegressionTest extends TestCase
 {
@@ -42,9 +45,9 @@ class DuplicateScriptsRegressionTest extends TestCase
      * 
      * This is the critical guard that prevents duplicate scripts.
      * 
-     * When inject_assets is true in Livewire v3:
+     * When inject_assets is true in Livewire v4:
      * - Livewire automatically injects its scripts
-     * - Alpine.js is also injected (bundled with Livewire v3)
+     * - Alpine.js is also injected (bundled with Livewire)
      * 
      * Combined with manual @livewireScripts/@livewireStyles in layouts,
      * this causes the "Detected multiple instances" console errors.
@@ -110,5 +113,55 @@ class DuplicateScriptsRegressionTest extends TestCase
         
         $this->assertStringContainsString('@livewireScripts', $layoutContent,
             'Guest layout should include @livewireScripts directive.');
+    }
+
+    /**
+     * Test that Alpine.js is not manually bundled via npm.
+     * 
+     * In Livewire v4, Alpine.js is bundled with Livewire. Having a separate
+     * Alpine.js import would cause "Detected multiple instances of Alpine" errors.
+     */
+    public function test_alpine_not_manually_bundled(): void
+    {
+        $packageJson = json_decode(file_get_contents(base_path('package.json')), true);
+        
+        $hasDependency = isset($packageJson['dependencies']['alpinejs']);
+        $hasDevDependency = isset($packageJson['devDependencies']['alpinejs']);
+        
+        $this->assertFalse(
+            $hasDependency || $hasDevDependency,
+            'Alpine.js should not be in package.json. Livewire v4 bundles Alpine.js internally.'
+        );
+    }
+
+    /**
+     * Test that Turbo.js is not included to avoid conflicts with Livewire navigate.
+     * 
+     * Livewire v4 has its own SPA-like navigation via wire:navigate.
+     * Having Turbo.js would conflict and cause issues.
+     */
+    public function test_turbo_not_included(): void
+    {
+        $packageJson = json_decode(file_get_contents(base_path('package.json')), true);
+        
+        $hasDependency = isset($packageJson['dependencies']['@hotwired/turbo']);
+        $hasDevDependency = isset($packageJson['devDependencies']['@hotwired/turbo']);
+        
+        $this->assertFalse(
+            $hasDependency || $hasDevDependency,
+            'Turbo.js should not be in package.json. Livewire v4 has built-in wire:navigate for SPA-like navigation.'
+        );
+    }
+
+    /**
+     * Test that Livewire v4 specific config options are present.
+     */
+    public function test_livewire_v4_config_options_present(): void
+    {
+        // smart_wire_keys is a Livewire v4 feature
+        $this->assertTrue(
+            config('livewire.smart_wire_keys'),
+            'Livewire v4 smart_wire_keys config should be enabled.'
+        );
     }
 }
