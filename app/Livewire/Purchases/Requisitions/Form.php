@@ -15,6 +15,7 @@ use Livewire\Component;
 class Form extends Component
 {
     use AuthorizesRequests;
+    use \App\Http\Requests\Traits\HasMultilingualValidation;
 
     public ?PurchaseRequisition $requisition = null;
 
@@ -37,6 +38,24 @@ class Form extends Component
     public array $items = [];
 
     public array $products = [];
+
+    protected function getRules(): array
+    {
+        return [
+            'subject' => $this->multilingualString(required: true, max: 255),
+            'priority' => 'required|in:low,medium,high,urgent',
+            'justification' => $this->unicodeText(required: true),
+            'required_by' => 'required|date|after:today',
+            'notes' => $this->unicodeText(required: false),
+            'department_id' => 'nullable|exists:departments,id',
+            'cost_center_id' => 'nullable|exists:cost_centers,id',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.specifications' => $this->unicodeText(required: false),
+        ];
+    }
 
     protected array $rules = [
         'subject' => 'required|string|max:255',
@@ -129,7 +148,7 @@ class Form extends Component
 
     public function save(): RedirectResponse
     {
-        $this->validate();
+        $this->validate($this->getRules());
 
         $branchId = auth()->user()->branch_id;
         $userId = auth()->id();
@@ -176,7 +195,7 @@ class Form extends Component
 
     public function submit(): RedirectResponse
     {
-        $this->validate();
+        $this->validate($this->getRules());
 
         $branchId = auth()->user()->branch_id;
         $userId = auth()->id();

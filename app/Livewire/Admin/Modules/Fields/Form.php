@@ -57,17 +57,24 @@ class Form extends Component
 
     protected ModuleProductService $productService;
 
-    protected $rules = [
-        'field_key' => 'required|string|max:100|regex:/^[a-z_]+$/',
-        'field_label' => 'required|string|max:255',
-        'field_label_ar' => 'nullable|string|max:255',
-        'field_type' => 'required|in:text,textarea,number,decimal,date,datetime,select,multiselect,checkbox,radio,file,image,color,url,email,phone',
-        'placeholder' => 'nullable|string|max:255',
-        'placeholder_ar' => 'nullable|string|max:255',
-        'default_value' => 'nullable|string',
-        'validation_rules' => 'nullable|string|max:500',
-        'field_group' => 'nullable|string|max:100',
-    ];
+    use \App\Http\Requests\Traits\HasMultilingualValidation;
+
+    protected function getRules(): array
+    {
+        return [
+            'field_key' => 'required|string|max:100|regex:/^[a-z_]+$/',
+            'field_label' => $this->multilingualString(required: true, max: 255),
+            'field_label_ar' => $this->multilingualString(required: false, max: 255),
+            'field_type' => 'required|in:text,textarea,number,decimal,date,datetime,select,multiselect,checkbox,radio,file,image,color,url,email,phone',
+            'placeholder' => $this->multilingualString(required: false, max: 255),
+            'placeholder_ar' => $this->multilingualString(required: false, max: 255),
+            'default_value' => $this->unicodeText(required: false),
+            'validation_rules' => 'nullable|string|max:500',
+            'field_group' => $this->multilingualString(required: false, max: 100),
+        ];
+    }
+    
+    protected $rules = [];
 
     public function boot(ModuleProductService $productService): void
     {
@@ -128,7 +135,7 @@ class Form extends Component
     public function save(): void
     {
         $this->authorize('modules.manage');
-        $this->validate();
+        $this->validate($this->getRules());
 
         $data = [
             'field_key' => $this->field_key,

@@ -14,6 +14,7 @@ use Livewire\Component;
 class Form extends Component
 {
     use AuthorizesRequests;
+    use \App\Http\Requests\Traits\HasMultilingualValidation;
 
     public ?BillOfMaterial $bom = null;
 
@@ -39,9 +40,9 @@ class Form extends Component
     {
         return [
             'product_id' => ['required', 'exists:products,id'],
-            'name' => ['required', 'string', 'max:255'],
-            'name_ar' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:2000'],
+            'name' => $this->multilingualString(required: true, max: 255),
+            'name_ar' => $this->multilingualString(required: false, max: 255),
+            'description' => $this->unicodeText(required: false, max: 2000),
             'quantity' => ['required', 'numeric', 'min:0.01'],
             'status' => ['required', 'in:draft,active,archived'],
             'scrap_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
