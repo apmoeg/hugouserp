@@ -21,7 +21,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
-    {{-- Turbo.js is now loaded via Vite in app.js for proper SPA-like navigation --}}
+    {{-- Livewire v4 handles SPA-like navigation via wire:navigate --}}
 
     <style>
         * { font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif !important; }
@@ -56,11 +56,7 @@
             transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        /* Loading indicator */
-        .turbo-progress-bar {
-            height: 3px;
-            background: linear-gradient(to right, #10b981, #3b82f6);
-        }
+        /* Livewire navigate progress bar - configured via config/livewire.php */
         
         /* Responsive improvements */
         @media (max-width: 768px) {
@@ -389,27 +385,8 @@
         });
     });
     
-    // Show loading indicator during Turbo navigation (only if Turbo is loaded)
-    if (window.TurboLoaded !== false) {
-        document.addEventListener('turbo:before-fetch-request', () => {
-            const loader = document.getElementById('page-loading');
-            if (loader) {
-                loader.style.display = 'block';
-                loader.style.transform = 'translateX(-50%)';
-            }
-        });
-        
-        document.addEventListener('turbo:before-fetch-response', () => {
-            const loader = document.getElementById('page-loading');
-            if (loader) {
-                loader.style.transform = 'translateX(0)';
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    loader.style.transform = 'translateX(-100%)';
-            }, 300);
-        }
-    });
-    }
+    // Livewire v4 uses wire:navigate for SPA-like navigation
+    // Progress bar is configured via config/livewire.php navigate.show_progress_bar
 </script>
     
 </body>
