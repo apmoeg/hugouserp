@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Admin\Branches;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use App\Livewire\Concerns\HandlesErrors;
 use App\Models\Branch;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +18,7 @@ use Livewire\Component;
 class Form extends Component
 {
     use HandlesErrors;
+    use HasMultilingualValidation;
 
     public ?int $branchId = null;
 

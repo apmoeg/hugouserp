@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class FixedAssetStoreRequest extends FormRequest
 {
+    use HasMultilingualValidation;
+
     public function authorize(): bool
     {
         return $this->user()->can('fixed-assets.create');
@@ -16,11 +19,11 @@ class FixedAssetStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'asset_code' => ['required', 'string', 'max:50', 'unique:fixed_assets,asset_code'],
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'category' => ['required', 'string', 'max:100'],
-            'location' => ['nullable', 'string', 'max:255'],
+            'asset_code' => $this->flexibleCode(required: true, max: 50), // Allow separators
+            'name' => $this->multilingualString(required: true, max: 255),
+            'description' => $this->unicodeText(required: false),
+            'category' => $this->multilingualString(required: true, max: 100),
+            'location' => $this->multilingualString(required: false, max: 255),
             'purchase_date' => ['required', 'date'],
             'purchase_cost' => ['required', 'numeric', 'min:0'],
             'salvage_value' => ['nullable', 'numeric', 'min:0'],
@@ -31,9 +34,9 @@ class FixedAssetStoreRequest extends FormRequest
             'depreciation_start_date' => ['nullable', 'date'],
             'status' => ['required', 'in:active,inactive,disposed,under_maintenance'],
             'supplier_id' => ['nullable', 'exists:suppliers,id'],
-            'serial_number' => ['nullable', 'string', 'max:100'],
-            'model' => ['nullable', 'string', 'max:100'],
-            'manufacturer' => ['nullable', 'string', 'max:100'],
+            'serial_number' => $this->flexibleCode(required: false, max: 100),
+            'model' => $this->multilingualString(required: false, max: 100),
+            'manufacturer' => $this->multilingualString(required: false, max: 100),
             'warranty_expiry_date' => ['nullable', 'date'],
             'branch_id' => ['nullable', 'exists:branches,id'],
         ];

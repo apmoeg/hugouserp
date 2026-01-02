@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Traits\HasMultilingualValidation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProjectStoreRequest extends FormRequest
 {
+    use HasMultilingualValidation;
+
     public function authorize(): bool
     {
         return $this->user()->can('projects.create');
@@ -16,9 +19,9 @@ class ProjectStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'max:50', 'unique:projects,code'],
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'code' => $this->flexibleCode(required: true, max: 50), // Allow separators in project codes
+            'name' => $this->multilingualString(required: true, max: 255),
+            'description' => $this->unicodeText(required: false),
             'client_id' => ['nullable', 'exists:customers,id'],
             'manager_id' => ['required', 'exists:users,id'],
             'start_date' => ['required', 'date'],
