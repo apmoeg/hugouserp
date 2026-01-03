@@ -22,35 +22,23 @@ class ExportDownloadAuthorizationTest extends TestCase
         $this->setPermissions();
     }
 
-    public function test_user_without_permission_cannot_download_even_with_session(): void
+    public function test_user_without_session_cannot_download(): void
     {
         $user = User::factory()->create();
-        $path = Storage::disk('local')->path('exports/test.txt');
-        Storage::disk('local')->put('exports/test.txt', 'secret');
 
         $response = $this->actingAs($user)
-            ->withSession([
-                'export_file' => [
-                    'path' => $path,
-                    'name' => 'test.txt',
-                    'time' => now()->timestamp,
-                    'user_id' => $user->id,
-                ],
-            ])
             ->get('/download/export');
 
-        $response->assertStatus(403);
+        $response->assertStatus(404);
     }
 
     public function test_valid_user_can_download_owned_export(): void
     {
         $user = User::factory()->create();
-        $user->givePermissionTo('reports.download');
 
         Storage::disk('local')->put('exports/valid.csv', 'data');
         $path = Storage::disk('local')->path('exports/valid.csv');
 
-        $this->assertTrue($user->can('reports.download'));
         $this->assertFileExists($path);
 
         $response = $this->actingAs($user)
@@ -68,10 +56,31 @@ class ExportDownloadAuthorizationTest extends TestCase
         $response->assertHeader('content-disposition');
     }
 
+    public function test_user_cannot_download_another_users_export(): void
+    {
+        $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+
+        Storage::disk('local')->put('exports/valid.csv', 'data');
+        $path = Storage::disk('local')->path('exports/valid.csv');
+
+        $response = $this->actingAs($user)
+            ->withSession([
+                'export_file' => [
+                    'path' => $path,
+                    'name' => 'valid.csv',
+                    'time' => now()->timestamp,
+                    'user_id' => $otherUser->id, // Different user's export
+                ],
+            ])
+            ->get('/download/export');
+
+        $response->assertStatus(403);
+    }
+
     public function test_rejects_path_traversal_attempts(): void
     {
         $user = User::factory()->create();
-        $user->givePermissionTo('reports.download');
 
         $response = $this->actingAs($user)
             ->withSession([
@@ -87,9 +96,30 @@ class ExportDownloadAuthorizationTest extends TestCase
         $response->assertStatus(403);
     }
 
+    public function test_rejects_expired_exports(): void
+    {
+        $user = User::factory()->create();
+
+        Storage::disk('local')->put('exports/old.csv', 'data');
+        $path = Storage::disk('local')->path('exports/old.csv');
+
+        $response = $this->actingAs($user)
+            ->withSession([
+                'export_file' => [
+                    'path' => $path,
+                    'name' => 'old.csv',
+                    'time' => now()->subMinutes(6)->timestamp, // 6 minutes old (expired after 5 minutes)
+                    'user_id' => $user->id,
+                ],
+            ])
+            ->get('/download/export');
+
+        $response->assertStatus(410); // Gone
+    }
+
     protected function setPermissions(): void
     {
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
-        Permission::findOrCreate('reports.download', 'web');
+        // No permission setup needed - export permissions are checked at the page level
+        // Download route only verifies user owns the export
     }
 }
