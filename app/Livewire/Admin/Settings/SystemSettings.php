@@ -101,7 +101,7 @@ class SystemSettings extends Component
         $this->rows = array_values($this->rows);
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $user = Auth::user();
         if (! $user || ! $user->can('settings.update')) {
@@ -263,6 +263,8 @@ class SystemSettings extends Component
         session()->flash('status', __('System settings saved successfully.'));
 
         $this->dispatch('settings-saved');
+
+        return $this->redirectRoute('admin.settings.system', navigate: true);
     }
 
     protected function loadRolesAndPermissions(): void

@@ -188,7 +188,7 @@ class Form extends Component
             }
 
             session()->flash('success', __('Quotation saved successfully'));
-            return redirect()->route('app.purchases.quotations.index');
+            return $this->redirectRoute('app.purchases.quotations.index', navigate: true);
         } catch (\Exception $e) {
             session()->flash('error', __('Error saving quotation'));
         }

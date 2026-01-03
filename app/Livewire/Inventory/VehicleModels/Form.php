@@ -59,7 +59,7 @@ class Form extends Component
         }
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->authorize('spares.compatibility.manage');
         $this->validate();
@@ -82,12 +82,12 @@ class Form extends Component
             session()->flash('status', __('Vehicle model created successfully.'));
         }
 
-        $this->redirect(route('app.inventory.vehicle-models.index'), navigate: true);
+        return $this->redirectRoute('app.inventory.vehicle-models.index', navigate: true);
     }
 
     public function cancel(): void
     {
-        $this->redirect(route('app.inventory.vehicle-models.index'), navigate: true);
+        $this->redirectRoute('app.inventory.vehicle-models.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

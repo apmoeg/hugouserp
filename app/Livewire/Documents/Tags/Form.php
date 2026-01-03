@@ -48,7 +48,7 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->authorize('documents.tags.manage');
         $this->validate();
@@ -68,7 +68,7 @@ class Form extends Component
             session()->flash('success', __('Tag created successfully'));
         }
 
-        $this->redirectRoute('app.documents.tags.index', navigate: true);
+        return $this->redirectRoute('app.documents.tags.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

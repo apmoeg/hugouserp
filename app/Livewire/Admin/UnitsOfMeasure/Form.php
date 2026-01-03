@@ -137,7 +137,7 @@ class Form extends Component
                 session()->flash('success', __('Unit created successfully'));
             }
 
-            $this->redirectRoute('app.inventory.units.index', navigate: true);
+            return $this->redirectRoute('app.inventory.units.index', navigate: true);
         } catch (\Exception $e) {
             $this->addError('name', __('Failed to save unit. Please try again.'));
         }

@@ -59,7 +59,7 @@ class Form extends Component
         }
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->validate();
 
@@ -85,7 +85,7 @@ class Form extends Component
             session()->flash('success', __('Batch created successfully'));
         }
 
-        $this->redirect(route('app.inventory.batches.index'));
+        return $this->redirectRoute('app.inventory.batches.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

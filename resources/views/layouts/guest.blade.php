@@ -60,7 +60,19 @@
         </a>
     </div>
 
-    <div class="erp-card p-6">
+    <div class="erp-card p-6 space-y-4">
+        @if (session('success'))
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="alert">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+                {{ session('error') }}
+            </div>
+        @endif
+
         {{ $slot ?? '' }}
         @yield('content')
     </div>

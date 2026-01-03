@@ -49,7 +49,7 @@ class Form extends Component
         }
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $validated = $this->validate();
         $editMode = $this->editMode;
@@ -62,7 +62,7 @@ class Form extends Component
             return;
         }
 
-        $this->handleOperation(
+        return $this->handleOperation(
             operation: function () use ($validated, $editMode, $role, $selectedPermissions) {
                 if ($editMode) {
                     $role->update(['name' => $validated['name']]);

@@ -116,6 +116,9 @@ trait HasExport
                 'user_id' => auth()->id(),
             ]);
 
+            // Ensure the export session data is immediately available to the download request
+            session()->save();
+
             // Log export session data for debugging
             logger()->info('Export prepared', [
                 'entity_type' => $entityType,

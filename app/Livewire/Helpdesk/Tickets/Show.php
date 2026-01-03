@@ -62,7 +62,7 @@ class Show extends Component
 
         $this->ticket->refresh();
 
-        session()->flash('message', __('Reply added successfully.'));
+        session()->flash('success', __('Reply added successfully.'));
     }
 
     public function assignToMe(): void
@@ -76,7 +76,7 @@ class Show extends Component
         $this->ticket->assign($user->id);
         $this->ticket->refresh();
 
-        session()->flash('message', __('Ticket assigned to you.'));
+        session()->flash('success', __('Ticket assigned to you.'));
     }
 
     public function resolve(): void
@@ -88,7 +88,7 @@ class Show extends Component
         $this->ticket->resolve();
         $this->ticket->refresh();
 
-        session()->flash('message', __('Ticket marked as resolved.'));
+        session()->flash('success', __('Ticket marked as resolved.'));
     }
 
     public function close(): void
@@ -105,7 +105,7 @@ class Show extends Component
         $this->ticket->close();
         $this->ticket->refresh();
 
-        session()->flash('message', __('Ticket closed.'));
+        session()->flash('success', __('Ticket closed.'));
     }
 
     public function reopen(): void
@@ -122,7 +122,7 @@ class Show extends Component
         $this->ticket->reopen();
         $this->ticket->refresh();
 
-        session()->flash('message', __('Ticket reopened.'));
+        session()->flash('success', __('Ticket reopened.'));
     }
 
     #[Layout('layouts.app')]

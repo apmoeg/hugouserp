@@ -94,10 +94,10 @@ class BranchSettings extends Component
         }
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         if (! $this->branchId) {
-            return;
+            return null;
         }
 
         $this->validate([
@@ -207,6 +207,8 @@ class BranchSettings extends Component
         $this->loadRows();
 
         $this->dispatch('settings-saved');
+
+        return $this->redirectRoute('admin.settings.branch', ['branch' => $this->branchId], navigate: true);
     }
 
     public function render()

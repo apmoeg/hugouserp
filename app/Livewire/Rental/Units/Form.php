@@ -131,7 +131,7 @@ class Form extends Component
         $this->dynamicData = $data;
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $user = Auth::user();
         if (! $user || ! $user->can('rental.units.manage')) {
@@ -166,7 +166,7 @@ class Form extends Component
                 : __('Rental unit created successfully.')
         );
 
-        $this->redirectRoute('app.rental.units.index', navigate: true);
+        return $this->redirectRoute('app.rental.units.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

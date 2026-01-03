@@ -132,7 +132,7 @@ class Form extends Component
         $this->dynamicData = $data;
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $user = Auth::user();
         if (! $user || ! $user->can('hrm.employees.assign')) {
@@ -169,7 +169,7 @@ class Form extends Component
                 : __('Employee created successfully.')
         );
 
-        $this->redirectRoute('app.hrm.employees.index', navigate: true);
+        return $this->redirectRoute('app.hrm.employees.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

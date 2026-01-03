@@ -126,7 +126,7 @@ class Form extends Component
 
         session()->flash('success', __('Transfer saved successfully'));
 
-        return redirect()->route('app.warehouse.transfers.index');
+        return $this->redirectRoute('app.warehouse.transfers.index', navigate: true);
     }
 
     public function render()

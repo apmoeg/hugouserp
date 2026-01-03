@@ -63,7 +63,7 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->authorize('helpdesk.manage');
 
@@ -89,7 +89,7 @@ class Form extends Component
             session()->flash('success', __('Priority created successfully'));
         }
 
-        $this->redirectRoute('app.helpdesk.priorities.index', navigate: true);
+        return $this->redirectRoute('app.helpdesk.priorities.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

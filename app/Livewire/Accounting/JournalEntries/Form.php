@@ -156,14 +156,14 @@ class Form extends Component
         });
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->validate();
         $data = $this->form;
         $lines = $this->lines;
         $journalEntryId = $this->journalEntryId;
 
-        $this->handleOperation(
+        return $this->handleOperation(
             operation: function () use ($data, $lines, $journalEntryId) {
                 DB::transaction(function () use ($data, $lines, $journalEntryId) {
                     $user = Auth::user();

@@ -150,6 +150,9 @@ class Index extends Component
             'user_id' => auth()->id(),
         ]);
 
+        // Make sure the next request can immediately read the export session data
+        session()->save();
+
         // Use JavaScript to trigger download via a dedicated route
         $this->dispatch('trigger-download', url: route('download.export'));
 

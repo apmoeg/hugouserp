@@ -122,7 +122,7 @@ class Form extends Component
         }
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $validated = $this->validate();
         $validated['branch_id'] = auth()->user()->branches()->first()?->id;
@@ -133,7 +133,7 @@ class Form extends Component
             $validated['created_by'] = auth()->id();
         }
 
-        $this->handleOperation(
+        return $this->handleOperation(
             operation: function () use ($validated) {
                 if ($this->editMode) {
                     $this->supplier->update($validated);

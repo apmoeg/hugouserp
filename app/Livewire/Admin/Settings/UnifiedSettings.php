@@ -249,7 +249,14 @@ class UnifiedSettings extends Component
         }
     }
 
-    public function saveGeneral(): void
+    protected function redirectToTab(?string $tab = null): mixed
+    {
+        $tab ??= $this->activeTab;
+
+        return $this->redirectRoute('admin.settings', ['tab' => $tab], navigate: true);
+    }
+
+    public function saveGeneral(): mixed
     {
         $this->validate([
             'company_name' => 'required|string|max:255',
@@ -270,6 +277,8 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('General settings saved successfully'));
+
+        return $this->redirectToTab('general');
     }
 
     #[On('media-selected')]
@@ -296,7 +305,7 @@ class UnifiedSettings extends Component
         }
     }
 
-    public function saveBranding(): void
+    public function saveBranding(): mixed
     {
         $this->validate([
             'branding_primary_color' => 'required|string|max:7',
@@ -331,9 +340,11 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('Branding settings saved successfully'));
+
+        return $this->redirectToTab('branding');
     }
 
-    public function saveBranch(): void
+    public function saveBranch(): mixed
     {
         $this->setSetting('system.multi_branch', $this->multi_branch, 'branch');
         $this->setSetting('system.require_branch_selection', $this->require_branch_selection, 'branch');
@@ -341,9 +352,11 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('Branch settings saved successfully'));
+
+        return $this->redirectToTab('branch');
     }
 
-    public function saveSecurity(): void
+    public function saveSecurity(): mixed
     {
         $this->validate([
             'session_timeout' => 'required|integer|min:5|max:1440',
@@ -358,9 +371,11 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('Security settings saved successfully'));
+
+        return $this->redirectToTab('security');
     }
 
-    public function saveAdvanced(): void
+    public function saveAdvanced(): mixed
     {
         $this->validate([
             'cache_ttl' => 'required|integer|min:60|max:86400',
@@ -374,9 +389,11 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings_all');
         Cache::forget('api_enabled_setting'); // Clear API enabled cache for middleware
         session()->flash('success', __('Advanced settings saved successfully'));
+
+        return $this->redirectToTab('advanced');
     }
 
-    public function saveBackup(): void
+    public function saveBackup(): mixed
     {
         $this->validate([
             'backup_retention_days' => 'required|integer|min:1|max:365',
@@ -392,9 +409,11 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('Backup settings saved successfully'));
+
+        return $this->redirectToTab('backup');
     }
 
-    public function saveInventory(): void
+    public function saveInventory(): mixed
     {
         $this->validate([
             'inventory_costing_method' => 'required|in:FIFO,LIFO,AVG',
@@ -408,9 +427,11 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('Inventory settings saved successfully'));
+
+        return $this->redirectToTab('inventory');
     }
 
-    public function savePos(): void
+    public function savePos(): mixed
     {
         $this->validate([
             'pos_max_discount_percent' => 'required|integer|min:0|max:100',
@@ -425,9 +446,11 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('POS settings saved successfully'));
+
+        return $this->redirectToTab('pos');
     }
 
-    public function saveAccounting(): void
+    public function saveAccounting(): mixed
     {
         $this->validate([
             'accounting_coa_template' => 'required|in:standard,retail,service',
@@ -438,9 +461,11 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('Accounting settings saved successfully'));
+
+        return $this->redirectToTab('accounting');
     }
 
-    public function saveHrm(): void
+    public function saveHrm(): mixed
     {
         $this->validate([
             'hrm_working_days_per_week' => 'required|integer|min:1|max:7',
@@ -467,9 +492,11 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('HRM settings saved successfully'));
+
+        return $this->redirectToTab('hrm');
     }
 
-    public function saveRental(): void
+    public function saveRental(): mixed
     {
         $this->validate([
             'rental_grace_period_days' => 'required|integer|min:0',
@@ -484,9 +511,11 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('Rental settings saved successfully'));
+
+        return $this->redirectToTab('rental');
     }
 
-    public function saveSales(): void
+    public function saveSales(): mixed
     {
         $this->validate([
             'sales_payment_terms_days' => 'required|integer|min:0',
@@ -501,9 +530,11 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('Sales settings saved successfully'));
+
+        return $this->redirectToTab('sales');
     }
 
-    public function saveNotifications(): void
+    public function saveNotifications(): mixed
     {
         $this->setSetting('notifications.low_stock', $this->notifications_low_stock, 'notifications');
         $this->setSetting('notifications.payment_due', $this->notifications_payment_due, 'notifications');
@@ -512,9 +543,11 @@ class UnifiedSettings extends Component
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         session()->flash('success', __('Notification settings saved successfully'));
+
+        return $this->redirectToTab('notifications');
     }
 
-    public function restoreDefaults(string $group): void
+    public function restoreDefaults(string $group): mixed
     {
         // Load defaults from config
         $defaults = config("settings.{$group}", []);
@@ -531,6 +564,8 @@ class UnifiedSettings extends Component
         $this->loadSettings();
         
         session()->flash('success', __('Settings restored to defaults for :group', ['group' => $group]));
+
+        return $this->redirectToTab($this->activeTab);
     }
 
     public function render()

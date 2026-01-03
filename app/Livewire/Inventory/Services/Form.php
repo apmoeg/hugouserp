@@ -159,7 +159,7 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $userBranchId = $this->requireUserBranch();
 
@@ -210,7 +210,7 @@ class Form extends Component
             session()->flash('success', __('Service created successfully'));
         }
 
-        $this->redirectRoute('app.inventory.products.index', navigate: true);
+        return $this->redirectRoute('app.inventory.products.index', navigate: true);
     }
 
     /**

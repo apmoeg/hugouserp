@@ -81,7 +81,7 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->authorize('hrm.manage');
 
@@ -109,7 +109,7 @@ class Form extends Component
             session()->flash('success', __('Shift created successfully'));
         }
 
-        $this->redirectRoute('app.hrm.shifts.index', navigate: true);
+        return $this->redirectRoute('app.hrm.shifts.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

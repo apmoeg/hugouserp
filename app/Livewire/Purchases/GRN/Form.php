@@ -214,7 +214,7 @@ class Form extends Component
 
         session()->flash('success', __('GRN saved successfully.'));
 
-        return redirect()->route('app.purchases.grn.index');
+        return $this->redirectRoute('app.purchases.grn.index', navigate: true);
     }
 
     public function submit(): Redirector|RedirectResponse|null
@@ -227,7 +227,7 @@ class Form extends Component
 
         session()->flash('success', __('GRN submitted for inspection.'));
 
-        return redirect()->route('app.purchases.grn.index');
+        return $this->redirectRoute('app.purchases.grn.index', navigate: true);
     }
 
     public function render()

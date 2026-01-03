@@ -65,7 +65,7 @@ class PurchasesSettings extends Component
         );
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->validate([
             'purchase_invoice_prefix' => 'required|string|max:10',
@@ -88,8 +88,10 @@ class PurchasesSettings extends Component
 
         Cache::forget('purchases_settings');
         Cache::forget('system_settings_all');
-        
+
         session()->flash('success', __('Purchase settings saved successfully'));
+
+        return $this->redirectRoute('admin.settings.purchases', navigate: true);
     }
 
     public function render()

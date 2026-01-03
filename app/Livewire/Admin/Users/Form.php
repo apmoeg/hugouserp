@@ -111,14 +111,14 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $validated = $this->validate();
         $formData = $this->form;
         $userId = $this->userId;
         $selectedRoles = $this->selectedRoles;
 
-        $this->handleOperation(
+        return $this->handleOperation(
             operation: function () use ($formData, $userId, $selectedRoles) {
                 if ($userId) {
                     $user = User::query()->findOrFail($userId);

@@ -76,7 +76,7 @@ class Form extends Component
         $this->status = $this->workCenter->status;
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->validate();
 
@@ -102,13 +102,13 @@ class Form extends Component
 
         if ($this->editMode) {
             $this->workCenter->update($data);
-            session()->flash('message', __('Work Center updated successfully.'));
+            session()->flash('success', __('Work Center updated successfully.'));
         } else {
             WorkCenter::create($data);
-            session()->flash('message', __('Work Center created successfully.'));
+            session()->flash('success', __('Work Center created successfully.'));
         }
 
-        $this->redirect(route('app.manufacturing.work-centers.index'), navigate: true);
+        return $this->redirectRoute('app.manufacturing.work-centers.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

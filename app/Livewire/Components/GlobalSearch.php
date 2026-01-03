@@ -80,7 +80,7 @@ class GlobalSearch extends Component
 
     public function selectResult(string $url): void
     {
-        $this->redirect($url);
+            $this->redirect($url, navigate: true);
     }
 
     public function useRecentSearch(string $query): void

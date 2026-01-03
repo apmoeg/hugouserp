@@ -74,7 +74,7 @@ class Form extends Component
         return $rules;
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->authorize('warehouse.manage');
 
@@ -97,7 +97,7 @@ class Form extends Component
 
         Cache::forget('warehouses_stats_'.($user->branch_id ?? 'all'));
 
-        $this->redirectRoute('app.warehouse.locations.index', navigate: true);
+        return $this->redirectRoute('app.warehouse.locations.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

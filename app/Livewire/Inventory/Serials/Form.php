@@ -63,7 +63,7 @@ class Form extends Component
         }
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->validate();
 
@@ -88,7 +88,7 @@ class Form extends Component
             session()->flash('success', __('Serial number created successfully'));
         }
 
-        $this->redirect(route('app.inventory.serials.index'));
+        return $this->redirectRoute('app.inventory.serials.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

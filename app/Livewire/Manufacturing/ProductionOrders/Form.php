@@ -79,7 +79,7 @@ class Form extends Component
         $this->notes = $this->productionOrder->notes ?? '';
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->validate();
 
@@ -107,14 +107,14 @@ class Form extends Component
 
         if ($this->editMode) {
             $this->productionOrder->update($data);
-            session()->flash('message', __('Production Order updated successfully.'));
+            session()->flash('success', __('Production Order updated successfully.'));
         } else {
             $data['order_number'] = ProductionOrder::generateOrderNumber($branchId);
             ProductionOrder::create($data);
-            session()->flash('message', __('Production Order created successfully.'));
+            session()->flash('success', __('Production Order created successfully.'));
         }
 
-        $this->redirect(route('app.manufacturing.orders.index'), navigate: true);
+        return $this->redirectRoute('app.manufacturing.orders.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

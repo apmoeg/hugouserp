@@ -65,7 +65,7 @@ class WarehouseSettings extends Component
         );
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->validate([
             'stock_allocation_method' => 'required|in:FIFO,LIFO,FEFO',
@@ -86,8 +86,10 @@ class WarehouseSettings extends Component
 
         Cache::forget('warehouse_settings');
         Cache::forget('system_settings_all');
-        
+
         session()->flash('success', __('Warehouse settings saved successfully'));
+
+        return $this->redirectRoute('admin.settings.warehouse', navigate: true);
     }
 
     public function render()

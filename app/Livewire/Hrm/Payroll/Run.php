@@ -44,7 +44,7 @@ class Run extends Component
         ];
     }
 
-    public function runPayroll(): void
+    public function runPayroll(): mixed
     {
         $user = Auth::user();
 
@@ -104,7 +104,7 @@ class Run extends Component
 
         session()->flash('status', __('Payroll generated for :period', ['period' => $this->period]));
 
-        $this->redirectRoute('app.hrm.payroll.index', navigate: true);
+        return $this->redirectRoute('app.hrm.payroll.index', navigate: true);
     }
 
     #[Layout('layouts.app')]
