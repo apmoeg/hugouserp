@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\ExportLayout;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -299,11 +300,7 @@ class ExportService
                 $sheet->getColumnDimension($colLetter)->setAutoSize(true);
             }
 
-            $filepath = storage_path("app/exports/{$filename}.xlsx");
-
-            if (! is_dir(dirname($filepath))) {
-                mkdir(dirname($filepath), 0755, true);
-            }
+            $filepath = $this->getExportPath($filename, 'xlsx');
 
             $writer = new Xlsx($spreadsheet);
             $writer->save($filepath);
@@ -317,11 +314,7 @@ class ExportService
     protected function exportToCsv(array $rows, array $columns, array $availableColumns, bool $includeHeaders, string $filename): string
     {
         try {
-            $filepath = storage_path("app/exports/{$filename}.csv");
-
-            if (! is_dir(dirname($filepath))) {
-                mkdir(dirname($filepath), 0755, true);
-            }
+            $filepath = $this->getExportPath($filename, 'csv');
 
             $handle = fopen($filepath, 'w');
 
@@ -433,11 +426,7 @@ class ExportService
 
         $html .= '</tbody></table></body></html>';
 
-        $filepath = storage_path("app/exports/{$filename}.pdf");
-
-        if (! is_dir(dirname($filepath))) {
-            mkdir(dirname($filepath), 0755, true);
-        }
+        $filepath = $this->getExportPath($filename, 'pdf');
 
         if (class_exists(\Dompdf\Dompdf::class)) {
             $dompdf = new \Dompdf\Dompdf([
@@ -455,6 +444,20 @@ class ExportService
         }
 
         return $filepath;
+    }
+
+    /**
+     * Resolve the disk path for storing export files, ensuring the directory exists.
+     */
+    protected function getExportPath(string $filename, string $extension): string
+    {
+        $disk = Storage::disk(config('filesystems.default'));
+
+        if (! $disk->exists('exports')) {
+            $disk->makeDirectory('exports');
+        }
+
+        return $disk->path("exports/{$filename}.{$extension}");
     }
 
     public function downloadAndCleanup(string $filepath): \Symfony\Component\HttpFoundation\BinaryFileResponse
