@@ -1,17 +1,40 @@
-@props(['formats' => ['xlsx' => 'Excel', 'csv' => 'CSV', 'pdf' => 'PDF']])
+@props([
+    'formats' => ['xlsx' => 'Excel', 'csv' => 'CSV', 'pdf' => 'PDF'],
+])
 
-<div 
-    class="fixed inset-0 pointer-events-none flex items-center justify-center p-4"
-    style="z-index: 9000;"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="export-modal-title"
-    x-data="{}"
-    @keydown.escape.window="$wire.closeExportModal()"
->
-    {{-- Modal Content - Card Style matching Media Picker --}}
-    <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden pointer-events-auto border-2 border-emerald-500/30"
-        style="z-index: 9001;">
+{{-- Use x-teleport to render modal at body level, escaping any parent overflow/stacking context --}}
+<template x-teleport="body">
+    <div 
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="export-modal-title"
+        x-data="{ show: true }"
+        x-show="show"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @keydown.escape.window="$wire.closeExportModal()"
+    >
+        {{-- Backdrop --}}
+        <div 
+            class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+            wire:click="closeExportModal"
+            aria-hidden="true"
+        ></div>
+        {{-- Modal Content - Card Style matching Media Picker --}}
+        <div 
+            class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden border-2 border-emerald-500/30"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-95"
+            @click.stop>
         {{-- Header (Sticky) --}}
         <div class="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 z-10">
             <div>
@@ -99,6 +122,7 @@
             <div class="relative">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Select Columns') }}</label>
+                    @if(count($exportColumns ?? []) > 0)
                     <button 
                         type="button" 
                         wire:click="toggleAllExportColumns" 
@@ -107,7 +131,9 @@
                     >
                         {{ count($selectedExportColumns ?? []) === count($exportColumns ?? []) ? __('Deselect All') : __('Select All') }}
                     </button>
+                    @endif
                 </div>
+                @if(count($exportColumns ?? []) > 0)
                 <div class="relative max-h-60 overflow-y-auto border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-gray-50 dark:bg-gray-700 scroll-smooth" role="group" aria-label="{{ __('Available columns') }}">
                     <div class="grid grid-cols-2 gap-2">
                         @foreach($exportColumns ?? [] as $key => $label)
@@ -131,6 +157,15 @@
                         @endif
                     </span>
                 </p>
+                @else
+                <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center bg-gray-50 dark:bg-gray-700">
+                    <svg class="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    <p class="mt-2 text-sm font-medium text-gray-600 dark:text-gray-400">{{ __('No exportable columns configured') }}</p>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-500">{{ __('Please contact support if this issue persists') }}</p>
+                </div>
+                @endif
             </div>
 
             {{-- Background Job Option --}}
@@ -194,3 +229,4 @@
         </div>
     </div>
 </div>
+</template>

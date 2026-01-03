@@ -72,7 +72,6 @@ class Index extends Component
                 ->orWhere('email', 'like', "%{$this->search}%")
                 ->orWhere('phone', 'like', "%{$this->search}%"))
             ->orderBy($this->getSortField(), $this->getSortDirection())
-            ->select(['id', 'name', 'email', 'phone', 'address', 'balance', 'created_at'])
             ->get();
 
         return $this->performExport('suppliers', $data, __('Suppliers Export'));

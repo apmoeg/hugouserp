@@ -70,10 +70,16 @@ class ExportService
             'suppliers' => [
                 'id' => 'ID',
                 'name' => __('Name'),
+                'company_name' => __('Company'),
                 'email' => __('Email'),
                 'phone' => __('Phone'),
+                'contact_person' => __('Contact Person'),
                 'address' => __('Address'),
+                'city' => __('City'),
+                'country' => __('Country'),
                 'balance' => __('Balance'),
+                'is_active' => __('Status'),
+                'tax_number' => __('Tax Number'),
                 'created_at' => __('Created At'),
             ],
             'expenses' => [
