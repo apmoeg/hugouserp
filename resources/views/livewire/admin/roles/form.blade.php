@@ -23,11 +23,11 @@
             
             {{-- Quick select buttons --}}
             <div class="flex gap-2 mb-4">
-                <button type="button" wire:click="$set('selectedPermissions', {{ json_encode($permissions->flatten()->pluck('id')->map(fn($id) => (string)$id)->values()->toArray()) }})" 
+                <button type="button" wire:click="selectAllPermissions" 
                         class="text-xs px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300">
                     {{ __('Select All') }}
                 </button>
-                <button type="button" wire:click="$set('selectedPermissions', [])" 
+                <button type="button" wire:click="clearAllPermissions" 
                         class="text-xs px-3 py-1.5 bg-slate-100 text-slate-700 rounded hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300">
                     {{ __('Clear All') }}
                 </button>

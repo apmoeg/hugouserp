@@ -247,6 +247,7 @@ return [
     
     // Branches
     'branches.view' => 'عرض الفروع',
+    'branches.view-all' => 'عرض بيانات جميع الفروع',
     'branches.manage' => 'إدارة الفروع',
     'branches.create' => 'إنشاء فروع',
     'branches.edit' => 'تعديل الفروع',

@@ -110,14 +110,11 @@ class Form extends Component
             'status' => 'active',
         ];
 
-        $isEditing = $this->isEditing;
-        $asset = $this->asset;
-
         return $this->handleOperation(
-            operation: function () use ($data, $isEditing, $asset) {
-                if ($isEditing) {
+            operation: function () use ($data) {
+                if ($this->isEditing) {
                     $data['updated_by'] = auth()->id();
-                    $asset->update($data);
+                    $this->asset->update($data);
                 } else {
                     $data['created_by'] = auth()->id();
                     FixedAsset::create($data);

@@ -249,6 +249,7 @@ return [
     
     // Branches
     'branches.view' => 'View Branches',
+    'branches.view-all' => 'View All Branches Data',
     'branches.manage' => 'Manage Branches',
     'branches.create' => 'Create Branches',
     'branches.edit' => 'Edit Branches',

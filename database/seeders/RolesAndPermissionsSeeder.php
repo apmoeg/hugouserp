@@ -122,6 +122,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'pos.use',
             'users.manage',
             'branches.view',
+            'branches.view-all',  // View data from all branches
             'branches.manage',
             'branches.create',
             'branches.edit',

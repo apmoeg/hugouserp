@@ -49,30 +49,46 @@ class Form extends Component
         }
     }
 
+    /**
+     * Select all permissions
+     */
+    public function selectAllPermissions(): void
+    {
+        $this->selectedPermissions = Permission::where('guard_name', 'web')
+            ->pluck('id')
+            ->map(fn ($id) => (string) $id)
+            ->toArray();
+    }
+
+    /**
+     * Clear all permission selections
+     */
+    public function clearAllPermissions(): void
+    {
+        $this->selectedPermissions = [];
+    }
+
     public function save(): mixed
     {
         $validated = $this->validate();
-        $editMode = $this->editMode;
-        $role = $this->role;
-        $selectedPermissions = $this->selectedPermissions;
 
-        if ($editMode && $role->name === 'Super Admin') {
+        if ($this->editMode && $this->role->name === 'Super Admin') {
             session()->flash('error', __('Cannot modify Super Admin role'));
 
             return null;
         }
 
         return $this->handleOperation(
-            operation: function () use ($validated, $editMode, $role, $selectedPermissions) {
-                if ($editMode) {
-                    $role->update(['name' => $validated['name']]);
-                    $role->syncPermissions(Permission::whereIn('id', $selectedPermissions)->get());
+            operation: function () use ($validated) {
+                if ($this->editMode) {
+                    $this->role->update(['name' => $validated['name']]);
+                    $this->role->syncPermissions(Permission::whereIn('id', $this->selectedPermissions)->get());
                 } else {
                     $newRole = Role::create(['name' => $validated['name'], 'guard_name' => 'web']);
-                    $newRole->syncPermissions(Permission::whereIn('id', $selectedPermissions)->get());
+                    $newRole->syncPermissions(Permission::whereIn('id', $this->selectedPermissions)->get());
                 }
             },
-            successMessage: $editMode ? __('Role updated successfully') : __('Role created successfully'),
+            successMessage: $this->editMode ? __('Role updated successfully') : __('Role created successfully'),
             redirectRoute: 'admin.roles.index'
         );
     }

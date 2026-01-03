@@ -67,12 +67,11 @@ class Form extends Component
         $data = array_merge($validated, [
             'branch_id' => $user->branch_id ?? 1,
         ]);
-        $propertyId = $this->propertyId;
 
         return $this->handleOperation(
-            operation: function () use ($data, $propertyId, $user) {
-                if ($propertyId) {
-                    Property::findOrFail($propertyId)->update($data);
+            operation: function () use ($data, $user) {
+                if ($this->propertyId) {
+                    Property::findOrFail($this->propertyId)->update($data);
                 } else {
                     Property::create($data);
                 }
