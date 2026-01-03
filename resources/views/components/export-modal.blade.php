@@ -1,33 +1,43 @@
 @props([
     'formats' => ['xlsx' => 'Excel', 'csv' => 'CSV', 'pdf' => 'PDF'],
+    'exportColumns' => [],
+    'selectedExportColumns' => [],
+    'exportFormat' => 'xlsx',
+    'exportDateFormat' => 'Y-m-d',
+    'exportIncludeHeaders' => true,
+    'exportRespectFilters' => true,
+    'exportIncludeTotals' => false,
+    'exportMaxRows' => 1000,
+    'exportUseBackgroundJob' => false,
 ])
 
-{{-- Use x-teleport to render modal at body level, escaping any parent overflow/stacking context --}}
+{{-- Use x-teleport to render modal at body level, escaping any parent CSS context --}}
 <template x-teleport="body">
     <div 
-        class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="export-modal-title"
-        x-data="{ show: true }"
-        x-show="show"
+        x-data="{ open: true }"
+        x-show="open"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100"
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
+        class="fixed inset-0 z-[9000] flex items-center justify-center p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="export-modal-title"
         @keydown.escape.window="$wire.closeExportModal()"
     >
         {{-- Backdrop --}}
         <div 
-            class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+            class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm"
             wire:click="closeExportModal"
             aria-hidden="true"
         ></div>
-        {{-- Modal Content - Card Style matching Media Picker --}}
+        
+        {{-- Modal Content --}}
         <div 
-            class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden border-2 border-emerald-500/30"
+            class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
