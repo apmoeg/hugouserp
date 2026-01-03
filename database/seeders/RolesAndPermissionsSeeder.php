@@ -468,7 +468,6 @@ class RolesAndPermissionsSeeder extends Seeder
             'reports.view',
             'reports.export',
             'reports.aggregate',
-            'reports.view-reports',
             'reports.hub.view',
         ])->get());
     }
