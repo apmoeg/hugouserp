@@ -183,7 +183,6 @@
                         ['route' => 'app.inventory.barcodes', 'label' => __('Barcodes'), 'permission' => 'inventory.products.view'],
                         ['route' => 'app.inventory.batches.index', 'label' => __('Batches'), 'permission' => 'inventory.products.view'],
                         ['route' => 'app.inventory.serials.index', 'label' => __('Serial Numbers'), 'permission' => 'inventory.products.view'],
-                        ['route' => 'app.inventory.vehicle-models.index', 'label' => __('Vehicle Models'), 'permission' => 'spares.compatibility.manage'],
                     ],
                 ],
                 [
