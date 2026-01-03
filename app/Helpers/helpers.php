@@ -236,7 +236,7 @@ if (! function_exists('first_accessible_route_for_user')) {
     {
         $user = $user ?? Auth::user();
         
-        if (!$user) {
+        if ($user === null) {
             return 'login';
         }
 
