@@ -51,7 +51,7 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         if ($this->propertyId) {
             $this->authorize('rental.properties.update');
@@ -76,7 +76,7 @@ class Form extends Component
 
         Cache::forget('properties_stats_'.($user->branch_id ?? 'all'));
 
-        $this->redirectRoute('app.rental.properties.index', navigate: true);
+        return $this->redirectRoute('app.rental.properties.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

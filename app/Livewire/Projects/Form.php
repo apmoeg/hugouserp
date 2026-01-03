@@ -132,7 +132,7 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->start_date = $this->coerceDateInput($this->start_date);
         $this->end_date = $this->coerceDateInput($this->end_date);
@@ -155,7 +155,7 @@ class Form extends Component
             session()->flash('success', __('Project created successfully'));
         }
 
-        $this->redirect(route('app.projects.index'));
+        return $this->redirectRoute('app.projects.index', navigate: true);
     }
 
     protected function payloadWithNormalizedDates(): array

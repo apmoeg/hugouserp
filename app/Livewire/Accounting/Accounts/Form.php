@@ -77,13 +77,13 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->validate();
         $data = $this->form;
         $accountId = $this->accountId;
 
-        $this->handleOperation(
+        return $this->handleOperation(
             operation: function () use ($data, $accountId) {
                 $user = Auth::user();
 

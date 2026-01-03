@@ -106,7 +106,7 @@ class Form extends Component
         $this->customFields = array_values($this->customFields);
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $validated = $this->validate();
         $moduleData = collect($validated)->except('customFields')->toArray();
@@ -114,7 +114,7 @@ class Form extends Component
         $editMode = $this->editMode;
         $existingModule = $this->module;
 
-        $this->handleOperation(
+        return $this->handleOperation(
             operation: function () use ($moduleData, $customFields, $editMode, $existingModule) {
                 if ($editMode) {
                     $existingModule->update($moduleData);

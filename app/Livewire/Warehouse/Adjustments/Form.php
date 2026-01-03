@@ -159,7 +159,7 @@ class Form extends Component
 
         session()->flash('success', __('Adjustment saved successfully'));
 
-        return redirect()->route('app.warehouse.adjustments.index');
+        return $this->redirectRoute('app.warehouse.adjustments.index', navigate: true);
     }
 
     public function render()

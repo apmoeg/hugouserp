@@ -199,7 +199,7 @@ class Form extends Component
             session()->flash('success', __('Field created successfully'));
         }
 
-        $this->redirectRoute('admin.modules.product-fields', ['moduleId' => $this->moduleId], navigate: true);
+        return $this->redirectRoute('admin.modules.product-fields', ['moduleId' => $this->moduleId], navigate: true);
     }
 
     #[Layout('layouts.app')]

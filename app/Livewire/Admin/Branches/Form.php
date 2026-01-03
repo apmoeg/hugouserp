@@ -129,13 +129,13 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $validated = $this->validate();
         $data = $this->form;
         $branchId = $this->branchId;
 
-        $this->handleOperation(
+        return $this->handleOperation(
             operation: function () use ($data, $branchId) {
                 if ($branchId) {
                     $branch = Branch::findOrFail($branchId);

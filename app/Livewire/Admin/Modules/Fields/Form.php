@@ -165,7 +165,7 @@ class Form extends Component
             session()->flash('success', __('Field created successfully'));
         }
 
-        $this->redirectRoute('admin.modules.fields', ['module' => $this->module->id], navigate: true);
+        return $this->redirectRoute('admin.modules.fields', ['module' => $this->module->id], navigate: true);
     }
 
     #[Layout('layouts.app')]

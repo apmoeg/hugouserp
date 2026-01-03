@@ -76,7 +76,7 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $user = auth()->user();
         if (! $user || ! $user->can('reports.manage')) {
@@ -112,7 +112,7 @@ class Form extends Component
             session()->flash('success', __('Schedule created successfully'));
         }
 
-        $this->redirectRoute('admin.reports.scheduled', navigate: true);
+        return $this->redirectRoute('admin.reports.scheduled', navigate: true);
     }
 
     protected function calculateNextRun(): string

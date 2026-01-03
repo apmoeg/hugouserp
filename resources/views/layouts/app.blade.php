@@ -164,6 +164,12 @@
                     </div>
                 @endif
 
+                @if (session('success'))
+                    <div class="rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800 shadow-sm shadow-emerald-500/20">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
                 @if ($errors->any())
                     <div class="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800 shadow-sm">
                         <ul class="list-disc ms-4 space-y-1">
@@ -298,7 +304,7 @@
     })();
     
     // Handle export downloads - triggered from Livewire components
-    document.addEventListener('livewire:initialized', () => {
+    document.addEventListener('livewire:init', () => {
         Livewire.on('trigger-download', (params) => {
             console.log('Export download event received:', params);
             
@@ -341,7 +347,7 @@
     });
     
     // Handle theme changes from UserPreferences
-    document.addEventListener('livewire:initialized', () => {
+    document.addEventListener('livewire:init', () => {
         Livewire.on('theme-changed', (event) => {
             const theme = event.theme || event[0]?.theme || event[0];
             if (theme) {

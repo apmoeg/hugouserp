@@ -100,7 +100,7 @@ class Form extends Component
         }
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $validated = $this->validate($this->getRules());
         
@@ -128,7 +128,7 @@ class Form extends Component
 
         $validated = array_intersect_key($validated, array_flip(self::$customerColumns));
 
-        $this->handleOperation(
+        return $this->handleOperation(
             operation: function () use ($validated) {
                 if ($this->editMode) {
                     $this->customer->update($validated);

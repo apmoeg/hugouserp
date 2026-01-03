@@ -25,19 +25,19 @@ class ServiceProductForm extends Component
         'editService' => 'redirectToEdit',
     ];
 
-    public function redirectToCreate(?int $moduleId = null): void
+    public function redirectToCreate(?int $moduleId = null): mixed
     {
         $params = [];
         if ($moduleId) {
             $params['moduleId'] = $moduleId;
         }
 
-        $this->redirect(route('app.inventory.services.create', $params), navigate: true);
+        return $this->redirectRoute('app.inventory.services.create', $params, navigate: true);
     }
 
     public function redirectToEdit(int $productId): void
     {
-        $this->redirect(route('app.inventory.services.edit', ['service' => $productId]), navigate: true);
+        $this->redirectRoute('app.inventory.services.edit', ['service' => $productId], navigate: true);
     }
 
     public function render()

@@ -60,6 +60,8 @@ class Edit extends Component
         $user->update($validated);
 
         session()->flash('success', __('Profile updated successfully'));
+
+        return $this->redirectRoute('profile.edit', navigate: true);
     }
 
     public function updatePassword(): void
@@ -78,6 +80,8 @@ class Edit extends Component
         $this->reset(['current_password', 'password', 'password_confirmation']);
 
         session()->flash('success', __('Password updated successfully'));
+
+        return $this->redirectRoute('profile.edit', navigate: true);
     }
 
     #[On('file-uploaded')]
@@ -98,6 +102,8 @@ class Edit extends Component
             
             $this->currentAvatar = $path;
             session()->flash('success', __('Avatar updated successfully'));
+
+            return $this->redirectRoute('profile.edit', navigate: true);
         }
     }
 
@@ -131,6 +137,8 @@ class Edit extends Component
         $this->reset('avatar');
 
         session()->flash('success', __('Avatar updated successfully'));
+
+        return $this->redirectRoute('profile.edit', navigate: true);
     }
 
     public function removeAvatar(): void
@@ -148,6 +156,8 @@ class Edit extends Component
         $this->currentAvatar = null;
 
         session()->flash('success', __('Avatar removed successfully'));
+
+        return $this->redirectRoute('profile.edit', navigate: true);
     }
 
     public function render()

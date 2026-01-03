@@ -169,7 +169,12 @@ class AdvancedSettings extends Component
         $this->activeTab = $tab;
     }
 
-    public function saveGeneral(): void
+    protected function redirectToAdvanced(): mixed
+    {
+        return $this->redirectRoute('admin.settings', ['tab' => 'advanced'], navigate: true);
+    }
+
+    public function saveGeneral(): mixed
     {
         $this->authorize('settings.update');
 
@@ -181,9 +186,11 @@ class AdvancedSettings extends Component
 
         $this->dispatch('settings-saved');
         session()->flash('success', __('General settings saved successfully'));
+
+        return $this->redirectToAdvanced();
     }
 
-    public function saveSms(): void
+    public function saveSms(): mixed
     {
         $this->authorize('settings.update');
 
@@ -202,9 +209,11 @@ class AdvancedSettings extends Component
 
         $this->dispatch('settings-saved');
         session()->flash('success', __('SMS settings saved successfully'));
+
+        return $this->redirectToAdvanced();
     }
 
-    public function testSms(): void
+    public function testSms(): mixed
     {
         $result = $this->smsManager->testConnection($this->sms['provider']);
 
@@ -213,9 +222,11 @@ class AdvancedSettings extends Component
         } else {
             session()->flash('error', $result['error'] ?? __('SMS configuration test failed'));
         }
+
+        return $this->redirectToAdvanced();
     }
 
-    public function saveSecurity(): void
+    public function saveSecurity(): mixed
     {
         $this->authorize('settings.update');
 
@@ -223,14 +234,14 @@ class AdvancedSettings extends Component
             if (empty($this->security['recaptcha_site_key']) || empty($this->security['recaptcha_secret_key'])) {
                 session()->flash('error', __('reCAPTCHA requires both site key and secret key to be configured'));
 
-                return;
+                return $this->redirectToAdvanced();
             }
         }
 
         if ($this->security['2fa_required'] && ! $this->security['2fa_enabled']) {
             session()->flash('error', __('Two-factor authentication must be enabled before making it required'));
 
-            return;
+            return $this->redirectToAdvanced();
         }
 
         $this->settingsService->set('security.2fa_enabled', $this->security['2fa_enabled'], ['group' => 'security']);
@@ -244,9 +255,11 @@ class AdvancedSettings extends Component
 
         $this->dispatch('settings-saved');
         session()->flash('success', __('Security settings saved successfully'));
+
+        return $this->redirectToAdvanced();
     }
 
-    public function saveBackup(): void
+    public function saveBackup(): mixed
     {
         $this->authorize('settings.update');
 
@@ -258,9 +271,11 @@ class AdvancedSettings extends Component
 
         $this->dispatch('settings-saved');
         session()->flash('success', __('Backup settings saved successfully'));
+
+        return $this->redirectToAdvanced();
     }
 
-    public function saveNotifications(): void
+    public function saveNotifications(): mixed
     {
         $this->authorize('settings.update');
 
@@ -272,9 +287,11 @@ class AdvancedSettings extends Component
 
         $this->dispatch('settings-saved');
         session()->flash('success', __('Notification settings saved successfully'));
+
+        return $this->redirectToAdvanced();
     }
 
-    public function saveFirebase(): void
+    public function saveFirebase(): mixed
     {
         $this->authorize('settings.update');
 
@@ -282,7 +299,7 @@ class AdvancedSettings extends Component
             if (empty($this->firebase['api_key']) || empty($this->firebase['project_id'])) {
                 session()->flash('error', __('Firebase requires at least API Key and Project ID'));
 
-                return;
+                return $this->redirectToAdvanced();
             }
         }
 
@@ -297,6 +314,8 @@ class AdvancedSettings extends Component
 
         $this->dispatch('settings-saved');
         session()->flash('success', __('Firebase settings saved successfully'));
+
+        return $this->redirectToAdvanced();
     }
 
     public function getSmsProvidersProperty(): array

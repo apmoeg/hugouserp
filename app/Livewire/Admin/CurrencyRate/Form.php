@@ -62,7 +62,7 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $user = auth()->user();
         if (! $user || ! $user->can('settings.manage')) {
@@ -88,7 +88,7 @@ class Form extends Component
             ? __('Currency rate updated successfully')
             : __('Currency rate added successfully'));
 
-        $this->redirectRoute('admin.currency-rates.index', navigate: true);
+        return $this->redirectRoute('admin.currency-rates.index', navigate: true);
     }
 
     public function addReverseRate(): void

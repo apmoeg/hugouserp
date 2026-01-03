@@ -116,7 +116,7 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         if ($this->mappingId) {
             $this->authorizeAction('inventory.products.update');
@@ -180,7 +180,7 @@ class Form extends Component
             session()->flash('success', __('Mapping created successfully'));
         }
 
-        $this->redirectRoute('app.inventory.products.store-mappings', ['product' => $this->productId], navigate: true);
+        return $this->redirectRoute('app.inventory.products.store-mappings', ['product' => $this->productId], navigate: true);
     }
 
     #[Layout('layouts.app')]

@@ -81,7 +81,7 @@ class Form extends Component
         }
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->validate();
 
@@ -118,7 +118,7 @@ class Form extends Component
             session()->flash('success', __('Fixed asset created successfully'));
         }
 
-        $this->redirect(route('app.fixed-assets.index'));
+        return $this->redirectRoute('app.fixed-assets.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

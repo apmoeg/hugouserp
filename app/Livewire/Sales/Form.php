@@ -296,7 +296,7 @@ class Form extends Component
         return $this->subTotal + $this->taxTotal - $this->discount_total + $this->shipping_total;
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         // BUG-010 Fix: Prevent double submission
         if ($this->isSubmitting) {
@@ -317,7 +317,7 @@ class Form extends Component
                 ]);
             }
 
-            $this->handleOperation(
+            return $this->handleOperation(
                 operation: function () use ($user, $branchId) {
                     DB::transaction(function () use ($user, $branchId) {
                         // BUG-005 Fix: Ensure due_total is non-negative

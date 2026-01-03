@@ -58,7 +58,7 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $data = $this->validate();
 
@@ -78,7 +78,7 @@ class Form extends Component
             session()->flash('success', __('Category created successfully'));
         }
 
-        redirect()->route('app.income.categories.index');
+        return $this->redirectRoute('app.income.categories.index', navigate: true);
     }
 
     public function render()

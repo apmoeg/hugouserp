@@ -126,7 +126,7 @@ class CommandPalette extends Component
     public function selectResult(int $index): void
     {
         if (isset($this->results[$index])) {
-            $this->redirect($this->results[$index]['url']);
+            $this->redirect($this->results[$index]['url'], navigate: true);
         }
     }
 

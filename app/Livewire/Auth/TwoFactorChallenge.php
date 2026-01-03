@@ -26,13 +26,13 @@ class TwoFactorChallenge extends Component
     public function mount(): void
     {
         if (! Auth::check() || ! Auth::user()->hasTwoFactorEnabled()) {
-            $this->redirect(route('dashboard'));
+            $this->redirect(route('dashboard'), navigate: true);
 
             return;
         }
 
         if (session('2fa_verified')) {
-            $this->redirect(route('dashboard'));
+            $this->redirect(route('dashboard'), navigate: true);
         }
     }
 
@@ -45,7 +45,7 @@ class TwoFactorChallenge extends Component
 
             if ($this->twoFactorService->verifyRecoveryCode($user, $this->recoveryCode)) {
                 session(['2fa_verified' => true]);
-                $this->redirect(route('dashboard'));
+                $this->redirect(route('dashboard'), navigate: true);
 
                 return;
             }
@@ -61,7 +61,7 @@ class TwoFactorChallenge extends Component
 
         if ($secret && $this->twoFactorService->verify($secret, $this->code)) {
             session(['2fa_verified' => true]);
-            $this->redirect(route('dashboard'));
+            $this->redirect(route('dashboard'), navigate: true);
 
             return;
         }

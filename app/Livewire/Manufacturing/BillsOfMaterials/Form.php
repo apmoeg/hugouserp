@@ -74,7 +74,7 @@ class Form extends Component
         $this->is_multi_level = (bool) $this->bom->is_multi_level;
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->validate();
 
@@ -100,14 +100,14 @@ class Form extends Component
 
         if ($this->editMode) {
             $this->bom->update($data);
-            session()->flash('message', __('BOM updated successfully.'));
+            session()->flash('success', __('BOM updated successfully.'));
         } else {
             $data['bom_number'] = BillOfMaterial::generateBomNumber($branchId);
             BillOfMaterial::create($data);
-            session()->flash('message', __('BOM created successfully.'));
+            session()->flash('success', __('BOM created successfully.'));
         }
 
-        $this->redirect(route('app.manufacturing.boms.index'), navigate: true);
+        return $this->redirectRoute('app.manufacturing.boms.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

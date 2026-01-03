@@ -61,7 +61,7 @@ class Form extends Component
         ];
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->authorize('warehouse.manage');
         $this->validate();
@@ -93,7 +93,7 @@ class Form extends Component
             Cache::forget('warehouse_stats_'.($user?->branch_id ?? 'all'));
             Cache::forget('all_warehouses_'.($user?->branch_id ?? 'all'));
 
-            $this->redirectRoute('app.warehouse.index', navigate: true);
+            return $this->redirectRoute('app.warehouse.index', navigate: true);
         } catch (\Exception $e) {
             $this->addError('name', __('Failed to save warehouse. Please try again.'));
         }

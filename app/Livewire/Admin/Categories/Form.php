@@ -114,7 +114,7 @@ class Form extends Component
                 session()->flash('success', __('Category created successfully'));
             }
 
-            $this->redirectRoute('app.inventory.categories.index', navigate: true);
+            return $this->redirectRoute('app.inventory.categories.index', navigate: true);
         } catch (\Exception $e) {
             $this->addError('name', __('Failed to save category. Please try again.'));
         }

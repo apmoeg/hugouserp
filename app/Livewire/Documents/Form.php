@@ -120,7 +120,7 @@ class Form extends Component
             session()->flash('success', __('Document uploaded successfully'));
         }
 
-        return redirect()->route('app.documents.show', $this->document->id);
+        return $this->redirectRoute('app.documents.show', ['document' => $this->document->id], navigate: true);
     }
 
     public function render()

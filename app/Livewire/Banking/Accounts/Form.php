@@ -95,7 +95,7 @@ class Form extends Component
         }
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $this->validate();
 
@@ -139,7 +139,7 @@ class Form extends Component
             session()->flash('success', __('Bank account created successfully'));
         }
 
-        $this->redirect(route('app.banking.accounts.index'));
+        return $this->redirectRoute('app.banking.accounts.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

@@ -314,7 +314,7 @@ class Form extends Component
         }
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $user = Auth::user();
         if (! $user || ! $user->can('rental.contracts.manage')) {
@@ -385,7 +385,7 @@ class Form extends Component
                 : __('Rental contract created successfully.')
         );
 
-        $this->redirectRoute('app.rental.contracts.index', navigate: true);
+        return $this->redirectRoute('app.rental.contracts.index', navigate: true);
     }
 
     #[Layout('layouts.app')]

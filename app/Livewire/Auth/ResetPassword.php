@@ -70,7 +70,9 @@ class ResetPassword extends Component
             return;
         }
 
-        $this->resetSuccess = true;
+        session()->flash('success', __('Your password has been reset. Please log in.'));
+
+        return $this->redirectRoute('login', navigate: true);
     }
 
     public function render()

@@ -102,7 +102,7 @@ class Form extends Component
         }
     }
 
-    public function save(): void
+    public function save(): mixed
     {
         $validated = $this->validate();
         $user = auth()->user();
@@ -121,7 +121,7 @@ class Form extends Component
         $validated['reference_number'] = $validated['reference_number'] ?? 'EXP-'.now()->format('YmdHis').'-'.uniqid();
         $validated['created_by'] = auth()->id();
 
-        $this->handleOperation(
+        return $this->handleOperation(
             operation: function () use ($validated) {
                 if ($this->editMode) {
                     $this->expense->update($validated);

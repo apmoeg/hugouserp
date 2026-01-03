@@ -11,7 +11,7 @@ use Throwable;
 
 trait HandlesErrors
 {
-    protected function handleOperation(callable $operation, string $successMessage = '', ?string $redirectRoute = null): void
+    protected function handleOperation(callable $operation, string $successMessage = '', ?string $redirectRoute = null): mixed
     {
         try {
             $operation();
@@ -21,7 +21,7 @@ trait HandlesErrors
             }
 
             if ($redirectRoute) {
-                $this->redirectRoute($redirectRoute, navigate: true);
+                return $this->redirectRoute($redirectRoute, navigate: true);
             }
         } catch (ValidationException $e) {
             // Re-throw validation exceptions so Livewire can handle them properly
@@ -51,7 +51,7 @@ trait HandlesErrors
         }
     }
 
-    protected function handleDelete(callable $operation, string $successMessage = '', ?string $redirectRoute = null): void
+    protected function handleDelete(callable $operation, string $successMessage = '', ?string $redirectRoute = null): mixed
     {
         try {
             $operation();
@@ -61,7 +61,7 @@ trait HandlesErrors
             }
 
             if ($redirectRoute) {
-                $this->redirectRoute($redirectRoute, navigate: true);
+                return $this->redirectRoute($redirectRoute, navigate: true);
             }
         } catch (QueryException $e) {
             if (str_contains($e->getMessage(), 'foreign key')) {
