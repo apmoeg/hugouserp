@@ -96,7 +96,7 @@
             </div>
 
             {{-- Select Columns --}}
-            <div>
+            <div class="relative">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Select Columns') }}</label>
                     <button 
@@ -108,15 +108,29 @@
                         {{ count($selectedExportColumns ?? []) === count($exportColumns ?? []) ? __('Deselect All') : __('Select All') }}
                     </button>
                 </div>
-                <div class="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-3 bg-gray-50 dark:bg-gray-700" role="group" aria-label="{{ __('Available columns') }}">
-                    @foreach($exportColumns ?? [] as $key => $label)
-                        <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-white dark:hover:bg-gray-600 rounded-lg transition">
-                            <input type="checkbox" wire:model.live="selectedExportColumns" value="{{ $key }}" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
-                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ $label }}</span>
-                        </label>
-                    @endforeach
+                <div class="relative max-h-60 overflow-y-auto border-2 border-gray-300 dark:border-gray-600 rounded-lg p-3 bg-gray-50 dark:bg-gray-700 scroll-smooth" role="group" aria-label="{{ __('Available columns') }}">
+                    <div class="grid grid-cols-2 gap-2">
+                        @foreach($exportColumns ?? [] as $key => $label)
+                            <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-white dark:hover:bg-gray-600 rounded-lg transition">
+                                <input type="checkbox" wire:model.live="selectedExportColumns" value="{{ $key }}" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 flex-shrink-0">
+                                <span class="text-sm text-gray-700 dark:text-gray-300 break-words">{{ $label }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    {{-- Visual indicator for scrollable content --}}
+                    <div class="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-gray-50 dark:from-gray-700 to-transparent pointer-events-none rounded-b-lg"></div>
                 </div>
-                <p class="mt-1 text-xs text-gray-500" role="status" aria-live="polite">{{ count($selectedExportColumns ?? []) }} {{ __('of') }} {{ count($exportColumns ?? []) }} {{ __('columns selected') }}</p>
+                <p class="mt-1 text-xs text-gray-500" role="status" aria-live="polite">
+                    <span class="inline-flex items-center gap-1">
+                        <svg class="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        {{ count($selectedExportColumns ?? []) }} {{ __('of') }} {{ count($exportColumns ?? []) }} {{ __('columns selected') }}
+                        @if(count($exportColumns ?? []) > 10)
+                            · {{ __('Scroll to see all') }}
+                        @endif
+                    </span>
+                </p>
             </div>
 
             {{-- Background Job Option --}}
