@@ -99,13 +99,18 @@
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Select Columns') }}</label>
-                    <button type="button" wire:click="toggleAllExportColumns" class="text-xs text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">
+                    <button 
+                        type="button" 
+                        wire:click="toggleAllExportColumns" 
+                        class="text-xs text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300"
+                        aria-pressed="{{ count($selectedExportColumns ?? []) === count($exportColumns ?? []) ? 'true' : 'false' }}"
+                    >
                         {{ count($selectedExportColumns ?? []) === count($exportColumns ?? []) ? __('Deselect All') : __('Select All') }}
                     </button>
                 </div>
-                <div class="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-3 bg-gray-50 dark:bg-gray-700" role="list" aria-label="{{ __('Available columns') }}">
+                <div class="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-3 bg-gray-50 dark:bg-gray-700" role="group" aria-label="{{ __('Available columns') }}">
                     @foreach($exportColumns ?? [] as $key => $label)
-                        <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-white dark:hover:bg-gray-600 rounded-lg transition" role="listitem">
+                        <label class="flex items-center gap-2 cursor-pointer p-2 hover:bg-white dark:hover:bg-gray-600 rounded-lg transition">
                             <input type="checkbox" wire:model.live="selectedExportColumns" value="{{ $key }}" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
                             <span class="text-sm text-gray-700 dark:text-gray-300">{{ $label }}</span>
                         </label>
@@ -159,7 +164,7 @@
                     wire:click="export"
                     class="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     wire:loading.attr="disabled"
-                    {{ count($selectedExportColumns ?? []) > 0 ? '' : 'disabled' }}
+                    @if(count($selectedExportColumns ?? []) === 0) disabled @endif
                     aria-disabled="{{ count($selectedExportColumns ?? []) > 0 ? 'false' : 'true' }}"
                 >
                     <svg wire:loading wire:target="export" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24" aria-hidden="true">
