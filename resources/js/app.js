@@ -330,14 +330,17 @@ const KeyboardShortcuts = {
         // Default shortcuts
         this.register('ctrl+s', (e) => {
             e.preventDefault();
-            // Find and click the first save button
-            const saveBtn = document.querySelector('button[type="submit"], button[wire\\:click*="save"]');
+            // Find and click the first save button using data attributes or type
+            const saveBtn = document.querySelector('button[type="submit"]') || 
+                           document.querySelector('[data-action="save"]');
             if (saveBtn) saveBtn.click();
         });
         
         this.register('ctrl+f', (e) => {
-            // Focus search input
-            const searchInput = document.querySelector('input[wire\\:model*="search"], input[type="search"], input[placeholder*="Search"], input[placeholder*="بحث"]');
+            // Focus search input using data attributes or type
+            const searchInput = document.querySelector('[data-search-input]') || 
+                               document.querySelector('input[type="search"]') ||
+                               document.querySelector('[role="searchbox"]');
             if (searchInput) {
                 e.preventDefault();
                 searchInput.focus();
@@ -345,8 +348,9 @@ const KeyboardShortcuts = {
         });
         
         this.register('ctrl+n', (e) => {
-            // New item - find create/add button
-            const createBtn = document.querySelector('a[href*="create"], a[href*="/new"], button[wire\\:click*="create"]');
+            // New item - find create/add button using data attributes
+            const createBtn = document.querySelector('[data-action="create"]') || 
+                             document.querySelector('[data-create-button]');
             if (createBtn) {
                 e.preventDefault();
                 createBtn.click();
@@ -426,7 +430,18 @@ const KeyboardShortcuts = {
         return this.enabled;
     },
     
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    },
+    
     showHelp() {
+        // Create table using DOM methods to prevent XSS
+        const table = document.createElement('table');
+        table.className = 'w-full text-sm';
+        const tbody = document.createElement('tbody');
+        
         const shortcuts = [
             { key: 'Ctrl + S', action: 'Save / حفظ' },
             { key: 'Ctrl + F', action: 'Search / بحث' },
@@ -435,18 +450,31 @@ const KeyboardShortcuts = {
             { key: 'F1', action: 'Help / مساعدة' }
         ];
         
-        let html = '<table class="w-full text-sm"><tbody>';
         shortcuts.forEach(s => {
-            html += `<tr class="border-b border-gray-200 dark:border-gray-700">
-                <td class="py-2 px-3"><kbd class="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">${s.key}</kbd></td>
-                <td class="py-2 px-3 text-gray-600 dark:text-gray-400">${s.action}</td>
-            </tr>`;
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-gray-200 dark:border-gray-700';
+            
+            const tdKey = document.createElement('td');
+            tdKey.className = 'py-2 px-3';
+            const kbd = document.createElement('kbd');
+            kbd.className = 'px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono';
+            kbd.textContent = s.key;
+            tdKey.appendChild(kbd);
+            
+            const tdAction = document.createElement('td');
+            tdAction.className = 'py-2 px-3 text-gray-600 dark:text-gray-400';
+            tdAction.textContent = s.action;
+            
+            tr.appendChild(tdKey);
+            tr.appendChild(tdAction);
+            tbody.appendChild(tr);
         });
-        html += '</tbody></table>';
+        
+        table.appendChild(tbody);
         
         Swal.fire({
             title: 'Keyboard Shortcuts / اختصارات لوحة المفاتيح',
-            html: html,
+            html: table,
             icon: 'info',
             confirmButtonText: 'OK',
             width: '400px'
