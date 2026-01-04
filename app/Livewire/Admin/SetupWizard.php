@@ -237,7 +237,7 @@ class SetupWizard extends Component
         session()->flash('success', __('Setup completed successfully! Please login with your admin credentials.'));
     }
 
-    public function skipSetup(): void
+    public function skipSetup()
     {
         SystemSetting::updateOrCreate(
             ['key' => 'setup_wizard_complete'],
