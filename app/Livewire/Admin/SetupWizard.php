@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\Module;
 use App\Models\SystemSetting;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -176,62 +177,65 @@ class SetupWizard extends Component
         $this->validate();
         $this->step = 5;
 
-        // Create branch first
-        $branch = Branch::create([
-            'name' => $this->branchName,
-            'code' => $this->branchCode,
-            'phone' => $this->branchPhone,
-            'address' => $this->branchAddress,
-            'timezone' => $this->timezone,
-            'currency' => $this->currency,
-            'is_active' => true,
-            'is_main' => true,
-        ]);
+        // Use database transaction to prevent race conditions
+        DB::transaction(function () {
+            // Create branch first
+            $branch = Branch::create([
+                'name' => $this->branchName,
+                'code' => $this->branchCode,
+                'phone' => $this->branchPhone,
+                'address' => $this->branchAddress,
+                'timezone' => $this->timezone,
+                'currency' => $this->currency,
+                'is_active' => true,
+                'is_main' => true,
+            ]);
 
-        // Attach selected modules to branch
-        foreach ($this->selectedModules as $moduleId) {
-            $module = Module::find($moduleId);
-            if ($module) {
-                $branch->modules()->attach($moduleId, [
-                    'enabled' => true,
-                    'module_key' => $module->key,
-                ]);
+            // Attach selected modules to branch
+            foreach ($this->selectedModules as $moduleId) {
+                $module = Module::find($moduleId);
+                if ($module) {
+                    $branch->modules()->attach($moduleId, [
+                        'enabled' => true,
+                        'module_key' => $module->key,
+                    ]);
+                }
             }
-        }
 
-        // Create admin user
-        $user = User::create([
-            'name' => $this->adminName,
-            'email' => $this->adminEmail,
-            'password' => Hash::make($this->adminPassword),
-            'branch_id' => $branch->id,
-            'locale' => $this->locale,
-            'is_active' => true,
-        ]);
+            // Create admin user
+            $user = User::create([
+                'name' => $this->adminName,
+                'email' => $this->adminEmail,
+                'password' => Hash::make($this->adminPassword),
+                'branch_id' => $branch->id,
+                'locale' => $this->locale,
+                'is_active' => true,
+            ]);
 
-        // Assign super-admin role
-        $superAdminRole = Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
-        $user->assignRole($superAdminRole);
+            // Get or create super-admin role (using firstOrCreate is safe within transaction)
+            $superAdminRole = Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
+            $user->assignRole($superAdminRole);
 
-        // Save company settings
-        $settings = [
-            'company_name' => $this->companyName,
-            'company_name_ar' => $this->companyNameAr,
-            'company_email' => $this->companyEmail,
-            'company_phone' => $this->companyPhone,
-            'company_address' => $this->companyAddress,
-            'timezone' => $this->timezone,
-            'currency' => $this->currency,
-            'locale' => $this->locale,
-            'setup_wizard_complete' => 'true',
-        ];
+            // Save company settings
+            $settings = [
+                'company_name' => $this->companyName,
+                'company_name_ar' => $this->companyNameAr,
+                'company_email' => $this->companyEmail,
+                'company_phone' => $this->companyPhone,
+                'company_address' => $this->companyAddress,
+                'timezone' => $this->timezone,
+                'currency' => $this->currency,
+                'locale' => $this->locale,
+                'setup_wizard_complete' => 'true',
+            ];
 
-        foreach ($settings as $key => $value) {
-            SystemSetting::updateOrCreate(
-                ['key' => $key],
-                ['value' => $value]
-            );
-        }
+            foreach ($settings as $key => $value) {
+                SystemSetting::updateOrCreate(
+                    ['key' => $key],
+                    ['value' => $value]
+                );
+            }
+        });
 
         $this->setupComplete = true;
         session()->flash('success', __('Setup completed successfully! Please login with your admin credentials.'));

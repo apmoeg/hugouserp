@@ -14,9 +14,7 @@ class SmartNotificationsCheck extends Command
      *
      * @var string
      */
-    protected $signature = 'erp:notifications:check 
-                            {--branch= : Branch ID to check (optional, checks all if not provided)}
-                            {--type= : Notification type to check (low_stock, overdue, reminders, or all)}';
+    protected $signature = 'erp:notifications:check {--branch= : Branch ID to check (optional)} {--type= : Notification type (low_stock, overdue, reminders, all)}';
 
     /**
      * The console command description.
