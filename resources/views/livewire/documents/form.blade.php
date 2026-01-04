@@ -15,10 +15,65 @@
             @if(!$isEdit)
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-slate-700 mb-2">{{ __('File') }} <span class="text-red-500">*</span></label>
-                    <input type="file" wire:model="file" class="erp-input w-full" required>
-                    <p class="text-xs text-slate-500 mt-1">{{ __('Supported formats: PDF, DOC, XLS, PPT, CSV, TXT, ZIP') }}</p>
-                    <p class="text-xs text-slate-500">{{ __('Maximum file size: 50MB') }}</p>
-                    <p class="text-xs text-amber-600">{{ __('Note: For images, please use the Media Library') }}</p>
+                    
+                    {{-- Drag and Drop Zone --}}
+                    <div
+                        x-data="{ 
+                            isDragging: false,
+                            handleDrop(e) {
+                                this.isDragging = false;
+                                if (e.dataTransfer.files.length) {
+                                    const input = $refs.fileInput;
+                                    input.files = e.dataTransfer.files;
+                                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                                }
+                            }
+                        }"
+                        @dragover.prevent="isDragging = true"
+                        @dragleave.prevent="isDragging = false"
+                        @drop.prevent="handleDrop($event)"
+                        :class="{ 'border-blue-500 bg-blue-50': isDragging }"
+                        class="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center transition-colors cursor-pointer hover:border-slate-400"
+                        @click="$refs.fileInput.click()"
+                    >
+                        <input 
+                            type="file" 
+                            wire:model="file" 
+                            x-ref="fileInput"
+                            class="hidden" 
+                            required
+                        >
+                        <div class="space-y-2">
+                            <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <p class="text-slate-600">
+                                <span class="font-medium text-blue-600">{{ __('Click to upload') }}</span> {{ __('or drag and drop') }}
+                            </p>
+                            <p class="text-xs text-slate-500">{{ __('Supported formats: PDF, DOC, XLS, PPT, CSV, TXT, ZIP') }}</p>
+                            <p class="text-xs text-slate-500">{{ __('Maximum file size: 50MB') }}</p>
+                        </div>
+                    </div>
+                    
+                    {{-- File Preview --}}
+                    @if($file)
+                        <div class="mt-3 p-3 bg-slate-50 rounded-lg flex items-center gap-3">
+                            <svg class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-slate-700">{{ $file->getClientOriginalName() }}</p>
+                                <p class="text-xs text-slate-500">{{ number_format($file->getSize() / 1024, 1) }} KB</p>
+                            </div>
+                            <button type="button" wire:click="$set('file', null)" class="text-red-500 hover:text-red-700">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    @endif
+                    
+                    <p class="text-xs text-amber-600 mt-2">{{ __('Note: For images, please use the Media Library') }}</p>
                     @error('file') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                 </div>
             @endif

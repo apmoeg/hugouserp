@@ -63,7 +63,9 @@ class TicketForm extends Component
         if ($ticket && $ticket->exists) {
             $this->authorize('helpdesk.edit');
             if ($user && $user->branch_id && $ticket->branch_id !== $user->branch_id && ! $isSuperAdmin) {
-                abort(403);
+                session()->flash('error', __('You cannot edit tickets from other branches.'));
+                $this->redirectRoute('app.helpdesk.tickets.index', navigate: true);
+                return;
             }
             $this->isEdit = true;
             $this->ticket = $ticket;
@@ -122,11 +124,13 @@ class TicketForm extends Component
         $isSuperAdmin = $user?->hasAnyRole(['Super Admin', 'super-admin']);
 
         if (! $branchId && ! $isSuperAdmin) {
-            abort(403);
+            session()->flash('error', __('You must be assigned to a branch to manage tickets.'));
+            return $this->redirectRoute('app.helpdesk.tickets.index', navigate: true);
         }
 
         if ($this->ticket && $branchId && $this->ticket->branch_id !== $branchId && ! $isSuperAdmin) {
-            abort(403);
+            session()->flash('error', __('You cannot modify tickets from other branches.'));
+            return $this->redirectRoute('app.helpdesk.tickets.index', navigate: true);
         }
 
         $data['branch_id'] = $branchId;

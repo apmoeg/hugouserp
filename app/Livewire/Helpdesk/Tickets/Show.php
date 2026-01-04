@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace App\Livewire\Helpdesk\Tickets;
 
+use App\Livewire\Concerns\AuthorizesWithFriendlyErrors;
 use App\Models\Ticket;
 use App\Models\TicketReply;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Show extends Component
 {
+    use AuthorizesWithFriendlyErrors;
+
     public Ticket $ticket;
     public string $replyMessage = '';
     public bool $isInternal = false;
+    public bool $hasAccess = true;
 
     protected function rules(): array
     {
@@ -30,10 +33,15 @@ class Show extends Component
         $user = Auth::user();
 
         if (! $user || ! $user->can('helpdesk.view')) {
-            abort(403);
+            $this->hasAccess = false;
+            session()->flash('error', __('You do not have permission to view this ticket.'));
+            return;
         }
 
-        $this->assertSameBranchOrManage($user, $ticket);
+        if (! $this->checkBranchAccess($user, $ticket)) {
+            $this->hasAccess = false;
+            return;
+        }
 
         $this->ticket = $ticket->load([
             'customer',
@@ -53,7 +61,9 @@ class Show extends Component
 
         $user = Auth::user();
 
-        $this->authorizeReply($user);
+        if (! $this->authorizeReply($user)) {
+            return;
+        }
 
         $this->ticket->addReply($this->replyMessage, $user->id, $this->isInternal);
 
@@ -70,7 +80,8 @@ class Show extends Component
         $user = Auth::user();
 
         if (! $user->can('helpdesk.manage')) {
-            abort(403);
+            session()->flash('error', __('You do not have permission to assign tickets.'));
+            return;
         }
 
         $this->ticket->assign($user->id);
@@ -82,7 +93,8 @@ class Show extends Component
     public function resolve(): void
     {
         if (! Auth::user()->can('helpdesk.manage')) {
-            abort(403);
+            session()->flash('error', __('You do not have permission to resolve tickets.'));
+            return;
         }
 
         $this->ticket->resolve();
@@ -94,7 +106,8 @@ class Show extends Component
     public function close(): void
     {
         if (! Auth::user()->can('helpdesk.manage')) {
-            abort(403);
+            session()->flash('error', __('You do not have permission to close tickets.'));
+            return;
         }
 
         if (! $this->ticket->canBeClosed()) {
@@ -111,7 +124,8 @@ class Show extends Component
     public function reopen(): void
     {
         if (! Auth::user()->can('helpdesk.manage')) {
-            abort(403);
+            session()->flash('error', __('You do not have permission to reopen tickets.'));
+            return;
         }
 
         if (! $this->ticket->canBeReopened()) {
@@ -128,38 +142,50 @@ class Show extends Component
     #[Layout('layouts.app')]
     public function render()
     {
-        return view('livewire.helpdesk.tickets.show');
+        return view('livewire.helpdesk.tickets.show', [
+            'hasAccess' => $this->hasAccess,
+        ]);
     }
 
-    protected function authorizeReply($user): void
+    protected function authorizeReply($user): bool
     {
         if (! $user) {
-            abort(403);
+            session()->flash('error', __('You must be logged in to reply.'));
+            return false;
         }
 
-        $this->assertSameBranchOrManage($user, $this->ticket);
+        if (! $this->checkBranchAccess($user, $this->ticket)) {
+            return false;
+        }
 
         $isAssignedAgent = (int) $this->ticket->assigned_to === (int) $user->id;
 
         if (! $user->can('helpdesk.manage') && ! $isAssignedAgent) {
-            abort(403);
+            session()->flash('error', __('You do not have permission to reply to this ticket.'));
+            return false;
         }
 
         $canAddInternal = $user->can('helpdesk.manage') || $isAssignedAgent;
 
         if ($this->isInternal && ! $canAddInternal) {
-            abort(403);
+            session()->flash('error', __('You do not have permission to add internal notes.'));
+            return false;
         }
+
+        return true;
     }
 
-    protected function assertSameBranchOrManage($user, Ticket $ticket): void
+    protected function checkBranchAccess($user, Ticket $ticket): bool
     {
         if ($user->can('helpdesk.manage')) {
-            return;
+            return true;
         }
 
         if ((int) $ticket->branch_id !== (int) $user->branch_id) {
-            throw new HttpException(403, 'Forbidden');
+            session()->flash('error', __('You cannot access tickets from other branches.'));
+            return false;
         }
+
+        return true;
     }
 }

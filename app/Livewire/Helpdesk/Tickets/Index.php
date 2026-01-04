@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Helpdesk\Tickets;
 
+use App\Livewire\Concerns\AuthorizesWithFriendlyErrors;
 use App\Models\Ticket;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -12,19 +13,23 @@ use Livewire\WithPagination;
 
 class Index extends Component
 {
+    use AuthorizesWithFriendlyErrors;
     use WithPagination;
 
     public string $search = '';
     public ?string $status = null;
     public ?int $priorityId = null;
     public ?int $branchId = null;
+    public bool $hasAccess = true;
 
     public function mount(): void
     {
         $user = Auth::user();
 
         if (! $user || ! $user->can('helpdesk.view')) {
-            abort(403);
+            $this->hasAccess = false;
+            session()->flash('error', __('You do not have permission to view helpdesk tickets.'));
+            return;
         }
 
         $this->branchId = $user->branch_id;
@@ -50,8 +55,12 @@ class Index extends Component
     {
         $user = Auth::user();
 
-        if (! $user || ! $user->can('helpdesk.view')) {
-            abort(403);
+        if (! $this->hasAccess || ! $user || ! $user->can('helpdesk.view')) {
+            return view('livewire.helpdesk.tickets.index', [
+                'tickets' => collect(),
+                'stats' => ['new' => 0, 'open' => 0, 'pending' => 0, 'overdue' => 0],
+                'hasAccess' => false,
+            ]);
         }
 
         $query = Ticket::query()
@@ -82,6 +91,7 @@ class Index extends Component
         return view('livewire.helpdesk.tickets.index', [
             'tickets' => $tickets,
             'stats' => $stats,
+            'hasAccess' => true,
         ]);
     }
 }
