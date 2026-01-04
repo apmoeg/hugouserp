@@ -19,6 +19,122 @@ class NotificationService implements NotificationServiceInterface
     use HandlesServiceErrors;
 
     /**
+     * Predefined notification templates
+     */
+    protected array $templates = [
+        'sale_created' => [
+            'title' => 'فاتورة جديدة',
+            'message' => 'تم إنشاء فاتورة بيع رقم :invoice_number بقيمة :total',
+            'type' => 'success',
+        ],
+        'low_stock' => [
+            'title' => 'تنبيه: نقص المخزون',
+            'message' => 'المنتج :product_name وصل للحد الأدنى (:quantity متبقي)',
+            'type' => 'warning',
+        ],
+        'payment_received' => [
+            'title' => 'تم استلام دفعة',
+            'message' => 'تم استلام دفعة بقيمة :amount من العميل :customer_name',
+            'type' => 'success',
+        ],
+        'task_assigned' => [
+            'title' => 'مهمة جديدة',
+            'message' => 'تم تعيينك لمهمة: :task_title',
+            'type' => 'info',
+        ],
+        'report_ready' => [
+            'title' => 'التقرير جاهز',
+            'message' => 'التقرير :report_name جاهز للتحميل',
+            'type' => 'info',
+        ],
+        'approval_needed' => [
+            'title' => 'مطلوب موافقة',
+            'message' => ':item_type يحتاج موافقتك: :item_name',
+            'type' => 'warning',
+        ],
+        'system_alert' => [
+            'title' => 'تنبيه النظام',
+            'message' => ':alert_message',
+            'type' => 'error',
+        ],
+    ];
+
+    /**
+     * Send notification using a template
+     */
+    public function sendFromTemplate(int $userId, string $templateKey, array $replacements = [], array $extraData = []): void
+    {
+        $this->handleServiceOperation(
+            callback: function () use ($userId, $templateKey, $replacements, $extraData) {
+                $template = $this->templates[$templateKey] ?? null;
+                
+                if (!$template) {
+                    throw new \InvalidArgumentException("Notification template '{$templateKey}' not found");
+                }
+
+                $title = $this->replacePlaceholders($template['title'], $replacements);
+                $message = $this->replacePlaceholders($template['message'], $replacements);
+                
+                $data = array_merge($extraData, [
+                    'type' => $template['type'],
+                    'template' => $templateKey,
+                ]);
+
+                $this->inApp($userId, $title, $message, $data);
+            },
+            operation: 'sendFromTemplate',
+            context: ['user_id' => $userId, 'template' => $templateKey]
+        );
+    }
+
+    /**
+     * Send template notification to many users
+     */
+    public function sendTemplateToMany(array $userIds, string $templateKey, array $replacements = [], array $extraData = []): void
+    {
+        $this->handleServiceOperation(
+            callback: function () use ($userIds, $templateKey, $replacements, $extraData) {
+                $template = $this->templates[$templateKey] ?? null;
+                
+                if (!$template) {
+                    throw new \InvalidArgumentException("Notification template '{$templateKey}' not found");
+                }
+
+                $title = $this->replacePlaceholders($template['title'], $replacements);
+                $message = $this->replacePlaceholders($template['message'], $replacements);
+                
+                $data = array_merge($extraData, [
+                    'type' => $template['type'],
+                    'template' => $templateKey,
+                ]);
+
+                $this->inAppToMany($userIds, $title, $message, $data);
+            },
+            operation: 'sendTemplateToMany',
+            context: ['user_ids' => $userIds, 'template' => $templateKey]
+        );
+    }
+
+    /**
+     * Replace placeholders in template strings
+     */
+    protected function replacePlaceholders(string $text, array $replacements): string
+    {
+        foreach ($replacements as $key => $value) {
+            $text = str_replace(":{$key}", (string) $value, $text);
+        }
+        return $text;
+    }
+
+    /**
+     * Get available notification templates
+     */
+    public function getAvailableTemplates(): array
+    {
+        return array_keys($this->templates);
+    }
+
+    /**
      * Send an in-app notification to a user
      * Also broadcasts a real-time notification if broadcasting is enabled
      */

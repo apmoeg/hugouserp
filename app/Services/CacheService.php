@@ -355,4 +355,70 @@ class CacheService
 
         return in_array($driver, ['redis', 'memcached', 'array']);
     }
+
+    /**
+     * Warm up cache for frequently accessed data
+     * Run this on application boot or via scheduler
+     */
+    public function warmCache(): void
+    {
+        $this->handleServiceOperation(
+            callback: function () {
+                // Warm settings cache
+                $this->getSettings();
+                
+                // Warm all branches
+                $this->getAllBranches();
+                
+                // Warm modules
+                $this->getModules();
+                
+                // Warm roles with permissions
+                $this->getRolesWithPermissions();
+                
+                Log::info('Cache warmed successfully');
+            },
+            operation: 'warmCache',
+            context: []
+        );
+    }
+
+    /**
+     * Warm branch-specific cache
+     */
+    public function warmBranchCache(int $branchId): void
+    {
+        $this->handleServiceOperation(
+            callback: function () use ($branchId) {
+                $this->getSettings($branchId);
+                $this->getModules($branchId);
+                $this->getProductsForBranch($branchId);
+                
+                Log::info('Branch cache warmed', ['branch_id' => $branchId]);
+            },
+            operation: 'warmBranchCache',
+            context: ['branch_id' => $branchId]
+        );
+    }
+
+    /**
+     * Get cache statistics for monitoring
+     */
+    public function getStats(): array
+    {
+        return $this->handleServiceOperation(
+            callback: function () {
+                $driver = config('cache.default');
+                
+                return [
+                    'driver' => $driver,
+                    'supports_tags' => $this->supportsTags(),
+                    'prefix' => config('cache.prefix'),
+                ];
+            },
+            operation: 'getStats',
+            context: [],
+            defaultValue: []
+        );
+    }
 }
