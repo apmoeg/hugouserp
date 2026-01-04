@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Livewire 4 Compatibility**: Migrated all components from deprecated `$listeners` property to `#[On]` attributes
+- **Service Worker**: Added offline support with `/sw.js` and `/offline.html` for PWA-like experience
+- **Real-time Notifications**: Created `RealTimeNotification` broadcast event for WebSocket notifications
+- **NotificationService Enhancements**: Added `inAppToMany()`, `broadcast()`, `getUnreadCount()`, and `getRecent()` methods
 - **Security**: SecurityHeaders middleware for XSS, clickjacking, and MIME sniffing protection
 - **Security**: HTTP security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy)
 - **Security**: HSTS (HTTP Strict Transport Security) header in production environments
@@ -23,6 +27,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated bootstrap/app.php to include SecurityHeaders middleware in web middleware stack
+- Updated 10 Livewire components to use Livewire 4 `#[On]` attribute syntax:
+  - `DynamicForm.php` - resetForm event
+  - `ServiceProductForm.php` - openServiceForm, editService events
+  - `ProductCompatibility.php` - refreshComponent event
+  - `MediaPicker.php` - openMediaPicker event
+  - `NotesAttachments.php` - refreshNotesAttachments event
+  - `GlobalSearch.php` - resetSearch event
+  - `HoldList.php` - holdUpdated event
+  - `ReceiptPreview.php` - showReceipt event
+  - `Items.php` - notificationsUpdated event
+  - `ScheduledReports.php` - refreshComponent event
+- Enhanced `app.js` with Service Worker registration and offline/online status handling
 
 ### Security
 - ✅ All passwords properly hashed with bcrypt (cost factor 12)

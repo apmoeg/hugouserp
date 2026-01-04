@@ -241,3 +241,83 @@ window.addEventListener('swal:confirm', event => {
         }
     });
 });
+
+// Service Worker Registration for Offline Support
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+                console.log('[ERP] Service Worker registered:', registration.scope);
+                
+                // Listen for updates
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    if (newWorker) {
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // New content available, prompt user to refresh
+                                if (window.Swal) {
+                                    Swal.fire({
+                                        title: 'Update Available',
+                                        text: 'A new version of HugousERP is available. Would you like to refresh?',
+                                        icon: 'info',
+                                        showCancelButton: true,
+                                        confirmButtonText: 'Refresh',
+                                        cancelButtonText: 'Later',
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                            window.location.reload();
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+            })
+            .catch((error) => {
+                console.warn('[ERP] Service Worker registration failed:', error);
+            });
+        
+        // Handle messages from service worker
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            const { type, timestamp } = event.data || {};
+            
+            if (type === 'SYNC_OFFLINE_SALES') {
+                // Trigger offline sales sync
+                if (window.Livewire) {
+                    window.Livewire.dispatch('sync-offline-sales');
+                }
+            }
+            
+            if (type === 'SYNC_OFFLINE_DATA') {
+                // Trigger general offline data sync
+                if (window.Livewire) {
+                    window.Livewire.dispatch('sync-offline-data');
+                }
+            }
+        });
+    });
+}
+
+// Offline/Online status indicators
+window.addEventListener('online', () => {
+    document.body.classList.remove('is-offline');
+    if (window.erpShowNotification) {
+        window.erpShowNotification('Connection restored', 'success');
+    }
+    // Trigger sync
+    if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+        navigator.serviceWorker.ready.then((registration) => {
+            registration.sync.register('sync-offline-data').catch(() => {});
+        });
+    }
+});
+
+window.addEventListener('offline', () => {
+    document.body.classList.add('is-offline');
+    if (window.erpShowNotification) {
+        window.erpShowNotification('You are offline. Some features may be limited.', 'warning');
+    }
+});

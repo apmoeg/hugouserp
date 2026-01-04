@@ -8,6 +8,7 @@ use App\Models\Module;
 use App\Models\Product;
 use App\Models\Tax;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 /**
@@ -20,11 +21,7 @@ class ServiceProductForm extends Component
 
     public ?int $moduleId = null;
 
-    protected $listeners = [
-        'openServiceForm' => 'redirectToCreate',
-        'editService' => 'redirectToEdit',
-    ];
-
+    #[On('openServiceForm')]
     public function redirectToCreate(?int $moduleId = null): mixed
     {
         $params = [];
@@ -35,6 +32,7 @@ class ServiceProductForm extends Component
         $this->redirectRoute('app.inventory.services.create', $params, navigate: true);
     }
 
+    #[On('editService')]
     public function redirectToEdit(int $productId): void
     {
         $this->redirectRoute('app.inventory.services.edit', ['service' => $productId], navigate: true);

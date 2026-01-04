@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Events\NotificationRead;
 use App\Events\NotificationsMarkedAsRead;
+use App\Events\RealTimeNotification;
 use App\Events\UpdateNotificationCounters;
 use App\Models\User;
 use App\Notifications\InAppMessage;
@@ -17,6 +18,10 @@ class NotificationService implements NotificationServiceInterface
 {
     use HandlesServiceErrors;
 
+    /**
+     * Send an in-app notification to a user
+     * Also broadcasts a real-time notification if broadcasting is enabled
+     */
     public function inApp(int $userId, string $title, string $message, array $data = []): void
     {
         $this->handleServiceOperation(
@@ -24,10 +29,58 @@ class NotificationService implements NotificationServiceInterface
                 $user = User::find($userId);
                 if ($user) {
                     $user->notify(new InAppMessage($title, $message, $data));
+                    
+                    // Broadcast real-time notification
+                    event(new RealTimeNotification(
+                        userId: $userId,
+                        title: $title,
+                        message: $message,
+                        type: $data['type'] ?? 'info',
+                        link: $data['link'] ?? null,
+                        data: $data
+                    ));
                 }
                 event(new UpdateNotificationCounters($userId));
             },
             operation: 'inApp',
+            context: ['user_id' => $userId, 'title' => $title]
+        );
+    }
+
+    /**
+     * Send an in-app notification to multiple users
+     */
+    public function inAppToMany(array $userIds, string $title, string $message, array $data = []): void
+    {
+        $this->handleServiceOperation(
+            callback: function () use ($userIds, $title, $message, $data) {
+                foreach ($userIds as $userId) {
+                    $this->inApp($userId, $title, $message, $data);
+                }
+            },
+            operation: 'inAppToMany',
+            context: ['user_ids' => $userIds, 'title' => $title]
+        );
+    }
+
+    /**
+     * Broadcast a real-time notification without storing it
+     * Useful for transient notifications like typing indicators
+     */
+    public function broadcast(int $userId, string $title, string $message, string $type = 'info', array $data = []): void
+    {
+        $this->handleServiceOperation(
+            callback: function () use ($userId, $title, $message, $type, $data) {
+                event(new RealTimeNotification(
+                    userId: $userId,
+                    title: $title,
+                    message: $message,
+                    type: $type,
+                    link: $data['link'] ?? null,
+                    data: $data
+                ));
+            },
+            operation: 'broadcast',
             context: ['user_id' => $userId, 'title' => $title]
         );
     }
@@ -82,6 +135,56 @@ class NotificationService implements NotificationServiceInterface
             operation: 'markManyRead',
             context: ['user_id' => $userId, 'ids_count' => count($ids)],
             defaultValue: 0
+        );
+    }
+
+    /**
+     * Get unread notification count for a user
+     */
+    public function getUnreadCount(int $userId): int
+    {
+        return $this->handleServiceOperation(
+            callback: function () use ($userId) {
+                return DB::table('notifications')
+                    ->where('notifiable_id', $userId)
+                    ->whereNull('read_at')
+                    ->count();
+            },
+            operation: 'getUnreadCount',
+            context: ['user_id' => $userId],
+            defaultValue: 0
+        );
+    }
+
+    /**
+     * Get recent notifications for a user
+     */
+    public function getRecent(int $userId, int $limit = 10): array
+    {
+        return $this->handleServiceOperation(
+            callback: function () use ($userId, $limit) {
+                return DB::table('notifications')
+                    ->where('notifiable_id', $userId)
+                    ->orderByDesc('created_at')
+                    ->limit($limit)
+                    ->get()
+                    ->map(function ($notification) {
+                        $data = json_decode($notification->data, true) ?? [];
+                        return [
+                            'id' => $notification->id,
+                            'type' => $data['type'] ?? 'info',
+                            'title' => $data['title'] ?? '',
+                            'message' => $data['message'] ?? '',
+                            'link' => $data['link'] ?? null,
+                            'read_at' => $notification->read_at,
+                            'created_at' => $notification->created_at,
+                        ];
+                    })
+                    ->toArray();
+            },
+            operation: 'getRecent',
+            context: ['user_id' => $userId, 'limit' => $limit],
+            defaultValue: []
         );
     }
 }

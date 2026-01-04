@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductCompatibility as ProductCompatibilityModel;
 use App\Models\VehicleModel;
 use App\Services\SparePartsService;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -54,11 +55,15 @@ class ProductCompatibility extends Component
 
     protected SparePartsService $sparePartsService;
 
-    protected $listeners = ['refreshComponent' => '$refresh'];
-
     public function boot(SparePartsService $sparePartsService): void
     {
         $this->sparePartsService = $sparePartsService;
+    }
+
+    #[On('refreshComponent')]
+    public function refreshComponent(): void
+    {
+        // Livewire 4 compatible refresh handler
     }
 
     public function mount($product = null): void
