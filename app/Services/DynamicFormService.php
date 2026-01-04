@@ -4,21 +4,22 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\ModuleField;
+use App\Services\Contracts\ModuleFieldServiceInterface;
 use App\Traits\HandlesServiceErrors;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * DynamicFormService - Manages dynamic form fields for entities
+ * DynamicFormService - Extended form field utilities
  * 
- * PURPOSE: Allows branch managers to customize form fields without code changes
- * FEATURES:
- *   - Define custom fields per entity/module
- *   - Field types: text, number, date, select, checkbox, file, etc.
- *   - Field validation rules
- *   - Field visibility and ordering
- *   - Branch-specific field configurations
+ * NOTE: This service EXTENDS the existing ModuleFieldService functionality.
+ * Use ModuleFieldService for core field operations (formSchema, exportColumns).
+ * Use this service for:
+ *   - Field type configurations and UI components
+ *   - Validation rule building
+ *   - Cached field retrieval for performance
+ *   - Branch manager helper methods
+ * 
+ * This is a COMPLEMENTARY service, not a replacement.
  */
 class DynamicFormService
 {
@@ -26,8 +27,13 @@ class DynamicFormService
 
     protected const CACHE_TTL = 3600; // 1 hour
 
+    public function __construct(
+        protected ModuleFieldServiceInterface $moduleFieldService
+    ) {}
+
     /**
-     * Available field types with their configurations
+     * Available field types with their UI configurations
+     * This adds UI component info to the existing field system
      */
     public const FIELD_TYPES = [
         'text' => [
@@ -122,246 +128,96 @@ class DynamicFormService
     ];
 
     /**
-     * Get form fields for an entity
+     * Get form schema with caching (delegates to ModuleFieldService)
      */
-    public function getFieldsForEntity(string $entity, ?string $moduleKey = null, ?int $branchId = null): Collection
+    public function getFormSchema(string $moduleKey, string $entity, ?int $branchId = null): array
     {
         return $this->handleServiceOperation(
-            callback: function () use ($entity, $moduleKey, $branchId) {
-                $cacheKey = "dynamic_fields:{$entity}:{$moduleKey}:{$branchId}";
+            callback: function () use ($moduleKey, $entity, $branchId) {
+                $cacheKey = "form_schema:{$moduleKey}:{$entity}:{$branchId}";
                 
-                return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($entity, $moduleKey, $branchId) {
-                    $query = ModuleField::query()
-                        ->where('entity', $entity)
-                        ->where('is_visible', true)
-                        ->orderBy('sort_order');
-
-                    if ($moduleKey) {
-                        $query->whereHas('module', fn($q) => $q->where('key', $moduleKey));
-                    }
-
-                    if ($branchId) {
-                        $query->where(function ($q) use ($branchId) {
-                            $q->where('branch_id', $branchId)
-                              ->orWhereNull('branch_id');
-                        });
-                    } else {
-                        $query->whereNull('branch_id');
-                    }
-
-                    return $query->get();
+                return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($moduleKey, $entity, $branchId) {
+                    return $this->moduleFieldService->formSchema($moduleKey, $entity, $branchId);
                 });
             },
-            operation: 'getFieldsForEntity',
-            context: ['entity' => $entity, 'module' => $moduleKey, 'branch_id' => $branchId],
-            defaultValue: collect()
+            operation: 'getFormSchema',
+            context: ['module' => $moduleKey, 'entity' => $entity, 'branch_id' => $branchId],
+            defaultValue: []
         );
     }
 
     /**
-     * Build validation rules for entity fields
+     * Get form schema with UI component info added
      */
-    public function getValidationRules(string $entity, ?string $moduleKey = null, ?int $branchId = null): array
+    public function getFormSchemaWithComponents(string $moduleKey, string $entity, ?int $branchId = null): array
     {
-        $fields = $this->getFieldsForEntity($entity, $moduleKey, $branchId);
+        $schema = $this->getFormSchema($moduleKey, $entity, $branchId);
+        
+        return array_map(function ($field) {
+            $typeConfig = self::FIELD_TYPES[$field['type']] ?? self::FIELD_TYPES['text'];
+            return array_merge($field, [
+                'component' => $typeConfig['component'],
+                'input_type' => $typeConfig['input_type'] ?? null,
+                'attributes' => $typeConfig['attributes'] ?? [],
+            ]);
+        }, $schema);
+    }
+
+    /**
+     * Build validation rules from form schema
+     */
+    public function getValidationRules(string $moduleKey, string $entity, ?int $branchId = null): array
+    {
+        $schema = $this->getFormSchema($moduleKey, $entity, $branchId);
         $rules = [];
 
-        foreach ($fields as $field) {
-            $fieldRules = [];
+        foreach ($schema as $field) {
+            $fieldRules = $field['rules'] ?? [];
 
-            if ($field->is_required) {
-                $fieldRules[] = 'required';
+            // Add required rule if specified
+            if (!empty($field['required'])) {
+                array_unshift($fieldRules, 'required');
             } else {
-                $fieldRules[] = 'nullable';
+                array_unshift($fieldRules, 'nullable');
             }
 
             // Add type-specific rules
-            switch ($field->field_type) {
-                case 'email':
-                    $fieldRules[] = 'email';
-                    break;
-                case 'url':
-                    $fieldRules[] = 'url';
-                    break;
-                case 'number':
-                case 'money':
-                    $fieldRules[] = 'numeric';
-                    break;
-                case 'percentage':
-                    $fieldRules[] = 'numeric';
-                    $fieldRules[] = 'min:0';
-                    $fieldRules[] = 'max:100';
-                    break;
-                case 'date':
-                case 'datetime':
-                    $fieldRules[] = 'date';
-                    break;
-                case 'checkbox':
-                    $fieldRules[] = 'boolean';
-                    break;
-                case 'select':
-                case 'radio':
-                    if ($field->options) {
-                        $options = array_keys($field->options);
-                        $fieldRules[] = 'in:' . implode(',', $options);
-                    }
-                    break;
-                case 'file':
-                case 'image':
-                    $fieldRules[] = 'file';
-                    if ($field->field_type === 'image') {
-                        $fieldRules[] = 'image';
-                    }
-                    break;
-            }
+            $typeRules = $this->getTypeValidationRules($field['type'] ?? 'text');
+            $fieldRules = array_merge($fieldRules, $typeRules);
 
-            // Add custom validation if defined
-            if ($field->validation_rules) {
-                if (is_array($field->validation_rules)) {
-                    $fieldRules = array_merge($fieldRules, $field->validation_rules);
-                } else {
-                    $fieldRules[] = $field->validation_rules;
-                }
-            }
-
-            $rules["extra.{$field->key}"] = $fieldRules;
+            $rules["extra.{$field['name']}"] = $fieldRules;
         }
 
         return $rules;
     }
 
     /**
-     * Get field configuration for form rendering
+     * Get type-specific validation rules
      */
-    public function getFieldConfig(ModuleField $field): array
+    protected function getTypeValidationRules(string $type): array
     {
-        $typeConfig = self::FIELD_TYPES[$field->field_type] ?? self::FIELD_TYPES['text'];
-        
-        return [
-            'key' => $field->key,
-            'name' => "extra.{$field->key}",
-            'label' => $field->label,
-            'type' => $field->field_type,
-            'component' => $typeConfig['component'],
-            'input_type' => $typeConfig['input_type'] ?? null,
-            'placeholder' => $field->placeholder,
-            'help_text' => $field->help_text,
-            'required' => $field->is_required,
-            'disabled' => !$field->is_editable,
-            'options' => $field->options,
-            'default_value' => $field->default_value,
-            'attributes' => array_merge(
-                $typeConfig['attributes'] ?? [],
-                $field->attributes ?? []
-            ),
-        ];
+        return match($type) {
+            'email' => ['email'],
+            'url' => ['url'],
+            'number', 'money' => ['numeric'],
+            'percentage' => ['numeric', 'min:0', 'max:100'],
+            'date', 'datetime' => ['date'],
+            'checkbox' => ['boolean'],
+            'file', 'image' => ['file'],
+            default => [],
+        };
     }
 
     /**
-     * Create a new dynamic field
+     * Clear form schema cache
      */
-    public function createField(array $data): ModuleField
+    public function clearCache(string $moduleKey, string $entity): void
     {
-        return $this->handleServiceOperation(
-            callback: function () use ($data) {
-                $field = ModuleField::create([
-                    'module_id' => $data['module_id'] ?? null,
-                    'branch_id' => $data['branch_id'] ?? null,
-                    'entity' => $data['entity'],
-                    'key' => $data['key'],
-                    'label' => $data['label'],
-                    'field_type' => $data['field_type'] ?? 'text',
-                    'placeholder' => $data['placeholder'] ?? null,
-                    'help_text' => $data['help_text'] ?? null,
-                    'default_value' => $data['default_value'] ?? null,
-                    'options' => $data['options'] ?? null,
-                    'validation_rules' => $data['validation_rules'] ?? null,
-                    'is_required' => $data['is_required'] ?? false,
-                    'is_visible' => $data['is_visible'] ?? true,
-                    'is_editable' => $data['is_editable'] ?? true,
-                    'sort_order' => $data['sort_order'] ?? 0,
-                ]);
-
-                $this->clearCache($data['entity']);
-                
-                return $field;
-            },
-            operation: 'createField',
-            context: $data
-        );
+        Cache::forget("form_schema:{$moduleKey}:{$entity}:*");
     }
 
     /**
-     * Update a dynamic field
-     */
-    public function updateField(ModuleField $field, array $data): ModuleField
-    {
-        return $this->handleServiceOperation(
-            callback: function () use ($field, $data) {
-                $field->update($data);
-                $this->clearCache($field->entity);
-                return $field->fresh();
-            },
-            operation: 'updateField',
-            context: ['field_id' => $field->id, ...$data]
-        );
-    }
-
-    /**
-     * Delete a dynamic field
-     */
-    public function deleteField(ModuleField $field): bool
-    {
-        return $this->handleServiceOperation(
-            callback: function () use ($field) {
-                $entity = $field->entity;
-                $result = $field->delete();
-                $this->clearCache($entity);
-                return $result;
-            },
-            operation: 'deleteField',
-            context: ['field_id' => $field->id],
-            defaultValue: false
-        );
-    }
-
-    /**
-     * Reorder fields
-     */
-    public function reorderFields(array $fieldIds): void
-    {
-        $this->handleServiceOperation(
-            callback: function () use ($fieldIds) {
-                $entity = null;
-                
-                foreach ($fieldIds as $order => $id) {
-                    $field = ModuleField::find($id);
-                    if ($field) {
-                        $field->update(['sort_order' => $order]);
-                        $entity = $entity ?? $field->entity;
-                    }
-                }
-
-                if ($entity) {
-                    $this->clearCache($entity);
-                }
-            },
-            operation: 'reorderFields',
-            context: ['field_ids' => $fieldIds]
-        );
-    }
-
-    /**
-     * Clear field cache
-     */
-    protected function clearCache(string $entity): void
-    {
-        // Clear all cache keys related to this entity
-        Cache::forget("dynamic_fields:{$entity}:*");
-    }
-
-    /**
-     * Get available field types
+     * Get available field types for UI
      */
     public function getAvailableFieldTypes(): array
     {
@@ -369,5 +225,13 @@ class DynamicFormService
             'value' => $key,
             'label' => $config['label'],
         ])->values()->toArray();
+    }
+
+    /**
+     * Get field type configuration
+     */
+    public function getFieldTypeConfig(string $type): array
+    {
+        return self::FIELD_TYPES[$type] ?? self::FIELD_TYPES['text'];
     }
 }
