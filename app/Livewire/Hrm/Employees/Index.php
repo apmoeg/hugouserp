@@ -73,6 +73,17 @@ class Index extends Component
         $this->resetPage();
     }
 
+    /**
+     * Clear all filters and reset to default state
+     */
+    public function clearFilters(): void
+    {
+        $this->search = '';
+        $this->status = null;
+        $this->department = '';
+        $this->resetPage();
+    }
+
     #[Layout('layouts.app')]
     public function render()
     {
@@ -125,11 +136,10 @@ class Index extends Component
         $inactiveEmployees = $totalEmployees - $activeEmployees;
         $totalSalary = (clone $baseQuery)->where('is_active', true)->sum('salary');
         
-        // Get departments/positions for filter
+        // Get departments/positions for filter - combine null and empty check
         $departments = HREmployee::query()
             ->when($this->branchId, fn ($q) => $q->where('branch_id', $this->branchId))
-            ->whereNotNull('position')
-            ->where('position', '!=', '')
+            ->whereRaw("COALESCE(position, '') != ''")
             ->distinct()
             ->pluck('position')
             ->sort()

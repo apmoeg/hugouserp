@@ -37,6 +37,16 @@ class Index extends Component
         $this->resetPage();
     }
 
+    /**
+     * Clear search and filters
+     */
+    public function clearSearch(): void
+    {
+        $this->search = '';
+        $this->statusFilter = '';
+        $this->resetPage();
+    }
+
     public function mount(): void
     {
         $user = Auth::user();

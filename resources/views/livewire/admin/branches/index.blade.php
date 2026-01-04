@@ -236,8 +236,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                                     </svg>
                                     <p class="text-sm text-slate-500 dark:text-slate-400">{{ __('No branches found.') }}</p>
-                                    @if($search)
-                                        <button wire:click="$set('search', '')" class="text-emerald-600 hover:text-emerald-700 text-sm">
+                                    @if($search || $statusFilter)
+                                        <button wire:click="clearSearch" class="text-emerald-600 hover:text-emerald-700 text-sm">
                                             {{ __('Clear search') }}
                                         </button>
                                     @else
