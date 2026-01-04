@@ -186,7 +186,8 @@ class ImportService
                 
                 if ($field->is_required) {
                     $required[] = $fieldKey;
-                    $validationRule = 'required|' . ltrim($validationRule, 'nullable|');
+                    // Remove 'nullable|' prefix correctly using str_replace
+                    $validationRule = 'required|' . str_replace('nullable|', '', $validationRule);
                 }
                 
                 $validation[$fieldKey] = $validationRule;
@@ -440,8 +441,11 @@ class ImportService
                 $existing->fill($this->sanitizeProductData($data, $branchId, $moduleId));
                 $existing->save();
                 
-                // Update module field values
-                if ($moduleId && !empty($moduleFieldValues)) {
+                // Refresh to get updated module_id for setFieldValue
+                $existing->refresh();
+                
+                // Update module field values (only if product has matching module_id)
+                if ($moduleId && !empty($moduleFieldValues) && $existing->module_id === $moduleId) {
                     foreach ($moduleFieldValues as $fieldKey => $value) {
                         $existing->setFieldValue($fieldKey, $value);
                     }
@@ -452,8 +456,9 @@ class ImportService
 
         $product = Product::create($this->sanitizeProductData($data, $branchId, $moduleId));
         
-        // Save module field values for new product
-        if ($moduleId && !empty($moduleFieldValues)) {
+        // Save module field values for new product (refresh to ensure module_id is set)
+        $product->refresh();
+        if ($moduleId && !empty($moduleFieldValues) && $product->module_id === $moduleId) {
             foreach ($moduleFieldValues as $fieldKey => $value) {
                 $product->setFieldValue($fieldKey, $value);
             }
