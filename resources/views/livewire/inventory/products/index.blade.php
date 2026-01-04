@@ -61,6 +61,20 @@
                         </svg>
                     </div>
                 </div>
+                <div class="relative">
+                    <select wire:model.live="moduleId" class="erp-input text-xs">
+                        <option value="">{{ __('All modules') }}</option>
+                        @foreach($dataModules as $module)
+                            <option value="{{ $module->id }}">{{ $module->icon }} {{ app()->getLocale() === 'ar' ? $module->name_ar : $module->name }}</option>
+                        @endforeach
+                    </select>
+                    <div wire:loading.delay wire:target="moduleId" class="absolute right-6 top-1/2 -translate-y-1/2">
+                        <svg class="animate-spin h-3 w-3 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                </div>
                 <button type="button" wire:click="openExportModal"
                    class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,6 +96,7 @@
                 <tr>
                     <th class="px-3 py-2 text-start text-xs font-semibold text-slate-500">#</th>
                     <th class="px-3 py-2 text-start text-xs font-semibold text-slate-500">{{ __('Name') }}</th>
+                    <th class="px-3 py-2 text-start text-xs font-semibold text-slate-500">{{ __('Module') }}</th>
                     <th class="px-3 py-2 text-start text-xs font-semibold text-slate-500">{{ __('SKU') }}</th>
                     <th class="px-3 py-2 text-start text-xs font-semibold text-slate-500">{{ __('Barcode') }}</th>
                     <th class="px-3 py-2 text-start text-xs font-semibold text-slate-500">{{ __('Price') }}</th>
@@ -99,6 +114,16 @@
                         </td>
                         <td class="px-3 py-2 text-xs text-slate-800">
                             {{ $product->name }}
+                        </td>
+                        <td class="px-3 py-2 text-xs text-slate-700">
+                            @if($product->module)
+                                <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[0.7rem] font-medium text-slate-700">
+                                    {{ $product->module->icon ?? '📦' }}
+                                    {{ app()->getLocale() === 'ar' ? ($product->module->name_ar ?? $product->module->name) : $product->module->name }}
+                                </span>
+                            @else
+                                <span class="text-slate-400">-</span>
+                            @endif
                         </td>
                         <td class="px-3 py-2 text-xs text-slate-700">
                             {{ $product->sku }}
@@ -152,7 +177,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="px-3 py-4 text-center text-xs text-slate-500">
+                        <td colspan="10" class="px-3 py-4 text-center text-xs text-slate-500">
                             {{ __('No products found.') }}
                         </td>
                     </tr>

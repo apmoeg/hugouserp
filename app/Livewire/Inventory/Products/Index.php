@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire\Inventory\Products;
 
+use App\Models\Module;
 use App\Models\Product;
 use App\Traits\HasExport;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -21,6 +23,9 @@ class Index extends Component
     public ?string $status = null;
 
     public ?string $type = null;
+
+    #[Url]
+    public ?int $moduleId = null;
 
     #[Layout('layouts.app')]
     public function mount(): void
@@ -38,6 +43,13 @@ class Index extends Component
         $user = auth()->user();
         $branchId = $user?->branch_id;
 
+        // Get data modules for filter dropdown
+        $dataModules = Module::query()
+            ->where('supports_items', true)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
         $query = Product::query()
             ->with(['category', 'unit', 'module', 'branch'])
             ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
@@ -52,12 +64,14 @@ class Index extends Component
             })
             ->when($this->status !== null && $this->status !== '', fn ($q) => $q->where('status', $this->status))
             ->when($this->type !== null && $this->type !== '', fn ($q) => $q->where('type', $this->type))
+            ->when($this->moduleId !== null, fn ($q) => $q->where('module_id', $this->moduleId))
             ->orderByDesc('id');
 
         $products = $query->paginate(20);
 
         return view('livewire.inventory.products.index', [
             'products' => $products,
+            'dataModules' => $dataModules,
         ]);
     }
 
@@ -72,6 +86,11 @@ class Index extends Component
     }
 
     public function updatingType(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingModuleId(): void
     {
         $this->resetPage();
     }
