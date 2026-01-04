@@ -24,6 +24,7 @@ use App\Livewire\Auth\TwoFactorChallenge;
 use App\Livewire\Auth\TwoFactorSetup;
 use App\Livewire\Customers\Form as CustomerFormPage;
 use App\Livewire\Customers\Index as CustomersIndexPage;
+use App\Livewire\Dashboard\CustomizableDashboard;
 use App\Livewire\Dashboard\Index as DashboardPage;
 use App\Livewire\Expenses\Form as ExpenseFormPage;
 use App\Livewire\Expenses\Index as ExpensesIndexPage;
@@ -249,9 +250,14 @@ Route::get('/2fa/setup', TwoFactorSetup::class)
 
 Route::middleware('auth')->group(function () {
 
-    // Dashboard
-    Route::get('/dashboard', DashboardPage::class)
+    // Dashboard - Customizable
+    Route::get('/dashboard', CustomizableDashboard::class)
         ->name('dashboard')
+        ->middleware('can:'.config('screen_permissions.dashboard', 'dashboard.view'));
+    
+    // Dashboard - Classic (fallback)
+    Route::get('/dashboard/classic', DashboardPage::class)
+        ->name('dashboard.classic')
         ->middleware('can:'.config('screen_permissions.dashboard', 'dashboard.view'));
 
     // Profile
