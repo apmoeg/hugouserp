@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class BankAccount extends Model
+/**
+ * BankAccount - Bank account management
+ *
+ * Extends BaseModel for:
+ * - Automatic branch scoping
+ * - Common query scopes (active, forBranch, etc.)
+ * - Dynamic fields support
+ * - Audit logging
+ */
+class BankAccount extends BaseModel
 {
-    use SoftDeletes;
-
     protected $fillable = [
         'branch_id',
         'account_number',
