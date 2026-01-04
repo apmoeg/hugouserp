@@ -65,8 +65,10 @@ class SendBatchNotificationJob implements ShouldQueue
      */
     protected function processChunk(array $userIds): void
     {
-        // Load all users at once
-        $users = User::whereIn('id', $userIds)->get();
+        // Load only required fields for memory efficiency
+        $users = User::whereIn('id', $userIds)
+            ->select(['id', 'email', 'name'])
+            ->get();
         
         foreach ($users as $user) {
             $this->sendToUser($user);

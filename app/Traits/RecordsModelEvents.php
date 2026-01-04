@@ -60,6 +60,10 @@ trait RecordsModelEvents
 
     /**
      * Record an event to the audit log
+     * 
+     * Note: Both subject_type/subject_id and auditable_type/auditable_id are populated
+     * for compatibility with different audit log query patterns. The AuditLog model
+     * normalizes these fields during save.
      */
     public function recordEvent(string $action, array $oldValues, array $newValues, ?string $description = null): void
     {
@@ -74,8 +78,7 @@ trait RecordsModelEvents
                 'action' => $this->getActionDescription($action),
                 'subject_type' => static::class,
                 'subject_id' => $this->getKey(),
-                'auditable_type' => static::class,
-                'auditable_id' => $this->getKey(),
+                // auditable_type/auditable_id are auto-synced by AuditLog model
                 'ip' => $request?->ip(),
                 'user_agent' => (string) $request?->userAgent(),
                 'old_values' => $oldValues,
@@ -109,14 +112,12 @@ trait RecordsModelEvents
      */
     protected function getBranchIdForAudit(): ?int
     {
-        if (property_exists($this, 'branch_id') && $this->branch_id) {
+        // First check if model has branch_id attribute
+        if (isset($this->branch_id) && $this->branch_id) {
             return (int) $this->branch_id;
         }
         
-        if (method_exists($this, 'branch')) {
-            return $this->branch_id ?? null;
-        }
-        
+        // Fall back to authenticated user's branch
         return auth()->user()?->branch_id;
     }
 
