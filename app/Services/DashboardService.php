@@ -25,13 +25,10 @@ use App\Services\Dashboard\DashboardWidgetService;
  */
 class DashboardService
 {
-    protected DashboardWidgetService $widgetService;
-    protected DashboardDataService $dataService;
-
-    public function __construct()
-    {
-        $this->widgetService = new DashboardWidgetService();
-        $this->dataService = new DashboardDataService();
+    public function __construct(
+        protected DashboardWidgetService $widgetService,
+        protected DashboardDataService $dataService
+    ) {
     }
 
     /**
