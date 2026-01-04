@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace App\Livewire\Notifications;
 
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Items extends Component
 {
     public array $notifications = [];
 
-    protected $listeners = ['notificationsUpdated' => '$refresh'];
-
     public function mount(): void
     {
         $this->loadNotifications();
     }
 
+    #[On('notificationsUpdated')]
     public function loadNotifications(): void
     {
         $user = auth()->user();

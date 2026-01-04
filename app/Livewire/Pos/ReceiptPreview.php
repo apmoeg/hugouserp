@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Pos;
 
 use App\Models\Sale;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class ReceiptPreview extends Component
@@ -13,8 +14,7 @@ class ReceiptPreview extends Component
 
     public ?array $receiptData = null;
 
-    protected $listeners = ['showReceipt' => 'loadReceipt'];
-
+    #[On('showReceipt')]
     public function loadReceipt(int $saleId): void
     {
         $this->saleId = $saleId;

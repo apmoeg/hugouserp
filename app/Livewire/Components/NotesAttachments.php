@@ -10,6 +10,7 @@ use App\Services\AttachmentAuthorizationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -41,8 +42,6 @@ class NotesAttachments extends Component
 
     public string $editingNoteContent = '';
 
-    protected $listeners = ['refreshNotesAttachments' => 'loadData'];
-
     protected AttachmentAuthorizationService $authorizer;
 
     public function boot(AttachmentAuthorizationService $authorizer): void
@@ -58,6 +57,7 @@ class NotesAttachments extends Component
         $this->loadData();
     }
 
+    #[On('refreshNotesAttachments')]
     public function loadData(): void
     {
         $this->ensureAuthorized();

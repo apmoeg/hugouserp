@@ -103,8 +103,6 @@ class MediaPicker extends Component
     // For direct mode - list of existing files in the storage path
     public array $existingFiles = [];
 
-    protected $listeners = ['openMediaPicker'];
-    
     /**
      * Get image extensions from config or fallback to defaults
      */
@@ -312,6 +310,7 @@ class MediaPicker extends Component
         }
     }
 
+    #[On('openMediaPicker')]
     public function openModal(): void
     {
         $user = auth()->user();

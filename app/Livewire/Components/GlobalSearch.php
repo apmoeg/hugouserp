@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Components;
 
 use App\Services\GlobalSearchService;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class GlobalSearch extends Component
@@ -22,8 +23,6 @@ class GlobalSearch extends Component
     public bool $showResults = false;
 
     public int $totalResults = 0;
-
-    protected $listeners = ['resetSearch' => 'reset'];
 
     public function mount(): void
     {
@@ -99,6 +98,13 @@ class GlobalSearch extends Component
         } catch (\Exception $e) {
             $this->dispatch('error', message: __('Failed to clear history'));
         }
+    }
+
+    #[On('resetSearch')]
+    public function resetSearch(): void
+    {
+        $this->query = '';
+        $this->resetResults();
     }
 
     public function resetResults(): void

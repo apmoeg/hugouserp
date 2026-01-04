@@ -1,0 +1,343 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Livewire\Concerns;
+
+use App\Models\Branch;
+use App\Models\Product;
+use App\Models\Sale;
+use App\Models\User;
+use App\Services\StockService;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Shared Dashboard Data Loading Logic
+ * 
+ * This trait consolidates the dashboard data loading methods
+ * used by both Index.php and CustomizableDashboard.php
+ * to eliminate code duplication and ensure consistency.
+ */
+trait LoadsDashboardData
+{
+    protected int $cacheTtl = 300;
+    protected ?int $branchId = null;
+    protected bool $isAdmin = false;
+
+    /**
+     * Initialize dashboard context
+     */
+    protected function initializeDashboardContext(): void
+    {
+        $user = auth()->user();
+        if (!$user) {
+            abort(403);
+        }
+
+        $this->branchId = session('admin_branch_context', $user->branch_id);
+        $this->isAdmin = $user->hasRole('super-admin') || $user->hasRole('admin');
+        $this->cacheTtl = (int) (\App\Models\SystemSetting::where('key', 'advanced.cache_ttl')->value('value') ?? 300);
+    }
+
+    /**
+     * Get cache key prefix for current context
+     */
+    protected function getCachePrefix(): string
+    {
+        return "dashboard:branch_{$this->branchId}:admin_{$this->isAdmin}";
+    }
+
+    /**
+     * Scope query to current branch context
+     */
+    protected function scopeQueryToBranch($query)
+    {
+        if (!$this->isAdmin && $this->branchId) {
+            return $query->where('branch_id', $this->branchId);
+        }
+        return $query;
+    }
+
+    /**
+     * Refresh all dashboard data (clear cache and reload)
+     */
+    protected function refreshDashboardData(): void
+    {
+        $prefix = $this->getCachePrefix();
+        Cache::forget("{$prefix}:stats");
+        Cache::forget("{$prefix}:chart_data");
+        Cache::forget("{$prefix}:low_stock");
+        Cache::forget("{$prefix}:recent_sales");
+        Cache::forget("{$prefix}:trends");
+
+        $this->loadDashboardStats();
+        $this->loadChartData();
+        $this->loadLowStockProducts();
+        $this->loadRecentSales();
+        $this->loadTrendIndicators();
+    }
+
+    /**
+     * Load all dashboard data
+     */
+    protected function loadAllDashboardData(): void
+    {
+        $this->loadDashboardStats();
+        $this->loadChartData();
+        $this->loadLowStockProducts();
+        $this->loadRecentSales();
+        $this->loadTrendIndicators();
+    }
+
+    /**
+     * Load main statistics
+     */
+    protected function loadDashboardStats(): void
+    {
+        $cacheKey = "{$this->getCachePrefix()}:stats";
+
+        $this->stats = Cache::remember($cacheKey, $this->cacheTtl, function () {
+            $today = now()->startOfDay();
+            $startOfMonth = now()->startOfMonth();
+
+            $salesQuery = $this->scopeQueryToBranch(Sale::query());
+            $productsQuery = $this->scopeQueryToBranch(Product::query());
+
+            return [
+                'today_sales' => number_format(
+                    (clone $salesQuery)->whereDate('created_at', $today)->sum('grand_total') ?? 0, 
+                    2
+                ),
+                'month_sales' => number_format(
+                    (clone $salesQuery)->where('created_at', '>=', $startOfMonth)->sum('grand_total') ?? 0, 
+                    2
+                ),
+                'open_invoices' => (clone $salesQuery)->where('status', 'pending')->count(),
+                'active_branches' => $this->isAdmin ? Branch::where('is_active', true)->count() : 1,
+                'active_users' => $this->isAdmin 
+                    ? User::where('is_active', true)->count() 
+                    : User::where('is_active', true)->where('branch_id', $this->branchId)->count(),
+                'total_products' => (clone $productsQuery)->count(),
+                'low_stock_count' => $this->calculateLowStockCount($productsQuery),
+            ];
+        });
+    }
+
+    /**
+     * Calculate low stock count using optimized query
+     */
+    protected function calculateLowStockCount($productsQuery): int
+    {
+        $stockExpr = StockService::getStockCalculationExpression();
+        
+        return (clone $productsQuery)
+            ->whereNotNull('min_stock')
+            ->where('min_stock', '>', 0)
+            ->whereRaw("{$stockExpr} <= min_stock")
+            ->count();
+    }
+
+    /**
+     * Load chart data with optimized single query for inventory stats
+     */
+    protected function loadChartData(): void
+    {
+        $cacheKey = "{$this->getCachePrefix()}:chart_data";
+
+        $chartData = Cache::remember($cacheKey, $this->cacheTtl, function () {
+            // Sales chart data
+            $salesData = $this->buildSalesChartData();
+
+            // Payment methods data
+            $paymentData = $this->buildPaymentMethodsData();
+
+            // Inventory chart data - optimized single query
+            $inventoryData = $this->buildInventoryChartData();
+
+            return [
+                'sales' => $salesData,
+                'payment' => $paymentData,
+                'inventory' => $inventoryData,
+            ];
+        });
+
+        $this->salesChartData = $chartData['sales'];
+        $this->paymentMethodsData = $chartData['payment'];
+        $this->inventoryChartData = $chartData['inventory'];
+    }
+
+    /**
+     * Build sales chart data for last 7 days
+     */
+    protected function buildSalesChartData(): array
+    {
+        $labels = [];
+        $data = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $labels[] = $date->format('D');
+            $data[] = (float) $this->scopeQueryToBranch(Sale::query())
+                ->whereDate('created_at', $date)
+                ->sum('grand_total');
+        }
+
+        return ['labels' => $labels, 'data' => $data];
+    }
+
+    /**
+     * Build payment methods distribution data
+     */
+    protected function buildPaymentMethodsData(): array
+    {
+        $raw = DB::table('sale_payments')
+            ->join('sales', 'sale_payments.sale_id', '=', 'sales.id')
+            ->whereMonth('sales.created_at', now()->month)
+            ->when(!$this->isAdmin && $this->branchId, fn ($q) => $q->where('sales.branch_id', $this->branchId))
+            ->whereNull('sales.deleted_at')
+            ->select('sale_payments.payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(sale_payments.amount) as total'))
+            ->groupBy('sale_payments.payment_method')
+            ->get();
+
+        return [
+            'labels' => $raw->pluck('payment_method')->map(fn ($m) => ucfirst($m ?? 'cash'))->toArray(),
+            'data' => $raw->pluck('count')->toArray(),
+            'totals' => $raw->pluck('total')->toArray(),
+        ];
+    }
+
+    /**
+     * Build inventory status chart data using single optimized query
+     */
+    protected function buildInventoryChartData(): array
+    {
+        $stockExpr = StockService::getStockCalculationExpression();
+        $branchFilter = (!$this->isAdmin && $this->branchId) ? $this->branchId : null;
+
+        // Single query with CASE expressions for all inventory stats
+        $result = DB::table('products')
+            ->whereNull('deleted_at')
+            ->when($branchFilter, fn ($q) => $q->where('branch_id', $branchFilter))
+            ->selectRaw("
+                SUM(CASE WHEN ({$stockExpr}) > COALESCE(min_stock, 0) THEN 1 ELSE 0 END) as in_stock,
+                SUM(CASE WHEN min_stock IS NOT NULL AND min_stock > 0 AND ({$stockExpr}) <= min_stock AND ({$stockExpr}) > 0 THEN 1 ELSE 0 END) as low_stock,
+                SUM(CASE WHEN ({$stockExpr}) <= 0 THEN 1 ELSE 0 END) as out_of_stock
+            ")
+            ->first();
+
+        return [
+            'labels' => [__('In Stock'), __('Low Stock'), __('Out of Stock')],
+            'data' => [
+                (int) ($result->in_stock ?? 0),
+                (int) ($result->low_stock ?? 0),
+                (int) ($result->out_of_stock ?? 0),
+            ],
+        ];
+    }
+
+    /**
+     * Load low stock products
+     */
+    protected function loadLowStockProducts(): void
+    {
+        $cacheKey = "{$this->getCachePrefix()}:low_stock";
+
+        $this->lowStockProducts = Cache::remember($cacheKey, $this->cacheTtl, function () {
+            $stockExpr = StockService::getStockCalculationExpression();
+
+            return $this->scopeQueryToBranch(Product::query())
+                ->select('products.*')
+                ->selectRaw("{$stockExpr} as current_quantity")
+                ->with('category')
+                ->whereRaw("{$stockExpr} <= products.min_stock")
+                ->where('products.min_stock', '>', 0)
+                ->where('products.track_stock_alerts', true)
+                ->orderByRaw($stockExpr)
+                ->limit(5)
+                ->get()
+                ->map(fn ($p) => [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'quantity' => $p->current_quantity ?? 0,
+                    'min_stock' => $p->min_stock,
+                    'category' => $p->category?->name ?? '-',
+                ])
+                ->toArray();
+        });
+    }
+
+    /**
+     * Load recent sales
+     */
+    protected function loadRecentSales(): void
+    {
+        $cacheKey = "{$this->getCachePrefix()}:recent_sales";
+
+        $this->recentSales = Cache::remember($cacheKey, 60, function () {
+            return $this->scopeQueryToBranch(Sale::query())
+                ->with(['user', 'customer'])
+                ->latest()
+                ->limit(5)
+                ->get()
+                ->map(fn ($s) => [
+                    'id' => $s->id,
+                    'reference' => $s->reference_no ?? "#{$s->id}",
+                    'customer' => $s->customer?->name ?? __('Walk-in'),
+                    'total' => number_format($s->grand_total ?? 0, 2),
+                    'status' => $s->status,
+                    'date' => $s->created_at->format('Y-m-d H:i'),
+                ])
+                ->toArray();
+        });
+    }
+
+    /**
+     * Load trend indicators
+     */
+    protected function loadTrendIndicators(): void
+    {
+        $cacheKey = "{$this->getCachePrefix()}:trends";
+
+        $this->trendIndicators = Cache::remember($cacheKey, $this->cacheTtl, function () {
+            $salesQuery = $this->scopeQueryToBranch(Sale::query());
+
+            $currentWeekSales = (clone $salesQuery)
+                ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
+                ->sum('grand_total') ?? 0;
+
+            $previousWeekSales = (clone $salesQuery)
+                ->whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])
+                ->sum('grand_total') ?? 0;
+
+            $invoiceTotal = (clone $salesQuery)->count();
+            $invoiceCleared = (clone $salesQuery)->where('status', 'completed')->count();
+
+            return [
+                'weekly_sales' => [
+                    'current' => number_format($currentWeekSales, 2),
+                    'previous' => number_format($previousWeekSales, 2),
+                    'change' => $this->calculatePercentChange($currentWeekSales, $previousWeekSales),
+                ],
+                'invoice_clear_rate' => $invoiceTotal > 0 ? round(($invoiceCleared / $invoiceTotal) * 100, 1) : 0,
+                'inventory_health' => ($this->stats['total_products'] ?? 0) > 0
+                    ? round(max(0, min(100, 100 - ((($this->stats['low_stock_count'] ?? 0) / ($this->stats['total_products'] ?? 1)) * 100))), 1)
+                    : 100,
+            ];
+        });
+    }
+
+    /**
+     * Calculate percentage change between two values
+     */
+    protected function calculatePercentChange(float $current, float $previous): float
+    {
+        if ($previous <= 0 && $current > 0) {
+            return 100.0;
+        }
+        if ($previous === 0.0) {
+            return 0.0;
+        }
+        return round((($current - $previous) / $previous) * 100, 1);
+    }
+}

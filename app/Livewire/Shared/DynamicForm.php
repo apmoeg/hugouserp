@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Shared;
 
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -37,8 +38,6 @@ class DynamicForm extends Component
 
     // Whitelist of allowed storage disks for security
     private array $allowedDisks = ['local', 'private'];
-
-    protected $listeners = ['resetForm' => 'resetFormData'];
 
     public function mount(
         array $schema = [],
@@ -116,6 +115,7 @@ class DynamicForm extends Component
         }
     }
 
+    #[On('resetForm')]
     public function resetFormData(): void
     {
         foreach ($this->schema as $field) {
