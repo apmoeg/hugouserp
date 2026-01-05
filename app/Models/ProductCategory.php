@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
-class ProductCategory extends Model
+/**
+ * ProductCategory - Product categorization with hierarchy support
+ *
+ * Extends BaseModel for:
+ * - Automatic branch scoping
+ * - Common query scopes (active, forBranch, etc.)
+ * - Dynamic fields support
+ * - Audit logging
+ */
+class ProductCategory extends BaseModel
 {
-    use SoftDeletes;
-
     protected $table = 'product_categories';
 
     protected $fillable = [
@@ -37,6 +42,8 @@ class ProductCategory extends Model
 
     protected static function booted(): void
     {
+        parent::booted();
+
         static::creating(function ($model): void {
             if (empty($model->slug)) {
                 $model->slug = Str::slug($model->name).'-'.Str::random(4);

@@ -57,18 +57,23 @@
     @endif
 
     <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
-        <!-- Tabs -->
+        <!-- Tabs with Icons -->
         <div class="border-b border-gray-200 dark:border-gray-700">
-            <nav class="flex -mb-px overflow-x-auto">
+            <nav class="flex -mb-px overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
                 @foreach($tabs as $tabKey => $tabLabel)
                     <button
                         wire:click="switchTab('{{ $tabKey }}')"
                         data-tab-key="{{ $tabKey }}"
-                        class="px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-colors
+                        class="group flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors
                             {{ $activeTab === $tabKey
-                                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300' }}">
-                        {{ __($tabLabel) }}
+                                ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/30' }}">
+                        @if(isset($tabIcons[$tabKey]))
+                            <svg class="w-4 h-4 {{ $activeTab === $tabKey ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $tabIcons[$tabKey] }}"/>
+                            </svg>
+                        @endif
+                        <span>{{ __($tabLabel) }}</span>
                     </button>
                 @endforeach
             </nav>
@@ -79,12 +84,17 @@
             {{-- Tab Description --}}
             @if(isset($tabDescriptions[$activeTab]))
                 <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800" role="region" aria-label="{{ __('Tab information') }}">
-                    <p class="text-sm text-blue-700 dark:text-blue-300">
-                        <svg class="inline w-4 h-4 mr-1 -mt-0.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        </svg>
-                        {{ __($tabDescriptions[$activeTab]) }}
-                    </p>
+                    <div class="flex items-start gap-3">
+                        @if(isset($tabIcons[$activeTab]))
+                            <svg class="w-5 h-5 text-blue-500 dark:text-blue-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $tabIcons[$activeTab] }}"/>
+                            </svg>
+                        @endif
+                        <div>
+                            <h3 class="text-sm font-semibold text-blue-700 dark:text-blue-300">{{ __($tabs[$activeTab]) }}</h3>
+                            <p class="text-sm text-blue-600 dark:text-blue-400 mt-0.5">{{ __($tabDescriptions[$activeTab]) }}</p>
+                        </div>
+                    </div>
                 </div>
             @endif
             

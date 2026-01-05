@@ -15,12 +15,7 @@ class RouteServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        // API throttle
-        RateLimiter::for('api', function (Request $request) {
-            $key = optional($request->user())->getKey() ?: $request->ip();
-
-            return [Limit::perMinute(120)->by($key)];
-        });
+        $this->configureRateLimiting();
 
         // Parameter patterns
         Route::pattern('id', '[0-9]+');
@@ -28,6 +23,41 @@ class RouteServiceProvider extends ServiceProvider
         // Simple binding for {branch}
         Route::bind('branch', function ($value) {
             return Branch::query()->findOrFail($value);
+        });
+    }
+
+    /**
+     * Configure rate limiting for different contexts
+     */
+    protected function configureRateLimiting(): void
+    {
+        // General API rate limiting - 120 requests per minute
+        RateLimiter::for('api', function (Request $request) {
+            $key = optional($request->user())->getKey() ?: $request->ip();
+            return Limit::perMinute(120)->by($key);
+        });
+
+        // Authentication endpoints - stricter limits to prevent brute force
+        RateLimiter::for('auth', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip());
+        });
+
+        // Export/Report endpoints - limited to prevent abuse
+        RateLimiter::for('exports', function (Request $request) {
+            $key = optional($request->user())->getKey() ?: $request->ip();
+            return Limit::perMinute(10)->by($key);
+        });
+
+        // Bulk operations - very limited
+        RateLimiter::for('bulk', function (Request $request) {
+            $key = optional($request->user())->getKey() ?: $request->ip();
+            return Limit::perMinute(5)->by($key);
+        });
+
+        // Uploads - moderate limits
+        RateLimiter::for('uploads', function (Request $request) {
+            $key = optional($request->user())->getKey() ?: $request->ip();
+            return Limit::perMinute(30)->by($key);
         });
     }
 }

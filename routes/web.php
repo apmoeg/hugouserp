@@ -674,6 +674,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/work-centers/{workCenter}/edit', \App\Livewire\Manufacturing\WorkCenters\Form::class)
             ->name('work-centers.edit')
             ->middleware('can:manufacturing.manage');
+
+        // Production Timeline
+        Route::get('/timeline', \App\Livewire\Manufacturing\Timeline::class)
+            ->name('timeline')
+            ->middleware('can:manufacturing.view');
     });
 
     // HRM MODULE
@@ -778,6 +783,10 @@ Route::middleware('auth')->group(function () {
     Route::prefix('app/projects')->name('app.projects.')->group(function () {
         Route::get('/', \App\Livewire\Projects\Index::class)
             ->name('index')
+            ->middleware('can:projects.view');
+
+        Route::get('/gantt', \App\Livewire\Projects\GanttChart::class)
+            ->name('gantt')
             ->middleware('can:projects.view');
 
         Route::get('/create', \App\Livewire\Projects\Form::class)

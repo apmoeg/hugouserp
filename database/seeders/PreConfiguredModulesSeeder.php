@@ -12,10 +12,98 @@ class PreConfiguredModulesSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->createGeneralModule();
         $this->createWoodModule();
         $this->createRentalsModule();
         $this->createSparePartsModule();
         $this->createMotorcyclesModule();
+        $this->createManufacturingModule();
+    }
+
+    protected function createGeneralModule(): void
+    {
+        $module = Module::updateOrCreate(
+            ['key' => 'general'],
+            [
+                'slug' => 'general',
+                'name' => 'General Products',
+                'name_ar' => 'المنتجات العامة',
+                'description' => 'General products and items without specialized fields',
+                'description_ar' => 'المنتجات والعناصر العامة بدون حقول متخصصة',
+                'icon' => 'box',
+                'color' => '#6366F1',
+                'is_core' => true,
+                'is_active' => true,
+                'pricing_type' => 'buy_sell',
+                'has_variations' => true,
+                'has_inventory' => true,
+                'has_serial_numbers' => false,
+                'has_batch_numbers' => false,
+                'is_rental' => false,
+                'is_service' => false,
+                'category' => 'products',
+                'sort_order' => 1,
+            ]
+        );
+
+        // General products have minimal additional fields - they use the standard product fields
+        $fields = [
+            [
+                'field_key' => 'brand',
+                'field_label' => 'Brand',
+                'field_label_ar' => 'الماركة',
+                'field_type' => 'text',
+                'is_required' => false,
+                'is_searchable' => true,
+                'is_filterable' => true,
+                'show_in_list' => true,
+                'sort_order' => 1,
+                'field_group' => 'details',
+            ],
+            [
+                'field_key' => 'manufacturer',
+                'field_label' => 'Manufacturer',
+                'field_label_ar' => 'الشركة المصنعة',
+                'field_type' => 'text',
+                'is_required' => false,
+                'is_searchable' => true,
+                'is_filterable' => true,
+                'show_in_list' => false,
+                'sort_order' => 2,
+                'field_group' => 'details',
+            ],
+            [
+                'field_key' => 'origin_country',
+                'field_label' => 'Origin Country',
+                'field_label_ar' => 'بلد المنشأ',
+                'field_type' => 'text',
+                'is_required' => false,
+                'is_filterable' => true,
+                'show_in_list' => false,
+                'sort_order' => 3,
+                'field_group' => 'details',
+            ],
+            [
+                'field_key' => 'warranty_months',
+                'field_label' => 'Warranty (Months)',
+                'field_label_ar' => 'الضمان (شهور)',
+                'field_type' => 'number',
+                'is_required' => false,
+                'is_filterable' => true,
+                'show_in_list' => true,
+                'sort_order' => 4,
+                'field_group' => 'warranty',
+            ],
+        ];
+
+        foreach ($fields as $field) {
+            ModuleProductField::updateOrCreate(
+                ['module_id' => $module->id, 'field_key' => $field['field_key']],
+                array_merge($field, ['module_id' => $module->id])
+            );
+        }
+
+        $this->createModuleReports($module, 'general');
     }
 
     protected function createWoodModule(): void
@@ -590,6 +678,149 @@ class PreConfiguredModulesSeeder extends Seeder
         }
 
         $this->createModuleReports($module, 'motorcycle');
+    }
+
+    protected function createManufacturingModule(): void
+    {
+        $module = Module::updateOrCreate(
+            ['key' => 'manufacturing'],
+            [
+                'slug' => 'manufacturing',
+                'name' => 'Manufacturing',
+                'name_ar' => 'التصنيع',
+                'description' => 'Raw materials and manufactured goods management',
+                'description_ar' => 'إدارة المواد الخام والمنتجات المصنعة',
+                'icon' => 'cogs',
+                'color' => '#059669',
+                'is_core' => false,
+                'is_active' => true,
+                'pricing_type' => 'buy_sell',
+                'has_variations' => true,
+                'has_inventory' => true,
+                'has_serial_numbers' => false,
+                'has_batch_numbers' => true,
+                'is_rental' => false,
+                'is_service' => false,
+                'category' => 'products',
+                'sort_order' => 50,
+            ]
+        );
+
+        $fields = [
+            [
+                'field_key' => 'material_type',
+                'field_label' => 'Material Type',
+                'field_label_ar' => 'نوع المادة',
+                'field_type' => 'select',
+                'field_options' => [
+                    'raw_material' => 'Raw Material / مادة خام',
+                    'component' => 'Component / مكون',
+                    'sub_assembly' => 'Sub-Assembly / تجميع فرعي',
+                    'finished_good' => 'Finished Good / منتج نهائي',
+                    'packaging' => 'Packaging / تغليف',
+                    'consumable' => 'Consumable / مواد استهلاكية',
+                ],
+                'is_required' => true,
+                'is_filterable' => true,
+                'show_in_list' => true,
+                'sort_order' => 1,
+                'field_group' => 'classification',
+            ],
+            [
+                'field_key' => 'bom_id',
+                'field_label' => 'Bill of Materials',
+                'field_label_ar' => 'قائمة المواد',
+                'field_type' => 'text',
+                'placeholder' => 'BOM-001',
+                'placeholder_ar' => 'BOM-001',
+                'is_required' => false,
+                'is_searchable' => true,
+                'is_filterable' => false,
+                'show_in_list' => true,
+                'sort_order' => 2,
+                'field_group' => 'manufacturing',
+            ],
+            [
+                'field_key' => 'production_time_hours',
+                'field_label' => 'Production Time (Hours)',
+                'field_label_ar' => 'وقت الإنتاج (ساعات)',
+                'field_type' => 'decimal',
+                'is_required' => false,
+                'is_filterable' => true,
+                'show_in_list' => true,
+                'sort_order' => 3,
+                'field_group' => 'manufacturing',
+            ],
+            [
+                'field_key' => 'lead_time_days',
+                'field_label' => 'Lead Time (Days)',
+                'field_label_ar' => 'المهلة الزمنية (أيام)',
+                'field_type' => 'number',
+                'is_required' => false,
+                'is_filterable' => true,
+                'show_in_list' => false,
+                'sort_order' => 4,
+                'field_group' => 'manufacturing',
+            ],
+            [
+                'field_key' => 'quality_grade',
+                'field_label' => 'Quality Grade',
+                'field_label_ar' => 'درجة الجودة',
+                'field_type' => 'select',
+                'field_options' => [
+                    'A' => 'Grade A / درجة أولى',
+                    'B' => 'Grade B / درجة ثانية',
+                    'C' => 'Grade C / درجة ثالثة',
+                ],
+                'is_required' => false,
+                'is_filterable' => true,
+                'show_in_list' => true,
+                'sort_order' => 5,
+                'field_group' => 'quality',
+            ],
+            [
+                'field_key' => 'specification',
+                'field_label' => 'Technical Specification',
+                'field_label_ar' => 'المواصفات الفنية',
+                'field_type' => 'textarea',
+                'is_required' => false,
+                'is_searchable' => true,
+                'show_in_list' => false,
+                'sort_order' => 6,
+                'field_group' => 'details',
+            ],
+            [
+                'field_key' => 'storage_requirements',
+                'field_label' => 'Storage Requirements',
+                'field_label_ar' => 'متطلبات التخزين',
+                'field_type' => 'text',
+                'is_required' => false,
+                'is_filterable' => false,
+                'show_in_list' => false,
+                'sort_order' => 7,
+                'field_group' => 'storage',
+            ],
+            [
+                'field_key' => 'hazardous',
+                'field_label' => 'Hazardous Material',
+                'field_label_ar' => 'مادة خطرة',
+                'field_type' => 'checkbox',
+                'is_required' => false,
+                'is_filterable' => true,
+                'show_in_list' => true,
+                'sort_order' => 8,
+                'field_group' => 'safety',
+            ],
+        ];
+
+        foreach ($fields as $field) {
+            ModuleProductField::updateOrCreate(
+                ['module_id' => $module->id, 'field_key' => $field['field_key']],
+                array_merge($field, ['module_id' => $module->id])
+            );
+        }
+
+        $this->createModuleReports($module, 'manufacturing');
     }
 
     protected function createModuleReports(Module $module, string $moduleKey): void

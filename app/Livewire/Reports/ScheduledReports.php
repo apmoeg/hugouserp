@@ -7,6 +7,7 @@ namespace App\Livewire\Reports;
 use App\Models\ReportTemplate;
 use App\Services\ScheduledReportService;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -14,13 +15,17 @@ class ScheduledReports extends Component
 {
     use WithPagination;
 
-    protected $listeners = ['refreshComponent' => '$refresh'];
-
     protected ScheduledReportService $reportService;
 
     public function boot(ScheduledReportService $reportService): void
     {
         $this->reportService = $reportService;
+    }
+
+    #[On('refreshComponent')]
+    public function refreshComponent(): void
+    {
+        // Livewire 4 compatible refresh handler
     }
 
     public function mount(): void

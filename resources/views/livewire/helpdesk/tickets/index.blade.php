@@ -1,4 +1,17 @@
 <div class="space-y-4">
+    {{-- Flash Messages --}}
+    @if(session('success'))
+        <div class="p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg">
+            {{ session('success') }}
+        </div>
+    @endif
+    
+    @if(session('error'))
+        <div class="p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
             <h1 class="text-lg font-semibold text-slate-800 dark:text-slate-100">

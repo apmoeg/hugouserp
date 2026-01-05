@@ -4,16 +4,10 @@ declare(strict_types=1);
 
 namespace App\Livewire\Dashboard;
 
-use App\Models\Branch;
-use App\Models\Product;
-use App\Models\Sale;
+use App\Livewire\Concerns\LoadsDashboardData;
 use App\Models\SystemSetting;
-use App\Models\User;
-use App\Services\StockService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -25,9 +19,13 @@ use Livewire\Component;
  * - Show/hide widgets per user preference
  * - Multiple layout options
  * - Saved user preferences
+ * 
+ * Uses shared LoadsDashboardData trait for optimized data loading.
  */
 class CustomizableDashboard extends Component
 {
+    use LoadsDashboardData;
+
     #[Layout('layouts.app')]
     
     // Dashboard configuration
@@ -45,12 +43,8 @@ class CustomizableDashboard extends Component
     public array $recentSales = [];
     public array $trendIndicators = [];
     
-    // Branch context
-    public ?int $branchId = null;
-    public bool $isAdmin = false;
+    // UI state
     public bool $isEditing = false;
-    
-    protected int $cacheTtl = 300;
 
     /**
      * Available widgets configuration
@@ -119,6 +113,52 @@ class CustomizableDashboard extends Component
             'default_enabled' => true,
             'permission' => 'dashboard.view',
         ],
+        // Module-specific widgets
+        'motorcycle_stats' => [
+            'title' => 'Motorcycle Inventory',
+            'title_ar' => 'مخزون الدراجات',
+            'icon' => '🏍️',
+            'size' => 'medium',
+            'default_enabled' => true,
+            'permission' => 'inventory.products.view',
+            'module' => 'motorcycle',
+        ],
+        'spares_stats' => [
+            'title' => 'Spare Parts Overview',
+            'title_ar' => 'نظرة عامة على قطع الغيار',
+            'icon' => '🔧',
+            'size' => 'medium',
+            'default_enabled' => true,
+            'permission' => 'inventory.products.view',
+            'module' => 'spares',
+        ],
+        'rental_stats' => [
+            'title' => 'Rental Overview',
+            'title_ar' => 'نظرة عامة على الإيجارات',
+            'icon' => '🏠',
+            'size' => 'medium',
+            'default_enabled' => true,
+            'permission' => 'rental.contracts.view',
+            'module' => 'rental',
+        ],
+        'manufacturing_stats' => [
+            'title' => 'Manufacturing Overview',
+            'title_ar' => 'نظرة عامة على التصنيع',
+            'icon' => '🏭',
+            'size' => 'medium',
+            'default_enabled' => true,
+            'permission' => 'manufacturing.view',
+            'module' => 'manufacturing',
+        ],
+        'wood_stats' => [
+            'title' => 'Wood Inventory',
+            'title_ar' => 'مخزون الأخشاب',
+            'icon' => '🪵',
+            'size' => 'medium',
+            'default_enabled' => true,
+            'permission' => 'inventory.products.view',
+            'module' => 'wood',
+        ],
     ];
 
     public function mount(): void
@@ -128,15 +168,13 @@ class CustomizableDashboard extends Component
             abort(403);
         }
 
-        $this->branchId = session('admin_branch_context', $user->branch_id);
-        $this->isAdmin = $user->hasRole('super-admin') || $user->hasRole('admin');
-        $this->cacheTtl = (int) (SystemSetting::where('key', 'advanced.cache_ttl')->value('value') ?? 300);
+        $this->initializeDashboardContext();
 
         // Load user's dashboard preferences
         $this->loadUserPreferences();
         
-        // Load all data
-        $this->loadAllData();
+        // Load all data using the shared trait
+        $this->loadAllDashboardData();
     }
 
     /**
@@ -146,6 +184,7 @@ class CustomizableDashboard extends Component
     {
         $user = Auth::user();
         $preferences = $user->preferences ?? [];
+        $branch = $user->currentBranch ?? null;
         
         // Get saved widget order or use defaults
         $this->widgetOrder = $preferences['dashboard_widget_order'] ?? array_keys($this->availableWidgets);
@@ -165,6 +204,13 @@ class CustomizableDashboard extends Component
                     continue; // Skip widgets user doesn't have permission for
                 }
                 
+                // Check if widget requires a specific module and if branch has it enabled
+                if (isset($widget['module']) && $branch) {
+                    if (!$branch->hasModule($widget['module'])) {
+                        continue; // Skip module-specific widgets if module is not enabled
+                    }
+                }
+                
                 $this->widgets[] = $widget;
             }
         }
@@ -174,6 +220,12 @@ class CustomizableDashboard extends Component
             if (!in_array($key, $this->widgetOrder)) {
                 if ($widget['permission'] && !Auth::user()->can($widget['permission'])) {
                     continue;
+                }
+                // Check module availability for new widgets too
+                if (isset($widget['module']) && $branch) {
+                    if (!$branch->hasModule($widget['module'])) {
+                        continue;
+                    }
                 }
                 $widget['key'] = $key;
                 $widget['visible'] = $widget['default_enabled'];
@@ -255,240 +307,11 @@ class CustomizableDashboard extends Component
     }
 
     /**
-     * Load all dashboard data
-     */
-    protected function loadAllData(): void
-    {
-        $this->loadStats();
-        $this->loadChartData();
-        $this->loadLowStockProducts();
-        $this->loadRecentSales();
-        $this->loadTrendIndicators();
-    }
-
-    /**
      * Refresh data (clear cache and reload)
      */
     public function refreshData(): void
     {
-        $cacheKey = $this->getCachePrefix();
-        Cache::forget("{$cacheKey}:stats");
-        Cache::forget("{$cacheKey}:chart_data");
-        Cache::forget("{$cacheKey}:low_stock");
-        Cache::forget("{$cacheKey}:recent_sales");
-        Cache::forget("{$cacheKey}:trends");
-
-        $this->loadAllData();
-    }
-
-    protected function getCachePrefix(): string
-    {
-        return "dashboard:branch_{$this->branchId}:admin_{$this->isAdmin}";
-    }
-
-    protected function scopeSalesQuery($query)
-    {
-        if (!$this->isAdmin && $this->branchId) {
-            return $query->where('branch_id', $this->branchId);
-        }
-        return $query;
-    }
-
-    protected function scopeProductsQuery($query)
-    {
-        if (!$this->isAdmin && $this->branchId) {
-            return $query->where('branch_id', $this->branchId);
-        }
-        return $query;
-    }
-
-    /**
-     * Calculate inventory statistics using a single query for better performance
-     */
-    protected function calculateInventoryStats(string $stockExpr, ?int $branchFilter): array
-    {
-        // Use a single query with CASE expressions for better performance
-        $result = DB::table('products')
-            ->whereNull('deleted_at')
-            ->when($branchFilter, fn ($q) => $q->where('branch_id', $branchFilter))
-            ->selectRaw("
-                SUM(CASE WHEN ({$stockExpr}) > COALESCE(min_stock, 0) THEN 1 ELSE 0 END) as in_stock,
-                SUM(CASE WHEN min_stock IS NOT NULL AND min_stock > 0 AND ({$stockExpr}) <= min_stock AND ({$stockExpr}) > 0 THEN 1 ELSE 0 END) as low_stock,
-                SUM(CASE WHEN ({$stockExpr}) <= 0 THEN 1 ELSE 0 END) as out_of_stock
-            ")
-            ->first();
-
-        return [
-            'labels' => [__('In Stock'), __('Low Stock'), __('Out of Stock')],
-            'data' => [
-                (int) ($result->in_stock ?? 0),
-                (int) ($result->low_stock ?? 0),
-                (int) ($result->out_of_stock ?? 0),
-            ],
-        ];
-    }
-
-    protected function loadStats(): void
-    {
-        $cacheKey = "{$this->getCachePrefix()}:stats";
-
-        $this->stats = Cache::remember($cacheKey, $this->cacheTtl, function () {
-            $today = now()->startOfDay();
-            $startOfMonth = now()->startOfMonth();
-
-            $salesQuery = $this->scopeSalesQuery(Sale::query());
-            $productsQuery = $this->scopeProductsQuery(Product::query());
-
-            return [
-                'today_sales' => number_format((clone $salesQuery)->whereDate('created_at', $today)->sum('grand_total') ?? 0, 2),
-                'month_sales' => number_format((clone $salesQuery)->where('created_at', '>=', $startOfMonth)->sum('grand_total') ?? 0, 2),
-                'open_invoices' => (clone $salesQuery)->where('status', 'pending')->count(),
-                'active_branches' => $this->isAdmin ? Branch::where('is_active', true)->count() : 1,
-                'active_users' => $this->isAdmin 
-                    ? User::where('is_active', true)->count() 
-                    : User::where('is_active', true)->where('branch_id', $this->branchId)->count(),
-                'total_products' => (clone $productsQuery)->count(),
-                'low_stock_count' => (clone $productsQuery)
-                    ->whereNotNull('min_stock')
-                    ->where('min_stock', '>', 0)
-                    ->whereRaw('COALESCE((SELECT SUM(CASE WHEN direction = \'in\' THEN qty ELSE -qty END) FROM stock_movements WHERE stock_movements.product_id = products.id), 0) <= min_stock')
-                    ->count(),
-            ];
-        });
-    }
-
-    protected function loadChartData(): void
-    {
-        $cacheKey = "{$this->getCachePrefix()}:chart_data";
-
-        $chartData = Cache::remember($cacheKey, $this->cacheTtl, function () {
-            $labels = [];
-            $salesData = [];
-
-            for ($i = 6; $i >= 0; $i--) {
-                $date = now()->subDays($i);
-                $labels[] = $date->format('D');
-                $salesData[] = (float) $this->scopeSalesQuery(Sale::query())->whereDate('created_at', $date)->sum('grand_total');
-            }
-
-            $paymentMethodsRaw = DB::table('sale_payments')
-                ->join('sales', 'sale_payments.sale_id', '=', 'sales.id')
-                ->whereMonth('sales.created_at', now()->month)
-                ->when(!$this->isAdmin && $this->branchId, fn ($q) => $q->where('sales.branch_id', $this->branchId))
-                ->whereNull('sales.deleted_at')
-                ->select('sale_payments.payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(sale_payments.amount) as total'))
-                ->groupBy('sale_payments.payment_method')
-                ->get();
-
-            $productsQuery = $this->scopeProductsQuery(Product::query());
-            
-            // Use StockService for consistent stock calculation
-            $stockExpr = StockService::getStockCalculationExpression();
-            $branchFilter = (!$this->isAdmin && $this->branchId) ? $this->branchId : null;
-
-            return [
-                'sales' => ['labels' => $labels, 'data' => $salesData],
-                'payment' => [
-                    'labels' => $paymentMethodsRaw->pluck('payment_method')->map(fn ($m) => ucfirst($m ?? 'cash'))->toArray(),
-                    'data' => $paymentMethodsRaw->pluck('count')->toArray(),
-                    'totals' => $paymentMethodsRaw->pluck('total')->toArray(),
-                ],
-                'inventory' => $this->calculateInventoryStats($stockExpr, $branchFilter),
-            ];
-        });
-
-        $this->salesChartData = $chartData['sales'];
-        $this->paymentMethodsData = $chartData['payment'];
-        $this->inventoryChartData = $chartData['inventory'];
-    }
-
-    protected function loadLowStockProducts(): void
-    {
-        $cacheKey = "{$this->getCachePrefix()}:low_stock";
-
-        $this->lowStockProducts = Cache::remember($cacheKey, $this->cacheTtl, function () {
-            $stockExpr = StockService::getStockCalculationExpression();
-            
-            return $this->scopeProductsQuery(Product::query())
-                ->select('products.*')
-                ->selectRaw("{$stockExpr} as current_quantity")
-                ->with('category')
-                ->whereRaw("{$stockExpr} <= products.min_stock")
-                ->where('products.min_stock', '>', 0)
-                ->where('products.track_stock_alerts', true)
-                ->orderByRaw($stockExpr)
-                ->limit(5)
-                ->get()
-                ->map(fn ($p) => [
-                    'id' => $p->id,
-                    'name' => $p->name,
-                    'quantity' => $p->current_quantity ?? 0,
-                    'min_stock' => $p->min_stock,
-                    'category' => $p->category?->name ?? '-',
-                ])
-                ->toArray();
-        });
-    }
-
-    protected function loadRecentSales(): void
-    {
-        $cacheKey = "{$this->getCachePrefix()}:recent_sales";
-
-        $this->recentSales = Cache::remember($cacheKey, 60, function () {
-            return $this->scopeSalesQuery(Sale::query())
-                ->with(['user', 'customer'])
-                ->latest()
-                ->limit(5)
-                ->get()
-                ->map(fn ($s) => [
-                    'id' => $s->id,
-                    'reference' => $s->reference_no ?? "#{$s->id}",
-                    'customer' => $s->customer?->name ?? __('Walk-in'),
-                    'total' => number_format($s->grand_total ?? 0, 2),
-                    'status' => $s->status,
-                    'date' => $s->created_at->format('Y-m-d H:i'),
-                ])
-                ->toArray();
-        });
-    }
-
-    protected function loadTrendIndicators(): void
-    {
-        $cacheKey = "{$this->getCachePrefix()}:trends";
-
-        $this->trendIndicators = Cache::remember($cacheKey, $this->cacheTtl, function () {
-            $salesQuery = $this->scopeSalesQuery(Sale::query());
-
-            $currentWeekSales = (clone $salesQuery)
-                ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
-                ->sum('grand_total') ?? 0;
-
-            $previousWeekSales = (clone $salesQuery)
-                ->whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])
-                ->sum('grand_total') ?? 0;
-
-            $invoiceTotal = (clone $salesQuery)->count();
-            $invoiceCleared = (clone $salesQuery)->where('status', 'completed')->count();
-
-            return [
-                'weekly_sales' => [
-                    'current' => number_format($currentWeekSales, 2),
-                    'previous' => number_format($previousWeekSales, 2),
-                    'change' => $this->calculatePercentageChange($currentWeekSales, $previousWeekSales),
-                ],
-                'invoice_clear_rate' => $invoiceTotal > 0 ? round(($invoiceCleared / $invoiceTotal) * 100, 1) : 0,
-                'inventory_health' => ($this->stats['total_products'] ?? 0) > 0
-                    ? round(max(0, min(100, 100 - ((($this->stats['low_stock_count'] ?? 0) / ($this->stats['total_products'] ?? 1)) * 100))), 1)
-                    : 100,
-            ];
-        });
-    }
-
-    protected function calculatePercentageChange(float $current, float $previous): float
-    {
-        if ($previous <= 0 && $current > 0) return 100.0;
-        if ($previous === 0.0) return 0.0;
-        return round((($current - $previous) / $previous) * 100, 1);
+        $this->refreshDashboardData();
     }
 
     public function render(): View

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Traits\CommonQueryScopes;
+use App\Models\Traits\ValidatesInput;
 use App\Traits\AuditsChanges;
 use App\Traits\HasBranch;
 use App\Traits\HasDynamicFields;
@@ -14,15 +16,31 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
+/**
+ * BaseModel - Foundation for all ERP models
+ * 
+ * FEATURES:
+ *   - Automatic UUID and code generation
+ *   - Branch awareness with scoping
+ *   - Dynamic fields support
+ *   - JSON attributes handling
+ *   - Activity logging
+ *   - Common query scopes
+ *   - Input validation helpers
+ * 
+ * All models should extend this class to inherit these features.
+ */
 abstract class BaseModel extends Model
 {
     use AuditsChanges;
+    use CommonQueryScopes;
     use HasBranch;
     use HasDynamicFields;
     use HasFactory;
     use HasJsonAttributes;
     use ModuleAware;
     use SoftDeletes;
+    use ValidatesInput;
 
     protected static function booted(): void
     {
@@ -86,5 +104,26 @@ abstract class BaseModel extends Model
     protected function usesCode(): bool
     {
         return in_array('code', $this->getFillable(), true);
+    }
+
+    /**
+     * Get the model's display name for UI
+     */
+    public function getDisplayName(): string
+    {
+        return $this->name ?? $this->title ?? $this->code ?? "#{$this->id}";
+    }
+
+    /**
+     * Get a summary of the model for quick view
+     */
+    public function getSummary(): array
+    {
+        return [
+            'id' => $this->id,
+            'code' => $this->code ?? null,
+            'name' => $this->getDisplayName(),
+            'created_at' => $this->created_at?->format('Y-m-d H:i'),
+        ];
     }
 }

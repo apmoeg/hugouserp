@@ -1,18 +1,10 @@
 import './bootstrap';
-import * as Turbo from '@hotwired/turbo';
 import { erpPosTerminal } from './pos';
 import Swal from 'sweetalert2';
 import Chart from 'chart.js/auto';
 
-// Initialize Turbo.js for SPA-like navigation
-try {
-    Turbo.start();
-    window.Turbo = Turbo;
-    window.TurboLoaded = true;
-} catch (e) {
-    console.warn('Turbo.js initialization failed:', e);
-    window.TurboLoaded = false;
-}
+// Livewire 4 uses wire:navigate for SPA-like navigation
+// No need for Turbo.js - Livewire handles navigation natively
 
 window.erpPosTerminal = erpPosTerminal;
 window.Swal = Swal;
@@ -241,3 +233,254 @@ window.addEventListener('swal:confirm', event => {
         }
     });
 });
+
+// Service Worker Registration for Offline Support
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+                console.log('[ERP] Service Worker registered:', registration.scope);
+                
+                // Listen for updates
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    if (newWorker) {
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // New content available, prompt user to refresh
+                                if (window.Swal) {
+                                    Swal.fire({
+                                        title: 'Update Available',
+                                        text: 'A new version of HugousERP is available. Would you like to refresh?',
+                                        icon: 'info',
+                                        showCancelButton: true,
+                                        confirmButtonText: 'Refresh',
+                                        cancelButtonText: 'Later',
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                            window.location.reload();
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+            })
+            .catch((error) => {
+                console.warn('[ERP] Service Worker registration failed:', error);
+            });
+        
+        // Handle messages from service worker
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            const { type, timestamp, url } = event.data || {};
+            
+            if (type === 'SYNC_OFFLINE_SALES') {
+                // Trigger offline sales sync
+                if (window.Livewire) {
+                    window.Livewire.dispatch('sync-offline-sales');
+                }
+            }
+            
+            if (type === 'SYNC_OFFLINE_DATA') {
+                // Trigger general offline data sync
+                if (window.Livewire) {
+                    window.Livewire.dispatch('sync-offline-data');
+                }
+            }
+            
+            if (type === 'NAVIGATE' && url) {
+                // Handle navigation request from service worker
+                window.location.href = url;
+            }
+        });
+    });
+}
+
+// Offline/Online status indicators
+window.addEventListener('online', () => {
+    document.body.classList.remove('is-offline');
+    if (window.erpShowNotification) {
+        window.erpShowNotification('Connection restored', 'success');
+    }
+    // Trigger sync if registration supports it
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+            if (registration.sync) {
+                registration.sync.register('sync-offline-data').catch(() => {});
+            }
+        });
+    }
+});
+
+window.addEventListener('offline', () => {
+    document.body.classList.add('is-offline');
+    if (window.erpShowNotification) {
+        window.erpShowNotification('You are offline. Some features may be limited.', 'warning');
+    }
+});
+
+// Global Keyboard Shortcuts
+const KeyboardShortcuts = {
+    shortcuts: {},
+    enabled: true,
+    
+    init() {
+        // Default shortcuts
+        this.register('ctrl+s', (e) => {
+            e.preventDefault();
+            // Find and click the first save button using data attributes or type
+            const saveBtn = document.querySelector('button[type="submit"]') || 
+                           document.querySelector('[data-action="save"]');
+            if (saveBtn) saveBtn.click();
+        });
+        
+        this.register('ctrl+f', (e) => {
+            // Focus search input using data attributes or type
+            const searchInput = document.querySelector('[data-search-input]') || 
+                               document.querySelector('input[type="search"]') ||
+                               document.querySelector('[role="searchbox"]');
+            if (searchInput) {
+                e.preventDefault();
+                searchInput.focus();
+            }
+        });
+        
+        this.register('ctrl+n', (e) => {
+            // New item - find create/add button using data attributes
+            const createBtn = document.querySelector('[data-action="create"]') || 
+                             document.querySelector('[data-create-button]');
+            if (createBtn) {
+                e.preventDefault();
+                createBtn.click();
+            }
+        });
+        
+        this.register('escape', () => {
+            // Close modals
+            if (window.Swal && Swal.isVisible()) {
+                Swal.close();
+            }
+            // Dispatch to Livewire to close modals
+            if (window.Livewire) {
+                window.Livewire.dispatch('close-modal');
+            }
+        });
+        
+        this.register('f1', (e) => {
+            e.preventDefault();
+            // Show help dialog
+            this.showHelp();
+        });
+        
+        // Listen for keydown events
+        document.addEventListener('keydown', (e) => this.handleKeydown(e));
+        
+        // Load user preferences
+        const savedPref = localStorage.getItem('erp_keyboard_shortcuts');
+        this.enabled = savedPref !== '0';
+    },
+    
+    register(shortcut, callback) {
+        this.shortcuts[shortcut.toLowerCase()] = callback;
+    },
+    
+    unregister(shortcut) {
+        delete this.shortcuts[shortcut.toLowerCase()];
+    },
+    
+    handleKeydown(e) {
+        if (!this.enabled) return;
+        
+        // Don't intercept when typing in inputs/textareas
+        const activeEl = document.activeElement;
+        const isEditing = activeEl && (
+            activeEl.tagName === 'INPUT' || 
+            activeEl.tagName === 'TEXTAREA' || 
+            activeEl.isContentEditable
+        );
+        
+        // Build shortcut string
+        let shortcut = '';
+        if (e.ctrlKey || e.metaKey) shortcut += 'ctrl+';
+        if (e.altKey) shortcut += 'alt+';
+        if (e.shiftKey) shortcut += 'shift+';
+        shortcut += e.key.toLowerCase();
+        
+        // Allow escape even when editing
+        if (shortcut === 'escape') {
+            const callback = this.shortcuts[shortcut];
+            if (callback) callback(e);
+            return;
+        }
+        
+        // Don't process other shortcuts when editing (except ctrl+s)
+        if (isEditing && shortcut !== 'ctrl+s') return;
+        
+        const callback = this.shortcuts[shortcut];
+        if (callback) {
+            callback(e);
+        }
+    },
+    
+    toggle() {
+        this.enabled = !this.enabled;
+        localStorage.setItem('erp_keyboard_shortcuts', this.enabled ? '1' : '0');
+        return this.enabled;
+    },
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    },
+    
+    showHelp() {
+        // Create table using DOM methods to prevent XSS
+        const table = document.createElement('table');
+        table.className = 'w-full text-sm';
+        const tbody = document.createElement('tbody');
+        
+        const shortcuts = [
+            { key: 'Ctrl + S', action: 'Save / حفظ' },
+            { key: 'Ctrl + F', action: 'Search / بحث' },
+            { key: 'Ctrl + N', action: 'New Item / إضافة جديد' },
+            { key: 'Escape', action: 'Close Modal / إغلاق' },
+            { key: 'F1', action: 'Help / مساعدة' }
+        ];
+        
+        shortcuts.forEach(s => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-gray-200 dark:border-gray-700';
+            
+            const tdKey = document.createElement('td');
+            tdKey.className = 'py-2 px-3';
+            const kbd = document.createElement('kbd');
+            kbd.className = 'px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono';
+            kbd.textContent = s.key;
+            tdKey.appendChild(kbd);
+            
+            const tdAction = document.createElement('td');
+            tdAction.className = 'py-2 px-3 text-gray-600 dark:text-gray-400';
+            tdAction.textContent = s.action;
+            
+            tr.appendChild(tdKey);
+            tr.appendChild(tdAction);
+            tbody.appendChild(tr);
+        });
+        
+        table.appendChild(tbody);
+        
+        Swal.fire({
+            title: 'Keyboard Shortcuts / اختصارات لوحة المفاتيح',
+            html: table,
+            icon: 'info',
+            confirmButtonText: 'OK',
+            width: '400px'
+        });
+    }
+};
+
+KeyboardShortcuts.init();
+window.erpKeyboardShortcuts = KeyboardShortcuts;

@@ -23,6 +23,8 @@ class TicketDetail extends Component
     public bool $isInternal = false;
     public ?int $assignToUser = null;
 
+    public bool $hasAccess = true;
+
     protected HelpdeskService $helpdeskService;
 
     public function boot(HelpdeskService $helpdeskService): void
@@ -33,7 +35,10 @@ class TicketDetail extends Component
     public function mount(Ticket $ticket): void
     {
         $this->authorize('helpdesk.view');
-        $this->ensureSameBranch(auth()->user(), $ticket);
+        if (! $this->ensureSameBranch(auth()->user(), $ticket)) {
+            $this->hasAccess = false;
+            return;
+        }
         $this->ticket = $ticket->load(['customer', 'assignedAgent', 'category', 'priority', 'slaPolicy', 'replies.user']);
         $this->assignToUser = $ticket->assigned_to;
     }
@@ -61,7 +66,9 @@ class TicketDetail extends Component
     public function assignTicket(): void
     {
         $this->authorize('helpdesk.assign');
-        $this->ensureSameBranch(auth()->user(), $this->ticket);
+        if (! $this->ensureSameBranch(auth()->user(), $this->ticket)) {
+            return;
+        }
 
         $branchId = $this->ticket->branch_id;
         $user = auth()->user();
@@ -152,10 +159,11 @@ class TicketDetail extends Component
         ]);
     }
 
-    private function ensureSameBranch(?User $user, Ticket $ticket): void
+    private function ensureSameBranch(?User $user, Ticket $ticket): bool
     {
         if (! $user) {
-            abort(403);
+            session()->flash('error', __('You must be logged in to access this ticket.'));
+            return false;
         }
 
         if (
@@ -164,7 +172,10 @@ class TicketDetail extends Component
             && $user->branch_id !== $ticket->branch_id
             && ! $user->hasAnyRole(['Super Admin', 'super-admin'])
         ) {
-            abort(403);
+            session()->flash('error', __('You cannot access tickets from other branches.'));
+            return false;
         }
+
+        return true;
     }
 }

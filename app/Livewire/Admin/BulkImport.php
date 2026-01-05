@@ -15,6 +15,7 @@ class BulkImport extends Component
     use WithFileUploads;
 
     public ?string $entityType = null;
+    public ?int $selectedModuleId = null;
     public $importFile = null;
     public string $importSource = 'file'; // 'file' or 'google_sheet'
     public string $googleSheetUrl = '';
@@ -38,17 +39,32 @@ class BulkImport extends Component
     public function mount(): void
     {
         $this->entityType = request()->query('type', 'products');
+        $moduleId = request()->query('module');
+        if ($moduleId) {
+            $this->selectedModuleId = (int) $moduleId;
+        }
     }
 
     public function getEntitiesProperty(): array
     {
-        return $this->importService->getImportableEntities();
+        return $this->importService->getImportableEntities($this->selectedModuleId);
+    }
+
+    public function getModulesProperty(): array
+    {
+        return $this->importService->getModulesWithProducts();
     }
 
     public function updatedEntityType(): void
     {
         $this->reset(['importFile', 'previewData', 'columnMapping', 'importResult', 'googleSheetUrl']);
         $this->currentStep = 1;
+    }
+
+    public function updatedSelectedModuleId(): void
+    {
+        // Reset preview when module changes
+        $this->reset(['importFile', 'previewData', 'columnMapping', 'importResult', 'googleSheetUrl']);
     }
 
     public function updatedImportSource(): void
@@ -234,13 +250,13 @@ class BulkImport extends Component
     public function downloadTemplate(): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
         // Validate entity type
-        $allowedEntities = array_keys($this->importService->getImportableEntities());
+        $allowedEntities = array_keys($this->importService->getImportableEntities($this->selectedModuleId));
         if (!in_array($this->entityType, $allowedEntities, true)) {
             session()->flash('error', __('Invalid entity type selected'));
             return back();
         }
 
-        $path = $this->importService->generateTemplate($this->entityType);
+        $path = $this->importService->generateTemplate($this->entityType, $this->selectedModuleId);
         
         if (!$path) {
             session()->flash('error', __('Failed to generate template'));
@@ -249,10 +265,11 @@ class BulkImport extends Component
 
         // Sanitize filename - only allow alphanumeric and underscore
         $safeEntityType = preg_replace('/[^a-zA-Z0-9_]/', '_', $this->entityType);
+        $moduleSuffix = $this->selectedModuleId ? "_module{$this->selectedModuleId}" : '';
 
         return response()->download(
             Storage::disk('local')->path($path),
-            "import_template_{$safeEntityType}.xlsx"
+            "import_template_{$safeEntityType}{$moduleSuffix}.xlsx"
         )->deleteFileAfterSend(true);
     }
 
@@ -264,7 +281,7 @@ class BulkImport extends Component
         }
 
         // Validate entity type against allowed values
-        $allowedEntities = array_keys($this->importService->getImportableEntities());
+        $allowedEntities = array_keys($this->importService->getImportableEntities($this->selectedModuleId));
         if (!in_array($this->entityType, $allowedEntities, true)) {
             session()->flash('error', __('Invalid entity type selected'));
             return;
@@ -301,6 +318,7 @@ class BulkImport extends Component
                     'update_existing' => $this->updateExisting,
                     'skip_duplicates' => $this->skipDuplicates,
                     'branch_id' => auth()->user()->branch_id,
+                    'module_id' => $this->selectedModuleId,
                 ]
             );
 

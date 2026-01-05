@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Helpdesk\Tickets;
 
+use App\Livewire\Concerns\AuthorizesWithFriendlyErrors;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketPriority;
@@ -16,8 +17,11 @@ use Livewire\Component;
 
 class Form extends Component
 {
+    use AuthorizesWithFriendlyErrors;
+
     public ?Ticket $ticket = null;
     public bool $isEditing = false;
+    public bool $hasAccess = true;
 
     // Form fields
     public string $subject = '';
@@ -52,12 +56,16 @@ class Form extends Component
         $user = Auth::user();
 
         if (! $user || ! $user->can('helpdesk.manage')) {
-            abort(403);
+            $this->hasAccess = false;
+            session()->flash('error', __('You do not have permission to manage tickets.'));
+            return;
         }
 
         if ($ticket && $ticket->exists) {
             if (! $user->can('update', $ticket)) {
-                abort(403);
+                $this->hasAccess = false;
+                session()->flash('error', __('You do not have permission to edit this ticket.'));
+                return;
             }
 
             $this->isEditing = true;
@@ -83,7 +91,8 @@ class Form extends Component
 
         $user = Auth::user();
         if ($this->isEditing && $this->ticket && ! $user?->can('update', $this->ticket)) {
-            abort(403);
+            session()->flash('error', __('You do not have permission to update this ticket.'));
+            return;
         }
 
         $data = [
@@ -118,6 +127,17 @@ class Form extends Component
     #[Layout('layouts.app')]
     public function render()
     {
+        if (! $this->hasAccess) {
+            return view('livewire.helpdesk.tickets.form', [
+                'categories' => collect(),
+                'priorities' => collect(),
+                'sla_policies' => collect(),
+                'customers' => collect(),
+                'agents' => collect(),
+                'hasAccess' => false,
+            ]);
+        }
+
         $categories = TicketCategory::orderBy('name')->get();
         $priorities = TicketPriority::orderBy('sort_order')->get();
         $sla_policies = TicketSLAPolicy::where('is_active', true)->orderBy('name')->get();
@@ -132,6 +152,7 @@ class Form extends Component
             'sla_policies' => $sla_policies,
             'customers' => $customers,
             'agents' => $agents,
+            'hasAccess' => true,
         ]);
     }
 }

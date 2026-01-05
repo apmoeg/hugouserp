@@ -22,25 +22,21 @@ class ImportService
     protected int $successCount = 0;
     protected int $failedCount = 0;
 
-    public function getImportableEntities(): array
+    /**
+     * Get importable entities with module-aware product fields
+     */
+    public function getImportableEntities(?int $moduleId = null): array
     {
+        $productColumns = $this->getProductColumnsForModule($moduleId);
+        
         return [
             'products' => [
                 'name' => __('Products'),
-                'required_columns' => ['name'],
-                'optional_columns' => ['sku', 'barcode', 'default_price', 'cost', 'min_stock', 'is_active', 'category_id', 'module_id', 'description', 'unit'],
-                'validation_rules' => [
-                    'name' => 'required|string|max:255',
-                    'sku' => 'nullable|string|max:100',
-                    'barcode' => 'nullable|string|max:100',
-                    'default_price' => 'nullable|numeric|min:0',
-                    'cost' => 'nullable|numeric|min:0',
-                    'min_stock' => 'nullable|integer|min:0',
-                    'is_active' => 'nullable|boolean',
-                    'description' => 'nullable|string|max:1000',
-                    'unit' => 'nullable|string|max:50',
-                ],
+                'required_columns' => $productColumns['required'],
+                'optional_columns' => $productColumns['optional'],
+                'validation_rules' => $productColumns['validation'],
                 'unique_columns' => ['sku', 'barcode'],
+                'supports_modules' => true,
             ],
             'customers' => [
                 'name' => __('Customers'),
@@ -153,9 +149,92 @@ class ImportService
         ];
     }
 
-    public function getTemplateColumns(string $entityType): array
+    /**
+     * Get product columns dynamically based on module
+     */
+    protected function getProductColumnsForModule(?int $moduleId): array
     {
-        $entities = $this->getImportableEntities();
+        $required = ['name'];
+        $optional = ['sku', 'barcode', 'default_price', 'cost', 'min_stock', 'is_active', 'category_id', 'module_id', 'description', 'unit'];
+        $validation = [
+            'name' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:100',
+            'barcode' => 'nullable|string|max:100',
+            'default_price' => 'nullable|numeric|min:0',
+            'cost' => 'nullable|numeric|min:0',
+            'min_stock' => 'nullable|integer|min:0',
+            'is_active' => 'nullable|boolean',
+            'description' => 'nullable|string|max:1000',
+            'unit' => 'nullable|string|max:50',
+        ];
+
+        // Add module-specific fields if module is specified
+        if ($moduleId) {
+            $moduleFields = \App\Models\ModuleProductField::where('module_id', $moduleId)
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->get();
+
+            foreach ($moduleFields as $field) {
+                $fieldKey = $field->field_key;
+                
+                // Add to optional columns
+                $optional[] = $fieldKey;
+                
+                // Generate validation rule based on field type
+                $validationRule = $this->getValidationRuleForField($field);
+                
+                if ($field->is_required) {
+                    $required[] = $fieldKey;
+                    // Remove 'nullable|' prefix correctly using str_replace
+                    $validationRule = 'required|' . str_replace('nullable|', '', $validationRule);
+                }
+                
+                $validation[$fieldKey] = $validationRule;
+            }
+        }
+
+        return [
+            'required' => $required,
+            'optional' => array_unique($optional),
+            'validation' => $validation,
+        ];
+    }
+
+    /**
+     * Generate validation rule based on field type
+     */
+    protected function getValidationRuleForField(\App\Models\ModuleProductField $field): string
+    {
+        return match ($field->field_type) {
+            'number', 'decimal' => 'nullable|numeric',
+            'date' => 'nullable|date',
+            'datetime' => 'nullable|date',
+            'email' => 'nullable|email|max:255',
+            'url' => 'nullable|url|max:500',
+            'checkbox' => 'nullable|boolean',
+            'select', 'radio' => 'nullable|string|max:255',
+            'multiselect' => 'nullable|string|max:1000',
+            'textarea' => 'nullable|string|max:5000',
+            default => 'nullable|string|max:255',
+        };
+    }
+
+    /**
+     * Get modules that support items/products
+     */
+    public function getModulesWithProducts(): array
+    {
+        return \App\Models\Module::where('is_active', true)
+            ->where('supports_items', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'name_ar', 'icon'])
+            ->toArray();
+    }
+
+    public function getTemplateColumns(string $entityType, ?int $moduleId = null): array
+    {
+        $entities = $this->getImportableEntities($moduleId);
         if (!isset($entities[$entityType])) {
             return [];
         }
@@ -164,11 +243,11 @@ class ImportService
         return array_merge($entity['required_columns'], $entity['optional_columns']);
     }
 
-    public function generateTemplate(string $entityType): ?string
+    public function generateTemplate(string $entityType, ?int $moduleId = null): ?string
     {
         return $this->handleServiceOperation(
-            callback: function () use ($entityType) {
-                $columns = $this->getTemplateColumns($entityType);
+            callback: function () use ($entityType, $moduleId) {
+                $columns = $this->getTemplateColumns($entityType, $moduleId);
                 if (empty($columns)) {
                     return null;
                 }
@@ -191,7 +270,8 @@ class ImportService
                     $sheet->getColumnDimensionByColumn($colIndex)->setAutoSize(true);
                 }
 
-                $filename = "import_template_{$entityType}_" . date('Y-m-d') . '.xlsx';
+                $moduleSuffix = $moduleId ? "_module{$moduleId}" : '';
+                $filename = "import_template_{$entityType}{$moduleSuffix}_" . date('Y-m-d') . '.xlsx';
                 $path = 'imports/templates/' . $filename;
                 
                 Storage::disk('local')->makeDirectory('imports/templates');
@@ -202,7 +282,7 @@ class ImportService
                 return $path;
             },
             operation: 'generateTemplate',
-            context: ['entity_type' => $entityType]
+            context: ['entity_type' => $entityType, 'module_id' => $moduleId]
         );
     }
 
@@ -211,10 +291,11 @@ class ImportService
         $this->errors = [];
         $this->successCount = 0;
         $this->failedCount = 0;
+        $moduleId = $options['module_id'] ?? null;
 
         return $this->handleServiceOperation(
-            callback: function () use ($entityType, $filePath, $options) {
-                $entities = $this->getImportableEntities();
+            callback: function () use ($entityType, $filePath, $options, $moduleId) {
+                $entities = $this->getImportableEntities($moduleId);
                 if (!isset($entities[$entityType])) {
                     throw new \InvalidArgumentException("Unknown entity type: {$entityType}");
                 }
@@ -269,7 +350,7 @@ class ImportService
                         // Import based on entity type
                         try {
                             $result = match ($entityType) {
-                                'products' => $this->importProduct($rowData, $branchId, $updateExisting, $skipDuplicates),
+                                'products' => $this->importProduct($rowData, $branchId, $updateExisting, $skipDuplicates, $moduleId),
                                 'customers' => $this->importCustomer($rowData, $branchId, $updateExisting, $skipDuplicates),
                                 'suppliers' => $this->importSupplier($rowData, $branchId, $updateExisting, $skipDuplicates),
                                 default => false,
@@ -325,7 +406,7 @@ class ImportService
         );
     }
 
-    protected function importProduct(array $data, ?int $branchId, bool $updateExisting, bool $skipDuplicates): bool
+    protected function importProduct(array $data, ?int $branchId, bool $updateExisting, bool $skipDuplicates, ?int $moduleId = null): bool
     {
         $query = Product::query();
         
@@ -338,18 +419,51 @@ class ImportService
             $existing = null;
         }
 
+        // Extract module-specific field values
+        $moduleFieldValues = [];
+        if ($moduleId) {
+            $moduleFields = \App\Models\ModuleProductField::where('module_id', $moduleId)
+                ->where('is_active', true)
+                ->get();
+            
+            foreach ($moduleFields as $field) {
+                if (isset($data[$field->field_key])) {
+                    $moduleFieldValues[$field->field_key] = $data[$field->field_key];
+                }
+            }
+        }
+
         if ($existing) {
             if ($skipDuplicates && !$updateExisting) {
                 return false;
             }
             if ($updateExisting) {
-                $existing->fill($this->sanitizeProductData($data, $branchId));
+                $existing->fill($this->sanitizeProductData($data, $branchId, $moduleId));
                 $existing->save();
+                
+                // Refresh to get updated module_id for setFieldValue
+                $existing->refresh();
+                
+                // Update module field values (only if product has matching module_id)
+                if ($moduleId && !empty($moduleFieldValues) && $existing->module_id === $moduleId) {
+                    foreach ($moduleFieldValues as $fieldKey => $value) {
+                        $existing->setFieldValue($fieldKey, $value);
+                    }
+                }
                 return true;
             }
         }
 
-        Product::create($this->sanitizeProductData($data, $branchId));
+        $product = Product::create($this->sanitizeProductData($data, $branchId, $moduleId));
+        
+        // Save module field values for new product (refresh to ensure module_id is set)
+        $product->refresh();
+        if ($moduleId && !empty($moduleFieldValues) && $product->module_id === $moduleId) {
+            foreach ($moduleFieldValues as $fieldKey => $value) {
+                $product->setFieldValue($fieldKey, $value);
+            }
+        }
+        
         return true;
     }
 
@@ -401,7 +515,7 @@ class ImportService
         return true;
     }
 
-    protected function sanitizeProductData(array $data, ?int $branchId): array
+    protected function sanitizeProductData(array $data, ?int $branchId, ?int $moduleId = null): array
     {
         return [
             'name' => $data['name'],
@@ -413,7 +527,7 @@ class ImportService
             'is_active' => filter_var($data['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN),
             'branch_id' => $branchId,
             'category_id' => !empty($data['category_id']) ? (int) $data['category_id'] : null,
-            'module_id' => !empty($data['module_id']) ? (int) $data['module_id'] : null,
+            'module_id' => $moduleId ?: (!empty($data['module_id']) ? (int) $data['module_id'] : null),
         ];
     }
 

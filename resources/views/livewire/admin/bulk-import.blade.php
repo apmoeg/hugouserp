@@ -18,9 +18,44 @@
                             class="p-4 rounded-xl border-2 transition-all text-start {{ $entityType === $key ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 dark:border-slate-700 hover:border-emerald-300' }}"
                         >
                             <span class="text-sm font-medium text-slate-900 dark:text-slate-100">{{ $entity['name'] }}</span>
+                            @if(isset($entity['supports_modules']) && $entity['supports_modules'])
+                                <span class="block text-xs text-emerald-600 dark:text-emerald-400 mt-1">{{ __('Module-aware') }}</span>
+                            @endif
                         </button>
                     @endforeach
                 </div>
+
+                {{-- Module Selection for Products --}}
+                @if($entityType === 'products' && count($this->modules) > 0)
+                <div class="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        {{ __('Select Module (Optional)') }}
+                        <span class="text-slate-500 text-xs">{{ __('- Choose a module to include its custom fields in the import') }}</span>
+                    </label>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        <button
+                            wire:click="$set('selectedModuleId', null)"
+                            class="p-3 rounded-xl border-2 transition-all text-start {{ $selectedModuleId === null ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-slate-700 hover:border-blue-300' }}"
+                        >
+                            <span class="text-2xl">📦</span>
+                            <span class="block text-sm font-medium text-slate-900 dark:text-slate-100 mt-1">{{ __('General Products') }}</span>
+                            <span class="block text-xs text-slate-500">{{ __('No custom fields') }}</span>
+                        </button>
+                        @foreach($this->modules as $module)
+                            <button
+                                wire:click="$set('selectedModuleId', {{ $module['id'] }})"
+                                class="p-3 rounded-xl border-2 transition-all text-start {{ $selectedModuleId === $module['id'] ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-slate-700 hover:border-blue-300' }}"
+                            >
+                                <span class="text-2xl">{{ $module['icon'] ?? '📦' }}</span>
+                                <span class="block text-sm font-medium text-slate-900 dark:text-slate-100 mt-1">
+                                    {{ app()->getLocale() === 'ar' && !empty($module['name_ar']) ? $module['name_ar'] : $module['name'] }}
+                                </span>
+                                <span class="block text-xs text-slate-500">{{ __('With custom fields') }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
 

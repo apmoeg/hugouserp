@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Database Performance**:
+  - New performance indexes migration
+  - 20+ new indexes for common queries
+  - Optimized indexes for sales, products, stock movements, customers, purchases
+  - Notification query optimization indexes
+- **Model Enhancements**:
+  - `CommonQueryScopes` trait - 15+ reusable scopes (date filters, search, status)
+  - `ValidatesInput` trait - model-level validation helpers
+  - Enhanced `BaseModel` with `getDisplayName()`, `getSummary()` methods
+- **Code Consolidation**:
+  - `LoadsDashboardData` trait - shared dashboard data loading
+  - Reduced Dashboard/Index.php from 317 to 47 lines
+  - Reduced CustomizableDashboard.php from 490 to 256 lines
+- **PWA Support**: Added `manifest.json` for Progressive Web App installation
+- **PWA Meta Tags**: Added theme-color, mobile-web-app-capable, apple-touch-icon meta tags
+- **Offline Data Sync**: Enhanced Service Worker with IndexedDB for offline data storage
+- **Offline Stores**: Added IndexedDB stores for offline_sales, offline_products, offline_customers, sync_queue
+- **Sync Queue**: Background sync queue for offline operations
+- **Enhanced Onboarding**: Added comprehensive onboarding guides for POS, Reports, and more contexts
+- **WebSocket Config**: Added Reverb/Pusher configuration to `.env.example`
+- **Livewire 4 Compatibility**: Migrated all components from deprecated `$listeners` property to `#[On]` attributes
+- **Service Worker**: Added offline support with `/sw.js` and `/offline.html` for PWA-like experience
+- **Real-time Notifications**: Created `RealTimeNotification` broadcast event for WebSocket notifications
+- **NotificationService Enhancements**: Added `inAppToMany()`, `broadcast()`, `getUnreadCount()`, and `getRecent()` methods
 - **Security**: SecurityHeaders middleware for XSS, clickjacking, and MIME sniffing protection
 - **Security**: HTTP security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy)
 - **Security**: HSTS (HTTP Strict Transport Security) header in production environments
@@ -23,6 +47,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated bootstrap/app.php to include SecurityHeaders middleware in web middleware stack
+- Updated 10 Livewire components to use Livewire 4 `#[On]` attribute syntax:
+  - `DynamicForm.php` - resetForm event
+  - `ServiceProductForm.php` - openServiceForm, editService events
+  - `ProductCompatibility.php` - refreshComponent event
+  - `MediaPicker.php` - openMediaPicker event
+  - `NotesAttachments.php` - refreshNotesAttachments event
+  - `GlobalSearch.php` - resetSearch event
+  - `HoldList.php` - holdUpdated event
+  - `ReceiptPreview.php` - showReceipt event
+  - `Items.php` - notificationsUpdated event
+  - `ScheduledReports.php` - refreshComponent event
+- Enhanced `app.js` with Service Worker registration and offline/online status handling
+- Enhanced `OnboardingGuide` with more contexts (POS, Reports) and additional steps
+- Updated Service Worker to v1.1.0 with IndexedDB support
 
 ### Security
 - ✅ All passwords properly hashed with bcrypt (cost factor 12)

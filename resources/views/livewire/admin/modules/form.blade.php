@@ -61,24 +61,172 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="erp-label">{{ __('Icon') }}</label>
-                    <div class="flex gap-3">
-                        <input type="text" wire:model="icon" class="erp-input w-20 text-center text-2xl" placeholder="📦">
-                        <div class="flex-1 flex items-center gap-2 flex-wrap">
-                            @foreach(['📦', '👥', '🏠', '💰', '🛒', '📊', '⚙️', '📋', '🚗', '🔧'] as $emoji)
-                                <button type="button" wire:click="$set('icon', '{{ $emoji }}')" 
-                                        class="text-2xl p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                                    {{ $emoji }}
-                                </button>
-                            @endforeach
+                    <div x-data="{ showIconPicker: false, searchIcon: '' }" class="relative">
+                        <div class="flex gap-3">
+                            <button type="button" @click="showIconPicker = !showIconPicker" 
+                                    class="erp-input w-20 text-center text-2xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700">
+                                {{ $icon }}
+                            </button>
+                            <input type="text" wire:model="icon" class="erp-input flex-1" placeholder="{{ __('Or type custom icon/emoji...') }}">
+                        </div>
+                        
+                        {{-- Icon Picker Dropdown --}}
+                        <div x-show="showIconPicker" 
+                             x-transition
+                             @click.away="showIconPicker = false"
+                             class="absolute z-50 mt-2 w-full max-w-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-4">
+                            
+                            {{-- Search --}}
+                            <input type="text" x-model="searchIcon" 
+                                   placeholder="{{ __('Search icons...') }}"
+                                   class="erp-input text-sm mb-3 w-full">
+                            
+                            {{-- Icon Categories --}}
+                            <div class="max-h-64 overflow-y-auto space-y-3">
+                                {{-- Business & Commerce --}}
+                                <div x-show="searchIcon === '' || '{{ __('Business Commerce Sales Money Finance') }}'.toLowerCase().includes(searchIcon.toLowerCase())">
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{{ __('Business & Commerce') }}</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach(['💰', '💵', '💳', '🏦', '📈', '📉', '💹', '🛒', '🛍️', '🏪', '🏬', '💼', '📊', '💲', '🏧'] as $emoji)
+                                            <button type="button" 
+                                                    wire:click="$set('icon', '{{ $emoji }}')" 
+                                                    @click="showIconPicker = false"
+                                                    class="text-xl p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                                                {{ $emoji }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                
+                                {{-- People & Employees --}}
+                                <div x-show="searchIcon === '' || '{{ __('People Employees Users HR Team') }}'.toLowerCase().includes(searchIcon.toLowerCase())">
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{{ __('People & HR') }}</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach(['👥', '👤', '👨‍💼', '👩‍💼', '🧑‍💼', '👷', '👨‍🔧', '👩‍🔧', '👨‍🏭', '👩‍🏭', '🤝', '👨‍👩‍👦', '📋'] as $emoji)
+                                            <button type="button" 
+                                                    wire:click="$set('icon', '{{ $emoji }}')" 
+                                                    @click="showIconPicker = false"
+                                                    class="text-xl p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                                                {{ $emoji }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                
+                                {{-- Real Estate & Property --}}
+                                <div x-show="searchIcon === '' || '{{ __('Property Real Estate Buildings Rental Home') }}'.toLowerCase().includes(searchIcon.toLowerCase())">
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{{ __('Real Estate & Property') }}</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach(['🏠', '🏡', '🏢', '🏣', '🏤', '🏥', '🏨', '🏩', '🏪', '🏫', '🏬', '🗝️', '🔑', '🛖'] as $emoji)
+                                            <button type="button" 
+                                                    wire:click="$set('icon', '{{ $emoji }}')" 
+                                                    @click="showIconPicker = false"
+                                                    class="text-xl p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                                                {{ $emoji }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                
+                                {{-- Vehicles & Transport --}}
+                                <div x-show="searchIcon === '' || '{{ __('Vehicles Transport Cars Trucks Delivery') }}'.toLowerCase().includes(searchIcon.toLowerCase())">
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{{ __('Vehicles & Transport') }}</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach(['🚗', '🚙', '🚕', '🚐', '🚚', '🚛', '🚜', '🏎️', '🛵', '🏍️', '🚲', '🚁', '✈️', '🚢'] as $emoji)
+                                            <button type="button" 
+                                                    wire:click="$set('icon', '{{ $emoji }}')" 
+                                                    @click="showIconPicker = false"
+                                                    class="text-xl p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                                                {{ $emoji }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                
+                                {{-- Products & Inventory --}}
+                                <div x-show="searchIcon === '' || '{{ __('Products Inventory Stock Warehouse Box') }}'.toLowerCase().includes(searchIcon.toLowerCase())">
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{{ __('Products & Inventory') }}</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach(['📦', '🗃️', '🗄️', '📥', '📤', '🏷️', '🔖', '🎁', '🧰', '🔧', '🔩', '⚙️', '🛠️', '🔬'] as $emoji)
+                                            <button type="button" 
+                                                    wire:click="$set('icon', '{{ $emoji }}')" 
+                                                    @click="showIconPicker = false"
+                                                    class="text-xl p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                                                {{ $emoji }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                
+                                {{-- Documents & Reports --}}
+                                <div x-show="searchIcon === '' || '{{ __('Documents Reports Files Paper') }}'.toLowerCase().includes(searchIcon.toLowerCase())">
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{{ __('Documents & Reports') }}</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach(['📄', '📃', '📑', '📁', '🗂️', '📂', '🗒️', '📝', '✏️', '🖊️', '📰', '🗞️', '📓', '📒'] as $emoji)
+                                            <button type="button" 
+                                                    wire:click="$set('icon', '{{ $emoji }}')" 
+                                                    @click="showIconPicker = false"
+                                                    class="text-xl p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                                                {{ $emoji }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                
+                                {{-- Manufacturing & Industry --}}
+                                <div x-show="searchIcon === '' || '{{ __('Manufacturing Industry Factory Production') }}'.toLowerCase().includes(searchIcon.toLowerCase())">
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{{ __('Manufacturing & Industry') }}</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach(['🏭', '⚒️', '🔨', '🪛', '🔧', '⚙️', '🛠️', '⛏️', '🧱', '🪵', '🔩', '🗜️', '⚗️', '🧪'] as $emoji)
+                                            <button type="button" 
+                                                    wire:click="$set('icon', '{{ $emoji }}')" 
+                                                    @click="showIconPicker = false"
+                                                    class="text-xl p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                                                {{ $emoji }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                
+                                {{-- Medical & Health --}}
+                                <div x-show="searchIcon === '' || '{{ __('Medical Health Hospital Doctor') }}'.toLowerCase().includes(searchIcon.toLowerCase())">
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{{ __('Medical & Health') }}</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach(['🏥', '💊', '💉', '🩺', '🩹', '🩻', '🧬', '🔬', '🩼', '♿', '🚑', '⚕️', '🧪', '🩸'] as $emoji)
+                                            <button type="button" 
+                                                    wire:click="$set('icon', '{{ $emoji }}')" 
+                                                    @click="showIconPicker = false"
+                                                    class="text-xl p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                                                {{ $emoji }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                
+                                {{-- Misc & Settings --}}
+                                <div x-show="searchIcon === '' || '{{ __('Settings Configuration System') }}'.toLowerCase().includes(searchIcon.toLowerCase())">
+                                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{{ __('Settings & System') }}</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach(['⚙️', '🔧', '🛡️', '🔒', '🔓', '🗝️', '🔑', '📡', '💻', '🖥️', '⌨️', '🖱️', '📱', '🔔'] as $emoji)
+                                            <button type="button" 
+                                                    wire:click="$set('icon', '{{ $emoji }}')" 
+                                                    @click="showIconPicker = false"
+                                                    class="text-xl p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                                                {{ $emoji }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ __('Click an emoji or type your own') }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ __('Click to open icon picker or type custom icon') }}</p>
                 </div>
 
                 <div>
                     <label class="erp-label">{{ __('Color Theme') }}</label>
                     <div class="flex gap-2 flex-wrap">
-                        @foreach(['emerald' => 'bg-emerald-500', 'blue' => 'bg-blue-500', 'purple' => 'bg-purple-500', 'red' => 'bg-red-500', 'amber' => 'bg-amber-500', 'cyan' => 'bg-cyan-500', 'pink' => 'bg-pink-500'] as $colorName => $colorClass)
+                        @foreach(['emerald' => 'bg-emerald-500', 'blue' => 'bg-blue-500', 'purple' => 'bg-purple-500', 'red' => 'bg-red-500', 'amber' => 'bg-amber-500', 'cyan' => 'bg-cyan-500', 'pink' => 'bg-pink-500', 'indigo' => 'bg-indigo-500', 'teal' => 'bg-teal-500', 'orange' => 'bg-orange-500'] as $colorName => $colorClass)
                             <label class="cursor-pointer">
                                 <input type="radio" wire:model="color" value="{{ $colorName }}" class="sr-only">
                                 <div class="w-8 h-8 rounded-full {{ $colorClass }} {{ $color === $colorName ? 'ring-2 ring-offset-2 ring-slate-400 dark:ring-offset-slate-800' : '' }} hover:scale-110 transition-transform"></div>
