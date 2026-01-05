@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
@@ -48,6 +49,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         'two_factor_enabled',
         'max_sessions',
         'avatar',
+        'preferences',
     ];
 
     protected $guarded = [
@@ -73,6 +75,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         'two_factor_confirmed_at' => 'datetime',
         'can_modify_price' => 'bool',
         'password_changed_at' => 'datetime',
+        'preferences' => 'array',
     ];
 
     public function branch(): BelongsTo
@@ -98,6 +101,23 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     public function sessions(): HasMany
     {
         return $this->hasMany(UserSession::class);
+    }
+
+    /**
+     * Get the HR employee record linked to this user
+     */
+    public function hrEmployee(): HasOne
+    {
+        return $this->hasOne(HREmployee::class, 'user_id');
+    }
+
+    /**
+     * Get the employee ID for self-service features
+     * Returns the ID of the linked HREmployee record
+     */
+    public function getEmployeeIdAttribute(): ?int
+    {
+        return $this->hrEmployee?->id;
     }
 
     public function hasTwoFactorEnabled(): bool
