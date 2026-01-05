@@ -5450,5 +5450,17 @@
     "New Product": "منتج جديد",
     "New Customer": "عميل جديد",
     "POS Terminal": "نقطة البيع",
-    "Action": "إجراء"
+    "Action": "إجراء",
+    "Self Service": "الخدمة الذاتية",
+    "My Attendance": "حضوري",
+    "My Leaves": "إجازاتي",
+    "My Payslips": "كشوف رواتبي",
+    "Branch Settings": "إعدادات الفرع",
+    "Branch Reports": "تقارير الفرع",
+    "Branch Employees": "موظفو الفرع",
+    "Branch Admin": "مسؤول الفرع",
+    "Branch Manager": "مدير الفرع",
+    "Branch Cashier": "كاشير الفرع",
+    "Branch Supervisor": "مشرف الفرع",
+    "Branch Employee": "موظف الفرع"
 }

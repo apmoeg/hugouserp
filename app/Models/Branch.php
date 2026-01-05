@@ -177,4 +177,65 @@ class Branch extends BaseModel
     {
         return ModuleSetting::getValue($moduleId, $key, $this->id, $default);
     }
+
+    /**
+     * Get active employees in this branch
+     */
+    public function activeEmployees(): HasMany
+    {
+        return $this->hasMany(User::class)
+            ->where('is_active', true);
+    }
+
+    /**
+     * Check if a user has a specific permission in this branch
+     * This method considers both global permissions and branch admin permissions
+     */
+    public function userHasPermissionInBranch(User $user, string $permission): bool
+    {
+        // Super Admin has all permissions
+        if ($user->hasRole('Super Admin')) {
+            return true;
+        }
+
+        // Check if user is a branch admin with specific permissions
+        $branchAdmin = $this->branchAdmins()
+            ->where('user_id', $user->id)
+            ->where('is_active', true)
+            ->first();
+
+        if ($branchAdmin) {
+            // Map permission names to branch admin capabilities
+            $permissionMap = [
+                'branch.employees.manage' => 'can_manage_users',
+                'branch.reports.view' => 'can_view_reports',
+                'branch.settings.manage' => 'can_manage_settings',
+            ];
+
+            if (isset($permissionMap[$permission])) {
+                $capability = $permissionMap[$permission];
+                return $branchAdmin->$capability ?? false;
+            }
+        }
+
+        // Fall back to standard permission check
+        return $user->can($permission);
+    }
+
+    /**
+     * Get employees count for this branch
+     */
+    public function getEmployeesCountAttribute(): int
+    {
+        return $this->activeEmployees()->count();
+    }
+
+    /**
+     * Check if user belongs to this branch
+     */
+    public function hasUser(User $user): bool
+    {
+        return $user->branch_id === $this->id || 
+               $this->users()->where('users.id', $user->id)->exists();
+    }
 }

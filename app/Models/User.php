@@ -140,4 +140,110 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
+
+    /**
+     * Check if user is a branch admin for a specific branch
+     */
+    public function isBranchAdmin(?int $branchId = null): bool
+    {
+        $branchId = $branchId ?? $this->branch_id;
+        
+        if (!$branchId) {
+            return false;
+        }
+
+        return BranchAdmin::where('user_id', $this->id)
+            ->where('branch_id', $branchId)
+            ->where('is_active', true)
+            ->exists();
+    }
+
+    /**
+     * Get branch admin record for this user
+     */
+    public function getBranchAdminRecord(?int $branchId = null): ?BranchAdmin
+    {
+        $branchId = $branchId ?? $this->branch_id;
+        
+        if (!$branchId) {
+            return null;
+        }
+
+        return BranchAdmin::where('user_id', $this->id)
+            ->where('branch_id', $branchId)
+            ->where('is_active', true)
+            ->first();
+    }
+
+    /**
+     * Check if user can manage users in their branch
+     */
+    public function canManageBranchUsers(): bool
+    {
+        if ($this->hasRole('Super Admin')) {
+            return true;
+        }
+
+        $branchAdmin = $this->getBranchAdminRecord();
+        return $branchAdmin?->can_manage_users ?? false;
+    }
+
+    /**
+     * Check if user can view reports in their branch
+     */
+    public function canViewBranchReports(): bool
+    {
+        if ($this->hasRole('Super Admin')) {
+            return true;
+        }
+
+        $branchAdmin = $this->getBranchAdminRecord();
+        return $branchAdmin?->can_view_reports ?? $this->can('branch.reports.view');
+    }
+
+    /**
+     * Check if user can manage branch settings
+     */
+    public function canManageBranchSettings(): bool
+    {
+        if ($this->hasRole('Super Admin')) {
+            return true;
+        }
+
+        $branchAdmin = $this->getBranchAdminRecord();
+        return $branchAdmin?->can_manage_settings ?? false;
+    }
+
+    /**
+     * Get current branch for the user
+     */
+    public function getCurrentBranch(): ?Branch
+    {
+        // Check session for admin branch context first
+        $contextBranchId = session('admin_branch_context');
+        
+        if ($contextBranchId && $this->hasRole('Super Admin')) {
+            return Branch::find($contextBranchId);
+        }
+
+        return $this->branch;
+    }
+
+    /**
+     * Check if user is a branch employee (not admin or manager)
+     */
+    public function isBranchEmployee(): bool
+    {
+        return $this->hasRole('Branch Employee') || 
+               $this->hasRole('Branch Cashier');
+    }
+
+    /**
+     * Check if user is a branch supervisor
+     */
+    public function isBranchSupervisor(): bool
+    {
+        return $this->hasRole('Branch Supervisor') || 
+               $this->hasRole('Branch Manager');
+    }
 }

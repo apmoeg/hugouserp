@@ -5215,5 +5215,17 @@
     "New Product": "New Product",
     "New Customer": "New Customer",
     "POS Terminal": "POS Terminal",
-    "Action": "Action"
+    "Action": "Action",
+    "Self Service": "Self Service",
+    "My Attendance": "My Attendance",
+    "My Leaves": "My Leaves",
+    "My Payslips": "My Payslips",
+    "Branch Settings": "Branch Settings",
+    "Branch Reports": "Branch Reports",
+    "Branch Employees": "Branch Employees",
+    "Branch Admin": "Branch Admin",
+    "Branch Manager": "Branch Manager",
+    "Branch Cashier": "Branch Cashier",
+    "Branch Supervisor": "Branch Supervisor",
+    "Branch Employee": "Branch Employee"
 }
