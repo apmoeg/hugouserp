@@ -117,15 +117,8 @@
                 <x-sidebar.item route="app.helpdesk.index" icon="support" label="Helpdesk" />
             @endcan
 
-            {{-- 
-                Employee Self-Service Section
-                TODO: Implement the following routes:
-                - app.hrm.my-attendance (employee attendance self-registration)
-                - app.hrm.my-leaves (leave requests management)
-                - app.hrm.my-payslips (payslip viewing)
-                Currently hidden until routes are created.
-            --}}
-            {{-- @php
+            {{-- Employee Self-Service Section --}}
+            @php
                 $hasSelfService = $currentUser?->can('employee.self.attendance') || 
                                   $currentUser?->can('employee.self.leave-request') || 
                                   $currentUser?->can('employee.self.payslip-view');
@@ -146,7 +139,7 @@
             @can('employee.self.payslip-view')
                 <x-sidebar.item route="app.hrm.my-payslips" icon="document" label="My Payslips" />
             @endcan
-            @endif --}}
+            @endif
 
             <!-- Divider -->
             <li class="pt-4 pb-2">
@@ -158,37 +151,34 @@
                 <x-sidebar.item route="admin.settings" icon="cog" label="Settings" />
             @endcan
 
-            {{-- Branch Settings - Route to be implemented
+            <!-- Branch Settings (for Branch Admins) -->
             @can('branch.settings.manage')
                 <x-sidebar.item route="admin.branch-settings" icon="building" label="Branch Settings" />
             @endcan
-            --}}
 
             <!-- Reports -->
             @can('reports.view')
                 <x-sidebar.item route="admin.reports.index" icon="chart" label="Reports" />
             @endcan
 
-            {{-- Branch Reports - Route to be implemented
+            <!-- Branch Reports (for Branch Managers without full reports access) -->
             @can('branch.reports.view')
                 @cannot('reports.view')
                     <x-sidebar.item route="admin.branch-reports" icon="chart" label="Branch Reports" />
                 @endcannot
             @endcan
-            --}}
 
             <!-- Users -->
             @can('users.manage')
                 <x-sidebar.item route="admin.users.index" icon="users" label="Users" />
             @endcan
 
-            {{-- Branch Employees - Route to be implemented
+            <!-- Branch Employees (for Branch Admins without full users access) -->
             @can('branch.employees.manage')
                 @cannot('users.manage')
                     <x-sidebar.item route="admin.branch-employees" icon="users" label="Branch Employees" />
                 @endcannot
             @endcan
-            --}}
 
             <!-- Roles -->
             @can('roles.manage')

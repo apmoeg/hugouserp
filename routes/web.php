@@ -731,6 +731,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports', HrmReportsDashboard::class)
             ->name('reports')
             ->middleware('can:hrm.view-reports');
+
+        // Self Service Routes
+        Route::get('/my-attendance', \App\Livewire\Hrm\SelfService\MyAttendance::class)
+            ->name('my-attendance')
+            ->middleware('can:employee.self.attendance');
+
+        Route::get('/my-leaves', \App\Livewire\Hrm\SelfService\MyLeaves::class)
+            ->name('my-leaves')
+            ->middleware('can:employee.self.leave-request');
+
+        Route::get('/my-payslips', \App\Livewire\Hrm\SelfService\MyPayslips::class)
+            ->name('my-payslips')
+            ->middleware('can:employee.self.payslip-view');
     });
 
     // BANKING MODULE
@@ -1259,6 +1272,19 @@ Route::get('/app/media/{media}/download', \App\Http\Controllers\Admin\MediaDownl
             ->name('activity-log.show')
             ->middleware('can:logs.audit.view')
             ->whereNumber('id');
+
+        // Branch Admin Routes
+        Route::get('/branch-settings', \App\Livewire\Admin\Branch\Settings::class)
+            ->name('branch-settings')
+            ->middleware('can:branch.settings.manage');
+
+        Route::get('/branch-reports', \App\Livewire\Admin\Branch\Reports::class)
+            ->name('branch-reports')
+            ->middleware('can:branch.reports.view');
+
+        Route::get('/branch-employees', \App\Livewire\Admin\Branch\Employees::class)
+            ->name('branch-employees')
+            ->middleware('can:branch.employees.manage');
 
         /*
         |--------------------------------------------------------------------------
