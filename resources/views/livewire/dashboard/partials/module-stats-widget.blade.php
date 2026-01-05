@@ -1,7 +1,17 @@
 {{-- Module Stats Widget (Generic template for module-specific widgets) --}}
+{{-- 
+    Expected $widgetConfig structure:
+    [
+        'key' => string,        // Widget identifier (e.g., 'motorcycle_stats')
+        'title' => string,      // English title
+        'title_ar' => string,   // Arabic title (optional)
+        'icon' => string,       // Emoji icon
+        'module' => string,     // Module name (e.g., 'motorcycle', 'spares')
+    ]
+--}}
 @php
     $widgetKey = $widgetConfig['key'] ?? 'unknown';
-    $widgetTitle = $widgetConfig['title_ar'] ?? $widgetConfig['title'] ?? 'Module Stats';
+    $widgetTitle = $widgetConfig['title_ar'] ?? $widgetConfig['title'] ?? __('Module Statistics');
     $widgetIcon = $widgetConfig['icon'] ?? '📊';
     $moduleName = $widgetConfig['module'] ?? '';
 @endphp
