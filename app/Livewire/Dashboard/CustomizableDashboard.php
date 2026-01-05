@@ -41,6 +41,7 @@ class CustomizableDashboard extends Component
     public array $paymentMethodsData = [];
     public array $lowStockProducts = [];
     public array $recentSales = [];
+    public array $recentActivities = [];
     public array $trendIndicators = [];
     
     // UI state
@@ -105,6 +106,14 @@ class CustomizableDashboard extends Component
             'size' => 'half',
             'default_enabled' => true,
             'permission' => 'sales.view',
+        ],
+        'recent_activity' => [
+            'title' => 'Recent Activity',
+            'title_ar' => 'النشاط الأخير',
+            'icon' => 'clock',
+            'size' => 'half',
+            'default_enabled' => true,
+            'permission' => 'logs.audit.view',
         ],
         'quick_stats' => [
             'title' => 'Quick Stats',
@@ -175,6 +184,50 @@ class CustomizableDashboard extends Component
         
         // Load all data using the shared trait
         $this->loadAllDashboardData();
+        
+        // Load recent activities if user has permission
+        if ($user->can('logs.audit.view')) {
+            $this->loadRecentActivities();
+        }
+    }
+
+    /**
+     * Load recent activities from audit log
+     */
+    protected function loadRecentActivities(): void
+    {
+        $this->recentActivities = \App\Models\AuditLog::with('user')
+            ->latest()
+            ->limit(5)
+            ->get()
+            ->map(fn($activity) => [
+                'id' => $activity->id,
+                'action' => $activity->action ?? 'unknown',
+                'model' => class_basename($activity->auditable_type ?? 'Unknown'),
+                'description' => $this->formatActivityDescription($activity),
+                'user' => $activity->user?->name ?? __('System'),
+                'time' => $activity->created_at->diffForHumans(),
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Format activity description for display
+     */
+    protected function formatActivityDescription(\App\Models\AuditLog $activity): string
+    {
+        $model = class_basename($activity->auditable_type ?? 'Unknown');
+        $action = __($activity->action ?? 'unknown');
+
+        $identifier = $activity->new_values['name'] 
+            ?? $activity->new_values['reference_number']
+            ?? $activity->new_values['code']
+            ?? $activity->old_values['name']
+            ?? $activity->old_values['reference_number']
+            ?? $activity->old_values['code']
+            ?? "#" . ($activity->auditable_id ?? 'N/A');
+
+        return "{$action} {$model}: {$identifier}";
     }
 
     /**
@@ -312,6 +365,12 @@ class CustomizableDashboard extends Component
     public function refreshData(): void
     {
         $this->refreshDashboardData();
+        
+        // Also reload recent activities if user has permission
+        $user = Auth::user();
+        if ($user && $user->can('logs.audit.view')) {
+            $this->loadRecentActivities();
+        }
     }
 
     public function render(): View

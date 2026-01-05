@@ -443,11 +443,25 @@ const KeyboardShortcuts = {
         const tbody = document.createElement('tbody');
         
         const shortcuts = [
+            // General shortcuts
             { key: 'Ctrl + S', action: 'Save / حفظ' },
             { key: 'Ctrl + F', action: 'Search / بحث' },
             { key: 'Ctrl + N', action: 'New Item / إضافة جديد' },
+            { key: 'Ctrl + K', action: 'Command Palette / لوحة الأوامر' },
             { key: 'Escape', action: 'Close Modal / إغلاق' },
-            { key: 'F1', action: 'Help / مساعدة' }
+            { key: 'F1', action: 'Help / مساعدة' },
+            { key: '?', action: 'Show Shortcuts / إظهار الاختصارات' },
+            // Navigation shortcuts
+            { key: 'g h', action: 'Go to Dashboard / لوحة التحكم' },
+            { key: 'g s', action: 'Go to Sales / المبيعات' },
+            { key: 'g p', action: 'Go to Products / المنتجات' },
+            { key: 'g i', action: 'Go to Inventory / المخزون' },
+            { key: 'g r', action: 'Go to Reports / التقارير' },
+            // POS shortcuts
+            { key: 'F2', action: 'POS: Focus Quantity / الكمية' },
+            { key: 'F4', action: 'POS: Apply Discount / خصم' },
+            { key: 'F8', action: 'POS: Clear Cart / مسح' },
+            { key: 'F12', action: 'POS: Complete Sale / إتمام البيع' }
         ];
         
         shortcuts.forEach(s => {
@@ -477,7 +491,7 @@ const KeyboardShortcuts = {
             html: table,
             icon: 'info',
             confirmButtonText: 'OK',
-            width: '400px'
+            width: '500px'
         });
     }
 };
