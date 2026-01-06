@@ -10,9 +10,24 @@ class TransferItem extends BaseModel
 {
     protected ?string $moduleKey = 'inventory';
 
-    protected $fillable = ['transfer_id', 'product_id', 'qty', 'extra_attributes'];
+    /**
+     * Fillable fields aligned with migration:
+     * 2026_01_04_000003_create_inventory_tables.php
+     */
+    protected $fillable = [
+        'transfer_id',
+        'product_id',
+        'quantity',
+        'received_quantity',
+        'unit_cost',
+        'notes',
+    ];
 
-    protected $casts = ['qty' => 'decimal:4'];
+    protected $casts = [
+        'quantity' => 'decimal:4',
+        'received_quantity' => 'decimal:4',
+        'unit_cost' => 'decimal:4',
+    ];
 
     public function transfer(): BelongsTo
     {
@@ -22,5 +37,16 @@ class TransferItem extends BaseModel
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    // Backward compatibility accessor
+    public function getQtyAttribute()
+    {
+        return $this->quantity;
+    }
+
+    public function setQtyAttribute($value): void
+    {
+        $this->attributes['quantity'] = $value;
     }
 }

@@ -17,15 +17,15 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
         parent::__construct($model);
     }
 
-    protected function baseBranchQuery(int $branchId): Builder
+    protected function baseQuery(): Builder
     {
-        return $this->query()
-            ->where('branch_id', $branchId);
+        return $this->query();
     }
 
     public function paginateForBranch(int $branchId, array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
-        $query = $this->baseBranchQuery($branchId);
+        // Note: stock_movements table doesn't have branch_id - filter via warehouse
+        $query = $this->baseQuery();
 
         if (! empty($filters['product_id'])) {
             $query->where('product_id', (int) $filters['product_id']);
@@ -35,8 +35,8 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
             $query->where('warehouse_id', (int) $filters['warehouse_id']);
         }
 
-        if (! empty($filters['direction'])) {
-            $query->where('direction', $filters['direction']);
+        if (! empty($filters['movement_type'])) {
+            $query->where('movement_type', $filters['movement_type']);
         }
 
         if (! empty($filters['from_date'])) {
@@ -46,6 +46,11 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
         if (! empty($filters['to_date'])) {
             $query->whereDate('created_at', '<=', $filters['to_date']);
         }
+
+        // Filter by branch through warehouse relationship
+        $query->whereHas('warehouse', function ($q) use ($branchId) {
+            $q->where('branch_id', $branchId);
+        });
 
         return $query->orderByDesc('id')->paginate($perPage);
     }
@@ -59,10 +64,13 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
 
     public function summaryForProduct(int $branchId, int $productId): array
     {
-        $baseQuery = $this->baseBranchQuery($branchId)->where('product_id', $productId);
+        $baseQuery = $this->baseQuery()
+            ->where('product_id', $productId)
+            ->whereHas('warehouse', fn($q) => $q->where('branch_id', $branchId));
 
-        $in = (float) (clone $baseQuery)->where('direction', 'in')->sum('qty');
-        $out = (float) (clone $baseQuery)->where('direction', 'out')->sum('qty');
+        // quantity > 0 = in, quantity < 0 = out
+        $in = (float) (clone $baseQuery)->where('quantity', '>', 0)->sum('quantity');
+        $out = (float) abs((clone $baseQuery)->where('quantity', '<', 0)->sum('quantity'));
 
         return [
             'in' => $in,
@@ -73,28 +81,64 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
 
     public function currentStockForBranch(int $branchId, int $productId): float
     {
-        $baseQuery = $this->baseBranchQuery($branchId)->where('product_id', $productId);
+        $baseQuery = $this->baseQuery()
+            ->where('product_id', $productId)
+            ->whereHas('warehouse', fn($q) => $q->where('branch_id', $branchId));
 
-        $in = (float) (clone $baseQuery)->where('direction', 'in')->sum('qty');
-        $out = (float) (clone $baseQuery)->where('direction', 'out')->sum('qty');
-
-        return $in - $out;
+        // Sum all quantities (positive = in, negative = out)
+        return (float) $baseQuery->sum('quantity');
     }
 
     public function currentStockPerWarehouse(int $branchId, int $productId): Collection
     {
-        $movements = $this->baseBranchQuery($branchId)
+        $movements = $this->baseQuery()
             ->where('product_id', $productId)
-            ->get(['warehouse_id', 'direction', 'qty']);
+            ->whereHas('warehouse', fn($q) => $q->where('branch_id', $branchId))
+            ->get(['warehouse_id', 'quantity']);
 
         $map = $movements->groupBy('warehouse_id')
             ->map(function ($group) {
-                $in = $group->where('direction', 'in')->sum('qty');
-                $out = $group->where('direction', 'out')->sum('qty');
-
-                return (float) ($in - $out);
+                return (float) $group->sum('quantity');
             });
 
         return $map;
+    }
+
+    /**
+     * Create a stock movement with proper column mapping
+     */
+    public function create(array $data): StockMovement
+    {
+        // Map legacy field names to new schema
+        $mappedData = [
+            'product_id' => $data['product_id'],
+            'warehouse_id' => $data['warehouse_id'],
+            'movement_type' => $data['movement_type'] ?? $data['reason'] ?? 'adjustment',
+            'reference_type' => $data['reference_type'] ?? null,
+            'reference_id' => $data['reference_id'] ?? null,
+            'notes' => $data['notes'] ?? $data['reason'] ?? null,
+            'created_by' => $data['created_by'] ?? null,
+        ];
+
+        // Handle quantity: direction 'out' should be negative
+        $qty = abs((float) ($data['qty'] ?? $data['quantity'] ?? 0));
+        $direction = $data['direction'] ?? 'in';
+        
+        if ($direction === 'out') {
+            $qty = -$qty;
+        }
+        $mappedData['quantity'] = $qty;
+
+        // Calculate stock_before and stock_after
+        $currentStock = $this->currentStockPerWarehouse(
+            \App\Models\Warehouse::find($data['warehouse_id'])?->branch_id ?? 0,
+            $data['product_id']
+        )->get($data['warehouse_id'], 0.0);
+
+        $mappedData['stock_before'] = $currentStock;
+        $mappedData['stock_after'] = $currentStock + $qty;
+        $mappedData['unit_cost'] = $data['unit_cost'] ?? null;
+
+        return StockMovement::create($mappedData);
     }
 }

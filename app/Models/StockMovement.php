@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Support\Str;
 
 class StockMovement extends BaseModel
 {
@@ -12,66 +11,47 @@ class StockMovement extends BaseModel
 
     protected $table = 'stock_movements';
 
+    /**
+     * Fillable fields aligned with migration:
+     * 2026_01_04_000003_create_inventory_tables.php
+     */
     protected $fillable = [
-        'uuid', 'code', 'branch_id', 'warehouse_id', 'product_id',
-        'direction', 'qty', 'uom', 'unit_cost', 'cost_currency',
-        'valuated_amount',
-        'reference_type', 'reference_id',
-        'batch_no', 'serial_no', 'expires_at',
-        'status', 'notes', 'extra_attributes', 'created_by', 'updated_by',
-        // Legacy attribute support - these are mapped to qty and direction via mutators
-        // but must be in fillable for mass assignment to work properly
-        'quantity', 'type',
+        'product_id',
+        'warehouse_id',
+        'batch_id',
+        'movement_type',
+        'reference_type',
+        'reference_id',
+        'quantity',
+        'unit_cost',
+        'stock_before',
+        'stock_after',
+        'notes',
+        'created_by',
     ];
 
     protected $casts = [
-        'qty' => 'decimal:4',
+        'quantity' => 'decimal:4',
         'unit_cost' => 'decimal:4',
-        'valuated_amount' => 'decimal:4',
-        'expires_at' => 'datetime',
-        'extra_attributes' => 'array',
+        'stock_before' => 'decimal:4',
+        'stock_after' => 'decimal:4',
     ];
 
-    /**
-     * Support legacy attribute naming (quantity/type) while persisting to the
-     * canonical qty/direction columns.
-     */
-    public function setQuantityAttribute($value): void
-    {
-        $this->attributes['qty'] = $value;
-    }
-
-    public function getQuantityAttribute(): ?float
-    {
-        return $this->attributes['qty'] ?? null;
-    }
-
-    public function setTypeAttribute($value): void
-    {
-        $this->attributes['direction'] = $value;
-    }
-
-    public function getTypeAttribute(): ?string
-    {
-        return $this->attributes['direction'] ?? null;
-    }
+    // Disable timestamps since migration only has created_at
+    public $timestamps = false;
 
     protected static function booted(): void
     {
         parent::booted();
 
         static::creating(function ($m) {
-            $m->uuid = $m->uuid ?: (string) Str::uuid();
-            $m->code = $m->code ?: 'STM-'.Str::upper(Str::random(8));
-            if ($m->valuated_amount === null) {
-                $m->valuated_amount = (string) ((float) $m->qty * (float) $m->unit_cost);
-            }
+            $m->created_at = $m->created_at ?? now();
         });
     }
 
-    public function branch(): BelongsTo
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Product::class);
     }
 
     public function warehouse(): BelongsTo
@@ -79,9 +59,9 @@ class StockMovement extends BaseModel
         return $this->belongsTo(Warehouse::class);
     }
 
-    public function product(): BelongsTo
+    public function batch(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(InventoryBatch::class, 'batch_id');
     }
 
     /**
@@ -97,28 +77,70 @@ class StockMovement extends BaseModel
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function updatedBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'updated_by');
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    // Scopes
     public function scopeIn($q)
     {
-        return $q->where('direction', 'in');
+        return $q->where('quantity', '>', 0);
     }
 
     public function scopeOut($q)
     {
-        return $q->where('direction', 'out');
+        return $q->where('quantity', '<', 0);
     }
 
     public function scopeForProduct($q, $id)
     {
         return $q->where('product_id', $id);
+    }
+
+    public function scopePurchase($q)
+    {
+        return $q->where('movement_type', 'purchase');
+    }
+
+    public function scopeSale($q)
+    {
+        return $q->where('movement_type', 'sale');
+    }
+
+    public function scopeTransfer($q)
+    {
+        return $q->where('movement_type', 'transfer');
+    }
+
+    public function scopeAdjustment($q)
+    {
+        return $q->where('movement_type', 'adjustment');
+    }
+
+    // Backward compatibility accessors
+    public function getQtyAttribute()
+    {
+        return $this->quantity;
+    }
+
+    public function setQtyAttribute($value): void
+    {
+        $this->attributes['quantity'] = $value;
+    }
+
+    public function getDirectionAttribute(): string
+    {
+        return $this->quantity >= 0 ? 'in' : 'out';
+    }
+
+    public function getTypeAttribute(): ?string
+    {
+        return $this->movement_type;
+    }
+
+    public function setTypeAttribute($value): void
+    {
+        $this->attributes['movement_type'] = $value;
     }
 }
