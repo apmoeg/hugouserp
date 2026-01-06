@@ -68,9 +68,9 @@ class StockService
         }
 
         // Calculate value: SUM(quantity * unit_cost)
-        // unit_cost is the cost at time of movement
-        return (float) $query->selectRaw('COALESCE(SUM(quantity * COALESCE(unit_cost, 0)), 0) as value')
-            ->value('value');
+        // IFNULL handles NULL unit_cost values
+        return (float) ($query->selectRaw('SUM(quantity * IFNULL(unit_cost, 0)) as value')
+            ->value('value') ?? 0);
     }
 
     /**

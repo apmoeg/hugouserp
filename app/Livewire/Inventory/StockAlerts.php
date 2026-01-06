@@ -31,7 +31,8 @@ class StockAlerts extends Component
     public function render()
     {
         // Using subquery approach to avoid column ambiguity issues with joins
-        // quantity is signed: positive = in, negative = out
+        // Note: stock_movements table has no status/deleted_at columns per migration
+        // All movements are valid - quantity is signed: positive = in, negative = out
         $stockSubquery = DB::table('stock_movements')
             ->select('stock_movements.product_id')
             ->selectRaw('SUM(stock_movements.quantity) as total_stock')
