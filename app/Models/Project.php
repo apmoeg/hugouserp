@@ -14,32 +14,47 @@ class Project extends Model
 {
     use HasFactory, SoftDeletes, HasBranch;
 
+    /**
+     * Fillable fields aligned with migration:
+     * 2026_01_04_000011_create_projects_documents_support_tables.php
+     */
     protected $fillable = [
+        'branch_id',
         'code',
         'name',
+        'name_ar',
         'description',
-        'client_id',
-        'branch_id',
-        'project_manager_id',  // Changed from 'manager_id'
+        'customer_id',
+        'manager_id',
         'status',
         'priority',
         'start_date',
         'end_date',
-        'budget_amount',       // Changed from 'budget'
-        'currency',            // Changed from 'currency_id' - migration uses string, not FK
-        'progress',
+        'actual_start_date',
+        'actual_end_date',
+        'progress_percent',
+        'budget',
+        'actual_cost',
+        'billing_type',
+        'hourly_rate',
+        'category',
+        'tags',
         'notes',
-        'metadata',            // Added to match migration
+        'custom_fields',
         'created_by',
-        'updated_by',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
-        'budget_amount' => 'decimal:2',  // Changed from 'budget'
-        'progress' => 'integer',
-        'metadata' => 'array',           // Added to match migration
+        'actual_start_date' => 'date',
+        'actual_end_date' => 'date',
+        'budget' => 'decimal:4',
+        'actual_cost' => 'decimal:4',
+        'hourly_rate' => 'decimal:4',
+        'progress_percent' => 'decimal:2',
+        'tags' => 'array',
+        'custom_fields' => 'array',
     ];
 
     protected static function boot()
@@ -64,24 +79,20 @@ class Project extends Model
         return $this->belongsTo(Branch::class);
     }
 
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class, 'customer_id');
+    }
+
+    // Backward compatibility - returns the customer relationship
     public function client(): BelongsTo
     {
-        return $this->belongsTo(Customer::class, 'client_id');
+        return $this->belongsTo(Customer::class, 'customer_id');
     }
 
     public function manager(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'project_manager_id');  // Changed from 'manager_id'
-    }
-
-    public function currency(): BelongsTo
-    {
-        // Note: The migration uses 'currency' as a string column (3-char code like 'USD', 'EUR')
-        // This relationship assumes a 'currencies' table exists with a 'code' column.
-        // If the currencies table doesn't have a 'code' column or doesn't exist,
-        // this relationship may not work. Consider using an accessor instead:
-        // public function getCurrencyCodeAttribute() { return $this->currency; }
-        return $this->belongsTo(Currency::class, 'currency', 'code');
+        return $this->belongsTo(User::class, 'manager_id');
     }
 
     public function tasks(): HasMany
@@ -109,9 +120,25 @@ class Project extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function updatedBy(): BelongsTo
+    // Backward compatibility accessors
+    public function getProjectManagerIdAttribute()
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->manager_id;
+    }
+
+    public function getBudgetAmountAttribute()
+    {
+        return $this->budget;
+    }
+
+    public function getProgressAttribute()
+    {
+        return (int) $this->progress_percent;
+    }
+
+    public function getClientIdAttribute()
+    {
+        return $this->customer_id;
     }
 
     // Scopes
@@ -127,8 +154,7 @@ class Project extends Model
 
     public function scopeOverBudget($query)
     {
-        return $query->whereRaw('COALESCE((SELECT SUM(hours * hourly_rate) FROM project_time_logs WHERE project_id = projects.id), 0) + 
-                                 (SELECT COALESCE(SUM(amount), 0) FROM project_expenses WHERE project_id = projects.id AND status = "approved") > budget_amount');
+        return $query->whereRaw('actual_cost > budget');
     }
 
     public function scopeOverdue($query)
@@ -138,7 +164,7 @@ class Project extends Model
     }
 
     // Business Methods
-    public function getProgress(): int
+    public function getCalculatedProgress(): int
     {
         $totalTasks = $this->tasks()->count();
         
@@ -153,7 +179,7 @@ class Project extends Model
 
     public function getTotalBudget(): float
     {
-        return (float) $this->budget_amount;  // Changed from 'budget'
+        return (float) $this->budget;
     }
 
     public function getTotalActualCost(): float

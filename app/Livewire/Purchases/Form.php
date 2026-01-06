@@ -335,18 +335,24 @@ class Form extends Component
 
                         foreach ($this->items as $item) {
                             $lineTotal = ($item['qty'] * $item['unit_cost']) - ($item['discount'] ?? 0);
-                            $lineTotal += $lineTotal * (($item['tax_rate'] ?? 0) / 100);
+                            $taxAmount = $lineTotal * (($item['tax_rate'] ?? 0) / 100);
+                            $lineTotal += $taxAmount;
+
+                            // Get product info
+                            $product = Product::find($item['product_id']);
 
                             PurchaseItem::create([
                                 'purchase_id' => $purchase->id,
                                 'product_id' => $item['product_id'],
-                                'branch_id' => $purchase->branch_id,
-                                'qty' => $item['qty'],
-                                'unit_cost' => $item['unit_cost'],
-                                'discount' => $item['discount'] ?? 0,
-                                'tax_rate' => $item['tax_rate'] ?? 0,
+                                'product_name' => $product?->name ?? $item['product_name'] ?? '',
+                                'sku' => $product?->sku ?? $item['sku'] ?? null,
+                                'quantity' => $item['qty'],
+                                'received_quantity' => 0,
+                                'unit_price' => $item['unit_cost'],
+                                'discount_percent' => 0,
+                                'tax_percent' => $item['tax_rate'] ?? 0,
+                                'tax_amount' => $taxAmount,
                                 'line_total' => $lineTotal,
-                                'created_by' => $user->id,
                             ]);
                         }
 

@@ -365,29 +365,36 @@ class Form extends Component
 
                         foreach ($this->items as $item) {
                             $lineTotal = ($item['qty'] * $item['unit_price']) - ($item['discount'] ?? 0);
-                            $lineTotal += $lineTotal * (($item['tax_rate'] ?? 0) / 100);
+                            $taxAmount = $lineTotal * (($item['tax_rate'] ?? 0) / 100);
+                            $lineTotal += $taxAmount;
+
+                            // Get product info
+                            $product = Product::find($item['product_id']);
 
                             SaleItem::create([
                                 'sale_id' => $sale->id,
                                 'product_id' => $item['product_id'],
-                                'branch_id' => $sale->branch_id,
-                                'qty' => $item['qty'],
+                                'warehouse_id' => $sale->warehouse_id,
+                                'product_name' => $product?->name ?? $item['product_name'] ?? '',
+                                'sku' => $product?->sku ?? $item['sku'] ?? null,
+                                'quantity' => $item['qty'],
                                 'unit_price' => $item['unit_price'],
-                                'discount' => $item['discount'] ?? 0,
-                                'tax_rate' => $item['tax_rate'] ?? 0,
+                                'discount_percent' => 0,
+                                'discount_amount' => $item['discount'] ?? 0,
+                                'tax_percent' => $item['tax_rate'] ?? 0,
+                                'tax_amount' => $taxAmount,
                                 'line_total' => $lineTotal,
-                                'created_by' => $user->id,
                             ]);
                         }
 
                         if ($this->payment_amount > 0) {
                             SalePayment::create([
                                 'sale_id' => $sale->id,
-                                'branch_id' => $sale->branch_id,
                                 'payment_method' => $this->payment_method,
                                 'amount' => $this->payment_amount,
-                                'payment_date' => now(),
-                                'created_by' => $user->id,
+                                'payment_date' => now()->toDateString(),
+                                'status' => 'completed',
+                                'received_by' => $user->id,
                             ]);
                         }
 

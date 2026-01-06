@@ -66,27 +66,36 @@ class PurchaseService implements PurchaseServiceInterface
                     }
                     
                     $qty = (float) $it['qty'];
-                    $unitCost = (float) ($it['price'] ?? 0);
+                    // Accept price from multiple possible field names for API compatibility
+                    $unitPrice = (float) ($it['unit_price'] ?? $it['price'] ?? 0);
                     
                     // Critical ERP: Validate positive quantities and prices
                     if ($qty <= 0) {
                         throw new \InvalidArgumentException("Quantity must be positive for product {$it['product_id']}");
                     }
                     
-                    if ($unitCost < 0) {
-                        throw new \InvalidArgumentException("Unit cost cannot be negative for product {$it['product_id']}");
+                    if ($unitPrice < 0) {
+                        throw new \InvalidArgumentException("Unit price cannot be negative for product {$it['product_id']}");
                     }
                     
                     // Use bcmath for precise calculation
-                    $lineTotal = bcmul((string) $qty, (string) $unitCost, 2);
+                    $lineTotal = bcmul((string) $qty, (string) $unitPrice, 2);
                     $subtotal = bcadd($subtotal, $lineTotal, 2);
+                    
+                    // Get product name and SKU
+                    $product = \App\Models\Product::find($it['product_id']);
                     
                     PurchaseItem::create([
                         'purchase_id' => $p->getKey(),
-                        'branch_id' => $branchId,
                         'product_id' => $it['product_id'],
-                        'qty' => $qty,
-                        'unit_cost' => $unitCost,
+                        'product_name' => $product?->name ?? '',
+                        'sku' => $product?->sku ?? null,
+                        'quantity' => $qty,
+                        'received_quantity' => 0,
+                        'unit_price' => $unitPrice,
+                        'discount_percent' => (float) ($it['discount_percent'] ?? 0),
+                        'tax_percent' => (float) ($it['tax_percent'] ?? 0),
+                        'tax_amount' => (float) ($it['tax_amount'] ?? 0),
                         'line_total' => (float) $lineTotal,
                     ]);
                 }
