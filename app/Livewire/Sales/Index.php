@@ -9,6 +9,7 @@ use App\Traits\HasExport;
 use App\Traits\HasSortableColumns;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -45,10 +46,11 @@ class Index extends Component
 
     /**
      * Define allowed sort columns to prevent SQL injection.
+     * Use actual migration column names.
      */
     protected function allowedSortColumns(): array
     {
-        return ['id', 'code', 'reference_no', 'grand_total', 'paid_total', 'due_total', 'status', 'created_at', 'updated_at'];
+        return ['id', 'reference_number', 'total_amount', 'paid_amount', 'status', 'created_at', 'updated_at'];
     }
 
     public function updatingSearch(): void
@@ -68,12 +70,15 @@ class Index extends Component
                 $query->where('branch_id', $user->branch_id);
             }
 
-            // Use aggregate SQL queries instead of loading all rows into memory
+            // Use correct migration column names
+            $totalAmount = $query->sum('total_amount') ?? 0;
+            $paidAmount = $query->sum('paid_amount') ?? 0;
+
             return [
                 'total_sales' => $query->count(),
-                'total_revenue' => (string) ($query->sum('grand_total') ?? '0.00'),
-                'total_paid' => (string) ($query->sum('paid_total') ?? '0.00'),
-                'total_due' => (string) ($query->sum('due_total') ?? '0.00'),
+                'total_revenue' => (string) $totalAmount,
+                'total_paid' => (string) $paidAmount,
+                'total_due' => (string) max(0, $totalAmount - $paidAmount),
             ];
         });
     }
@@ -87,8 +92,7 @@ class Index extends Component
             ->with(['customer', 'branch', 'warehouse', 'createdBy'])
             ->when($user && $user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))
             ->when($this->search, fn ($q) => $q->where(function ($query) {
-                $query->where('code', 'like', "%{$this->search}%")
-                    ->orWhere('reference_no', 'like', "%{$this->search}%")
+                $query->where('reference_number', 'like', "%{$this->search}%")
                     ->orWhereHas('customer', fn ($c) => $c->where('name', 'like', "%{$this->search}%"));
             }))
             ->when($this->status, fn ($q) => $q->where('status', $this->status))
@@ -116,8 +120,7 @@ class Index extends Component
             ->leftJoin('branches', 'sales.branch_id', '=', 'branches.id')
             ->when($user && $user->branch_id, fn ($q) => $q->where('sales.branch_id', $user->branch_id))
             ->when($this->search, fn ($q) => $q->where(function ($query) {
-                $query->where('sales.code', 'like', "%{$this->search}%")
-                    ->orWhere('sales.reference_no', 'like', "%{$this->search}%")
+                $query->where('sales.reference_number', 'like', "%{$this->search}%")
                     ->orWhere('customers.name', 'like', "%{$this->search}%");
             }))
             ->when($this->status, fn ($q) => $q->where('sales.status', $this->status))
@@ -126,12 +129,12 @@ class Index extends Component
             ->orderBy('sales.'.$sortField, $sortDirection)
             ->select([
                 'sales.id',
-                'sales.code as reference',
+                'sales.reference_number as reference',
                 'sales.created_at as posted_at',
                 'customers.name as customer_name',
-                'sales.grand_total',
-                'sales.paid_total as amount_paid',
-                'sales.due_total as amount_due',
+                'sales.total_amount as grand_total',
+                'sales.paid_amount as amount_paid',
+                DB::raw('(sales.total_amount - sales.paid_amount) as amount_due'),
                 'sales.status',
                 'branches.name as branch_name',
                 'sales.created_at',

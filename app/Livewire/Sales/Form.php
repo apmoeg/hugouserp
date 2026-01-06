@@ -327,23 +327,23 @@ class Form extends Component
                             'branch_id' => $branchId,
                             'customer_id' => $this->customer_id ?: null,
                             'warehouse_id' => $this->warehouse_id ?: null,
-                            'reference_no' => $this->reference_no,
+                            'reference_number' => $this->reference_no ?: null,
                             'status' => $this->status,
                             'currency' => $this->currency,
                             'notes' => $this->notes,
-                            'customer_notes' => $this->customer_notes,
                             'internal_notes' => $this->internal_notes,
                             'delivery_date' => $this->delivery_date ?: null,
                             'shipping_method' => $this->shipping_method,
                             'tracking_number' => $this->tracking_number,
-                            'sub_total' => $this->subTotal,
-                            'discount_total' => $this->discount_total,
-                            'tax_total' => $this->taxTotal,
-                            'shipping_total' => $this->shipping_total,
-                            'grand_total' => $this->grandTotal,
-                            'paid_total' => $this->payment_amount,
-                            'due_total' => $dueTotal,
-                            'updated_by' => $user->id,
+                            'sale_date' => now()->toDateString(),
+                            // Use correct migration column names
+                            'subtotal' => $this->subTotal,
+                            'discount_amount' => $this->discount_total,
+                            'tax_amount' => $this->taxTotal,
+                            'shipping_amount' => $this->shipping_total,
+                            'total_amount' => $this->grandTotal,
+                            'paid_amount' => $this->payment_amount,
+                            // payment_status handled by updatePaymentStatus()
                         ];
 
                         if ($this->editMode) {

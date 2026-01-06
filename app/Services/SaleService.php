@@ -85,8 +85,9 @@ class SaleService implements SaleServiceInterface
 
                     $sale->status = 'returned';
                     // Use bcmath to prevent rounding errors in refund calculation
-                    $newPaidTotal = bcsub((string) $sale->paid_total, $refund, 2);
-                    $sale->paid_total = max(0.0, (float) $newPaidTotal);
+                    // Use correct migration column name
+                    $newPaidAmount = bcsub((string) $sale->paid_amount, $refund, 2);
+                    $sale->paid_amount = max(0.0, (float) $newPaidAmount);
                     $sale->save();
 
                     $this->logServiceInfo('handleReturn', 'Sale return processed', [

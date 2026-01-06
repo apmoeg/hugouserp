@@ -126,6 +126,17 @@ class RolesAndPermissionsSeeder extends Seeder
             'branches.manage',
             'branches.create',
             'branches.edit',
+            // Branch-level permissions
+            'branch.switch',              // Switch between branches (Super Admin only)
+            'branch.data.view-all',       // View data from all branches
+            'branch.employees.manage',    // Manage branch employees
+            'branch.settings.manage',     // Manage branch settings
+            'branch.reports.view',        // View branch reports
+            // Employee self-service permissions
+            'employee.self.attendance',   // Self attendance registration
+            'employee.self.leave-request', // Request leave
+            'employee.self.payslip-view', // View own payslip
+            'employee.self.profile-edit', // Edit own profile
             'settings.view',
             'settings.branch',
             'settings.translations.manage',
@@ -474,6 +485,122 @@ class RolesAndPermissionsSeeder extends Seeder
             'reports.export',
             'reports.aggregate',
             'reports.hub.view',
+        ])->get());
+
+        // ======================================
+        // Branch-Specific Roles
+        // ======================================
+
+        // Branch Admin Role - can manage users and settings within their branch
+        $branchAdmin = Role::findOrCreate('Branch Admin', 'web');
+        $branchAdmin->syncPermissions(Permission::where('guard_name', 'web')->whereIn('name', [
+            'dashboard.view',
+            'branch.employees.manage',
+            'branch.settings.manage',
+            'branch.reports.view',
+            'sales.view',
+            'sales.manage',
+            'sales.export',
+            'sales.view-reports',
+            'purchases.view',
+            'purchases.manage',
+            'purchases.export',
+            'customers.view',
+            'customers.manage',
+            'customers.export',
+            'suppliers.view',
+            'suppliers.manage',
+            'suppliers.export',
+            'inventory.products.view',
+            'inventory.products.export',
+            'inventory.view-reports',
+            'hrm.employees.view',
+            'hrm.employees.assign',
+            'hrm.attendance.view',
+            'hrm.attendance.manage',
+            'pos.use',
+            'pos.session.manage',
+            'pos.daily-report.view',
+            'reports.view',
+            'reports.export',
+            'reports.hub.view',
+        ])->get());
+
+        // Branch Manager Role - reports + approvals + supervision
+        $branchManager = Role::findOrCreate('Branch Manager', 'web');
+        $branchManager->syncPermissions(Permission::where('guard_name', 'web')->whereIn('name', [
+            'dashboard.view',
+            'branch.reports.view',
+            'sales.view',
+            'sales.manage',
+            'sales.return',
+            'sales.export',
+            'sales.view-reports',
+            'purchases.view',
+            'purchases.manage',
+            'purchases.export',
+            'customers.view',
+            'customers.manage',
+            'customers.export',
+            'suppliers.view',
+            'suppliers.export',
+            'inventory.products.view',
+            'inventory.products.export',
+            'inventory.view-reports',
+            'inventory.stock.alerts.view',
+            'pos.use',
+            'pos.session.manage',
+            'pos.daily-report.view',
+            'pos.view-reports',
+            'reports.view',
+            'reports.export',
+            'reports.pos.charts',
+            'reports.inventory.charts',
+        ])->get());
+
+        // Branch Cashier Role - POS + basic sales
+        $branchCashier = Role::findOrCreate('Branch Cashier', 'web');
+        $branchCashier->syncPermissions(Permission::where('guard_name', 'web')->whereIn('name', [
+            'dashboard.view',
+            'pos.use',
+            'pos.daily-report.view',
+            'sales.view',
+            'customers.view',
+            'inventory.products.view',
+            'employee.self.attendance',
+            'employee.self.profile-edit',
+        ])->get());
+
+        // Branch Supervisor Role - cashier permissions + supervision and reports
+        $branchSupervisor = Role::findOrCreate('Branch Supervisor', 'web');
+        $branchSupervisor->syncPermissions(Permission::where('guard_name', 'web')->whereIn('name', [
+            'dashboard.view',
+            'pos.use',
+            'pos.session.manage',
+            'pos.daily-report.view',
+            'pos.view-reports',
+            'sales.view',
+            'sales.manage',
+            'sales.return',
+            'sales.view-reports',
+            'customers.view',
+            'customers.manage',
+            'inventory.products.view',
+            'inventory.stock.alerts.view',
+            'reports.view',
+            'reports.pos.charts',
+            'employee.self.attendance',
+            'employee.self.profile-edit',
+        ])->get());
+
+        // Branch Employee Role - limited permissions based on role
+        $branchEmployee = Role::findOrCreate('Branch Employee', 'web');
+        $branchEmployee->syncPermissions(Permission::where('guard_name', 'web')->whereIn('name', [
+            'dashboard.view',
+            'employee.self.attendance',
+            'employee.self.leave-request',
+            'employee.self.payslip-view',
+            'employee.self.profile-edit',
         ])->get());
     }
 }

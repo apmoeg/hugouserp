@@ -649,16 +649,27 @@ return new class extends Migration
             $table->unique(['product_id', 'field_id']);
         });
 
-        // Branch admins
+        // Branch admins - manages branch-level admin permissions
         Schema::create('branch_admins', function (Blueprint $table) {
             $this->setTableOptions($table);
             $table->id();
             $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->boolean('is_primary')->default(false);
+            
+            // Branch admin permission flags
+            $table->boolean('can_manage_users')->default(false);    // Manage users within branch
+            $table->boolean('can_manage_roles')->default(false);    // Manage roles within branch
+            $table->boolean('can_view_reports')->default(false);    // View branch reports
+            $table->boolean('can_export_data')->default(false);     // Export branch data
+            $table->boolean('can_manage_settings')->default(false); // Manage branch settings
+            
+            // Status flags
+            $table->boolean('is_primary')->default(false);  // Primary admin of branch
+            $table->boolean('is_active')->default(true);    // Admin status active
             $table->timestamps();
             
             $table->unique(['branch_id', 'user_id']);
+            $table->index(['branch_id', 'is_active']);
         });
     }
 

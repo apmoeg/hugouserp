@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
@@ -48,6 +49,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         'two_factor_enabled',
         'max_sessions',
         'avatar',
+        'preferences',
     ];
 
     protected $guarded = [
@@ -73,6 +75,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         'two_factor_confirmed_at' => 'datetime',
         'can_modify_price' => 'bool',
         'password_changed_at' => 'datetime',
+        'preferences' => 'array',
     ];
 
     public function branch(): BelongsTo
@@ -98,6 +101,28 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     public function sessions(): HasMany
     {
         return $this->hasMany(UserSession::class);
+    }
+
+    /**
+     * Get the HR employee record linked to this user
+     */
+    public function hrEmployee(): HasOne
+    {
+        return $this->hasOne(HREmployee::class, 'user_id');
+    }
+
+    /**
+     * Get the employee ID for self-service features
+     * Returns the ID of the linked HREmployee record
+     * Note: For bulk operations, eager load 'hrEmployee' to avoid N+1 queries
+     */
+    public function getEmployeeIdAttribute(): ?int
+    {
+        // Check if already loaded to avoid extra queries
+        if (!$this->relationLoaded('hrEmployee')) {
+            $this->load('hrEmployee');
+        }
+        return $this->hrEmployee?->id;
     }
 
     public function hasTwoFactorEnabled(): bool
@@ -139,5 +164,111 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
             ->logOnly(['name', 'email', 'phone', 'is_active', 'locale', 'timezone', 'branch_id', 'two_factor_enabled'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    /**
+     * Check if user is a branch admin for a specific branch
+     */
+    public function isBranchAdmin(?int $branchId = null): bool
+    {
+        $branchId = $branchId ?? $this->branch_id;
+        
+        if (!$branchId) {
+            return false;
+        }
+
+        return BranchAdmin::where('user_id', $this->id)
+            ->where('branch_id', $branchId)
+            ->where('is_active', true)
+            ->exists();
+    }
+
+    /**
+     * Get branch admin record for this user
+     */
+    public function getBranchAdminRecord(?int $branchId = null): ?BranchAdmin
+    {
+        $branchId = $branchId ?? $this->branch_id;
+        
+        if (!$branchId) {
+            return null;
+        }
+
+        return BranchAdmin::where('user_id', $this->id)
+            ->where('branch_id', $branchId)
+            ->where('is_active', true)
+            ->first();
+    }
+
+    /**
+     * Check if user can manage users in their branch
+     */
+    public function canManageBranchUsers(): bool
+    {
+        if ($this->hasRole('Super Admin')) {
+            return true;
+        }
+
+        $branchAdmin = $this->getBranchAdminRecord();
+        return $branchAdmin?->can_manage_users ?? false;
+    }
+
+    /**
+     * Check if user can view reports in their branch
+     */
+    public function canViewBranchReports(): bool
+    {
+        if ($this->hasRole('Super Admin')) {
+            return true;
+        }
+
+        $branchAdmin = $this->getBranchAdminRecord();
+        return $branchAdmin?->can_view_reports ?? $this->can('branch.reports.view');
+    }
+
+    /**
+     * Check if user can manage branch settings
+     */
+    public function canManageBranchSettings(): bool
+    {
+        if ($this->hasRole('Super Admin')) {
+            return true;
+        }
+
+        $branchAdmin = $this->getBranchAdminRecord();
+        return $branchAdmin?->can_manage_settings ?? false;
+    }
+
+    /**
+     * Get current branch for the user
+     */
+    public function getCurrentBranch(): ?Branch
+    {
+        // Check session for admin branch context first
+        $contextBranchId = session('admin_branch_context');
+        
+        if ($contextBranchId && $this->hasRole('Super Admin')) {
+            return Branch::find($contextBranchId);
+        }
+
+        return $this->branch;
+    }
+
+    /**
+     * Check if user is a branch employee (not admin or manager)
+     */
+    public function isBranchEmployee(): bool
+    {
+        return $this->hasRole('Branch Employee') || 
+               $this->hasRole('Branch Cashier');
+    }
+
+    /**
+     * Check if user is a branch supervisor
+     */
+    public function isBranchSupervisor(): bool
+    {
+        return $this->hasRole('Branch Supervisor') || 
+               $this->hasRole('Branch Manager');
     }
 }
