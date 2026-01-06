@@ -153,9 +153,9 @@ trait CommonQueryScopes
     /**
      * Check if model has an attribute
      */
-    protected function hasAttribute(string $attribute): bool
+    public function hasAttribute(string $attribute): bool
     {
-        return in_array($attribute, $this->fillable ?? []) || 
+        return in_array($attribute, $this->fillable ?? []) ||
                array_key_exists($attribute, $this->casts ?? []);
     }
 
