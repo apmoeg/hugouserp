@@ -84,10 +84,10 @@ class Project extends Model
         return $this->belongsTo(Customer::class, 'customer_id');
     }
 
-    // Backward compatibility
+    // Backward compatibility - returns the customer relationship
     public function client(): BelongsTo
     {
-        return $this->customer();
+        return $this->belongsTo(Customer::class, 'customer_id');
     }
 
     public function manager(): BelongsTo

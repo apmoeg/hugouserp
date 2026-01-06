@@ -171,11 +171,13 @@ class ProductionOrder extends BaseModel
      */
     public function getCompletionPercentageAttribute(): float
     {
-        if ($this->planned_quantity == 0) {
+        $plannedQty = (float) ($this->planned_quantity ?? 0);
+        // Prevent division by zero
+        if ($plannedQty <= 0) {
             return 0.0;
         }
 
-        return ((float) $this->produced_quantity / (float) $this->planned_quantity) * 100;
+        return ((float) ($this->produced_quantity ?? 0) / $plannedQty) * 100;
     }
 
     /**

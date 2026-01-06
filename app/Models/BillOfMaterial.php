@@ -126,8 +126,9 @@ class BillOfMaterial extends BaseModel
             $cost += $productCost * $itemQuantity * $scrapFactor;
         }
 
-        // Apply BOM-level yield percentage
-        $yieldFactor = (float) $this->yield_percentage / 100;
+        // Apply BOM-level yield percentage (default to 100% if not set or 0)
+        $yieldFactor = (float) ($this->yield_percentage ?? 100) / 100;
+        // Prevent division by zero - if yield is 0 or negative, return raw cost
         if ($yieldFactor > 0) {
             $cost = $cost / $yieldFactor;
         }
