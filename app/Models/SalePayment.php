@@ -7,27 +7,31 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SalePayment extends Model
 {
+    /**
+     * Fillable fields aligned with migration:
+     * 2026_01_04_000005_create_sales_purchases_tables.php
+     */
     protected $fillable = [
         'sale_id',
-        'branch_id',
-        'payment_method',
+        'reference_number',
         'amount',
+        'payment_method',
+        'status',
+        'payment_date',
         'currency',
         'exchange_rate',
-        'reference_no',
-        'card_type',
         'card_last_four',
         'bank_name',
         'cheque_number',
         'cheque_date',
         'notes',
-        'status',
-        'created_by',
+        'received_by',
     ];
 
     protected $casts = [
         'amount' => 'decimal:4',
-        'exchange_rate' => 'decimal:6',
+        'exchange_rate' => 'decimal:8',
+        'payment_date' => 'date',
         'cheque_date' => 'date',
     ];
 
@@ -35,7 +39,7 @@ class SalePayment extends Model
 
     public const METHOD_CARD = 'card';
 
-    public const METHOD_TRANSFER = 'transfer';
+    public const METHOD_TRANSFER = 'bank_transfer';
 
     public const METHOD_CHEQUE = 'cheque';
 
@@ -54,13 +58,14 @@ class SalePayment extends Model
         return $this->belongsTo(Sale::class);
     }
 
-    public function branch(): BelongsTo
+    public function receivedBy(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(User::class, 'received_by');
     }
 
-    public function createdBy(): BelongsTo
+    // Backward compatibility accessor
+    public function getCreatedByAttribute()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->received_by;
     }
 }
