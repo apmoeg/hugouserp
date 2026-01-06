@@ -179,6 +179,8 @@ class PurchaseService implements PurchaseServiceInterface
                     $p->payment_status = 'paid';
                 } elseif ((float) $p->paid_amount > 0) {
                     $p->payment_status = 'partial';
+                } else {
+                    $p->payment_status = 'unpaid';
                 }
                 $p->save();
 
