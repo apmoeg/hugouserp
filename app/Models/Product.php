@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -222,37 +223,37 @@ class Product extends BaseModel
             ->withTimestamps();
     }
 
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');
     }
 
-    public function scopeServices($query)
+    public function scopeServices(Builder $query): Builder
     {
         return $query->where('type', 'service');
     }
 
-    public function scopeForModule($query, $moduleId)
+    public function scopeForModule(Builder $query, $moduleId): Builder
     {
         return $query->where('module_id', $moduleId);
     }
 
-    public function scopeParentsOnly($query)
+    public function scopeParentsOnly(Builder $query): Builder
     {
         return $query->whereNull('parent_product_id');
     }
 
-    public function scopeVariationsOnly($query)
+    public function scopeVariationsOnly(Builder $query): Builder
     {
         return $query->whereNotNull('parent_product_id');
     }
 
-    public function scopeWithVariations($query)
+    public function scopeWithVariations(Builder $query): Builder
     {
         return $query->where('has_variations', true);
     }
 
-    public function scopeLowStock($query)
+    public function scopeLowStock(Builder $query): Builder
     {
         return $query->whereNotNull('stock_alert_threshold')
             ->whereRaw('stock_quantity <= stock_alert_threshold');
