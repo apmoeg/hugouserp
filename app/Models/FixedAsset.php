@@ -13,46 +13,47 @@ class FixedAsset extends Model
 {
     use SoftDeletes;
 
+    /**
+     * Fillable fields aligned with migration:
+     * 2026_01_04_000007_create_accounting_tables.php
+     */
     protected $fillable = [
         'branch_id',
         'asset_code',
         'name',
-        'description',
+        'name_ar',
         'category',
+        'description',
+        'serial_number',
         'location',
+        'assigned_to',
         'purchase_date',
         'purchase_cost',
         'salvage_value',
-        'useful_life_years',
         'useful_life_months',
         'depreciation_method',
-        'depreciation_rate',
         'accumulated_depreciation',
-        'book_value',
-        'depreciation_start_date',
-        'last_depreciation_date',
+        'current_value',
+        'asset_account_id',
+        'depreciation_account_id',
+        'expense_account_id',
         'status',
         'disposal_date',
-        'disposal_amount',
-        'supplier_id',
-        'serial_number',
-        'model',
-        'manufacturer',
+        'disposal_value',
+        'disposal_notes',
+        'last_maintenance_date',
+        'next_maintenance_date',
+        'maintenance_notes',
         'warranty_expiry',
-        'assigned_to',
-        'notes',
-        'meta',
-        'created_by',
-        'updated_by',
+        'warranty_vendor',
+        'custom_fields',
     ];
 
     protected $attributes = [
         'purchase_cost' => 0,
         'salvage_value' => 0,
         'accumulated_depreciation' => 0,
-        'book_value' => 0,
-        'useful_life_years' => 0,
-        'useful_life_months' => 0,
+        'current_value' => 0,
     ];
 
     protected $casts = [
@@ -60,14 +61,13 @@ class FixedAsset extends Model
         'purchase_cost' => 'decimal:4',
         'salvage_value' => 'decimal:4',
         'accumulated_depreciation' => 'decimal:4',
-        'book_value' => 'decimal:4',
-        'depreciation_rate' => 'decimal:4',
-        'depreciation_start_date' => 'date',
-        'last_depreciation_date' => 'date',
+        'current_value' => 'decimal:4',
         'disposal_date' => 'date',
-        'disposal_amount' => 'decimal:4',
+        'disposal_value' => 'decimal:4',
         'warranty_expiry' => 'date',
-        'meta' => 'array',
+        'last_maintenance_date' => 'date',
+        'next_maintenance_date' => 'date',
+        'custom_fields' => 'array',
     ];
 
     protected static function boot()
@@ -81,12 +81,8 @@ class FixedAsset extends Model
                 $asset->asset_code = 'FA-' . date('Ymd-His') . '-' . strtoupper(substr(uniqid(), -4));
             }
             
-            if (!$asset->book_value) {
-                $asset->book_value = $asset->purchase_cost;
-            }
-            
-            if (!$asset->depreciation_start_date) {
-                $asset->depreciation_start_date = $asset->purchase_date;
+            if (!$asset->current_value) {
+                $asset->current_value = $asset->purchase_cost;
             }
         });
     }
@@ -96,14 +92,24 @@ class FixedAsset extends Model
         return $this->belongsTo(Branch::class);
     }
 
-    public function supplier(): BelongsTo
-    {
-        return $this->belongsTo(Supplier::class);
-    }
-
     public function assignedTo(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function assetAccount(): BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'asset_account_id');
+    }
+
+    public function depreciationAccount(): BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'depreciation_account_id');
+    }
+
+    public function expenseAccount(): BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'expense_account_id');
     }
 
     public function depreciations(): HasMany
@@ -114,6 +120,27 @@ class FixedAsset extends Model
     public function maintenanceLogs(): HasMany
     {
         return $this->hasMany(AssetMaintenanceLog::class, 'asset_id');
+    }
+
+    // Backward compatibility accessors
+    public function getBookValueAttribute()
+    {
+        return $this->current_value;
+    }
+
+    public function getDisposalAmountAttribute()
+    {
+        return $this->disposal_value;
+    }
+
+    public function getUsefulLifeYearsAttribute()
+    {
+        return (int) floor(($this->useful_life_months ?? 0) / 12);
+    }
+
+    public function getMetaAttribute()
+    {
+        return $this->custom_fields;
     }
 
     /**
@@ -129,10 +156,10 @@ class FixedAsset extends Model
      */
     public function isFullyDepreciated(): bool
     {
-        $bookValue = (float) ($this->book_value ?? 0);
+        $currentValue = (float) ($this->current_value ?? 0);
         $salvageValue = (float) ($this->salvage_value ?? 0);
         
-        return $bookValue <= $salvageValue;
+        return $currentValue <= $salvageValue;
     }
 
     /**
@@ -140,10 +167,7 @@ class FixedAsset extends Model
      */
     public function getTotalUsefulLifeMonths(): int
     {
-        $years = (int) ($this->useful_life_years ?? 0);
-        $months = (int) ($this->useful_life_months ?? 0);
-        
-        return ($years * 12) + $months;
+        return (int) ($this->useful_life_months ?? 0);
     }
 
     /**
@@ -174,7 +198,15 @@ class FixedAsset extends Model
      */
     public function scopeDisposed($query)
     {
-        return $query->whereIn('status', ['disposed', 'sold', 'retired']);
+        return $query->where('status', 'disposed');
+    }
+
+    /**
+     * Scope for fully depreciated assets
+     */
+    public function scopeFullyDepreciated($query)
+    {
+        return $query->where('status', 'fully_depreciated');
     }
 
     /**
