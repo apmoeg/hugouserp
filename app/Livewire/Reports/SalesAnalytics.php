@@ -273,7 +273,7 @@ class SalesAnalytics extends Component
                 'customers.email',
             ])
             ->selectRaw('COUNT(sales.id) as total_orders')
-            ->selectRaw('SUM(sales.grand_total) as total_spent')
+            ->selectRaw('SUM(sales.total_amount) as total_spent')
             ->whereBetween('sales.created_at', [$this->dateFrom.' 00:00:00', $this->dateTo.' 23:59:59'])
             ->whereNotNull('sales.customer_id');
 

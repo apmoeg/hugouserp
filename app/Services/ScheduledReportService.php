@@ -168,7 +168,7 @@ class ScheduledReportService
                     'sales.id',
                     'sales.code',
                     'customers.name as customer_name',
-                    'sales.grand_total',
+                    'sales.total_amount',
                     'sales.status',
                     'sales.created_at',
                 ]);
