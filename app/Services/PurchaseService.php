@@ -51,8 +51,10 @@ class PurchaseService implements PurchaseServiceInterface
                     'warehouse_id' => $payload['warehouse_id'] ?? null,
                     'supplier_id' => $payload['supplier_id'] ?? null,
                     'status' => 'draft',
-                    'sub_total' => 0, 'tax_total' => 0, 'discount_total' => 0, 'grand_total' => 0,
-                    'paid_total' => 0, 'due_total' => 0,
+                    'purchase_date' => now()->toDateString(),
+                    // Use correct migration column names
+                    'subtotal' => 0, 'tax_amount' => 0, 'discount_amount' => 0, 'total_amount' => 0,
+                    'paid_amount' => 0,
                 ]);
                 
                 $subtotal = '0';
@@ -89,17 +91,17 @@ class PurchaseService implements PurchaseServiceInterface
                     ]);
                 }
                 
-                $p->sub_total = (float) $subtotal;
-                $p->grand_total = $p->sub_total;
-                $p->due_total = $p->grand_total;
+                // Use correct migration column names
+                $p->subtotal = (float) $subtotal;
+                $p->total_amount = $p->subtotal;
                 
                 // Critical ERP: Validate supplier minimum order value
                 if ($p->supplier_id) {
                     $supplier = \App\Models\Supplier::find($p->supplier_id);
-                    if ($supplier && $supplier->minimum_order_value > 0) {
-                        if ($p->grand_total < $supplier->minimum_order_value) {
+                    if ($supplier && $supplier->minimum_order_amount > 0) {
+                        if ($p->total_amount < $supplier->minimum_order_amount) {
                             throw new \InvalidArgumentException(
-                                "Order total ({$p->grand_total}) is below supplier minimum order value ({$supplier->minimum_order_value})"
+                                "Order total ({$p->total_amount}) is below supplier minimum order value ({$supplier->minimum_order_amount})"
                             );
                         }
                     }
@@ -158,7 +160,8 @@ class PurchaseService implements PurchaseServiceInterface
                     throw new \InvalidArgumentException('Payment amount must be positive');
                 }
 
-                $remainingDue = max(0, $p->grand_total - $p->paid_total);
+                // Use correct migration column names
+                $remainingDue = max(0, (float) $p->total_amount - (float) $p->paid_amount);
                 if ($amount > $remainingDue) {
                     throw new \InvalidArgumentException(sprintf(
                         'Payment amount (%.2f) exceeds remaining due (%.2f)',
@@ -168,14 +171,14 @@ class PurchaseService implements PurchaseServiceInterface
                 }
 
                 // Critical ERP: Use bcmath for precise money calculations
-                $newPaidTotal = bcadd((string) $p->paid_total, (string) $amount, 2);
-                $p->paid_total = (float) $newPaidTotal;
+                $newPaidAmount = bcadd((string) $p->paid_amount, (string) $amount, 2);
+                $p->paid_amount = (float) $newPaidAmount;
                 
-                // Calculate due amount with precision
-                $dueAmount = bcsub((string) $p->grand_total, $newPaidTotal, 2);
-                $p->due_total = max(0, (float) $dueAmount);
-                if ($p->paid_total >= $p->grand_total) {
-                    $p->status = 'paid';
+                // Update payment status
+                if ((float) $p->paid_amount >= (float) $p->total_amount) {
+                    $p->payment_status = 'paid';
+                } elseif ((float) $p->paid_amount > 0) {
+                    $p->payment_status = 'partial';
                 }
                 $p->save();
 

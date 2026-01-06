@@ -281,6 +281,21 @@ class Purchase extends BaseModel
         return $this->expected_date;
     }
 
+    public function getPaidTotalAttribute()
+    {
+        return $this->paid_amount;
+    }
+
+    public function getDueTotalAttribute()
+    {
+        return $this->remaining_amount;
+    }
+
+    public function getDiscountTotalAttribute()
+    {
+        return $this->discount_amount;
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
