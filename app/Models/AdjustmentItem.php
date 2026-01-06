@@ -41,7 +41,11 @@ class AdjustmentItem extends BaseModel
         return $this->belongsTo(Product::class);
     }
 
-    // Backward compatibility accessor
+    /**
+     * Backward compatibility accessor.
+     * Original qty field represented the adjustment difference (can be positive or negative).
+     * Maps to 'difference' column which stores: counted_quantity - system_quantity
+     */
     public function getQtyAttribute()
     {
         return $this->difference;

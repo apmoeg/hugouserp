@@ -66,7 +66,8 @@ class PurchaseService implements PurchaseServiceInterface
                     }
                     
                     $qty = (float) $it['qty'];
-                    $unitPrice = (float) ($it['price'] ?? $it['unit_price'] ?? 0);
+                    // Accept price from multiple possible field names for API compatibility
+                    $unitPrice = (float) ($it['unit_price'] ?? $it['price'] ?? 0);
                     
                     // Critical ERP: Validate positive quantities and prices
                     if ($qty <= 0) {

@@ -154,7 +154,8 @@ class InventoryService implements InventoryServiceInterface
                     $query->where('warehouse_id', $warehouseId);
                 }
 
-                // quantity column: positive = in, negative = out
+                // Migration uses signed quantity: positive = stock in, negative = stock out
+                // Sum gives net stock level
                 return (float) $query->sum('quantity');
             },
             operation: 'getStockLevel',
