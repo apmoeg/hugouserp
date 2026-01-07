@@ -17,8 +17,8 @@ class LowStockAlert extends Model
         'product_id',
         'branch_id',
         'warehouse_id',
-        'current_qty',
-        'min_qty',
+        'current_stock',
+        'alert_threshold',
         'status',
         'acknowledged_by',
         'acknowledged_at',
@@ -77,8 +77,19 @@ class LowStockAlert extends Model
     public function isCritical(): bool
     {
         // Critical if current stock is 25% or less of minimum stock
-        $threshold = bcmul((string)$this->min_qty, '0.25', 2);
-        return bccomp((string)$this->current_qty, $threshold, 2) <= 0;
+        $threshold = bcmul((string)$this->alert_threshold, '0.25', 2);
+        return bccomp((string)$this->current_stock, $threshold, 2) <= 0;
+    }
+    
+    // Backward compatibility accessors
+    public function getCurrentQtyAttribute()
+    {
+        return $this->current_stock;
+    }
+    
+    public function getMinQtyAttribute()
+    {
+        return $this->alert_threshold;
     }
 
     public function scopeActive(Builder $query): Builder
