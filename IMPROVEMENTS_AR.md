@@ -122,7 +122,7 @@ $feedback->paymentReceived(150.00, 'EGP');
 ```
 
 #### QueryOptimizationService
-- **الموقع**: `app/Services/QueryOptimizationService.php`
+- **الموقع**: `app/Services/Performance/QueryOptimizationService.php`
 - **الغرض**: تحسين أداء قاعدة البيانات
 - **المميزات**:
   - التخزين المؤقت للاستعلامات
@@ -133,7 +133,7 @@ $feedback->paymentReceived(150.00, 'EGP');
 
 #### مثال الاستخدام:
 ```php
-use App\Services\QueryOptimizationService;
+use App\Services\Performance\QueryOptimizationService;
 
 $optimizer = app(QueryOptimizationService::class);
 

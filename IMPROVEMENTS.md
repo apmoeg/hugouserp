@@ -260,7 +260,7 @@ $feedback->importCompleted(100, 5);
 ### 6. Query Optimization Service ✅
 
 #### QueryOptimizationService
-- **Location**: `app/Services/QueryOptimizationService.php`
+- **Location**: `app/Services/Performance/QueryOptimizationService.php`
 - **Purpose**: Database query optimization and performance monitoring
 - **Features**:
   - Query caching helpers
@@ -298,7 +298,7 @@ $feedback->importCompleted(100, 5);
 
 #### Usage Example
 ```php
-use App\Services\QueryOptimizationService;
+use App\Services\Performance\QueryOptimizationService;
 
 $optimizer = app(QueryOptimizationService::class);
 
@@ -454,7 +454,7 @@ public function save(DataValidationService $validator, UIFeedbackService $feedba
 Use query optimization service for better performance:
 
 ```php
-use App\Services\QueryOptimizationService;
+use App\Services\Performance\QueryOptimizationService;
 
 public function index(QueryOptimizationService $optimizer)
 {
