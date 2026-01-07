@@ -62,7 +62,7 @@ class DashboardWidget extends BaseModel
     /**
      * Scope: Active widgets only.
      */
-    public function scopeActive($query)
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_active', true);
     }
@@ -70,7 +70,7 @@ class DashboardWidget extends BaseModel
     /**
      * Scope: By category.
      */
-    public function scopeCategory($query, string $category)
+    public function scopeCategory(\Illuminate\Database\Eloquent\Builder $query, string $category): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('category', $category);
     }
@@ -78,7 +78,7 @@ class DashboardWidget extends BaseModel
     /**
      * Scope: Ordered by sort order.
      */
-    public function scopeOrdered($query)
+    public function scopeOrdered(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->orderBy('sort_order')->orderBy('name');
     }

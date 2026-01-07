@@ -98,7 +98,7 @@ class AlertInstance extends BaseModel
     /**
      * Scope: New alerts.
      */
-    public function scopeNew($query)
+    public function scopeNew(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'new');
     }
@@ -106,7 +106,7 @@ class AlertInstance extends BaseModel
     /**
      * Scope: By severity.
      */
-    public function scopeSeverity($query, string $severity)
+    public function scopeSeverity(\Illuminate\Database\Eloquent\Builder $query, string $severity): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('severity', $severity);
     }
@@ -114,7 +114,7 @@ class AlertInstance extends BaseModel
     /**
      * Scope: Critical alerts.
      */
-    public function scopeCritical($query)
+    public function scopeCritical(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('severity', 'critical');
     }

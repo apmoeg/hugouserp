@@ -81,22 +81,22 @@ class PurchaseRequisition extends BaseModel
     }
 
     // Scopes
-    public function scopePendingApproval($query)
+    public function scopePendingApproval(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'pending_approval');
     }
 
-    public function scopeApproved($query)
+    public function scopeApproved(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'approved');
     }
 
-    public function scopeNotConverted($query)
+    public function scopeNotConverted(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_converted', false);
     }
 
-    public function scopeUrgent($query)
+    public function scopeUrgent(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->whereIn('priority', ['high', 'urgent']);
     }

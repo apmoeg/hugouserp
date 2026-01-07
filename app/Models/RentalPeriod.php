@@ -66,7 +66,7 @@ class RentalPeriod extends BaseModel
         return $query->where('is_default', true);
     }
 
-    public function scopeOrdered($query)
+    public function scopeOrdered(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->orderBy('sort_order')->orderBy('duration_value');
     }

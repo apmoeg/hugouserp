@@ -57,7 +57,7 @@ class AlertRecipient extends BaseModel
     /**
      * Scope: Unread alerts.
      */
-    public function scopeUnread($query)
+    public function scopeUnread(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('read', false);
     }

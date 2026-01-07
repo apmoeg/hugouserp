@@ -199,7 +199,7 @@ class ProductionOrder extends BaseModel
     /**
      * Scope: In progress.
      */
-    public function scopeInProgress($query)
+    public function scopeInProgress(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->whereIn('status', ['planned', 'in_progress']);
     }
@@ -207,7 +207,7 @@ class ProductionOrder extends BaseModel
     /**
      * Scope: Completed.
      */
-    public function scopeCompleted($query)
+    public function scopeCompleted(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'completed');
     }
@@ -215,7 +215,7 @@ class ProductionOrder extends BaseModel
     /**
      * Scope: By priority.
      */
-    public function scopePriority($query, string $priority)
+    public function scopePriority(\Illuminate\Database\Eloquent\Builder $query, string $priority): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('priority', $priority);
     }

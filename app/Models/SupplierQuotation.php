@@ -75,7 +75,7 @@ class SupplierQuotation extends BaseModel
     }
 
     // Scopes
-    public function scopeActive($query)
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', '!=', 'expired')
             ->where('status', '!=', 'rejected')
@@ -85,13 +85,13 @@ class SupplierQuotation extends BaseModel
             });
     }
 
-    public function scopeExpired($query)
+    public function scopeExpired(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('valid_until', '<', now())
             ->where('status', '!=', 'accepted');
     }
 
-    public function scopeAccepted($query)
+    public function scopeAccepted(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'accepted');
     }

@@ -160,7 +160,7 @@ class BillOfMaterial extends BaseModel
     /**
      * Scope: Active BOMs only.
      */
-    public function scopeActive($query)
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'active');
     }
@@ -168,7 +168,7 @@ class BillOfMaterial extends BaseModel
     /**
      * Scope: Draft BOMs.
      */
-    public function scopeDraft($query)
+    public function scopeDraft(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'draft');
     }

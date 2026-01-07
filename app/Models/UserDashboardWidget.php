@@ -63,7 +63,7 @@ class UserDashboardWidget extends BaseModel
     /**
      * Scope: Visible widgets.
      */
-    public function scopeVisible($query)
+    public function scopeVisible(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_visible', true);
     }
@@ -71,7 +71,7 @@ class UserDashboardWidget extends BaseModel
     /**
      * Scope: Ordered.
      */
-    public function scopeOrdered($query)
+    public function scopeOrdered(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->orderBy('sort_order')->orderBy('position_y')->orderBy('position_x');
     }
