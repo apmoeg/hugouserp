@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Ticket;
-use App\Models\TicketCategory;
-use App\Models\TicketPriority;
 use App\Models\TicketReply;
-use App\Models\TicketSLAPolicy;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Cache\TaggableStore;
@@ -45,7 +42,7 @@ class HelpdeskService
     {
         return DB::transaction(function () use ($ticket, $data) {
             $changes = [];
-            
+
             foreach ($data as $key => $value) {
                 if ($ticket->{$key} !== $value) {
                     $changes[$key] = ['from' => $ticket->{$key}, 'to' => $value];
@@ -55,7 +52,7 @@ class HelpdeskService
             $ticket->update($data);
 
             // Log activity
-            if (!empty($changes)) {
+            if (! empty($changes)) {
                 activity()
                     ->performedOn($ticket)
                     ->causedBy(auth()->user())
@@ -196,7 +193,7 @@ class HelpdeskService
      */
     public function calculateSLA(Ticket $ticket): array
     {
-        if (!$ticket->slaPolicy) {
+        if (! $ticket->slaPolicy) {
             return [
                 'has_sla' => false,
                 'response_sla_met' => null,
@@ -214,7 +211,7 @@ class HelpdeskService
             $result['response_time_minutes'] = $responseTime;
         } else {
             $result['response_sla_met'] = false;
-            $result['response_overdue'] = !in_array($ticket->status, ['resolved', 'closed']);
+            $result['response_overdue'] = ! in_array($ticket->status, ['resolved', 'closed']);
         }
 
         // Check resolution SLA
@@ -224,7 +221,7 @@ class HelpdeskService
             $result['resolution_time_minutes'] = $resolutionTime;
         } else {
             $result['resolution_sla_met'] = false;
-            $result['resolution_overdue'] = !in_array($ticket->status, ['resolved', 'closed']);
+            $result['resolution_overdue'] = ! in_array($ticket->status, ['resolved', 'closed']);
         }
 
         return $result;
@@ -282,7 +279,7 @@ class HelpdeskService
         }
 
         $tickets = $query->get();
-        
+
         if ($tickets->isEmpty()) {
             return null;
         }
@@ -310,7 +307,7 @@ class HelpdeskService
         }
 
         $tickets = $query->get();
-        
+
         if ($tickets->isEmpty()) {
             return null;
         }
@@ -331,6 +328,7 @@ class HelpdeskService
 
         if ($cache instanceof TaggableStore) {
             Cache::tags('ticket_stats')->flush();
+
             return;
         }
 

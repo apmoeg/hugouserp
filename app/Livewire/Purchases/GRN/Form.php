@@ -6,11 +6,10 @@ use App\Models\GoodsReceivedNote;
 use App\Models\GRNItem;
 use App\Models\Purchase;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Livewire\Features\SupportRedirects\Redirector;
 
 #[Layout('layouts.app')]
 class Form extends Component
@@ -141,11 +140,11 @@ class Form extends Component
             $damaged = (string) ($item['quantity_damaged'] ?? '0');
             $defective = (string) ($item['quantity_defective'] ?? '0');
             $qtyRejected = (string) ($item['qty_rejected'] ?? bcadd($damaged, $defective, 4));
-            
+
             // Calculate accepted quantity with bcmath
             $qtyAcceptedCalc = bcsub($qtyReceived, $qtyRejected, 4);
             $qtyAccepted = bccomp($qtyAcceptedCalc, '0', 4) > 0 ? $qtyAcceptedCalc : '0';
-            
+
             GRNItem::create([
                 'grn_id' => $this->grn->id,
                 'product_id' => $item['product_id'],

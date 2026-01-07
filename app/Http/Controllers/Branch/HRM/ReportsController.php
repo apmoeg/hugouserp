@@ -29,30 +29,30 @@ class ReportsController extends Controller
         /** @var \App\Models\Attendance $model */
         $query = $model::query()->with('employee');
 
-        if (!empty($validated['employee_id'])) {
+        if (! empty($validated['employee_id'])) {
             $query->where('employee_id', $validated['employee_id']);
         }
 
-        if (!empty($validated['status'])) {
+        if (! empty($validated['status'])) {
             $query->where('status', $validated['status']);
         }
 
-        if (!empty($validated['branch_id'])) {
+        if (! empty($validated['branch_id'])) {
             $query->where('branch_id', $validated['branch_id']);
         }
 
-        if (!empty($validated['from'])) {
+        if (! empty($validated['from'])) {
             $query->whereDate('date', '>=', $validated['from']);
         }
 
-        if (!empty($validated['to'])) {
+        if (! empty($validated['to'])) {
             $query->whereDate('date', '<=', $validated['to']);
         }
 
         $filename = 'hrm_attendance_'.now()->format('Ymd_His').'.xlsx';
 
         $callback = function () use ($query) {
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             // Set headers
@@ -115,22 +115,22 @@ class ReportsController extends Controller
         /** @var \App\Models\Payroll $model */
         $query = $model::query()->with('employee');
 
-        if (!empty($validated['employee_id'])) {
+        if (! empty($validated['employee_id'])) {
             $query->where('employee_id', $validated['employee_id']);
         }
 
-        if (!empty($validated['period'])) {
+        if (! empty($validated['period'])) {
             $query->where('period', $validated['period']);
         }
 
-        if (!empty($validated['status'])) {
+        if (! empty($validated['status'])) {
             $query->where('status', $validated['status']);
         }
 
         $filename = 'hrm_payroll_'.now()->format('Ymd_His').'.xlsx';
 
         $callback = function () use ($query) {
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             // Set headers

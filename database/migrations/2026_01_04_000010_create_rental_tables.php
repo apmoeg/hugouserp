@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Consolidated Rental & Property Tables Migration
- * 
+ *
  * MySQL 8.4 Optimized:
  * - Rental units, contracts
  * - Tenants, payments
@@ -53,42 +53,42 @@ return new class extends Migration
             $table->string('name', 255);
             $table->string('name_ar', 255)->nullable();
             $table->string('type', 50)->default('individual');
-            
+
             // Contact
             $table->string('email', 255)->nullable();
             $table->string('phone', 50)->nullable();
             $table->string('mobile', 50)->nullable();
-            
+
             // Identity
             $table->string('national_id', 50)->nullable();
             $table->string('passport_number', 50)->nullable();
             $table->string('commercial_register', 100)->nullable();
             $table->string('tax_number', 100)->nullable();
-            
+
             // Address
             $table->text('address')->nullable();
             $table->string('city', 100)->nullable();
             $table->string('country', 100)->nullable();
-            
+
             // Emergency contact
             $table->string('emergency_contact', 255)->nullable();
             $table->string('emergency_phone', 50)->nullable();
-            
+
             // Financial
             $table->decimal('balance', 18, 4)->default(0);
             $table->decimal('deposit_balance', 18, 4)->default(0);
-            
+
             $table->boolean('is_active')->default(true)->index();
             $table->boolean('is_blacklisted')->default(false);
             $table->text('blacklist_reason')->nullable();
-            
+
             $table->text('notes')->nullable();
             $table->json('documents')->nullable();
             $table->json('custom_fields')->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'is_active']);
         });
 
@@ -101,38 +101,38 @@ return new class extends Migration
             $table->string('name', 255);
             $table->string('name_ar', 255)->nullable();
             $table->string('type', 50); // building, apartment, office, store, land
-            
+
             // Location
             $table->text('address')->nullable();
             $table->string('city', 100)->nullable();
             $table->string('district', 100)->nullable();
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
-            
+
             // Details
             $table->decimal('area_sqm', 10, 2)->nullable();
             $table->integer('bedrooms')->nullable();
             $table->integer('bathrooms')->nullable();
             $table->integer('floors')->nullable();
             $table->string('year_built', 4)->nullable();
-            
+
             // Pricing
             $table->decimal('purchase_price', 18, 4)->nullable();
             $table->decimal('market_value', 18, 4)->nullable();
-            
+
             $table->string('status', 50)->default('available'); // available, occupied, maintenance
             $table->boolean('is_active')->default(true)->index();
-            
+
             $table->json('amenities')->nullable();
             $table->json('images')->nullable();
             $table->text('description')->nullable();
             $table->text('notes')->nullable(); // Notes field
             $table->json('extra_attributes')->nullable(); // Extra attributes
-            
+
             $table->foreignId('manager_id')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
             $table->softDeletes();
         });
@@ -150,34 +150,34 @@ return new class extends Migration
             $table->string('name_ar', 255)->nullable();
             $table->string('type', 50); // apartment, office, store, room
             $table->string('floor', 50)->nullable();
-            
+
             // Size
             $table->decimal('area_sqm', 10, 2)->nullable();
             $table->integer('bedrooms')->nullable();
             $table->integer('bathrooms')->nullable();
-            
+
             // Pricing
             $table->decimal('daily_rate', 18, 4)->nullable();
             $table->decimal('weekly_rate', 18, 4)->nullable();
             $table->decimal('monthly_rate', 18, 4)->nullable();
             $table->decimal('yearly_rate', 18, 4)->nullable();
             $table->decimal('deposit_amount', 18, 4)->nullable();
-            
+
             // Utilities
             $table->boolean('utilities_included')->default(false);
             $table->decimal('electricity_meter', 18, 2)->nullable();
             $table->decimal('water_meter', 18, 2)->nullable();
-            
+
             $table->string('status', 50)->default('available'); // available, occupied, reserved, maintenance
             $table->boolean('is_active')->default(true)->index();
-            
+
             $table->json('amenities')->nullable();
             $table->json('images')->nullable();
             $table->text('description')->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['property_id', 'status']);
         });
 
@@ -191,13 +191,13 @@ return new class extends Migration
             $table->string('contract_number', 100)->unique();
             $table->string('type', 50)->default('lease'); // lease, short_term
             $table->string('status', 50)->default('draft'); // draft, active, expired, terminated
-            
+
             // Dates
             $table->date('start_date');
             $table->date('end_date');
             $table->date('actual_end_date')->nullable();
             $table->timestamp('expiration_notified_at')->nullable();
-            
+
             // Financial
             $table->decimal('rent_amount', 18, 4);
             $table->string('rent_frequency', 50)->default('monthly');
@@ -207,25 +207,25 @@ return new class extends Migration
             $table->decimal('late_fee_amount', 18, 4)->default(0);
             $table->decimal('late_fee_percent', 5, 2)->default(0);
             $table->integer('grace_period_days')->default(0);
-            
+
             // Utilities
             $table->boolean('utilities_included')->default(false);
             $table->decimal('electricity_opening', 18, 2)->nullable();
             $table->decimal('water_opening', 18, 2)->nullable();
-            
+
             // Terms
             $table->text('terms_conditions')->nullable();
             $table->text('special_conditions')->nullable();
             $table->text('notes')->nullable();
             $table->json('documents')->nullable();
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'status']);
             $table->index(['tenant_id', 'status']);
             $table->index(['start_date', 'end_date']);
@@ -245,19 +245,19 @@ return new class extends Migration
             $table->date('due_date');
             $table->date('period_start')->nullable();
             $table->date('period_end')->nullable();
-            
+
             $table->decimal('rent_amount', 18, 4)->default(0);
             $table->decimal('utilities_amount', 18, 4)->default(0);
             $table->decimal('late_fee', 18, 4)->default(0);
             $table->decimal('discount', 18, 4)->default(0);
             $table->decimal('total_amount', 18, 4);
             $table->decimal('paid_amount', 18, 4)->default(0);
-            
+
             $table->text('notes')->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['contract_id', 'status']);
             $table->index(['due_date', 'status']);
         });
@@ -278,19 +278,19 @@ return new class extends Migration
             $table->string('payment_method', 50);
             $table->string('type', 50)->default('rent'); // rent, deposit, refund
             $table->string('status', 50)->default('completed');
-            
+
             $table->string('cheque_number', 100)->nullable();
             $table->date('cheque_date')->nullable();
             $table->string('bank_name', 255)->nullable();
-            
+
             $table->text('notes')->nullable();
-            
+
             $table->foreignId('received_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
-            
+
             $table->index(['contract_id', 'payment_date']);
         });
 
@@ -328,12 +328,12 @@ return new class extends Migration
             $table->string('year', 4)->nullable();
             $table->string('vin', 50)->nullable();
             $table->string('engine_number', 100)->nullable();
-            
+
             // Current state
             $table->string('status', 50)->default('available'); // available, rented, maintenance, sold
             $table->decimal('current_mileage', 12, 2)->default(0);
             $table->decimal('fuel_level_percent', 5, 2)->nullable();
-            
+
             // Pricing
             $table->decimal('hourly_rate', 18, 4)->nullable();
             $table->decimal('daily_rate', 18, 4)->nullable();
@@ -341,33 +341,33 @@ return new class extends Migration
             $table->decimal('monthly_rate', 18, 4)->nullable();
             $table->decimal('deposit_amount', 18, 4)->nullable();
             $table->decimal('excess_km_rate', 18, 4)->nullable();
-            
+
             // Purchase info
             $table->date('purchase_date')->nullable();
             $table->decimal('purchase_price', 18, 4)->nullable();
             $table->date('registration_date')->nullable();
             $table->date('registration_expiry')->nullable();
-            
+
             // Insurance
             $table->string('insurance_company', 255)->nullable();
             $table->string('insurance_policy', 100)->nullable();
             $table->date('insurance_expiry')->nullable();
-            
+
             // Maintenance
             $table->date('last_service_date')->nullable();
             $table->decimal('last_service_mileage', 12, 2)->nullable();
             $table->date('next_service_date')->nullable();
             $table->decimal('next_service_mileage', 12, 2)->nullable();
-            
+
             $table->boolean('is_active')->default(true)->index();
-            
+
             $table->json('features')->nullable();
             $table->json('images')->nullable();
             $table->text('notes')->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'status']);
         });
 
@@ -380,26 +380,26 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained();
             $table->string('contract_number', 100)->unique();
             $table->string('status', 50)->default('draft'); // draft, active, completed, cancelled
-            
+
             // Dates
             $table->timestamp('pickup_datetime');
             $table->timestamp('return_datetime');
             $table->timestamp('actual_pickup')->nullable();
             $table->timestamp('actual_return')->nullable();
-            
+
             // Mileage
             $table->decimal('pickup_mileage', 12, 2)->nullable();
             $table->decimal('return_mileage', 12, 2)->nullable();
             $table->decimal('included_km', 12, 2)->nullable();
-            
+
             // Fuel
             $table->decimal('pickup_fuel_level', 5, 2)->nullable();
             $table->decimal('return_fuel_level', 5, 2)->nullable();
-            
+
             // Location
             $table->string('pickup_location', 255)->nullable();
             $table->string('return_location', 255)->nullable();
-            
+
             // Financial
             $table->decimal('daily_rate', 18, 4);
             $table->decimal('total_days', 8, 2);
@@ -410,23 +410,23 @@ return new class extends Migration
             $table->decimal('discount_amount', 18, 4)->default(0);
             $table->decimal('total_amount', 18, 4);
             $table->decimal('paid_amount', 18, 4)->default(0);
-            
+
             // Driver
             $table->string('driver_name', 255)->nullable();
             $table->string('driver_license', 100)->nullable();
             $table->date('license_expiry')->nullable();
-            
+
             $table->json('inspection_checklist')->nullable();
             $table->text('terms_conditions')->nullable();
             $table->text('notes')->nullable();
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'status']);
             $table->index(['vehicle_id', 'status']);
             $table->index(['pickup_datetime', 'return_datetime']);
@@ -446,11 +446,11 @@ return new class extends Migration
             $table->string('type', 50)->default('rental'); // rental, deposit, refund, extra
             $table->string('status', 50)->default('completed');
             $table->text('notes')->nullable();
-            
+
             $table->foreignId('received_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
         });
     }

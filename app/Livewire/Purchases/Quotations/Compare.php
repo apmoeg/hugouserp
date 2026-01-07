@@ -14,7 +14,9 @@ class Compare extends Component
     use AuthorizesRequests;
 
     public $requisition_id = '';
+
     public $quotations = [];
+
     public $comparisonData = [];
 
     public function mount()
@@ -29,9 +31,10 @@ class Compare extends Component
 
     public function loadQuotations()
     {
-        if (!$this->requisition_id) {
+        if (! $this->requisition_id) {
             $this->quotations = [];
             $this->comparisonData = [];
+
             return;
         }
 
@@ -48,23 +51,24 @@ class Compare extends Component
     {
         if ($this->quotations->isEmpty()) {
             $this->comparisonData = [];
+
             return;
         }
 
         // Build comparison matrix
         $matrix = [];
-        
+
         foreach ($this->quotations as $quotation) {
             foreach ($quotation->items as $item) {
                 $productId = $item->product_id;
-                
-                if (!isset($matrix[$productId])) {
+
+                if (! isset($matrix[$productId])) {
                     $matrix[$productId] = [
                         'product' => $item->product,
                         'quotations' => [],
                     ];
                 }
-                
+
                 $matrix[$productId]['quotations'][$quotation->id] = [
                     'quantity' => $item->qty,
                     'unit_price' => $item->unit_cost,
@@ -83,6 +87,7 @@ class Compare extends Component
 
         if ($this->quotations->isEmpty()) {
             session()->flash('error', __('No quotations to compare'));
+
             return;
         }
 

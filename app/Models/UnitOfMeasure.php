@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 
 class UnitOfMeasure extends Model
 {
@@ -85,9 +85,9 @@ class UnitOfMeasure extends Model
         }
 
         $baseValue = $value * (float) $this->conversion_factor;
-        
+
         $targetFactor = (float) $targetUnit->conversion_factor;
-        
+
         // Prevent division by zero - conversion factors should be positive for inventory units
         if ($targetFactor == 0) {
             throw new \InvalidArgumentException('Target unit conversion factor cannot be zero');

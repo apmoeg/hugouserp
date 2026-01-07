@@ -31,25 +31,25 @@ class PayrollRunRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (!$this->has('branch_id') && $this->user()->branch_id) {
+        if (! $this->has('branch_id') && $this->user()->branch_id) {
             $this->merge([
                 'branch_id' => $this->user()->branch_id,
             ]);
         }
 
-        if (!$this->has('include_overtime')) {
+        if (! $this->has('include_overtime')) {
             $this->merge([
                 'include_overtime' => true,
             ]);
         }
 
-        if (!$this->has('include_deductions')) {
+        if (! $this->has('include_deductions')) {
             $this->merge([
                 'include_deductions' => true,
             ]);
         }
 
-        if (!$this->has('include_bonuses')) {
+        if (! $this->has('include_bonuses')) {
             $this->merge([
                 'include_bonuses' => true,
             ]);

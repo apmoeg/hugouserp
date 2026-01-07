@@ -49,8 +49,8 @@ class GRNFormTest extends TestCase
     private function makeWarehouse(Branch $branch): Warehouse
     {
         return Warehouse::create([
-            'name' => 'WH ' . Str::random(4),
-            'code' => 'WH-' . Str::random(4),
+            'name' => 'WH '.Str::random(4),
+            'code' => 'WH-'.Str::random(4),
             'status' => 'active',
             'branch_id' => $branch->id,
         ]);
@@ -60,7 +60,7 @@ class GRNFormTest extends TestCase
     {
         return Supplier::create([
             'branch_id' => $branch->id,
-            'name' => 'Supplier ' . Str::random(4),
+            'name' => 'Supplier '.Str::random(4),
             'email' => null,
             'phone' => null,
         ]);

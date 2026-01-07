@@ -18,7 +18,7 @@ class FixedAssetUpdateRequest extends FormRequest
         $assetId = $this->route('asset') ? $this->route('asset')->id : 'NULL';
 
         return [
-            'asset_code' => ['sometimes', 'required', 'string', 'max:50', 'unique:fixed_assets,asset_code,' . $assetId],
+            'asset_code' => ['sometimes', 'required', 'string', 'max:50', 'unique:fixed_assets,asset_code,'.$assetId],
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'category' => ['sometimes', 'required', 'string', 'max:100'],

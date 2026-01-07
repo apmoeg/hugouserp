@@ -33,7 +33,7 @@ class HomeRouteTest extends TestCase
         // Assert redirect to dashboard
         $response->assertStatus(302);
         $response->assertRedirect(route('dashboard'));
-        
+
         // Assert Location header is present and points to dashboard
         $response->assertHeader('Location');
         $this->assertStringContainsString('dashboard', $response->headers->get('Location'));
@@ -69,12 +69,12 @@ class HomeRouteTest extends TestCase
         // Assert redirect to login
         $response->assertStatus(302);
         $response->assertRedirect(route('login'));
-        
+
         // Assert Location header is present and points to login
         $response->assertHeader('Location');
         $loginPath = route('login');
         $location = $response->headers->get('Location');
-        
+
         // Verify the login path is present in the redirect target
         $this->assertStringContainsString('login', $location);
     }

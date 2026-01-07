@@ -11,8 +11,6 @@ trait RequiresBranchContext
     /**
      * Get and validate the branch ID from the request context.
      *
-     * @param Request $request
-     * @return int
      * @throws \Symfony\Component\HttpKernel\Exception\HttpException
      */
     protected function requireBranchId(Request $request): int

@@ -7,7 +7,6 @@ namespace App\Livewire\Admin\Reports;
 use App\Models\Product;
 use App\Services\StockService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 

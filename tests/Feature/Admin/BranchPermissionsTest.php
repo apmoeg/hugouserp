@@ -17,8 +17,11 @@ class BranchPermissionsTest extends TestCase
     use RefreshDatabase;
 
     protected Branch $branch;
+
     protected User $superAdmin;
+
     protected User $branchAdmin;
+
     protected User $branchEmployee;
 
     protected function setUp(): void
@@ -154,11 +157,11 @@ class BranchPermissionsTest extends TestCase
     {
         $this->assertTrue($this->branch->hasUser($this->branchAdmin));
         $this->assertTrue($this->branch->hasUser($this->branchEmployee));
-        
+
         // Create user in different branch
         $otherBranch = Branch::factory()->create(['code' => 'OB001']);
         $otherUser = User::factory()->create(['branch_id' => $otherBranch->id]);
-        
+
         $this->assertFalse($this->branch->hasUser($otherUser));
     }
 
@@ -166,10 +169,10 @@ class BranchPermissionsTest extends TestCase
     {
         // Super Admin should always have permission
         $this->assertTrue($this->branch->userHasPermissionInBranch($this->superAdmin, 'branch.employees.manage'));
-        
+
         // Branch Admin with can_manage_users should have permission
         $this->assertTrue($this->branch->userHasPermissionInBranch($this->branchAdmin, 'branch.employees.manage'));
-        
+
         // Regular employee without branch admin record should not have permission
         $this->assertFalse($this->branch->userHasPermissionInBranch($this->branchEmployee, 'branch.employees.manage'));
     }
@@ -177,7 +180,7 @@ class BranchPermissionsTest extends TestCase
     public function test_branch_active_employees_scope(): void
     {
         $employees = $this->branch->activeEmployees()->get();
-        
+
         $this->assertGreaterThanOrEqual(3, $employees->count());
         $this->assertTrue($employees->contains($this->superAdmin));
         $this->assertTrue($employees->contains($this->branchAdmin));
@@ -187,7 +190,7 @@ class BranchPermissionsTest extends TestCase
     public function test_get_branch_admin_record(): void
     {
         $record = $this->branchAdmin->getBranchAdminRecord();
-        
+
         $this->assertNotNull($record);
         $this->assertTrue($record->can_manage_users);
         $this->assertTrue($record->can_view_reports);
@@ -205,7 +208,7 @@ class BranchPermissionsTest extends TestCase
     public function test_employees_count_attribute(): void
     {
         $count = $this->branch->employees_count;
-        
+
         $this->assertGreaterThanOrEqual(3, $count);
     }
 }

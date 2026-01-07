@@ -21,9 +21,13 @@ class PaymentTrackingTest extends TestCase
     use RefreshDatabase;
 
     protected RentalService $service;
+
     protected Branch $branch;
+
     protected User $user;
+
     protected RentalContract $contract;
+
     protected RentalInvoice $invoice;
 
     protected function setUp(): void

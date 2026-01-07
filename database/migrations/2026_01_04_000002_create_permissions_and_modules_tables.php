@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Consolidated Permissions & Modules Tables Migration
- * 
+ *
  * MySQL 8.4 Optimized:
  * - Spatie Permission compatible
  * - Module management system
@@ -35,7 +35,7 @@ return new class extends Migration
             $table->string('group', 100)->nullable();
             $table->string('description', 500)->nullable();
             $table->timestamps();
-            
+
             $table->unique(['name', 'guard_name']);
             $table->index('group');
         });
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->string('description', 500)->nullable();
             $table->boolean('is_system')->default(false);
             $table->timestamps();
-            
+
             $table->unique(['name', 'guard_name']);
         });
 
@@ -59,7 +59,7 @@ return new class extends Migration
             $this->setTableOptions($table);
             $table->foreignId('permission_id')->constrained()->cascadeOnDelete();
             $table->foreignId('role_id')->constrained()->cascadeOnDelete();
-            
+
             $table->primary(['permission_id', 'role_id']);
         });
 
@@ -69,7 +69,7 @@ return new class extends Migration
             $table->foreignId('permission_id')->constrained()->cascadeOnDelete();
             $table->string('model_type', 255);
             $table->unsignedBigInteger('model_id');
-            
+
             $table->primary(['permission_id', 'model_id', 'model_type']);
             $table->index(['model_id', 'model_type']);
         });
@@ -80,7 +80,7 @@ return new class extends Migration
             $table->foreignId('role_id')->constrained()->cascadeOnDelete();
             $table->string('model_type', 255);
             $table->unsignedBigInteger('model_id');
-            
+
             $table->primary(['role_id', 'model_id', 'model_type']);
             $table->index(['model_id', 'model_type']);
         });
@@ -123,7 +123,7 @@ return new class extends Migration
             $table->boolean('supports_custom_fields')->default(true);
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['is_active', 'sort_order']);
         });
 
@@ -136,7 +136,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->json('settings')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['branch_id', 'module_id']);
         });
 
@@ -173,7 +173,7 @@ return new class extends Migration
             $table->boolean('supports_bulk_edit')->default(false); // Bulk edit support
             $table->json('dependencies')->nullable(); // Field dependencies
             $table->timestamps();
-            
+
             $table->unique(['module_id', 'field_key'], 'module_fields_module_field_key_unique');
         });
 
@@ -194,7 +194,7 @@ return new class extends Migration
             $table->string('placeholder', 255)->nullable();
             $table->text('default_value')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['module_id', 'field_key'], 'module_custom_fields_module_field_key_unique');
         });
 
@@ -220,7 +220,7 @@ return new class extends Migration
             $table->integer('sort_order')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
+
             $table->index(['module_id', 'sort_order']);
         });
 
@@ -233,7 +233,7 @@ return new class extends Migration
             $table->text('value')->nullable();
             $table->string('type', 50)->default('string');
             $table->timestamps();
-            
+
             $table->unique(['module_id', 'key']);
         });
 
@@ -250,7 +250,7 @@ return new class extends Migration
             $table->json('new_values')->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->timestamp('created_at')->useCurrent();
-            
+
             $table->index(['module_id', 'created_at']);
             $table->index(['model_type', 'model_id']);
         });
@@ -271,7 +271,7 @@ return new class extends Migration
             $table->boolean('is_enforced')->default(true);
             $table->integer('priority')->default(0); // Priority
             $table->timestamps();
-            
+
             $table->unique(['module_id', 'policy_key']);
         });
     }

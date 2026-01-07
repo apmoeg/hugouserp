@@ -51,6 +51,7 @@ class Form extends Component
 
     /**
      * Enabled modules for the selected branch
+     *
      * @var array<string>
      */
     public array $branchModules = [];
@@ -101,8 +102,9 @@ class Form extends Component
      */
     public function loadBranchModules(?int $branchId): void
     {
-        if (!$branchId) {
+        if (! $branchId) {
             $this->branchModules = [];
+
             return;
         }
 

@@ -100,7 +100,7 @@ class Form extends Component
         if ($supplier && $supplier->exists) {
             $this->supplier = $supplier;
             $this->editMode = true;
-            
+
             // Explicitly set all fields to ensure proper initialization
             $this->name = $supplier->name ?? '';
             $this->email = $supplier->email ?? '';
@@ -126,7 +126,7 @@ class Form extends Component
     {
         $validated = $this->validate();
         $validated['branch_id'] = auth()->user()->branches()->first()?->id;
-        
+
         if ($this->editMode) {
             $validated['updated_by'] = auth()->id();
         } else {

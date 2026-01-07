@@ -66,7 +66,7 @@ class Shift extends BaseModel
 
     public function getShiftDurationAttribute(): float
     {
-        if (!$this->start_time || !$this->end_time) {
+        if (! $this->start_time || ! $this->end_time) {
             return 0;
         }
 
@@ -80,12 +80,13 @@ class Shift extends BaseModel
 
         // Subtract break duration
         $durationMinutes = $start->diffInMinutes($end) - ($this->break_duration_minutes ?? 0);
+
         return $durationMinutes / 60;
     }
 
     public function isWorkingDay(string $day): bool
     {
-        if (!$this->working_days) {
+        if (! $this->working_days) {
             return true;
         }
 

@@ -77,8 +77,8 @@ class Form extends Component
                 }
                 Cache::forget('properties_stats_'.($user->branch_id ?? 'all'));
             },
-            successMessage: $this->propertyId 
-                ? __('Property updated successfully') 
+            successMessage: $this->propertyId
+                ? __('Property updated successfully')
                 : __('Property created successfully'),
             redirectRoute: 'app.rental.properties.index'
         );

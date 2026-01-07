@@ -89,17 +89,17 @@ class Edit extends Component
     {
         if ($fieldId === 'profile-avatar') {
             $user = Auth::user();
-            
+
             // Delete old avatar if exists
             if ($this->currentAvatar) {
                 Storage::disk('public')->delete($this->currentAvatar);
             }
-            
+
             // Update user with new avatar path
             $user->update([
                 'avatar' => $path,
             ]);
-            
+
             $this->currentAvatar = $path;
             session()->flash('success', __('Avatar updated successfully'));
 

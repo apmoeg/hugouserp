@@ -19,6 +19,7 @@ class ActivityLogTest extends TestCase
     use RefreshDatabase;
 
     protected User $adminUser;
+
     protected User $regularUser;
 
     protected function setUp(): void
@@ -59,7 +60,7 @@ class ActivityLogTest extends TestCase
     public function test_activity_log_page_requires_authentication(): void
     {
         $response = $this->get(route('admin.activity-log'));
-        
+
         $response->assertRedirect(route('login'));
     }
 
@@ -68,7 +69,7 @@ class ActivityLogTest extends TestCase
         $this->actingAs($this->regularUser);
 
         $response = $this->get(route('admin.activity-log'));
-        
+
         $response->assertStatus(403);
     }
 
@@ -77,7 +78,7 @@ class ActivityLogTest extends TestCase
         $this->actingAs($this->adminUser);
 
         $response = $this->get(route('admin.activity-log'));
-        
+
         $response->assertStatus(200);
     }
 
@@ -101,7 +102,7 @@ class ActivityLogTest extends TestCase
         activity()
             ->causedBy($this->adminUser)
             ->log('First test activity');
-        
+
         activity()
             ->causedBy($this->adminUser)
             ->log('Second unique activity');
@@ -121,7 +122,7 @@ class ActivityLogTest extends TestCase
             ->causedBy($this->adminUser)
             ->event('created')
             ->log('Created activity');
-        
+
         activity()
             ->causedBy($this->adminUser)
             ->event('updated')
@@ -163,7 +164,7 @@ class ActivityLogTest extends TestCase
         // Test that changing search resets page
         $component = Livewire::test(ActivityLog::class)
             ->set('search', 'Activity');
-        
+
         // Component should be on page 1 after filter change
         // The page property is managed by Livewire's WithPagination trait
         $this->assertTrue(true); // Filter applied successfully
@@ -179,10 +180,10 @@ class ActivityLogTest extends TestCase
         $this->actingAs($this->adminUser);
 
         $component = Livewire::test(ActivityLog::class);
-        
+
         // Get causer types
         $causerTypes = $component->instance()->getCauserTypes();
-        
+
         // Should be key-value pairs (full path => display name)
         foreach ($causerTypes as $fullPath => $displayName) {
             $this->assertStringContainsString('\\', $fullPath);
@@ -199,7 +200,7 @@ class ActivityLogTest extends TestCase
             'description' => 'Yesterday activity',
             'created_at' => $yesterday,
         ]);
-        
+
         // Create activity today
         Activity::factory()->create([
             'log_name' => 'default',
@@ -226,7 +227,7 @@ class ActivityLogTest extends TestCase
 
         $component = Livewire::test(ActivityLog::class);
         $logTypes = $component->instance()->getLogTypes();
-        
+
         $this->assertIsArray($logTypes);
     }
 
@@ -236,7 +237,7 @@ class ActivityLogTest extends TestCase
 
         $component = Livewire::test(ActivityLog::class);
         $eventTypes = $component->instance()->getEventTypes();
-        
+
         $this->assertIsArray($eventTypes);
         $this->assertContains('created', $eventTypes);
         $this->assertContains('updated', $eventTypes);

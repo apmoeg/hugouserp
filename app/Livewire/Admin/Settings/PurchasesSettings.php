@@ -15,20 +15,29 @@ class PurchasesSettings extends Component
 {
     // Purchase settings
     public string $purchase_invoice_prefix = 'PO-';
+
     public int $purchase_invoice_starting_number = 1000;
+
     public int $purchase_payment_terms_days = 30;
+
     public bool $auto_receive_on_purchase = false;
+
     public bool $require_purchase_approval = true;
+
     public float $purchase_approval_threshold = 10000;
+
     public bool $enable_purchase_requisitions = true;
+
     public bool $enable_grn = true;
+
     public int $grn_validity_days = 7;
+
     public bool $enable_3way_matching = false;
 
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('settings.view')) {
+        if (! $user || ! $user->can('settings.view')) {
             abort(403);
         }
 

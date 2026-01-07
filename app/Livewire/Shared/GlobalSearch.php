@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Livewire\Shared;
 
 use App\Models\Customer;
+use App\Models\Document;
 use App\Models\Product;
+use App\Models\Project;
 use App\Models\Purchase;
 use App\Models\Sale;
 use App\Models\Supplier;
-use App\Models\User;
 use App\Models\Ticket;
-use App\Models\Project;
-use App\Models\Document;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Component;

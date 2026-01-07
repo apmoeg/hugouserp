@@ -19,22 +19,22 @@ class ActivityLog extends Component
 
     #[Url(except: '')]
     public string $search = '';
-    
+
     #[Url(except: '')]
     public string $logType = '';
-    
+
     #[Url(except: '')]
     public string $eventType = '';
-    
+
     #[Url(except: '')]
     public string $causerType = '';
-    
+
     #[Url(except: '')]
     public string $dateFrom = '';
-    
+
     #[Url(except: '')]
     public string $dateTo = '';
-    
+
     public int $perPage = 25;
 
     public function updatingSearch(): void
@@ -89,7 +89,7 @@ class ActivityLog extends Component
                 ->pluck('causer_type')
                 ->filter()
                 ->unique()
-                ->mapWithKeys(fn($type) => [$type => class_basename($type)])
+                ->mapWithKeys(fn ($type) => [$type => class_basename($type)])
                 ->toArray();
         });
     }
@@ -105,16 +105,16 @@ class ActivityLog extends Component
             ->with(['causer', 'subject'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
-                    $q->where('description', 'like', '%' . $this->search . '%')
-                      ->orWhere('properties', 'like', '%' . $this->search . '%')
-                      ->orWhere('subject_type', 'like', '%' . $this->search . '%');
+                    $q->where('description', 'like', '%'.$this->search.'%')
+                        ->orWhere('properties', 'like', '%'.$this->search.'%')
+                        ->orWhere('subject_type', 'like', '%'.$this->search.'%');
                 });
             })
-            ->when($this->logType, fn($q) => $q->where('log_name', $this->logType))
-            ->when($this->eventType, fn($q) => $q->where('event', $this->eventType))
-            ->when($this->causerType, fn($q) => $q->where('causer_type', $this->causerType))
-            ->when($this->dateFrom, fn($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
-            ->when($this->dateTo, fn($q) => $q->whereDate('created_at', '<=', $this->dateTo))
+            ->when($this->logType, fn ($q) => $q->where('log_name', $this->logType))
+            ->when($this->eventType, fn ($q) => $q->where('event', $this->eventType))
+            ->when($this->causerType, fn ($q) => $q->where('causer_type', $this->causerType))
+            ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))
+            ->when($this->dateTo, fn ($q) => $q->whereDate('created_at', '<=', $this->dateTo))
             ->latest()
             ->paginate($this->perPage);
 

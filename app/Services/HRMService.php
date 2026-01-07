@@ -140,6 +140,7 @@ class HRMService implements HRMServiceInterface
 
         // Use bcmath for precise social insurance calculation
         $insurance = bcmul((string) $insurableSalary, (string) $rate, 4);
+
         return (float) bcdiv($insurance, '1', 2);
     }
 
@@ -169,7 +170,7 @@ class HRMService implements HRMServiceInterface
             $bracketLimit = (string) $bracket['limit'];
             $taxableUpToLimit = bccomp($annualIncome, $bracketLimit, 2) < 0 ? $annualIncome : $bracketLimit;
             $taxableInBracket = bcsub($taxableUpToLimit, $previousLimit, 2);
-            
+
             // Use bcmath for precise tax bracket calculation
             if (bccomp($taxableInBracket, '0', 2) > 0) {
                 $bracketTax = bcmul($taxableInBracket, (string) $bracket['rate'], 4);
@@ -180,6 +181,7 @@ class HRMService implements HRMServiceInterface
 
         // Use bcmath for precise monthly tax calculation
         $monthlyTax = bcdiv($annualTaxString, '12', 4);
+
         return (float) bcdiv($monthlyTax, '1', 2);
     }
 
@@ -214,7 +216,7 @@ class HRMService implements HRMServiceInterface
                 'period' => $period,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return 0;
         }
     }

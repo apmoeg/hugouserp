@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
-use Illuminate\Database\Eloquent\Builder;
 
 class Customer extends BaseModel
 {
     use LogsActivity, SoftDeletes;
+
     protected ?string $moduleKey = 'customers';
 
     protected $table = 'customers';
@@ -147,12 +148,13 @@ class Customer extends BaseModel
         }
 
         $availableCredit = $this->credit_limit - $this->balance;
+
         return $availableCredit >= $amount;
     }
 
     public function getCreditUtilizationAttribute(): float
     {
-        if (!$this->credit_limit || $this->credit_limit <= 0) {
+        if (! $this->credit_limit || $this->credit_limit <= 0) {
             return 0;
         }
 
@@ -161,7 +163,7 @@ class Customer extends BaseModel
 
     public function canPurchase(float $amount): bool
     {
-        return $this->hasAvailableCredit($amount) && $this->is_active && !$this->is_blocked;
+        return $this->hasAvailableCredit($amount) && $this->is_active && ! $this->is_blocked;
     }
 
     public function addBalance(float $amount): void
@@ -180,6 +182,7 @@ class Customer extends BaseModel
         if ($this->is_blocked) {
             return 'blocked';
         }
+
         return $this->is_active ? 'active' : 'inactive';
     }
 
@@ -214,6 +217,6 @@ class Customer extends BaseModel
             ->logOnly(['name', 'email', 'phone', 'is_active', 'is_blocked', 'loyalty_points', 'loyalty_tier'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
-            ->setDescriptionForEvent(fn(string $eventName) => "Customer {$this->name} was {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "Customer {$this->name} was {$eventName}");
     }
 }

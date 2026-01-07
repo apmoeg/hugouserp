@@ -6,13 +6,12 @@ namespace App\Livewire\Banking;
 
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
-use Livewire\Component;
 use Livewire\Attributes\Layout;
-use Illuminate\Support\Collection;
+use Livewire\Component;
 
 /**
  * Bank Reconciliation Wizard
- * 
+ *
  * A step-by-step wizard for reconciling bank statements with system transactions
  * Features:
  * - Step 1: Select account and date range
@@ -25,24 +24,31 @@ class Reconciliation extends Component
 {
     // Wizard state
     public int $currentStep = 1;
+
     public int $totalSteps = 4;
-    
+
     // Step 1: Account selection
     public ?int $accountId = null;
+
     public string $startDate = '';
+
     public string $endDate = '';
-    
+
     // Step 2: Statement balance
     public float $statementBalance = 0;
+
     public string $statementDate = '';
-    
+
     // Step 3: Transaction matching
     public array $matchedTransactions = [];
+
     public array $unmatchedTransactions = [];
-    
+
     // Step 4: Summary
     public float $systemBalance = 0;
+
     public float $difference = 0;
+
     public string $notes = '';
 
     public function mount(): void
@@ -61,12 +67,12 @@ class Reconciliation extends Component
         if ($this->validateCurrentStep()) {
             if ($this->currentStep < $this->totalSteps) {
                 $this->currentStep++;
-                
+
                 // Load data for step 3
                 if ($this->currentStep === 3) {
                     $this->loadTransactions();
                 }
-                
+
                 // Calculate summary for step 4
                 if ($this->currentStep === 4) {
                     $this->calculateSummary();
@@ -100,7 +106,7 @@ class Reconciliation extends Component
      */
     protected function validateCurrentStep(): bool
     {
-        $rules = match($this->currentStep) {
+        $rules = match ($this->currentStep) {
             1 => [
                 'accountId' => 'required|exists:bank_accounts,id',
                 'startDate' => 'required|date',
@@ -120,6 +126,7 @@ class Reconciliation extends Component
         }
 
         $this->validate($rules);
+
         return true;
     }
 
@@ -135,7 +142,7 @@ class Reconciliation extends Component
 
         $this->unmatchedTransactions = $transactions
             ->where('is_reconciled', false)
-            ->map(fn($t) => [
+            ->map(fn ($t) => [
                 'id' => $t->id,
                 'date' => $t->transaction_date->format('Y-m-d'),
                 'description' => $t->description,
@@ -149,7 +156,7 @@ class Reconciliation extends Component
 
         $this->matchedTransactions = $transactions
             ->where('is_reconciled', true)
-            ->map(fn($t) => [
+            ->map(fn ($t) => [
                 'id' => $t->id,
                 'date' => $t->transaction_date->format('Y-m-d'),
                 'description' => $t->description,
@@ -175,6 +182,7 @@ class Reconciliation extends Component
                 unset($this->unmatchedTransactions[$index]);
                 $this->unmatchedTransactions = array_values($this->unmatchedTransactions);
                 $this->calculateSummary();
+
                 return;
             }
         }
@@ -187,6 +195,7 @@ class Reconciliation extends Component
                 unset($this->matchedTransactions[$index]);
                 $this->matchedTransactions = array_values($this->matchedTransactions);
                 $this->calculateSummary();
+
                 return;
             }
         }
@@ -224,10 +233,10 @@ class Reconciliation extends Component
     protected function calculateSummary(): void
     {
         $matchedTotal = collect($this->matchedTransactions)->sum('amount');
-        
+
         $account = BankAccount::find($this->accountId);
         $this->systemBalance = $account ? ($account->current_balance ?? 0) : 0;
-        
+
         $this->difference = $this->statementBalance - $matchedTotal;
     }
 
@@ -238,7 +247,7 @@ class Reconciliation extends Component
     {
         if (abs($this->difference) > 0.01) {
             session()->flash('warning', __('There is still a difference of :amount. Are you sure you want to complete?', [
-                'amount' => number_format($this->difference, 2)
+                'amount' => number_format($this->difference, 2),
             ]));
         }
 
@@ -257,7 +266,7 @@ class Reconciliation extends Component
         ]);
 
         session()->flash('success', __('Reconciliation completed successfully. :count transactions reconciled.', [
-            'count' => count($this->matchedTransactions)
+            'count' => count($this->matchedTransactions),
         ]));
 
         $this->redirect(route('banking.index'));

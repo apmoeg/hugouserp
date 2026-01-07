@@ -44,7 +44,7 @@ class TicketReplyRequest extends FormRequest
         ]);
 
         // Set default is_internal to false if not provided
-        if (!$this->has('is_internal')) {
+        if (! $this->has('is_internal')) {
             $this->merge([
                 'is_internal' => false,
             ]);

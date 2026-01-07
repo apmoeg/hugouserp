@@ -41,8 +41,8 @@ class BarcodePrintBranchScopeTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        
-        $component = new BarcodePrint();
+
+        $component = new BarcodePrint;
         app()->call([$component, 'mount']);
     }
 
@@ -62,11 +62,11 @@ class BarcodePrintBranchScopeTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = new BarcodePrint();
+        $component = new BarcodePrint;
         app()->call([$component, 'mount']);
-        
+
         app()->call([$component, 'addProduct'], ['productId' => $otherBranchProduct->id]);
-        
+
         $this->assertEmpty($component->selectedProducts);
     }
 
@@ -85,11 +85,11 @@ class BarcodePrintBranchScopeTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = new BarcodePrint();
+        $component = new BarcodePrint;
         app()->call([$component, 'mount']);
-        
+
         app()->call([$component, 'addProduct'], ['productId' => $product->id]);
-        
+
         $this->assertContains($product->id, $component->selectedProducts);
     }
 
@@ -105,8 +105,8 @@ class BarcodePrintBranchScopeTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        
-        $component = new BarcodePrint();
+
+        $component = new BarcodePrint;
         app()->call([$component, 'mount']);
     }
 
@@ -126,14 +126,14 @@ class BarcodePrintBranchScopeTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = new BarcodePrint();
+        $component = new BarcodePrint;
         app()->call([$component, 'mount']);
-        
+
         // Add all products (should stop at MAX_SELECTED_PRODUCTS = 100)
         foreach ($products as $product) {
             app()->call([$component, 'addProduct'], ['productId' => $product->id]);
         }
-        
+
         $this->assertLessThanOrEqual(100, count($component->selectedProducts));
     }
 }

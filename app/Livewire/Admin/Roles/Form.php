@@ -74,12 +74,12 @@ class Form extends Component
      */
     public function getEnabledModulesProperty(): array
     {
-        if (!$this->filterByBranch || !$this->filterBranchId) {
+        if (! $this->filterByBranch || ! $this->filterBranchId) {
             return [];
         }
 
         $branch = Branch::find($this->filterBranchId);
-        if (!$branch) {
+        if (! $branch) {
             return [];
         }
 
@@ -137,15 +137,15 @@ class Form extends Component
      */
     public function isGroupVisible(string $group): bool
     {
-        if (!$this->filterByBranch || !$this->filterBranchId) {
+        if (! $this->filterByBranch || ! $this->filterBranchId) {
             return true;
         }
 
         $enabledModules = $this->enabledModules;
         $mapping = $this->getPermissionModuleMapping();
-        
+
         $moduleKey = $mapping[$group] ?? $group;
-        
+
         // Core permissions are always visible
         if ($moduleKey === 'core') {
             return true;
@@ -160,7 +160,7 @@ class Form extends Component
     public function updatedFilterBranchId(): void
     {
         // Reset filterByBranch if no branch selected
-        if (!$this->filterBranchId) {
+        if (! $this->filterBranchId) {
             $this->filterByBranch = false;
         }
     }
@@ -175,11 +175,11 @@ class Form extends Component
         if ($this->filterByBranch && $this->filterBranchId) {
             $enabledModules = $this->enabledModules;
             $mapping = $this->getPermissionModuleMapping();
-            
+
             $query->where(function ($q) use ($enabledModules, $mapping) {
                 foreach ($mapping as $prefix => $moduleKey) {
                     if ($moduleKey === 'core' || in_array($moduleKey, $enabledModules)) {
-                        $q->orWhere('name', 'like', $prefix . '.%');
+                        $q->orWhere('name', 'like', $prefix.'.%');
                     }
                 }
             });

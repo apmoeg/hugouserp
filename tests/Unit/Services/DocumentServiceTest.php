@@ -19,7 +19,9 @@ class DocumentServiceTest extends TestCase
     use RefreshDatabase;
 
     protected DocumentService $service;
+
     protected Branch $branch;
+
     protected User $user;
 
     protected function setUp(): void
@@ -42,7 +44,7 @@ class DocumentServiceTest extends TestCase
     {
         return Document::forceCreate(array_merge([
             'title' => 'Test Document',
-            'code' => 'DOC-' . uniqid(),
+            'code' => 'DOC-'.uniqid(),
             'file_name' => 'test.pdf',
             'file_path' => 'documents/test.pdf',
             'file_size' => 1024,

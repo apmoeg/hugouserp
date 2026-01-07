@@ -57,7 +57,7 @@ class CurrencyRates extends Component
     public function deactivate(int $id): void
     {
         $this->authorize('settings.manage');
-        
+
         $this->currencyService->deactivateRate($id);
         $this->dispatch('notify', type: 'success', message: __('Currency rate deactivated'));
     }
@@ -65,7 +65,7 @@ class CurrencyRates extends Component
     public function activate(int $id): void
     {
         $this->authorize('settings.manage');
-        
+
         $rate = CurrencyRate::find($id);
         if ($rate) {
             $rate->is_active = true;

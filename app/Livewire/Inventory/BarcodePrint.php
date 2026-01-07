@@ -29,9 +29,9 @@ class BarcodePrint extends Component
     public string $barcodeType = 'barcode';
 
     public bool $showPreview = false;
-    
+
     protected ?int $userBranchId = null;
-    
+
     /**
      * Maximum number of products that can be selected for printing.
      */
@@ -43,15 +43,15 @@ class BarcodePrint extends Component
         if (! $user || ! $user->can('inventory.products.view')) {
             abort(403);
         }
-        
+
         // Require user to have a branch assignment
         if (! $user->branch_id) {
             abort(403, __('User must be assigned to a branch to access this feature'));
         }
-        
+
         $this->userBranchId = $user->branch_id;
     }
-    
+
     /**
      * Get the user's branch ID.
      */
@@ -64,14 +64,14 @@ class BarcodePrint extends Component
             }
             $this->userBranchId = $user->branch_id;
         }
-        
+
         return $this->userBranchId;
     }
 
     public function render()
     {
         $branchId = $this->getUserBranchId();
-        
+
         // BUG-003 FIX: Add branch filter and properly group search conditions
         $products = Product::query()
             ->where('branch_id', $branchId)
@@ -107,17 +107,17 @@ class BarcodePrint extends Component
         if (count($this->selectedProducts) >= self::MAX_SELECTED_PRODUCTS) {
             return;
         }
-        
+
         // Verify product belongs to user's branch before adding
         $branchId = $this->getUserBranchId();
         $product = Product::where('id', $productId)
             ->where('branch_id', $branchId)
             ->first();
-            
+
         if (! $product) {
             return; // Silently ignore products from other branches
         }
-        
+
         if (! in_array($productId, $this->selectedProducts)) {
             $this->selectedProducts[] = $productId;
             $this->printQuantities[$productId] = 1;

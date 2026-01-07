@@ -263,18 +263,18 @@ class TranslationManager extends Component
     {
         $filtered = $this->getFilteredTranslations();
         $totalCount = count($filtered);
-        
+
         // Paginate the filtered translations manually
         $perPage = 50;
         $page = $this->getPage();
         $offset = ($page - 1) * $perPage;
-        
+
         $paginated = array_slice($filtered, $offset, $perPage, true);
-        
+
         // Calculate pagination data
         $hasMore = $totalCount > ($offset + $perPage);
         $hasPrevious = $page > 1;
-        
+
         return view('livewire.admin.settings.translation-manager', [
             'filteredTranslations' => $paginated,
             'totalCount' => $totalCount,

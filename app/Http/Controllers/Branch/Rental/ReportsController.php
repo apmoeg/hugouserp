@@ -24,14 +24,14 @@ class ReportsController extends Controller
 
         $query = $model::query()->with('property');
 
-        if (!empty($validated['property_id'])) {
+        if (! empty($validated['property_id'])) {
             $query->where('property_id', $validated['property_id']);
         }
 
         $filename = 'rental_occupancy_'.now()->format('Ymd_His').'.xlsx';
 
         $callback = function () use ($query) {
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             // Set headers
@@ -100,7 +100,7 @@ class ReportsController extends Controller
         $filename = 'rental_expiring_contracts_'.now()->format('Ymd_His').'.xlsx';
 
         $callback = function () use ($query) {
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             // Set headers

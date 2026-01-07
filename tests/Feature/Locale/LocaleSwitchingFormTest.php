@@ -15,12 +15,13 @@ class LocaleSwitchingFormTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Branch $branch;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->user = User::factory()->create();
         $this->branch = Branch::factory()->create();
         $this->user->branches()->attach($this->branch->id);
@@ -34,7 +35,7 @@ class LocaleSwitchingFormTest extends TestCase
         // Set locale to English
         $this->app->setLocale('en');
         session()->put('locale', 'en');
-        
+
         $this->actingAs($this->user);
 
         $supplierData = [
@@ -72,7 +73,7 @@ class LocaleSwitchingFormTest extends TestCase
         // Set locale to Arabic
         $this->app->setLocale('ar');
         session()->put('locale', 'ar');
-        
+
         $this->actingAs($this->user);
 
         // Test with English values (the issue is locale-based, not character-based)
@@ -109,7 +110,7 @@ class LocaleSwitchingFormTest extends TestCase
     {
         $this->app->setLocale('ar');
         session()->put('locale', 'ar');
-        
+
         $this->actingAs($this->user);
 
         $supplierData = [
@@ -144,7 +145,7 @@ class LocaleSwitchingFormTest extends TestCase
     {
         $this->app->setLocale('ar');
         session()->put('locale', 'ar');
-        
+
         $this->actingAs($this->user);
 
         // Create a supplier first
@@ -184,7 +185,7 @@ class LocaleSwitchingFormTest extends TestCase
     {
         $this->app->setLocale('ar');
         session()->put('locale', 'ar');
-        
+
         $this->actingAs($this->user);
 
         // Test Livewire component

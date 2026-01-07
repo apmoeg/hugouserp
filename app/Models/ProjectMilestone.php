@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProjectMilestone extends Model
 {
@@ -62,7 +62,7 @@ class ProjectMilestone extends Model
     public function scopeOverdue(Builder $query): Builder
     {
         return $query->where('due_date', '<', now())
-                    ->where('status', 'pending');
+            ->where('status', 'pending');
     }
 
     // Business Methods

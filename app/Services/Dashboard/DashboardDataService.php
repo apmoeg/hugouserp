@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * DashboardDataService - Widget data generation
- * 
+ *
  * Handles:
  * - Widget data generation for all widget types
  * - Widget data caching
@@ -23,7 +23,7 @@ class DashboardDataService
      */
     public function getWidgetData(int $userId, int $widgetId, ?int $branchId = null, bool $refresh = false): array
     {
-        if (!$refresh) {
+        if (! $refresh) {
             $cached = WidgetDataCache::getCached($userId, $widgetId, $branchId);
             if ($cached !== null) {
                 return $cached;
@@ -54,7 +54,7 @@ class DashboardDataService
             'cash_bank_balance' => $this->generateCashBankBalanceData($branchId),
             'tickets_summary' => $this->generateTicketsSummaryData($branchId),
             'attendance_snapshot' => $this->generateAttendanceSnapshotData($branchId),
-            default => ['message' => 'Widget data generator not implemented for: ' . $widget->key],
+            default => ['message' => 'Widget data generator not implemented for: '.$widget->key],
         };
 
         return [

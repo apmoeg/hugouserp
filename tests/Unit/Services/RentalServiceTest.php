@@ -7,7 +7,6 @@ namespace Tests\Unit\Services;
 use App\Models\Branch;
 use App\Models\Property;
 use App\Models\RentalUnit;
-use App\Models\Tenant;
 use App\Services\RentalService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -17,7 +16,9 @@ class RentalServiceTest extends TestCase
     use RefreshDatabase;
 
     protected RentalService $service;
+
     protected Branch $branch;
+
     protected Property $property;
 
     protected function setUp(): void

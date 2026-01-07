@@ -8,22 +8,23 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Supplier;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 
 class CommandPalette extends Component
 {
     public string $query = '';
+
     public int $selectedIndex = 0;
+
     public array $results = [];
+
     public array $recentSearches = [];
-    
+
     /**
      * Maximum number of results to return
      */
     protected int $maxResults = 10;
-    
+
     /**
      * Maximum number of recent searches to store
      */
@@ -39,6 +40,7 @@ class CommandPalette extends Component
         if (strlen($this->query) < 2) {
             $this->results = [];
             $this->selectedIndex = 0;
+
             return;
         }
 
@@ -52,10 +54,10 @@ class CommandPalette extends Component
     protected function loadRecentSearches(): void
     {
         $user = auth()->user();
-        if (!$user) {
+        if (! $user) {
             return;
         }
-        
+
         $preferences = $user->preferences ?? [];
         $this->recentSearches = $preferences['recent_searches'] ?? [];
     }
@@ -66,13 +68,13 @@ class CommandPalette extends Component
     protected function saveRecentSearch(string $term, string $type, string $url): void
     {
         $user = auth()->user();
-        if (!$user || strlen($term) < 2) {
+        if (! $user || strlen($term) < 2) {
             return;
         }
-        
+
         $preferences = $user->preferences ?? [];
         $recentSearches = $preferences['recent_searches'] ?? [];
-        
+
         // Create search entry
         $entry = [
             'term' => $term,
@@ -80,21 +82,21 @@ class CommandPalette extends Component
             'url' => $url,
             'timestamp' => now()->toISOString(),
         ];
-        
+
         // Remove duplicate if exists
-        $recentSearches = array_filter($recentSearches, fn($s) => $s['term'] !== $term || $s['type'] !== $type);
-        
+        $recentSearches = array_filter($recentSearches, fn ($s) => $s['term'] !== $term || $s['type'] !== $type);
+
         // Add to beginning
         array_unshift($recentSearches, $entry);
-        
+
         // Limit to max
         $recentSearches = array_slice($recentSearches, 0, $this->maxRecentSearches);
-        
+
         // Save
         $preferences['recent_searches'] = $recentSearches;
         $user->preferences = $preferences;
         $user->save();
-        
+
         $this->recentSearches = $recentSearches;
     }
 
@@ -104,15 +106,15 @@ class CommandPalette extends Component
     public function clearRecentSearches(): void
     {
         $user = auth()->user();
-        if (!$user) {
+        if (! $user) {
             return;
         }
-        
+
         $preferences = $user->preferences ?? [];
         $preferences['recent_searches'] = [];
         $user->preferences = $preferences;
         $user->save();
-        
+
         $this->recentSearches = [];
     }
 
@@ -138,7 +140,7 @@ class CommandPalette extends Component
                 })
                 ->limit(5)
                 ->get()
-                ->map(fn($p) => [
+                ->map(fn ($p) => [
                     'type' => 'Product',
                     'icon' => '📦',
                     'name' => $p->name,
@@ -159,7 +161,7 @@ class CommandPalette extends Component
                 })
                 ->limit(5)
                 ->get()
-                ->map(fn($c) => [
+                ->map(fn ($c) => [
                     'type' => 'Customer',
                     'icon' => '👤',
                     'name' => $c->name,
@@ -180,7 +182,7 @@ class CommandPalette extends Component
                 })
                 ->limit(5)
                 ->get()
-                ->map(fn($s) => [
+                ->map(fn ($s) => [
                     'type' => 'Supplier',
                     'icon' => '🏢',
                     'name' => $s->name,
@@ -201,7 +203,7 @@ class CommandPalette extends Component
                 ->with('customer')
                 ->limit(5)
                 ->get()
-                ->map(fn($s) => [
+                ->map(fn ($s) => [
                     'type' => 'Invoice',
                     'icon' => '🧾',
                     'name' => $s->reference_no ?? "Invoice #{$s->id}",
@@ -229,16 +231,16 @@ class CommandPalette extends Component
             ['name' => __('Reports'), 'icon' => '📈', 'url' => route('admin.reports.index'), 'permission' => 'reports.view', 'keywords' => 'reports analytics statistics'],
             ['name' => __('POS Terminal'), 'icon' => '💳', 'url' => route('pos.terminal'), 'permission' => 'pos.use', 'keywords' => 'pos terminal cashier register'],
         ];
-        
+
         $user = auth()->user();
         $results = [];
-        
+
         foreach ($actions as $action) {
             // Check permission
-            if (!$user?->can($action['permission'])) {
+            if (! $user?->can($action['permission'])) {
                 continue;
             }
-            
+
             // Check if matches query
             if (empty($query) || str_contains(strtolower($action['keywords']), strtolower($query)) || str_contains(strtolower($action['name']), strtolower($query))) {
                 $results[] = [
@@ -250,7 +252,7 @@ class CommandPalette extends Component
                 ];
             }
         }
-        
+
         return array_slice($results, 0, $this->maxResults);
     }
 
@@ -258,12 +260,12 @@ class CommandPalette extends Component
     {
         if (isset($this->results[$index])) {
             $result = $this->results[$index];
-            
+
             // Save to recent searches (only for non-action results)
-            if ($result['type'] !== 'Action' && !empty($this->query)) {
+            if ($result['type'] !== 'Action' && ! empty($this->query)) {
                 $this->saveRecentSearch($result['name'], $result['type'], $result['url']);
             }
-            
+
             $this->redirect($result['url'], navigate: true);
         }
     }

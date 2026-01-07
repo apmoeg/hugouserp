@@ -10,8 +10,8 @@ use App\Models\Document;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -24,7 +24,7 @@ class DocumentVersionUploadTest extends TestCase
         $branch ??= Branch::factory()->create();
 
         return Document::forceCreate([
-            'code' => 'DOC-' . uniqid(),
+            'code' => 'DOC-'.uniqid(),
             'title' => 'Spec',
             'description' => 'Test document',
             'file_name' => 'seed.pdf',

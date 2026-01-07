@@ -6,7 +6,7 @@ namespace App\Livewire\Concerns;
 
 /**
  * Trait for user-friendly form handling in Livewire components
- * 
+ *
  * Provides:
  * - Toast notifications with contextual messages
  * - Form progress indicators
@@ -172,13 +172,14 @@ trait WithUserFriendlyForms
     protected function formatNumber(float|int $number, int $decimals = 2): string
     {
         $locale = app()->getLocale();
-        
+
         if ($locale === 'ar') {
             // Use Arabic numerals
             $formatted = number_format($number, $decimals, '٫', '٬');
+
             return $this->convertToArabicNumerals($formatted);
         }
-        
+
         return number_format($number, $decimals);
     }
 
@@ -189,7 +190,7 @@ trait WithUserFriendlyForms
     {
         $arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
         $english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-        
+
         return str_replace($english, $arabic, $number);
     }
 
@@ -198,20 +199,20 @@ trait WithUserFriendlyForms
      */
     protected function formatDate(mixed $date, string $format = 'd M Y'): string
     {
-        if (!$date) {
+        if (! $date) {
             return '-';
         }
 
-        $carbonDate = $date instanceof \Carbon\Carbon 
-            ? $date 
+        $carbonDate = $date instanceof \Carbon\Carbon
+            ? $date
             : \Carbon\Carbon::parse($date);
 
         $locale = app()->getLocale();
-        
+
         if ($locale === 'ar') {
             return $carbonDate->locale('ar')->translatedFormat($format);
         }
-        
+
         return $carbonDate->format($format);
     }
 
@@ -222,14 +223,14 @@ trait WithUserFriendlyForms
     {
         $currency = $currency ?? config('settings.general.default_currency', 'EGP');
         $formatted = $this->formatNumber($amount);
-        
+
         $locale = app()->getLocale();
-        
+
         if ($locale === 'ar') {
-            return $formatted . ' ' . $currency;
+            return $formatted.' '.$currency;
         }
-        
-        return $currency . ' ' . $formatted;
+
+        return $currency.' '.$formatted;
     }
 
     /**
@@ -266,7 +267,7 @@ trait WithUserFriendlyForms
      */
     protected function getShortcut(string $action): ?string
     {
-        if (!$this->keyboardShortcutsEnabled()) {
+        if (! $this->keyboardShortcutsEnabled()) {
             return null;
         }
 

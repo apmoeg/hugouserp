@@ -55,7 +55,7 @@ return [
                 // Use buffered queries
                 PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
                 // Set transaction isolation level for better concurrency
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED",
+                PDO::MYSQL_ATTR_INIT_COMMAND => 'SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED',
             ]) : [],
         ],
 
@@ -168,7 +168,7 @@ return [
     |--------------------------------------------------------------------------
     | Query Logging Configuration
     |--------------------------------------------------------------------------
-    | 
+    |
     | Configure query logging for non-production environments to help
     | diagnose slow queries and performance issues.
     |

@@ -2,21 +2,21 @@
 
 /**
  * Permission labels and descriptions for the ERP system - Arabic translations.
- * 
+ *
  * Format: 'permission.slug' => 'Human-readable label in Arabic'
  */
 
 return [
     // Dashboard
     'dashboard.view' => 'عرض لوحة التحكم',
-    
+
     // POS
     'pos.use' => 'استخدام نقطة البيع',
     'pos.session.manage' => 'إدارة جلسات نقطة البيع',
     'pos.daily-report.view' => 'عرض التقرير اليومي لنقطة البيع',
     'pos.offline.report.view' => 'عرض تقرير المبيعات غير المتصلة',
     'pos.view-reports' => 'عرض تقارير نقطة البيع',
-    
+
     // Sales
     'sales.view' => 'عرض المبيعات',
     'sales.manage' => 'إدارة المبيعات',
@@ -24,7 +24,7 @@ return [
     'sales.export' => 'تصدير بيانات المبيعات',
     'sales.import' => 'استيراد بيانات المبيعات',
     'sales.view-reports' => 'عرض تقارير المبيعات',
-    
+
     // Purchases
     'purchases.view' => 'عرض المشتريات',
     'purchases.manage' => 'إدارة المشتريات',
@@ -40,7 +40,7 @@ return [
     'purchases.grn.view' => 'عرض سندات استلام البضائع',
     'purchases.grn.create' => 'إنشاء سندات استلام البضائع',
     'purchases.grn.approve' => 'اعتماد سندات استلام البضائع',
-    
+
     // Customers
     'customers.view' => 'عرض العملاء',
     'customers.manage' => 'إدارة العملاء',
@@ -48,13 +48,13 @@ return [
     'customers.export' => 'تصدير بيانات العملاء',
     'customers.import' => 'استيراد بيانات العملاء',
     'customers.loyalty.manage' => 'إدارة ولاء العملاء',
-    
+
     // Suppliers
     'suppliers.view' => 'عرض الموردين',
     'suppliers.manage' => 'إدارة الموردين',
     'suppliers.export' => 'تصدير بيانات الموردين',
     'suppliers.import' => 'استيراد بيانات الموردين',
-    
+
     // Inventory
     'inventory.view' => 'عرض المخزون',
     'inventory.manage' => 'إدارة المخزون',
@@ -71,35 +71,35 @@ return [
     'inventory.import' => 'استيراد بيانات المخزون',
     'inventory.view-reports' => 'عرض تقارير المخزون',
     'inventory.stock.alerts.view' => 'عرض تنبيهات المخزون',
-    
+
     // Warehouse
     'warehouse.view' => 'عرض المستودعات',
     'warehouse.manage' => 'إدارة المستودعات',
-    
+
     // Expenses
     'expenses.view' => 'عرض المصروفات',
     'expenses.manage' => 'إدارة المصروفات',
     'expenses.export' => 'تصدير المصروفات',
     'expenses.import' => 'استيراد المصروفات',
-    
+
     // Income
     'income.view' => 'عرض الدخل',
     'income.manage' => 'إدارة الدخل',
     'income.export' => 'تصدير الدخل',
     'income.import' => 'استيراد الدخل',
-    
+
     // Accounting
     'accounting.view' => 'عرض المحاسبة',
     'accounting.manage' => 'إدارة المحاسبة',
     'accounting.create' => 'إنشاء قيود يومية',
-    
+
     // Banking
     'banking.view' => 'عرض البنوك',
     'banking.create' => 'إنشاء حسابات بنكية',
     'banking.edit' => 'تعديل حسابات بنكية',
     'banking.delete' => 'حذف حسابات بنكية',
     'banking.reconcile' => 'مطابقة الحسابات البنكية',
-    
+
     // HRM
     'hrm.view' => 'عرض الموارد البشرية',
     'hrm.manage' => 'إدارة الموارد البشرية',
@@ -117,7 +117,7 @@ return [
     'hrm.view-reports' => 'عرض تقارير الموارد البشرية',
     'hr.view-reports' => 'عرض تقارير الموارد البشرية',
     'hr.manage-employees' => 'إدارة الموظفين',
-    
+
     // Rental
     'rental.view' => 'عرض نظام الإيجار',
     'rental.units.view' => 'عرض وحدات الإيجار',
@@ -135,7 +135,7 @@ return [
     'rental.manage-tenants' => 'إدارة المستأجرين',
     'rental.manage-contracts' => 'إدارة العقود',
     'rentals.view' => 'عرض الإيجارات',
-    
+
     // Manufacturing
     'manufacturing.view' => 'عرض التصنيع',
     'manufacturing.create' => 'إنشاء سجلات التصنيع',
@@ -143,7 +143,7 @@ return [
     'manufacturing.delete' => 'حذف سجلات التصنيع',
     'manufacturing.manage' => 'إدارة التصنيع',
     'manufacturing.approve' => 'اعتماد أوامر التصنيع',
-    
+
     // Fixed Assets
     'fixed-assets.view' => 'عرض الأصول الثابتة',
     'fixed-assets.create' => 'إنشاء أصول ثابتة',
@@ -151,7 +151,7 @@ return [
     'fixed-assets.delete' => 'حذف الأصول الثابتة',
     'fixed-assets.manage' => 'إدارة الأصول الثابتة',
     'fixed-assets.depreciate' => 'تشغيل الإهلاك',
-    
+
     // Projects
     'projects.view' => 'عرض المشاريع',
     'projects.create' => 'إنشاء مشاريع',
@@ -168,7 +168,7 @@ return [
     'projects.expenses.manage' => 'إدارة مصروفات المشروع',
     'projects.expenses.approve' => 'اعتماد مصروفات المشروع',
     'projects.budget.view' => 'عرض ميزانية المشروع',
-    
+
     // Documents
     'documents.view' => 'عرض المستندات',
     'documents.create' => 'إنشاء مستندات',
@@ -181,7 +181,7 @@ return [
     'documents.versions.manage' => 'إدارة إصدارات المستندات',
     'documents.tags.manage' => 'إدارة علامات المستندات',
     'documents.activities.view' => 'عرض أنشطة المستندات',
-    
+
     // Helpdesk
     'helpdesk.view' => 'عرض مركز الدعم',
     'helpdesk.create' => 'إنشاء تذاكر',
@@ -207,7 +207,7 @@ return [
     'tickets.priorities.manage' => 'إدارة أولويات التذاكر',
     'tickets.sla.view' => 'عرض سياسات مستوى الخدمة',
     'tickets.sla.manage' => 'إدارة سياسات مستوى الخدمة',
-    
+
     // Media
     'media.view' => 'عرض مكتبة الوسائط',
     'media.upload' => 'رفع الوسائط',
@@ -215,7 +215,7 @@ return [
     'media.manage' => 'إدارة الوسائط',
     'media.manage-all' => 'إدارة جميع الوسائط',
     'media.view-others' => 'عرض وسائط الآخرين',
-    
+
     // Reports
     'reports.view' => 'عرض التقارير',
     'reports.export' => 'تصدير التقارير',
@@ -232,19 +232,19 @@ return [
     'reports.scheduled.manage' => 'إدارة التقارير المجدولة',
     'reports.templates.manage' => 'إدارة قوالب التقارير',
     'reports.sales.view' => 'عرض تقارير المبيعات',
-    
+
     // Settings
     'settings.view' => 'عرض الإعدادات',
     'settings.manage' => 'إدارة الإعدادات',
     'settings.branch' => 'إدارة إعدادات الفرع',
     'settings.translations.manage' => 'إدارة الترجمات',
     'settings.currency.manage' => 'إدارة العملات',
-    
+
     // Users & Roles
     'users.manage' => 'إدارة المستخدمين',
     'roles.manage' => 'إدارة الأدوار',
     'impersonate.users' => 'انتحال شخصية المستخدمين',
-    
+
     // Branches
     'branches.view' => 'عرض الفروع',
     'branches.view-all' => 'عرض بيانات جميع الفروع',
@@ -253,25 +253,25 @@ return [
     'branches.edit' => 'تعديل الفروع',
     'branch.admin.manage' => 'إدارة مديري الفروع',
     'branch.users.manage' => 'إدارة مستخدمي الفرع',
-    
+
     // Modules
     'modules.manage' => 'إدارة الوحدات',
-    
+
     // Stores
     'stores.view' => 'عرض المتاجر',
     'stores.manage' => 'إدارة المتاجر',
     'store.reports.dashboard' => 'عرض لوحة تقارير المتجر',
-    
+
     // Logs
     'logs.audit.view' => 'عرض سجلات التدقيق',
     'logs.login.view' => 'عرض سجلات تسجيل الدخول',
-    
+
     // System
     'system.view-notifications' => 'عرض الإشعارات',
-    
+
     // Installments
     'sales.installments.view' => 'عرض أقساط المبيعات',
-    
+
     // Spares/Vehicle
     'spares.compatibility.manage' => 'إدارة توافق قطع الغيار',
     'spares.vehicle-models.view' => 'عرض موديلات المركبات',

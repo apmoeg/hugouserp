@@ -12,14 +12,14 @@ use App\Services\Dashboard\DashboardWidgetService;
 
 /**
  * DashboardService - Facade for dashboard services
- * 
+ *
  * STATUS: ACTIVE - Production-ready dashboard service
  * PURPOSE: Provide backward-compatible interface to split dashboard services
- * 
+ *
  * The functionality has been split into:
  * - DashboardWidgetService: Widget layout and management
  * - DashboardDataService: Widget data generation
- * 
+ *
  * This class delegates to the appropriate service while maintaining
  * backward compatibility with existing code.
  */
@@ -28,8 +28,7 @@ class DashboardService
     public function __construct(
         protected DashboardWidgetService $widgetService,
         protected DashboardDataService $dataService
-    ) {
-    }
+    ) {}
 
     /**
      * Get or create user's default dashboard layout.

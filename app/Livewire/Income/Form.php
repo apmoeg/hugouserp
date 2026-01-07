@@ -74,7 +74,7 @@ class Form extends Component
             $this->attachment = $income->attachment ?? null;
         }
     }
-    
+
     #[On('file-uploaded')]
     public function handleFileUploaded(string $fieldId, string $path, array $fileInfo): void
     {
@@ -82,7 +82,7 @@ class Form extends Component
             $this->attachment = $path;
         }
     }
-    
+
     #[On('file-cleared')]
     public function handleFileCleared(string $fieldId): void
     {

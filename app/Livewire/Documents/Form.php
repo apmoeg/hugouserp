@@ -54,13 +54,13 @@ class Form extends Component
     {
         if ($document && $document->exists) {
             $this->authorize('documents.edit');
-            
+
             // Prevent cross-branch document access (IDOR protection)
             $user = auth()->user();
             if ($user && $user->branch_id && $document->branch_id && $user->branch_id !== $document->branch_id) {
                 abort(403, 'You cannot access documents from other branches.');
             }
-            
+
             $this->isEdit = true;
             $this->document = $document;
             $this->fill($document->only([

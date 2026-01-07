@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Livewire\Dashboard;
 
 use App\Livewire\Concerns\LoadsDashboardData;
-use App\Models\SystemSetting;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -13,13 +12,13 @@ use Livewire\Component;
 
 /**
  * Customizable Dashboard with Drag-and-Drop Widget System
- * 
+ *
  * Features:
  * - Reorderable widgets via drag-and-drop
  * - Show/hide widgets per user preference
  * - Multiple layout options
  * - Saved user preferences
- * 
+ *
  * Uses shared LoadsDashboardData trait for optimized data loading.
  */
 class CustomizableDashboard extends Component
@@ -27,24 +26,35 @@ class CustomizableDashboard extends Component
     use LoadsDashboardData;
 
     #[Layout('layouts.app')]
-    
+
     // Dashboard configuration
     public array $widgets = [];
+
     public array $widgetOrder = [];
+
     public array $hiddenWidgets = [];
+
     public string $layoutMode = 'default'; // default, compact, expanded
-    
+
     // Data
     public array $stats = [];
+
     public array $salesChartData = [];
+
     public array $inventoryChartData = [];
+
     public array $paymentMethodsData = [];
+
     public array $lowStockProducts = [];
+
     public array $recentSales = [];
+
     public array $recentActivities = [];
+
     public array $trendIndicators = [];
+
     public array $moduleStatsData = [];
-    
+
     // UI state
     public bool $isEditing = false;
 
@@ -174,7 +184,7 @@ class CustomizableDashboard extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('dashboard.view')) {
+        if (! $user || ! $user->can('dashboard.view')) {
             abort(403);
         }
 
@@ -182,15 +192,15 @@ class CustomizableDashboard extends Component
 
         // Load user's dashboard preferences
         $this->loadUserPreferences();
-        
+
         // Load all data using the shared trait
         $this->loadAllDashboardData();
-        
+
         // Load recent activities if user has permission
         if ($user->can('logs.audit.view')) {
             $this->loadRecentActivities();
         }
-        
+
         // Load module-specific statistics
         $this->loadModuleStats();
     }
@@ -202,13 +212,13 @@ class CustomizableDashboard extends Component
     {
         $user = Auth::user();
         $branch = $user->branch ?? $user->currentBranch ?? null;
-        
-        if (!$branch) {
+
+        if (! $branch) {
             return;
         }
-        
+
         $moduleKeys = ['motorcycle', 'spares', 'rental', 'manufacturing', 'wood'];
-        
+
         foreach ($moduleKeys as $moduleKey) {
             if ($branch->hasModule($moduleKey)) {
                 $this->moduleStatsData[$moduleKey] = $this->getModuleStatistics($moduleKey, $branch->id);
@@ -222,28 +232,28 @@ class CustomizableDashboard extends Component
     protected function getModuleStatistics(string $moduleKey, int $branchId): array
     {
         $cacheKey = "module_stats:{$moduleKey}:branch_{$branchId}";
-        
+
         return \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () use ($moduleKey, $branchId) {
             // Query by key first (more common), then fallback to slug
             $module = \App\Models\Module::where('key', $moduleKey)->first()
                 ?? \App\Models\Module::where('slug', $moduleKey)->first();
-            
-            if (!$module) {
+
+            if (! $module) {
                 return [];
             }
-            
+
             $productsQuery = \App\Models\Product::where('module_id', $module->id)
                 ->where('branch_id', $branchId);
-            
+
             $totalProducts = (clone $productsQuery)->count();
             $totalValue = (clone $productsQuery)->sum(\Illuminate\Support\Facades\DB::raw('COALESCE(default_price, 0) * COALESCE(stock_quantity, 0)'));
-            
+
             $lowStock = (clone $productsQuery)
                 ->whereNotNull('min_stock')
                 ->where('min_stock', '>', 0)
                 ->whereColumn('stock_quantity', '<=', 'min_stock')
                 ->count();
-            
+
             // Get this month's sales for this module
             $thisMonthSales = \App\Models\Sale::where('branch_id', $branchId)
                 ->whereMonth('created_at', now()->month)
@@ -254,7 +264,7 @@ class CustomizableDashboard extends Component
                     });
                 })
                 ->count();
-            
+
             return [
                 'total_products' => $totalProducts,
                 'total_value' => $totalValue,
@@ -273,7 +283,7 @@ class CustomizableDashboard extends Component
             ->latest()
             ->limit(5)
             ->get()
-            ->map(fn($activity) => [
+            ->map(fn ($activity) => [
                 'id' => $activity->id,
                 'action' => $activity->event ?? 'unknown',
                 'model' => class_basename($activity->subject_type ?? 'Unknown'),
@@ -291,7 +301,7 @@ class CustomizableDashboard extends Component
     {
         $model = class_basename($activity->subject_type ?? 'Unknown');
         $action = __($activity->event ?? 'unknown');
-        
+
         $identifier = $this->getActivityIdentifier($activity);
 
         return "{$action} {$model}: {$identifier}";
@@ -308,17 +318,17 @@ class CustomizableDashboard extends Component
 
         // Try common identifier fields in order of preference
         $identifierFields = ['name', 'reference_number', 'code', 'title', 'email'];
-        
+
         foreach ($identifierFields as $field) {
-            if (!empty($attributes[$field])) {
+            if (! empty($attributes[$field])) {
                 return $attributes[$field];
             }
-            if (!empty($old[$field])) {
+            if (! empty($old[$field])) {
                 return $old[$field];
             }
         }
 
-        return '#' . ($activity->subject_id ?? 'N/A');
+        return '#'.($activity->subject_id ?? 'N/A');
     }
 
     /**
@@ -329,45 +339,45 @@ class CustomizableDashboard extends Component
         $user = Auth::user();
         $preferences = $user->preferences ?? [];
         $branch = $user->currentBranch ?? null;
-        
+
         // Get saved widget order or use defaults
         $this->widgetOrder = $preferences['dashboard_widget_order'] ?? array_keys($this->availableWidgets);
         $this->hiddenWidgets = $preferences['dashboard_hidden_widgets'] ?? [];
         $this->layoutMode = $preferences['dashboard_layout_mode'] ?? 'default';
-        
+
         // Build widgets array with visibility
         $this->widgets = [];
         foreach ($this->widgetOrder as $widgetKey) {
             if (isset($this->availableWidgets[$widgetKey])) {
                 $widget = $this->availableWidgets[$widgetKey];
                 $widget['key'] = $widgetKey;
-                $widget['visible'] = !in_array($widgetKey, $this->hiddenWidgets);
-                
+                $widget['visible'] = ! in_array($widgetKey, $this->hiddenWidgets);
+
                 // Check permission
-                if ($widget['permission'] && !Auth::user()->can($widget['permission'])) {
+                if ($widget['permission'] && ! Auth::user()->can($widget['permission'])) {
                     continue; // Skip widgets user doesn't have permission for
                 }
-                
+
                 // Check if widget requires a specific module and if branch has it enabled
                 if (isset($widget['module']) && $branch) {
-                    if (!$branch->hasModule($widget['module'])) {
+                    if (! $branch->hasModule($widget['module'])) {
                         continue; // Skip module-specific widgets if module is not enabled
                     }
                 }
-                
+
                 $this->widgets[] = $widget;
             }
         }
-        
+
         // Add any new widgets not in saved order
         foreach ($this->availableWidgets as $key => $widget) {
-            if (!in_array($key, $this->widgetOrder)) {
-                if ($widget['permission'] && !Auth::user()->can($widget['permission'])) {
+            if (! in_array($key, $this->widgetOrder)) {
+                if ($widget['permission'] && ! Auth::user()->can($widget['permission'])) {
                     continue;
                 }
                 // Check module availability for new widgets too
                 if (isset($widget['module']) && $branch) {
-                    if (!$branch->hasModule($widget['module'])) {
+                    if (! $branch->hasModule($widget['module'])) {
                         continue;
                     }
                 }
@@ -383,7 +393,7 @@ class CustomizableDashboard extends Component
      */
     public function toggleEditMode(): void
     {
-        $this->isEditing = !$this->isEditing;
+        $this->isEditing = ! $this->isEditing;
     }
 
     /**
@@ -406,7 +416,7 @@ class CustomizableDashboard extends Component
         } else {
             $this->hiddenWidgets[] = $widgetKey;
         }
-        
+
         $this->saveUserPreferences();
         $this->loadUserPreferences();
     }
@@ -441,11 +451,11 @@ class CustomizableDashboard extends Component
     {
         $user = Auth::user();
         $preferences = $user->preferences ?? [];
-        
+
         $preferences['dashboard_widget_order'] = $this->widgetOrder;
         $preferences['dashboard_hidden_widgets'] = $this->hiddenWidgets;
         $preferences['dashboard_layout_mode'] = $this->layoutMode;
-        
+
         $user->preferences = $preferences;
         $user->save();
     }
@@ -456,7 +466,7 @@ class CustomizableDashboard extends Component
     public function refreshData(): void
     {
         $this->refreshDashboardData();
-        
+
         // Also reload recent activities if user has permission
         $user = Auth::user();
         if ($user && $user->can('logs.audit.view')) {

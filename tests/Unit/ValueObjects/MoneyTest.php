@@ -13,7 +13,7 @@ class MoneyTest extends TestCase
     public function test_can_create_money_instance(): void
     {
         $money = new Money('100.50', 'EGP');
-        
+
         $this->assertEquals('100.50', $money->amount);
         $this->assertEquals('EGP', $money->currency);
     }
@@ -21,7 +21,7 @@ class MoneyTest extends TestCase
     public function test_can_create_from_float(): void
     {
         $money = Money::from(100.5, 'USD');
-        
+
         $this->assertEquals('100.50', $money->amount);
         $this->assertEquals('USD', $money->currency);
     }
@@ -30,7 +30,7 @@ class MoneyTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Amount must be numeric');
-        
+
         new Money('invalid', 'EGP');
     }
 
@@ -38,9 +38,9 @@ class MoneyTest extends TestCase
     {
         $money1 = Money::from(100, 'EGP');
         $money2 = Money::from(50, 'EGP');
-        
+
         $result = $money1->add($money2);
-        
+
         $this->assertEquals('150.00', $result->amount);
     }
 
@@ -48,18 +48,18 @@ class MoneyTest extends TestCase
     {
         $money1 = Money::from(100, 'EGP');
         $money2 = Money::from(30, 'EGP');
-        
+
         $result = $money1->subtract($money2);
-        
+
         $this->assertEquals('70.00', $result->amount);
     }
 
     public function test_can_multiply_money(): void
     {
         $money = Money::from(100, 'EGP');
-        
+
         $result = $money->multiply(1.5);
-        
+
         $this->assertEquals('150.00', $result->amount);
     }
 
@@ -67,24 +67,24 @@ class MoneyTest extends TestCase
     {
         $money1 = Money::from(100, 'EGP');
         $money2 = Money::from(50, 'USD');
-        
+
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Cannot perform operation on different currencies');
-        
+
         $money1->add($money2);
     }
 
     public function test_can_format_money(): void
     {
         $money = Money::from(1234.56, 'EGP');
-        
+
         $this->assertEquals('1,234.56 EGP', $money->format());
     }
 
     public function test_can_convert_to_float(): void
     {
         $money = Money::from(123.45, 'EGP');
-        
+
         $this->assertEquals(123.45, $money->toFloat());
     }
 
@@ -92,7 +92,7 @@ class MoneyTest extends TestCase
     {
         $zeroMoney = Money::from(0, 'EGP');
         $nonZeroMoney = Money::from(100, 'EGP');
-        
+
         $this->assertTrue($zeroMoney->isZero());
         $this->assertFalse($nonZeroMoney->isZero());
     }
@@ -101,7 +101,7 @@ class MoneyTest extends TestCase
     {
         $positive = Money::from(100, 'EGP');
         $negative = new Money('-50.00', 'EGP');
-        
+
         $this->assertTrue($positive->isPositive());
         $this->assertFalse($negative->isPositive());
     }
@@ -110,7 +110,7 @@ class MoneyTest extends TestCase
     {
         $negative = new Money('-50.00', 'EGP');
         $positive = Money::from(100, 'EGP');
-        
+
         $this->assertTrue($negative->isNegative());
         $this->assertFalse($positive->isNegative());
     }
@@ -118,7 +118,7 @@ class MoneyTest extends TestCase
     public function test_can_convert_to_string(): void
     {
         $money = Money::from(100, 'EGP');
-        
+
         $this->assertEquals('100.00 EGP', (string) $money);
     }
 }

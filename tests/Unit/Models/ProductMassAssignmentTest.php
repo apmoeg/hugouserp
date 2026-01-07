@@ -79,7 +79,7 @@ class ProductMassAssignmentTest extends TestCase
 
     public function test_branch_id_can_be_set_directly(): void
     {
-        $product = new Product();
+        $product = new Product;
         $product->branch_id = 999;
 
         $this->assertEquals(999, $product->branch_id);
@@ -87,7 +87,7 @@ class ProductMassAssignmentTest extends TestCase
 
     public function test_created_by_can_be_set_directly(): void
     {
-        $product = new Product();
+        $product = new Product;
         $product->created_by = 1;
 
         $this->assertEquals(1, $product->created_by);

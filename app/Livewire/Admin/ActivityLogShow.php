@@ -50,7 +50,7 @@ class ActivityLogShow extends Component
         } else {
             // Generic properties
             foreach ($properties as $key => $value) {
-                if (!in_array($key, ['old', 'attributes'])) {
+                if (! in_array($key, ['old', 'attributes'])) {
                     $formatted['other'][] = [
                         'field' => $this->formatFieldName($key),
                         'value' => $this->formatValue($value),
@@ -69,7 +69,7 @@ class ActivityLogShow extends Component
     {
         // Replace underscores and hyphens with spaces
         $field = str_replace(['_', '-'], ' ', $field);
-        
+
         // Handle common abbreviations
         $replacements = [
             'id' => 'ID',
@@ -80,7 +80,7 @@ class ActivityLogShow extends Component
         ];
 
         foreach ($replacements as $search => $replace) {
-            $field = preg_replace('/\b' . $search . '\b/i', $replace, $field);
+            $field = preg_replace('/\b'.$search.'\b/i', $replace, $field);
         }
 
         return ucwords($field);
@@ -88,13 +88,14 @@ class ActivityLogShow extends Component
 
     /**
      * Format values for display
-     * @param int $depth Current recursion depth to prevent stack overflow
+     *
+     * @param  int  $depth  Current recursion depth to prevent stack overflow
      */
     protected function formatValue($value, int $depth = 0): string
     {
         // Prevent infinite recursion
         if ($depth > 5) {
-            return is_scalar($value) ? (string)$value : '[nested data]';
+            return is_scalar($value) ? (string) $value : '[nested data]';
         }
 
         if (is_null($value)) {
@@ -108,11 +109,12 @@ class ActivityLogShow extends Component
         if (is_array($value)) {
             // Limit array processing to prevent performance issues
             $items = array_slice($value, 0, 10);
-            $formatted = array_map(fn($v) => $this->formatValue($v, $depth + 1), $items);
+            $formatted = array_map(fn ($v) => $this->formatValue($v, $depth + 1), $items);
             $result = implode(', ', $formatted);
             if (count($value) > 10) {
-                $result .= ' ... ' . __('and :count more', ['count' => count($value) - 10]);
+                $result .= ' ... '.__('and :count more', ['count' => count($value) - 10]);
             }
+
             return $result;
         }
 
@@ -121,16 +123,17 @@ class ActivityLogShow extends Component
         }
 
         // Check if it looks like a date/datetime
-        if (preg_match('/^\d{4}-\d{2}-\d{2}/', (string)$value)) {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}/', (string) $value)) {
             try {
                 $date = new \DateTime($value);
+
                 return $date->format('M d, Y H:i:s');
             } catch (\Exception $e) {
                 // Not a valid date, return as is
             }
         }
 
-        return (string)$value;
+        return (string) $value;
     }
 
     public function render(): View

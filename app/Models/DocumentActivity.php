@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class DocumentActivity extends Model
 {
@@ -57,7 +57,7 @@ class DocumentActivity extends Model
     // Business Methods
     public function getActionLabel(): string
     {
-        return match($this->action) {
+        return match ($this->action) {
             'created' => __('Created'),
             'viewed' => __('Viewed'),
             'downloaded' => __('Downloaded'),

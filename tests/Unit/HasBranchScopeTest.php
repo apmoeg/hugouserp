@@ -27,7 +27,7 @@ class HasBranchScopeTest extends TestCase
 
         $projectInPrimary = Project::create([
             'branch_id' => $primaryBranch->id,
-            'code' => 'PRJ-' . Str::random(5),
+            'code' => 'PRJ-'.Str::random(5),
             'name' => 'Primary Project',
             'description' => 'Ensures primary branch is included.',
             'status' => 'planning',
@@ -37,7 +37,7 @@ class HasBranchScopeTest extends TestCase
 
         $projectInSecondary = Project::create([
             'branch_id' => $secondaryBranch->id,
-            'code' => 'PRJ-' . Str::random(5),
+            'code' => 'PRJ-'.Str::random(5),
             'name' => 'Scoped Project',
             'description' => 'Ensures branch scope uses attached branches.',
             'status' => 'planning',

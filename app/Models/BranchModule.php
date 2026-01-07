@@ -46,7 +46,9 @@ class BranchModule extends Pivot
     ];
 
     public $incrementing = true;
+
     protected $keyType = 'int';
+
     public $timestamps = true;
 
     /** Relationships */

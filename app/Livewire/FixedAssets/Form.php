@@ -20,26 +20,44 @@ class Form extends Component
     use HasMultilingualValidation;
 
     public ?FixedAsset $asset = null;
+
     public bool $isEditing = false;
 
     // Form fields
     public string $name = '';
+
     public string $description = '';
+
     public string $category = '';
+
     public string $location = '';
+
     public string $purchase_date = '';
+
     public string $purchase_cost = '';
+
     public string $salvage_value = '0';
+
     public string $useful_life_years = '';
+
     public string $useful_life_months = '0';
+
     public string $depreciation_method = 'straight_line';
+
     public string $depreciation_rate = '';
+
     public ?int $supplier_id = null;
+
     public string $serial_number = '';
+
     public string $model = '';
+
     public string $manufacturer = '';
+
     public string $warranty_expiry = '';
+
     public ?int $assigned_to = null;
+
     public string $notes = '';
 
     protected function rules(): array
@@ -120,8 +138,8 @@ class Form extends Component
                     FixedAsset::create($data);
                 }
             },
-            successMessage: $this->isEditing 
-                ? __('Fixed asset updated successfully') 
+            successMessage: $this->isEditing
+                ? __('Fixed asset updated successfully')
                 : __('Fixed asset created successfully'),
             redirectRoute: 'app.fixed-assets.index'
         );

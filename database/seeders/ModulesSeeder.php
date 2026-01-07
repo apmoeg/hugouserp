@@ -40,7 +40,7 @@ class ModulesSeeder extends Seeder
         //
         // === MANAGEMENT MODULES (no products) ===
         //   - hrm, accounting, reports, projects, documents, helpdesk
-        
+
         $modules = [
             // === PRODUCT/DATA MODULES (create products/items here) ===
             ['key' => 'general',        'name' => 'General Products',   'name_ar' => 'المنتجات العامة',   'version' => '1.0.0', 'is_core' => true,  'supports_items' => true,  'module_type' => 'data',       'icon' => '📦', 'description' => 'General products and items', 'description_ar' => 'المنتجات والعناصر العامة'],
@@ -49,15 +49,15 @@ class ModulesSeeder extends Seeder
             ['key' => 'wood',           'name' => 'Wood & Lumber',      'name_ar' => 'الأخشاب',           'version' => '1.0.0', 'is_core' => false, 'supports_items' => true,  'module_type' => 'data',       'icon' => '🪵', 'description' => 'Wood, lumber and timber products', 'description_ar' => 'منتجات الأخشاب والأحطاب'],
             ['key' => 'rental',         'name' => 'Rental Units',       'name_ar' => 'وحدات الإيجار',     'version' => '1.0.0', 'is_core' => false, 'supports_items' => true,  'module_type' => 'data',       'icon' => '🏠', 'description' => 'Rental properties and units', 'description_ar' => 'العقارات والوحدات المؤجرة'],
             ['key' => 'manufacturing',  'name' => 'Manufacturing',      'name_ar' => 'التصنيع',           'version' => '1.0.0', 'is_core' => false, 'supports_items' => true,  'module_type' => 'data',       'icon' => '🏭', 'description' => 'Raw materials and manufactured goods', 'description_ar' => 'المواد الخام والمنتجات المصنعة'],
-            
+
             // === STOCK MANAGEMENT MODULE (tracks ALL products from data modules) ===
             ['key' => 'inventory',      'name' => 'Inventory',          'name_ar' => 'المخزون',           'version' => '1.0.0', 'is_core' => true,  'supports_items' => false, 'module_type' => 'functional', 'icon' => '📊', 'description' => 'Stock tracking and management', 'description_ar' => 'تتبع وإدارة المخزون'],
-            
+
             // === OPERATIONAL MODULES (use products from data modules) ===
             ['key' => 'sales',          'name' => 'Sales',              'name_ar' => 'المبيعات',          'version' => '1.0.0', 'is_core' => true,  'supports_items' => false, 'module_type' => 'functional', 'icon' => '💰', 'description' => 'Sales management', 'description_ar' => 'إدارة المبيعات'],
             ['key' => 'purchases',      'name' => 'Purchases',          'name_ar' => 'المشتريات',         'version' => '1.0.0', 'is_core' => true,  'supports_items' => false, 'module_type' => 'functional', 'icon' => '🛒', 'description' => 'Purchase management', 'description_ar' => 'إدارة المشتريات'],
             ['key' => 'pos',            'name' => 'Point of Sale',      'name_ar' => 'نقاط البيع',        'version' => '1.0.0', 'is_core' => true,  'supports_items' => false, 'module_type' => 'functional', 'icon' => '🖥️', 'description' => 'Point of sale', 'description_ar' => 'نقاط البيع'],
-            
+
             // === MANAGEMENT MODULES (no products) ===
             ['key' => 'hrm',            'name' => 'Human Resources',    'name_ar' => 'الموارد البشرية',   'version' => '1.0.0', 'is_core' => false, 'supports_items' => false, 'module_type' => 'functional', 'icon' => '👥', 'description' => 'HR management', 'description_ar' => 'إدارة الموارد البشرية'],
             ['key' => 'reports',        'name' => 'Reports',            'name_ar' => 'التقارير',          'version' => '1.0.0', 'is_core' => true,  'supports_items' => false, 'module_type' => 'functional', 'icon' => '📊', 'description' => 'System reports', 'description_ar' => 'تقارير النظام'],
@@ -80,8 +80,8 @@ class ModulesSeeder extends Seeder
                     'is_active' => true,
                     'supports_items' => $row['supports_items'] ?? false,
                     'module_type' => $row['module_type'] ?? 'functional',
-                    'description' => $row['name'] . ' module',
-                    'description_ar' => 'وحدة ' . ($row['name_ar'] ?? $row['name']),
+                    'description' => $row['name'].' module',
+                    'description_ar' => 'وحدة '.($row['name_ar'] ?? $row['name']),
                     'icon' => $row['icon'] ?? null,
                 ]
             );

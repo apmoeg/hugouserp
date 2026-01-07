@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Analytics;
 
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * SalesForecastingService - Predict future sales based on historical data
- * 
+ *
  * Uses simple moving average and weighted moving average algorithms
  * to forecast future sales. More sophisticated models can be added.
  */
@@ -21,7 +21,7 @@ class SalesForecastingService
     public function getForecast(?int $branchId = null, string $period = 'day', int $forecastPeriods = 7, int $historicalPeriods = 30): array
     {
         $historical = $this->getHistoricalSales($branchId, $period, $historicalPeriods);
-        
+
         if (empty($historical)) {
             return [
                 'historical' => [],
@@ -33,7 +33,7 @@ class SalesForecastingService
         }
 
         $forecast = $this->calculateSimpleMovingAverage($historical, $forecastPeriods);
-        
+
         return [
             'historical' => $historical,
             'forecast' => $forecast,
@@ -49,13 +49,13 @@ class SalesForecastingService
      */
     protected function getHistoricalSales(?int $branchId, string $period, int $periods): array
     {
-        $dateFormat = match($period) {
+        $dateFormat = match ($period) {
             'week' => '%Y-%u',
             'month' => '%Y-%m',
             default => '%Y-%m-%d',
         };
 
-        $startDate = match($period) {
+        $startDate = match ($period) {
             'week' => now()->subWeeks($periods),
             'month' => now()->subMonths($periods),
             default => now()->subDays($periods),
@@ -77,7 +77,7 @@ class SalesForecastingService
             $query->where('branch_id', $branchId);
         }
 
-        return $query->get()->map(fn($row) => [
+        return $query->get()->map(fn ($row) => [
             'period' => $row->period,
             'order_count' => (int) $row->order_count,
             'revenue' => (float) $row->revenue,
@@ -107,11 +107,11 @@ class SalesForecastingService
 
         $forecast = [];
         $lastPeriod = end($historical)['period'];
-        
+
         for ($i = 1; $i <= $forecastPeriods; $i++) {
             // Apply trend to forecast
             $trendAdjustment = 1 + ($trend * $i);
-            
+
             $forecast[] = [
                 'period' => $this->getNextPeriod($lastPeriod, $i),
                 'order_count' => round($avgOrderCount * $trendAdjustment),
@@ -153,7 +153,7 @@ class SalesForecastingService
 
         $slope = ($n * $sumXY - $sumX * $sumY) / $denominator;
         $avgY = $sumY / $n;
-        
+
         // Return as percentage change
         return $avgY > 0 ? $slope / $avgY : 0;
     }
@@ -194,7 +194,7 @@ class SalesForecastingService
         $testData = array_slice($historical, -3);
 
         $predictions = $this->calculateSimpleMovingAverage($trainData, 3);
-        
+
         if (empty($predictions)) {
             return ['score' => 0, 'message' => __('Not enough data')];
         }
@@ -233,11 +233,11 @@ class SalesForecastingService
             ->where('sale_items.product_id', $productId)
             ->where('sales.status', '!=', 'cancelled')
             ->where('sales.created_at', '>=', now()->subDays(30))
-            ->when($branchId, fn($q) => $q->where('sales.branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('sales.branch_id', $branchId))
             ->groupBy(DB::raw("DATE_FORMAT(sales.created_at, '%Y-%m-%d')"))
             ->orderBy('period')
             ->get()
-            ->map(fn($row) => [
+            ->map(fn ($row) => [
                 'period' => $row->period,
                 'order_count' => (int) $row->quantity,
                 'revenue' => (float) $row->revenue,

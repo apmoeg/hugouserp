@@ -15,6 +15,7 @@ class RentalPeriodCrudTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Module $module;
 
     protected function setUp(): void

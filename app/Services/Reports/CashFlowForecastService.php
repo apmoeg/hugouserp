@@ -2,10 +2,9 @@
 
 namespace App\Services\Reports;
 
-use App\Models\Sale;
-use App\Models\Purchase;
 use App\Models\BankAccount;
-use Illuminate\Support\Facades\DB;
+use App\Models\Purchase;
+use App\Models\Sale;
 use Carbon\Carbon;
 
 class CashFlowForecastService
@@ -36,11 +35,11 @@ class CashFlowForecastService
         );
 
         return [
-            'current_cash' => (float)$currentCash,
+            'current_cash' => (float) $currentCash,
             'forecast_period_days' => $daysAhead,
-            'total_expected_inflows' => (float)$expectedInflows->sum('amount'),
-            'total_expected_outflows' => (float)$expectedOutflows->sum('amount'),
-            'ending_cash_forecast' => (float)$dailyForecast->last()['ending_balance'],
+            'total_expected_inflows' => (float) $expectedInflows->sum('amount'),
+            'total_expected_outflows' => (float) $expectedOutflows->sum('amount'),
+            'ending_cash_forecast' => (float) $dailyForecast->last()['ending_balance'],
             'daily_forecast' => $dailyForecast,
             'cash_shortage_dates' => $this->identifyCashShortages($dailyForecast),
             'recommendations' => $this->getRecommendations($dailyForecast),
@@ -65,11 +64,11 @@ class CashFlowForecastService
     private function getExpectedInflows($startDate, $endDate)
     {
         return Sale::select(
-                'id',
-                'customer_id',
-                'payment_due_date as due_date',
-                'due_total as amount'
-            )
+            'id',
+            'customer_id',
+            'payment_due_date as due_date',
+            'due_total as amount'
+        )
             ->where('payment_status', '!=', 'paid')
             ->where('due_total', '>', 0)
             ->whereBetween('payment_due_date', [$startDate, $endDate])
@@ -84,11 +83,11 @@ class CashFlowForecastService
     private function getExpectedOutflows($startDate, $endDate)
     {
         return Purchase::select(
-                'id',
-                'supplier_id',
-                'payment_due_date as due_date',
-                'due_total as amount'
-            )
+            'id',
+            'supplier_id',
+            'payment_due_date as due_date',
+            'due_total as amount'
+        )
             ->where('payment_status', '!=', 'paid')
             ->where('due_total', '>', 0)
             ->whereBetween('payment_due_date', [$startDate, $endDate])
@@ -112,17 +111,17 @@ class CashFlowForecastService
 
             // Calculate inflows for this date
             $dailyInflows = $inflows
-                ->filter(fn($item) => Carbon::parse($item->due_date)->toDateString() === $dateStr)
+                ->filter(fn ($item) => Carbon::parse($item->due_date)->toDateString() === $dateStr)
                 ->sum('amount');
 
             // Calculate outflows for this date
             $dailyOutflows = $outflows
-                ->filter(fn($item) => Carbon::parse($item->due_date)->toDateString() === $dateStr)
+                ->filter(fn ($item) => Carbon::parse($item->due_date)->toDateString() === $dateStr)
                 ->sum('amount');
 
             // Calculate net flow using bcmath
-            $dailyInflowsStr = (string)$dailyInflows;
-            $dailyOutflowsStr = (string)$dailyOutflows;
+            $dailyInflowsStr = (string) $dailyInflows;
+            $dailyOutflowsStr = (string) $dailyOutflows;
             $netFlow = bcsub($dailyInflowsStr, $dailyOutflowsStr, 2);
 
             // Update running balance
@@ -131,10 +130,10 @@ class CashFlowForecastService
             $forecast->push([
                 'date' => $dateStr,
                 'day' => $i + 1,
-                'inflows' => (float)$dailyInflowsStr,
-                'outflows' => (float)$dailyOutflowsStr,
-                'net_flow' => (float)$netFlow,
-                'ending_balance' => (float)$runningBalance,
+                'inflows' => (float) $dailyInflowsStr,
+                'outflows' => (float) $dailyOutflowsStr,
+                'net_flow' => (float) $netFlow,
+                'ending_balance' => (float) $runningBalance,
                 'status' => bccomp($runningBalance, '0', 2) >= 0 ? 'healthy' : 'shortage',
             ]);
         }
@@ -148,8 +147,8 @@ class CashFlowForecastService
     private function identifyCashShortages($forecast)
     {
         return $forecast
-            ->filter(fn($day) => $day['status'] === 'shortage')
-            ->map(fn($day) => [
+            ->filter(fn ($day) => $day['status'] === 'shortage')
+            ->map(fn ($day) => [
                 'date' => $day['date'],
                 'shortage_amount' => abs($day['ending_balance']),
                 'severity' => abs($day['ending_balance']) > 10000 ? 'HIGH' : 'MEDIUM',
@@ -164,13 +163,13 @@ class CashFlowForecastService
     private function getRecommendations($forecast)
     {
         $recommendations = [];
-        
-        $shortages = $forecast->filter(fn($day) => $day['status'] === 'shortage');
+
+        $shortages = $forecast->filter(fn ($day) => $day['status'] === 'shortage');
 
         if ($shortages->count() > 0) {
             $recommendations[] = [
                 'priority' => 'HIGH',
-                'message' => 'Cash shortage detected on ' . $shortages->count() . ' days',
+                'message' => 'Cash shortage detected on '.$shortages->count().' days',
                 'action' => 'Consider arranging short-term financing or accelerating collections',
             ];
         }

@@ -47,7 +47,7 @@ class SaleController extends Controller
         // Defense-in-depth: Verify sale belongs to current branch
         $branchId = $this->requireBranchId($request);
         abort_if($sale->branch_id !== $branchId, 404, 'Sale not found in this branch');
-        
+
         return $this->ok($sale->load('items'));
     }
 
@@ -56,7 +56,7 @@ class SaleController extends Controller
         // Defense-in-depth: Verify sale belongs to current branch
         $branchId = $this->requireBranchId($request);
         abort_if($sale->branch_id !== $branchId, 404, 'Sale not found in this branch');
-        
+
         $sale->fill($request->validated())->save();
 
         return $this->ok($sale);
@@ -73,12 +73,14 @@ class SaleController extends Controller
     public function voidSale(SaleVoidRequest $request, int $sale)
     {
         $this->requireBranchId($request);
+
         return $this->ok($this->sales->voidSale($sale, $request->input('reason')), __('Voided'));
     }
 
     public function printInvoice(Request $request, int $sale)
     {
         $this->requireBranchId($request);
+
         return $this->ok($this->sales->printInvoice($sale));
     }
 }

@@ -20,10 +20,11 @@ class ConsolidateMigrationsCommand extends Command
     {
         $migrationsPath = database_path('migrations');
         $consolidatedPath = database_path('migrations_consolidated');
-        $backupPath = database_path('migrations_backup_' . date('Y_m_d_His'));
+        $backupPath = database_path('migrations_backup_'.date('Y_m_d_His'));
 
-        if (!File::isDirectory($consolidatedPath)) {
+        if (! File::isDirectory($consolidatedPath)) {
             $this->error('Consolidated migrations directory not found.');
+
             return self::FAILURE;
         }
 
@@ -37,7 +38,7 @@ class ConsolidateMigrationsCommand extends Command
             [
                 ['Existing migrations', $existingCount],
                 ['Consolidated migrations', $consolidatedCount],
-                ['Reduction', ($existingCount - $consolidatedCount) . ' files'],
+                ['Reduction', ($existingCount - $consolidatedCount).' files'],
             ]
         );
 
@@ -51,15 +52,16 @@ class ConsolidateMigrationsCommand extends Command
         }
 
         if ($this->option('activate')) {
-            if (!$this->option('backup')) {
+            if (! $this->option('backup')) {
                 $this->warn('⚠ Activating without backup. Use --backup to create a backup first.');
-                if (!$this->confirm('Continue without backup?')) {
+                if (! $this->confirm('Continue without backup?')) {
                     return self::FAILURE;
                 }
             }
 
             if ($this->option('dry-run')) {
-                $this->info('[DRY-RUN] Would move consolidated migrations to: ' . $migrationsPath);
+                $this->info('[DRY-RUN] Would move consolidated migrations to: '.$migrationsPath);
+
                 return self::SUCCESS;
             }
 
@@ -68,7 +70,7 @@ class ConsolidateMigrationsCommand extends Command
 
             // Copy consolidated migrations
             foreach (File::files($consolidatedPath) as $file) {
-                File::copy($file->getPathname(), $migrationsPath . '/' . $file->getFilename());
+                File::copy($file->getPathname(), $migrationsPath.'/'.$file->getFilename());
             }
 
             $this->info('✓ Consolidated migrations activated.');

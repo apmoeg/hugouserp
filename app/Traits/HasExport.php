@@ -19,13 +19,13 @@ trait HasExport
     public bool $exportIncludeHeaders = true;
 
     public string $exportDateFormat = 'Y-m-d';
-    
+
     public $exportMaxRows = 1000;
-    
+
     public bool $exportRespectFilters = true;
-    
+
     public bool $exportIncludeTotals = false;
-    
+
     public bool $exportUseBackgroundJob = false;
 
     public function initializeExport(string $entityType): void
@@ -100,7 +100,7 @@ trait HasExport
                 ]
             );
 
-            if (!$filepath || !file_exists($filepath)) {
+            if (! $filepath || ! file_exists($filepath)) {
                 throw new \RuntimeException("Export file was not created successfully at expected path: {$filepath}");
             }
 
@@ -139,7 +139,7 @@ trait HasExport
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            session()->flash('error', __('Export failed: ') . $e->getMessage());
+            session()->flash('error', __('Export failed: ').$e->getMessage());
             $this->closeExportModal();
 
             return null;

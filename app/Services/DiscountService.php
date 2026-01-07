@@ -84,7 +84,7 @@ class DiscountService implements DiscountServiceInterface
     {
         if ($asPercent) {
             // Check sales config first, then fallback to POS config
-            return (float) config('sales.max_line_discount_percent', 
+            return (float) config('sales.max_line_discount_percent',
                 config('pos.discount.max_percent', 50)
             );
         }
@@ -97,7 +97,7 @@ class DiscountService implements DiscountServiceInterface
      */
     public function validateInvoiceDiscount(float $discount, bool $asPercent = true): bool
     {
-        $maxDiscount = $asPercent 
+        $maxDiscount = $asPercent
             ? (float) config('sales.max_invoice_discount_percent', 30)
             : (float) config('pos.discount.max_amount', 1000);
 

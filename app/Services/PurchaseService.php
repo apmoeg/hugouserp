@@ -40,12 +40,12 @@ class PurchaseService implements PurchaseServiceInterface
             callback: fn () => DB::transaction(function () use ($payload) {
                 // Controller provides branch_id in payload after validation
                 // Service validates it exists as defense-in-depth
-                if (!isset($payload['branch_id'])) {
+                if (! isset($payload['branch_id'])) {
                     $branchId = $this->branchIdOrFail();
                 } else {
                     $branchId = (int) $payload['branch_id'];
                 }
-                
+
                 $p = Purchase::create([
                     'branch_id' => $branchId,
                     'warehouse_id' => $payload['warehouse_id'] ?? null,
@@ -56,35 +56,35 @@ class PurchaseService implements PurchaseServiceInterface
                     'subtotal' => 0, 'tax_amount' => 0, 'discount_amount' => 0, 'total_amount' => 0,
                     'paid_amount' => 0,
                 ]);
-                
+
                 $subtotal = '0';
-                
+
                 foreach ($payload['items'] ?? [] as $it) {
                     // Skip invalid items without required fields
-                    if (!isset($it['product_id']) || !isset($it['qty'])) {
+                    if (! isset($it['product_id']) || ! isset($it['qty'])) {
                         continue;
                     }
-                    
+
                     $qty = (float) $it['qty'];
                     // Accept price from multiple possible field names for API compatibility
                     $unitPrice = (float) ($it['unit_price'] ?? $it['price'] ?? 0);
-                    
+
                     // Critical ERP: Validate positive quantities and prices
                     if ($qty <= 0) {
                         throw new \InvalidArgumentException("Quantity must be positive for product {$it['product_id']}");
                     }
-                    
+
                     if ($unitPrice < 0) {
                         throw new \InvalidArgumentException("Unit price cannot be negative for product {$it['product_id']}");
                     }
-                    
+
                     // Use bcmath for precise calculation
                     $lineTotal = bcmul((string) $qty, (string) $unitPrice, 2);
                     $subtotal = bcadd($subtotal, $lineTotal, 2);
-                    
+
                     // Get product name and SKU
                     $product = \App\Models\Product::find($it['product_id']);
-                    
+
                     PurchaseItem::create([
                         'purchase_id' => $p->getKey(),
                         'product_id' => $it['product_id'],
@@ -99,11 +99,11 @@ class PurchaseService implements PurchaseServiceInterface
                         'line_total' => (float) $lineTotal,
                     ]);
                 }
-                
+
                 // Use correct migration column names
                 $p->subtotal = (float) $subtotal;
                 $p->total_amount = $p->subtotal;
-                
+
                 // Critical ERP: Validate supplier minimum order value
                 if ($p->supplier_id) {
                     $supplier = \App\Models\Supplier::find($p->supplier_id);
@@ -115,7 +115,7 @@ class PurchaseService implements PurchaseServiceInterface
                         }
                     }
                 }
-                
+
                 $p->save();
 
                 return $p;
@@ -182,7 +182,7 @@ class PurchaseService implements PurchaseServiceInterface
                 // Critical ERP: Use bcmath for precise money calculations
                 $newPaidAmount = bcadd((string) $p->paid_amount, (string) $amount, 2);
                 $p->paid_amount = (float) $newPaidAmount;
-                
+
                 // Update payment status
                 if ((float) $p->paid_amount >= (float) $p->total_amount) {
                     $p->payment_status = 'paid';

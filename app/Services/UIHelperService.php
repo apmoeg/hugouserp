@@ -87,17 +87,17 @@ class UIHelperService
         $absAmount = abs($amount);
         $formatted = number_format($absAmount, 2);
 
-        if (!$showSymbol) {
-            return $isNegative ? '-' . $formatted : $formatted;
+        if (! $showSymbol) {
+            return $isNegative ? '-'.$formatted : $formatted;
         }
 
         // RTL currencies go after the number
         if (in_array($currency, ['SAR', 'AED', 'EGP'], true)) {
-            return $isNegative ? '-' . $formatted . ' ' . $symbol : $formatted . ' ' . $symbol;
+            return $isNegative ? '-'.$formatted.' '.$symbol : $formatted.' '.$symbol;
         }
 
         // Symbol-leading currencies (USD, EUR, GBP, etc.)
-        return $isNegative ? '-' . $symbol . ' ' . $formatted : $symbol . ' ' . $formatted;
+        return $isNegative ? '-'.$symbol.' '.$formatted : $symbol.' '.$formatted;
     }
 
     /**

@@ -60,7 +60,7 @@ class Index extends Component
         $this->isSuperAdmin = $this->userIsSuperAdmin($user);
         $this->canManageAll = $this->isSuperAdmin || (bool) $user?->can('customers.manage.all');
 
-        if (!$this->branchId && !$this->canManageAll) {
+        if (! $this->branchId && ! $this->canManageAll) {
             abort(403, __('You must be assigned to a branch to view customers.'));
         }
 
@@ -84,7 +84,7 @@ class Index extends Component
     public function sortBy(string $field): void
     {
         // Validate field is in allowed list
-        if (!in_array($field, $this->allowedSortColumns(), true)) {
+        if (! in_array($field, $this->allowedSortColumns(), true)) {
             return;
         }
 
@@ -183,7 +183,7 @@ class Index extends Component
 
     private function ensureBranchAccess(): void
     {
-        if (!$this->branchId && !$this->canManageAll) {
+        if (! $this->branchId && ! $this->canManageAll) {
             abort(403, __('You must be assigned to a branch to view customers.'));
         }
     }

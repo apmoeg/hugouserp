@@ -10,8 +10,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CustomerUpdateRequest extends FormRequest
 {
-    use HasPaymentTermsValidation;
     use HasMultilingualValidation;
+    use HasPaymentTermsValidation;
 
     public function authorize(): bool
     {
@@ -36,8 +36,8 @@ class CustomerUpdateRequest extends FormRequest
             'preferred_currency' => ['sometimes', 'nullable', 'string', 'size:3'],
             'notes' => array_merge(['sometimes', 'nullable'], $this->unicodeText(required: false)),
         ],
-        $this->paymentTermsRules(false),
-        $this->paymentDueDaysRules(false)
+            $this->paymentTermsRules(false),
+            $this->paymentDueDaysRules(false)
         );
     }
 }

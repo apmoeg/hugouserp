@@ -14,7 +14,7 @@ class QuickActions extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        
+
         $this->actions = [
             [
                 'title' => __('New Sale'),
@@ -116,9 +116,9 @@ class QuickActions extends Component
 
         // Filter actions based on user permissions and route availability
         $this->actions = collect($this->actions)->filter(function ($action) use ($user) {
-            $hasPermission = !isset($action['permission']) || $user->can($action['permission']);
+            $hasPermission = ! isset($action['permission']) || $user->can($action['permission']);
             $routeExists = \Route::has($action['route']);
-            
+
             return $hasPermission && $routeExists;
         })->values()->toArray();
     }

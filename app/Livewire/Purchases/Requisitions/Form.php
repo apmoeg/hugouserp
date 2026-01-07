@@ -14,8 +14,8 @@ use Livewire\Component;
 
 class Form extends Component
 {
-    use AuthorizesRequests;
     use \App\Http\Requests\Traits\HasMultilingualValidation;
+    use AuthorizesRequests;
 
     public ?PurchaseRequisition $requisition = null;
 

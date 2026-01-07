@@ -27,19 +27,19 @@ class ExportImportController extends Controller
 
         $query = Purchase::query()->with(['branch', 'supplier']);
 
-        if (!empty($validated['date_from'])) {
+        if (! empty($validated['date_from'])) {
             $query->whereDate('posted_at', '>=', $validated['date_from']);
         }
 
-        if (!empty($validated['date_to'])) {
+        if (! empty($validated['date_to'])) {
             $query->whereDate('posted_at', '<=', $validated['date_to']);
         }
 
-        if (!empty($validated['branch_id'])) {
+        if (! empty($validated['branch_id'])) {
             $query->where('branch_id', $validated['branch_id']);
         }
 
-        if (!empty($validated['status'])) {
+        if (! empty($validated['status'])) {
             $query->where('status', $validated['status']);
         }
 
@@ -97,7 +97,7 @@ class ExportImportController extends Controller
 
         $updateExisting = $request->input('update_existing', false);
         $file = $request->file('file');
-        
+
         try {
             $spreadsheet = IOFactory::load($file->getRealPath());
             $worksheet = $spreadsheet->getActiveSheet();
@@ -146,13 +146,14 @@ class ExportImportController extends Controller
                         'errors' => $validator->errors()->all(),
                     ];
                     $failed++;
+
                     continue;
                 }
 
                 try {
                     // Find or create purchase
                     $purchaseData = [
-                        'reference' => $rowData['reference'] ?? 'PO-IMP-' . date('Ymd') . '-' . \Str::uuid()->toString(),
+                        'reference' => $rowData['reference'] ?? 'PO-IMP-'.date('Ymd').'-'.\Str::uuid()->toString(),
                         'posted_at' => $rowData['date'],
                         'grand_total' => (float) $rowData['total'],
                         'subtotal' => (float) ($rowData['subtotal'] ?? $rowData['total']),
@@ -164,7 +165,7 @@ class ExportImportController extends Controller
                         'branch_id' => auth()->user()->branch_id,
                     ];
 
-                    if ($updateExisting && !empty($rowData['reference'])) {
+                    if ($updateExisting && ! empty($rowData['reference'])) {
                         Purchase::updateOrCreate(
                             ['reference' => $rowData['reference']],
                             $purchaseData
@@ -187,12 +188,13 @@ class ExportImportController extends Controller
 
             $message = __(':imported purchases imported successfully', ['imported' => $imported]);
             if ($failed > 0) {
-                $message .= '. ' . __(':failed rows failed', ['failed' => $failed]);
+                $message .= '. '.__(':failed rows failed', ['failed' => $failed]);
             }
 
             return back()->with('success', $message);
         } catch (\Exception $e) {
             DB::rollBack();
+
             return back()->with('error', __('Import failed: :error', ['error' => $e->getMessage()]));
         }
     }

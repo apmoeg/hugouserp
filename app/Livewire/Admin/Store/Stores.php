@@ -54,7 +54,7 @@ class Stores extends Component
         if (Schema::hasColumn('branches', 'name_ar')) {
             $columns[] = 'name_ar';
         }
-        
+
         $this->branches = Branch::where('is_active', true)
             ->orderBy('name')
             ->get($columns)

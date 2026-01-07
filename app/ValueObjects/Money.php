@@ -15,7 +15,7 @@ final class Money
         public readonly string $amount,
         public readonly string $currency = 'EGP',
     ) {
-        if (!is_numeric($this->amount)) {
+        if (! is_numeric($this->amount)) {
             throw new InvalidArgumentException('Amount must be numeric');
         }
     }
@@ -34,7 +34,7 @@ final class Money
     public function add(Money $other): Money
     {
         $this->ensureSameCurrency($other);
-        
+
         return new self(
             bcadd($this->amount, $other->amount, 2),
             $this->currency
@@ -47,7 +47,7 @@ final class Money
     public function subtract(Money $other): Money
     {
         $this->ensureSameCurrency($other);
-        
+
         return new self(
             bcsub($this->amount, $other->amount, 2),
             $this->currency
@@ -70,7 +70,7 @@ final class Money
      */
     public function format(int $decimals = 2): string
     {
-        return number_format((float) $this->amount, $decimals) . ' ' . $this->currency;
+        return number_format((float) $this->amount, $decimals).' '.$this->currency;
     }
 
     /**
@@ -120,7 +120,7 @@ final class Money
     {
         if ($this->currency !== $other->currency) {
             throw new InvalidArgumentException(
-                "Cannot perform operation on different currencies"
+                'Cannot perform operation on different currencies'
             );
         }
     }

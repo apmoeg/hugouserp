@@ -23,42 +23,42 @@ return [
     'serial_number' => 'الرقم التسلسلي',
     'supplier' => 'المورد',
     'warranty_expiry' => 'انتهاء الضمان',
-    
+
     // Depreciation Methods
     'straight_line' => 'القسط الثابت',
     'declining_balance' => 'الرصيد المتناقص',
     'sum_of_years' => 'مجموع السنوات',
-    
+
     // Status Values
     'active' => 'نشط',
     'inactive' => 'غير نشط',
     'disposed' => 'متخلص منه',
     'under_maintenance' => 'تحت الصيانة',
-    
+
     // Condition Values
     'excellent' => 'ممتاز',
     'good' => 'جيد',
     'fair' => 'مقبول',
     'poor' => 'سيئ',
-    
+
     // Messages
     'asset_created' => 'تم إنشاء الأصل بنجاح',
     'asset_updated' => 'تم تحديث الأصل بنجاح',
     'asset_deleted' => 'تم حذف الأصل',
     'asset_disposed' => 'تم التخلص من الأصل',
     'depreciation_calculated' => 'تم حساب الإهلاك',
-    
+
     // Buttons
     'add_asset' => 'إضافة أصل',
     'calculate_depreciation' => 'حساب الإهلاك',
     'dispose_asset' => 'التخلص من الأصل',
     'view_depreciation' => 'عرض الإهلاك',
-    
+
     // Navigation
     'all_assets' => 'جميع الأصول',
     'by_category' => 'حسب الفئة',
     'depreciation_schedule' => 'جدول الإهلاك',
-    
+
     // Validation Messages
     'asset_name_required' => 'اسم الأصل مطلوب',
     'purchase_cost_required' => 'تكلفة الشراء مطلوبة',

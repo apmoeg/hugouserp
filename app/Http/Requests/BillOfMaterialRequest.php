@@ -64,13 +64,13 @@ class BillOfMaterialRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (!$this->has('branch_id') && $this->user()->branch_id) {
+        if (! $this->has('branch_id') && $this->user()->branch_id) {
             $this->merge([
                 'branch_id' => $this->user()->branch_id,
             ]);
         }
 
-        if ($this->isMethod('POST') && !$this->has('status')) {
+        if ($this->isMethod('POST') && ! $this->has('status')) {
             $this->merge([
                 'status' => 'draft',
             ]);

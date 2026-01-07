@@ -20,7 +20,7 @@ class ProductionOrderRequest extends FormRequest
     {
         return [
             'bom_id' => ['required', 'exists:bills_of_materials,id'],
-            'order_number' => ['sometimes', 'string', 'max:50', 'unique:production_orders,order_number,' . ($this->route('order') ? $this->route('order')->id : 'NULL')],
+            'order_number' => ['sometimes', 'string', 'max:50', 'unique:production_orders,order_number,'.($this->route('order') ? $this->route('order')->id : 'NULL')],
             'quantity_planned' => ['required', 'numeric', 'min:0.01'],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
@@ -34,13 +34,13 @@ class ProductionOrderRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (!$this->has('branch_id') && $this->user()->branch_id) {
+        if (! $this->has('branch_id') && $this->user()->branch_id) {
             $this->merge([
                 'branch_id' => $this->user()->branch_id,
             ]);
         }
 
-        if ($this->isMethod('POST') && !$this->has('status')) {
+        if ($this->isMethod('POST') && ! $this->has('status')) {
             $this->merge([
                 'status' => 'draft',
             ]);

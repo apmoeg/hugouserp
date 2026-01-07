@@ -27,6 +27,7 @@ class Index extends Component
 
         if ($policy->tickets()->exists() || $policy->categories()->exists()) {
             session()->flash('error', __('Cannot delete SLA policy in use'));
+
             return;
         }
 
@@ -38,7 +39,7 @@ class Index extends Component
     public function toggleActive(int $id): void
     {
         $policy = TicketSLAPolicy::findOrFail($id);
-        $policy->is_active = !$policy->is_active;
+        $policy->is_active = ! $policy->is_active;
         $policy->updated_by = auth()->id();
         $policy->save();
 

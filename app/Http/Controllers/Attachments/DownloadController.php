@@ -13,9 +13,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DownloadController extends Controller
 {
-    public function __construct(private AttachmentAuthorizationService $authorizer)
-    {
-    }
+    public function __construct(private AttachmentAuthorizationService $authorizer) {}
 
     public function __invoke(Attachment $attachment): StreamedResponse
     {

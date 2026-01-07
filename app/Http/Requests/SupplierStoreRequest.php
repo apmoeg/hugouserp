@@ -36,9 +36,9 @@ class SupplierStoreRequest extends FormRequest
             'quality_rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
             'delivery_rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
             'service_rating' => ['nullable', 'numeric', 'min:0', 'max:5'],
-        ], 
-        $this->paymentTermsRules(),
-        $this->paymentDueDaysRules()
+        ],
+            $this->paymentTermsRules(),
+            $this->paymentDueDaysRules()
         );
     }
 }

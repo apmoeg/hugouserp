@@ -13,6 +13,7 @@ use Livewire\Component;
 class Form extends Component
 {
     use HasMultilingualValidation;
+
     public ?int $moduleId = null;
 
     public ?Module $module = null;

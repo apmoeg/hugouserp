@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProjectExpense extends Model
 {
@@ -101,8 +101,8 @@ class ProjectExpense extends Model
     public function scopeNeedsReimbursement(Builder $query): Builder
     {
         return $query->where('is_reimbursable', true)
-                    ->where('status', 'approved')
-                    ->whereNull('reimbursed_at');
+            ->where('status', 'approved')
+            ->whereNull('reimbursed_at');
     }
 
     // Business Methods
@@ -128,7 +128,7 @@ class ProjectExpense extends Model
 
     public function markAsReimbursed(int $userId): bool
     {
-        if (!$this->is_reimbursable || $this->status !== 'approved') {
+        if (! $this->is_reimbursable || $this->status !== 'approved') {
             return false;
         }
 
@@ -150,8 +150,8 @@ class ProjectExpense extends Model
 
     public function needsReimbursement(): bool
     {
-        return $this->is_reimbursable && 
-               $this->status === 'approved' && 
+        return $this->is_reimbursable &&
+               $this->status === 'approved' &&
                is_null($this->reimbursed_at);
     }
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Shared;
 
-use App\Models\SystemSetting;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
@@ -12,7 +11,7 @@ use Livewire\Component;
 
 /**
  * Onboarding Guide Component
- * 
+ *
  * Provides an interactive guide for new users to learn the ERP system.
  * Shows contextual help based on which page the user is on.
  * Tracks completed onboarding steps in user preferences.
@@ -20,27 +19,30 @@ use Livewire\Component;
 class OnboardingGuide extends Component
 {
     public bool $showGuide = false;
+
     public int $currentStep = 0;
+
     public array $completedSteps = [];
+
     public string $context = 'dashboard';
 
     public function mount(string $context = 'dashboard'): void
     {
         $this->context = $context;
-        
+
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
         // Get completed steps from user preferences
         $preferences = $user->preferences ?? [];
         $this->completedSteps = $preferences['onboarding_completed'] ?? [];
-        
+
         // Check if we should show the guide automatically for new users
         $hasSeenOnboarding = in_array('welcome', $this->completedSteps);
-        
-        if (!$hasSeenOnboarding && $this->isNewUser()) {
+
+        if (! $hasSeenOnboarding && $this->isNewUser()) {
             $this->showGuide = true;
         }
     }
@@ -51,11 +53,11 @@ class OnboardingGuide extends Component
     protected function isNewUser(): bool
     {
         $user = Auth::user();
-        
-        if (!$user || !$user->created_at) {
+
+        if (! $user || ! $user->created_at) {
             return false;
         }
-        
+
         return $user->created_at->gt(now()->subDays(7));
     }
 
@@ -301,7 +303,7 @@ class OnboardingGuide extends Component
     public function nextStep(): void
     {
         $steps = $this->steps;
-        
+
         if ($this->currentStep < count($steps) - 1) {
             $this->markStepComplete($steps[$this->currentStep]['id']);
             $this->currentStep++;
@@ -337,7 +339,7 @@ class OnboardingGuide extends Component
      */
     protected function markStepComplete(string $stepId): void
     {
-        if (!in_array($stepId, $this->completedSteps)) {
+        if (! in_array($stepId, $this->completedSteps)) {
             $this->completedSteps[] = $stepId;
             $this->saveProgress();
         }
@@ -349,7 +351,7 @@ class OnboardingGuide extends Component
     protected function saveProgress(): void
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
@@ -365,7 +367,7 @@ class OnboardingGuide extends Component
     {
         $this->saveProgress();
         $this->showGuide = false;
-        
+
         session()->flash('success', __('Onboarding complete! You can access help anytime from the menu.'));
     }
 
@@ -375,11 +377,11 @@ class OnboardingGuide extends Component
     public function skipOnboarding(): void
     {
         // Mark welcome as seen so it doesn't show again
-        if (!in_array('welcome', $this->completedSteps)) {
+        if (! in_array('welcome', $this->completedSteps)) {
             $this->completedSteps[] = 'welcome';
             $this->saveProgress();
         }
-        
+
         $this->showGuide = false;
     }
 
@@ -389,14 +391,14 @@ class OnboardingGuide extends Component
     public function resetOnboarding(): void
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
         $preferences = $user->preferences ?? [];
         $preferences['onboarding_completed'] = [];
         $user->update(['preferences' => $preferences]);
-        
+
         $this->completedSteps = [];
         $this->currentStep = 0;
         $this->showGuide = true;
@@ -412,8 +414,8 @@ class OnboardingGuide extends Component
             return 100;
         }
 
-        $completed = count(array_filter($steps, fn($step) => in_array($step['id'], $this->completedSteps)));
-        
+        $completed = count(array_filter($steps, fn ($step) => in_array($step['id'], $this->completedSteps)));
+
         return (int) round(($completed / count($steps)) * 100);
     }
 

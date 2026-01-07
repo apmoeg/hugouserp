@@ -18,7 +18,7 @@ use Illuminate\Support\Str;
 
 /**
  * BaseModel - Foundation for all ERP models
- * 
+ *
  * FEATURES:
  *   - Automatic UUID and code generation
  *   - Branch awareness with scoping
@@ -27,7 +27,7 @@ use Illuminate\Support\Str;
  *   - Activity logging
  *   - Common query scopes
  *   - Input validation helpers
- * 
+ *
  * All models should extend this class to inherit these features.
  */
 abstract class BaseModel extends Model

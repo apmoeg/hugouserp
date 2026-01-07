@@ -2,23 +2,23 @@
 
 /**
  * Permission labels and descriptions for the ERP system.
- * 
+ *
  * Format: 'permission.slug' => 'Human-readable label'
- * 
+ *
  * These translations are used in the Roles management UI and permission displays.
  */
 
 return [
     // Dashboard
     'dashboard.view' => 'View Dashboard',
-    
+
     // POS
     'pos.use' => 'Use POS Terminal',
     'pos.session.manage' => 'Manage POS Sessions',
     'pos.daily-report.view' => 'View POS Daily Report',
     'pos.offline.report.view' => 'View Offline Sales Report',
     'pos.view-reports' => 'View POS Reports',
-    
+
     // Sales
     'sales.view' => 'View Sales',
     'sales.manage' => 'Manage Sales',
@@ -26,7 +26,7 @@ return [
     'sales.export' => 'Export Sales Data',
     'sales.import' => 'Import Sales Data',
     'sales.view-reports' => 'View Sales Reports',
-    
+
     // Purchases
     'purchases.view' => 'View Purchases',
     'purchases.manage' => 'Manage Purchases',
@@ -42,7 +42,7 @@ return [
     'purchases.grn.view' => 'View Goods Received Notes',
     'purchases.grn.create' => 'Create Goods Received Notes',
     'purchases.grn.approve' => 'Approve Goods Received Notes',
-    
+
     // Customers
     'customers.view' => 'View Customers',
     'customers.manage' => 'Manage Customers',
@@ -50,13 +50,13 @@ return [
     'customers.export' => 'Export Customer Data',
     'customers.import' => 'Import Customer Data',
     'customers.loyalty.manage' => 'Manage Customer Loyalty',
-    
+
     // Suppliers
     'suppliers.view' => 'View Suppliers',
     'suppliers.manage' => 'Manage Suppliers',
     'suppliers.export' => 'Export Supplier Data',
     'suppliers.import' => 'Import Supplier Data',
-    
+
     // Inventory
     'inventory.view' => 'View Inventory',
     'inventory.manage' => 'Manage Inventory',
@@ -73,35 +73,35 @@ return [
     'inventory.import' => 'Import Inventory Data',
     'inventory.view-reports' => 'View Inventory Reports',
     'inventory.stock.alerts.view' => 'View Stock Alerts',
-    
+
     // Warehouse
     'warehouse.view' => 'View Warehouses',
     'warehouse.manage' => 'Manage Warehouses',
-    
+
     // Expenses
     'expenses.view' => 'View Expenses',
     'expenses.manage' => 'Manage Expenses',
     'expenses.export' => 'Export Expenses',
     'expenses.import' => 'Import Expenses',
-    
+
     // Income
     'income.view' => 'View Income',
     'income.manage' => 'Manage Income',
     'income.export' => 'Export Income',
     'income.import' => 'Import Income',
-    
+
     // Accounting
     'accounting.view' => 'View Accounting',
     'accounting.manage' => 'Manage Accounting',
     'accounting.create' => 'Create Journal Entries',
-    
+
     // Banking
     'banking.view' => 'View Banking',
     'banking.create' => 'Create Bank Accounts',
     'banking.edit' => 'Edit Bank Accounts',
     'banking.delete' => 'Delete Bank Accounts',
     'banking.reconcile' => 'Reconcile Bank Accounts',
-    
+
     // HRM
     'hrm.view' => 'View HR Module',
     'hrm.manage' => 'Manage HR Module',
@@ -119,7 +119,7 @@ return [
     'hrm.view-reports' => 'View HR Reports',
     'hr.view-reports' => 'View HR Reports',
     'hr.manage-employees' => 'Manage Employees',
-    
+
     // Rental
     'rental.view' => 'View Rental Module',
     'rental.units.view' => 'View Rental Units',
@@ -137,7 +137,7 @@ return [
     'rental.manage-tenants' => 'Manage Tenants',
     'rental.manage-contracts' => 'Manage Contracts',
     'rentals.view' => 'View Rentals',
-    
+
     // Manufacturing
     'manufacturing.view' => 'View Manufacturing',
     'manufacturing.create' => 'Create Manufacturing Records',
@@ -145,7 +145,7 @@ return [
     'manufacturing.delete' => 'Delete Manufacturing Records',
     'manufacturing.manage' => 'Manage Manufacturing',
     'manufacturing.approve' => 'Approve Manufacturing Orders',
-    
+
     // Fixed Assets
     'fixed-assets.view' => 'View Fixed Assets',
     'fixed-assets.create' => 'Create Fixed Assets',
@@ -153,7 +153,7 @@ return [
     'fixed-assets.delete' => 'Delete Fixed Assets',
     'fixed-assets.manage' => 'Manage Fixed Assets',
     'fixed-assets.depreciate' => 'Run Depreciation',
-    
+
     // Projects
     'projects.view' => 'View Projects',
     'projects.create' => 'Create Projects',
@@ -170,7 +170,7 @@ return [
     'projects.expenses.manage' => 'Manage Project Expenses',
     'projects.expenses.approve' => 'Approve Project Expenses',
     'projects.budget.view' => 'View Project Budget',
-    
+
     // Documents
     'documents.view' => 'View Documents',
     'documents.create' => 'Create Documents',
@@ -183,7 +183,7 @@ return [
     'documents.versions.manage' => 'Manage Document Versions',
     'documents.tags.manage' => 'Manage Document Tags',
     'documents.activities.view' => 'View Document Activities',
-    
+
     // Helpdesk
     'helpdesk.view' => 'View Helpdesk',
     'helpdesk.create' => 'Create Tickets',
@@ -209,7 +209,7 @@ return [
     'tickets.priorities.manage' => 'Manage Ticket Priorities',
     'tickets.sla.view' => 'View SLA Policies',
     'tickets.sla.manage' => 'Manage SLA Policies',
-    
+
     // Media
     'media.view' => 'View Media Library',
     'media.upload' => 'Upload Media',
@@ -217,7 +217,7 @@ return [
     'media.manage' => 'Manage Media',
     'media.manage-all' => 'Manage All Media',
     'media.view-others' => 'View Others\' Media',
-    
+
     // Reports
     'reports.view' => 'View Reports',
     'reports.export' => 'Export Reports',
@@ -234,19 +234,19 @@ return [
     'reports.scheduled.manage' => 'Manage Scheduled Reports',
     'reports.templates.manage' => 'Manage Report Templates',
     'reports.sales.view' => 'View Sales Reports',
-    
+
     // Settings
     'settings.view' => 'View Settings',
     'settings.manage' => 'Manage Settings',
     'settings.branch' => 'Manage Branch Settings',
     'settings.translations.manage' => 'Manage Translations',
     'settings.currency.manage' => 'Manage Currencies',
-    
+
     // Users & Roles
     'users.manage' => 'Manage Users',
     'roles.manage' => 'Manage Roles',
     'impersonate.users' => 'Impersonate Users',
-    
+
     // Branches
     'branches.view' => 'View Branches',
     'branches.view-all' => 'View All Branches Data',
@@ -255,25 +255,25 @@ return [
     'branches.edit' => 'Edit Branches',
     'branch.admin.manage' => 'Manage Branch Admins',
     'branch.users.manage' => 'Manage Branch Users',
-    
+
     // Modules
     'modules.manage' => 'Manage Modules',
-    
+
     // Stores
     'stores.view' => 'View Stores',
     'stores.manage' => 'Manage Stores',
     'store.reports.dashboard' => 'View Store Reports Dashboard',
-    
+
     // Logs
     'logs.audit.view' => 'View Audit Logs',
     'logs.login.view' => 'View Login Logs',
-    
+
     // System
     'system.view-notifications' => 'View Notifications',
-    
+
     // Installments
     'sales.installments.view' => 'View Sales Installments',
-    
+
     // Spares/Vehicle
     'spares.compatibility.manage' => 'Manage Spare Parts Compatibility',
     'spares.vehicle-models.view' => 'View Vehicle Models',

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Livewire\Projects;
 
 use App\Models\Project;
-use App\Models\ProjectTask;
 use App\Models\ProjectTimeLog;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -20,16 +19,24 @@ class TimeLogs extends Component
     use AuthorizesRequests, WithPagination;
 
     public Project $project;
+
     public ?ProjectTimeLog $editingLog = null;
+
     public bool $showModal = false;
 
     // Form fields
     public ?int $task_id = null;
+
     public ?int $employee_id = null;
+
     public ?string $date = null;
+
     public float $hours = 0;
+
     public bool $is_billable = true;
+
     public float $hourly_rate = 0;
+
     public ?string $description = null;
 
     public function mount(int $projectId): void
@@ -108,7 +115,7 @@ class TimeLogs extends Component
         $this->editingLog = $this->project->timeLogs()->findOrFail($id);
         $this->fill($this->editingLog->only([
             'task_id', 'employee_id', 'hours',
-            'is_billable', 'hourly_rate', 'description'
+            'is_billable', 'hourly_rate', 'description',
         ]));
         $this->date = $this->editingLog->log_date?->format('Y-m-d')
             ?? $this->editingLog->date?->format('Y-m-d');
@@ -122,7 +129,7 @@ class TimeLogs extends Component
 
         $data = $this->only([
             'task_id', 'employee_id', 'date', 'hours',
-            'is_billable', 'hourly_rate', 'description'
+            'is_billable', 'hourly_rate', 'description',
         ]);
 
         $logDate = $data['date'] ?? now()->format('Y-m-d');
@@ -161,7 +168,7 @@ class TimeLogs extends Component
     public function resetForm(): void
     {
         $this->reset([
-            'task_id', 'hours', 'hourly_rate', 'description'
+            'task_id', 'hours', 'hourly_rate', 'description',
         ]);
         $this->date = now()->format('Y-m-d');
         $this->employee_id = auth()->id();

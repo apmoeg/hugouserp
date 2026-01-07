@@ -64,7 +64,7 @@ trait ValidatesInput
     public function getFormFields(): array
     {
         $fields = [];
-        
+
         foreach ($this->fillable as $field) {
             $fields[$field] = [
                 'name' => $field,
@@ -87,7 +87,7 @@ trait ValidatesInput
         if (isset($this->fieldLabels[$field])) {
             return __($this->fieldLabels[$field]);
         }
-        
+
         // Generate from field name
         return __(str_replace('_', ' ', ucfirst($field)));
     }
@@ -101,7 +101,7 @@ trait ValidatesInput
         $casts = $this->casts ?? [];
         if (isset($casts[$field])) {
             $cast = $casts[$field];
-            
+
             if (str_contains($cast, 'decimal') || str_contains($cast, 'float')) {
                 return 'number';
             }
@@ -157,8 +157,8 @@ trait ValidatesInput
     protected function isFieldRequired(string $field): bool
     {
         $rules = $this->getValidationRules();
-        
-        if (!isset($rules[$field])) {
+
+        if (! isset($rules[$field])) {
             return false;
         }
 
@@ -205,14 +205,14 @@ trait ValidatesInput
      */
     public function getRelationOptions(string $relation, string $labelColumn = 'name', string $valueColumn = 'id'): array
     {
-        if (!method_exists($this, $relation)) {
+        if (! method_exists($this, $relation)) {
             return [];
         }
 
         $related = $this->{$relation}()->getRelated();
-        
+
         return $related->query()
-            ->when(method_exists($related, 'scopeActive'), fn($q) => $q->active())
+            ->when(method_exists($related, 'scopeActive'), fn ($q) => $q->active())
             ->pluck($labelColumn, $valueColumn)
             ->toArray();
     }
@@ -222,9 +222,9 @@ trait ValidatesInput
      */
     public static function createValidated(array $data): static
     {
-        $instance = new static();
+        $instance = new static;
         $validatedData = $instance->validateData($data);
-        
+
         return static::create($validatedData);
     }
 
@@ -234,7 +234,7 @@ trait ValidatesInput
     public function updateValidated(array $data): bool
     {
         $validatedData = $this->validateData($data);
-        
+
         return $this->update($validatedData);
     }
 }

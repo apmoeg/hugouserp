@@ -73,7 +73,7 @@ class Form extends Component
             'field_group' => $this->multilingualString(required: false, max: 100),
         ];
     }
-    
+
     protected $rules = [];
 
     public function boot(ModuleProductService $productService): void

@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 
 /**
  * Outputs the cron configuration needed for Laravel scheduler.
- * 
+ *
  * This command helps administrators set up the scheduler in different environments:
  * - cPanel: Copy the cron line into cPanel's Cron Jobs
  * - Non-cPanel servers: Add to system crontab or use systemd
@@ -35,7 +35,7 @@ class SchedulerInstall extends Command
 
         $this->line('<fg=yellow>Cron Configuration (Required for scheduled reports, payroll, POS closing, etc.)</>');
         $this->newLine();
-        
+
         $this->info('Add this line to your crontab or cPanel Cron Jobs:');
         $this->newLine();
         $this->line("<fg=green>{$cronLine}</>");
@@ -94,7 +94,7 @@ class SchedulerInstall extends Command
         $this->newLine();
         $this->line('<fg=cyan>== Systemd Timer Setup ==</>');
         $this->newLine();
-        
+
         $serviceName = 'erp-scheduler';
         $user = get_current_user() ?: 'www-data';
 
@@ -128,7 +128,7 @@ class SchedulerInstall extends Command
         $this->newLine();
 
         $this->line('Enable and start:');
-        $this->line("   sudo systemctl daemon-reload");
+        $this->line('   sudo systemctl daemon-reload');
         $this->line("   sudo systemctl enable {$serviceName}.timer");
         $this->line("   sudo systemctl start {$serviceName}.timer");
         $this->newLine();

@@ -16,7 +16,9 @@ class AccountingServiceTest extends TestCase
     use RefreshDatabase;
 
     protected AccountingService $service;
+
     protected Branch $branch;
+
     protected ChartOfAccount $account;
 
     protected function setUp(): void

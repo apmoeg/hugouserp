@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
-use Illuminate\Database\Eloquent\Builder;
 
 class Supplier extends BaseModel
 {
@@ -149,13 +149,13 @@ class Supplier extends BaseModel
 
     public function canReceiveOrders(): bool
     {
-        return $this->is_active && !$this->is_blocked;
+        return $this->is_active && ! $this->is_blocked;
     }
 
     // Backward compatibility accessors
     public function getIsApprovedAttribute(): bool
     {
-        return $this->is_active && !$this->is_blocked;
+        return $this->is_active && ! $this->is_blocked;
     }
 
     public function getPaymentDueDaysAttribute()
@@ -179,6 +179,6 @@ class Supplier extends BaseModel
             ->logOnly(['name', 'email', 'phone', 'is_active', 'is_preferred', 'is_blocked', 'rating'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
-            ->setDescriptionForEvent(fn(string $eventName) => "Supplier {$this->name} was {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "Supplier {$this->name} was {$eventName}");
     }
 }

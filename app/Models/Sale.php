@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
-use Illuminate\Database\Eloquent\Builder;
 
 class Sale extends BaseModel
 {
     use LogsActivity, SoftDeletes;
+
     protected ?string $moduleKey = 'sales';
 
     protected $table = 'sales';
@@ -117,7 +118,7 @@ class Sale extends BaseModel
      */
     protected static function clearSalesStatsCache(?int $branchId): void
     {
-        $cacheKey = 'sales_stats_' . ($branchId ?? 'all');
+        $cacheKey = 'sales_stats_'.($branchId ?? 'all');
         \Illuminate\Support\Facades\Cache::forget($cacheKey);
     }
 
@@ -207,7 +208,7 @@ class Sale extends BaseModel
     {
         return $this->due_date &&
             $this->due_date->isPast() &&
-            !$this->isPaid();
+            ! $this->isPaid();
     }
 
     public function isDelivered(): bool
@@ -327,6 +328,6 @@ class Sale extends BaseModel
             ->logOnly(['reference_number', 'status', 'total_amount', 'paid_amount', 'customer_id', 'branch_id'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
-            ->setDescriptionForEvent(fn(string $eventName) => "Sale {$this->reference_number} was {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "Sale {$this->reference_number} was {$eventName}");
     }
 }

@@ -119,9 +119,10 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     public function getEmployeeIdAttribute(): ?int
     {
         // Check if already loaded to avoid extra queries
-        if (!$this->relationLoaded('hrEmployee')) {
+        if (! $this->relationLoaded('hrEmployee')) {
             $this->load('hrEmployee');
         }
+
         return $this->hrEmployee?->id;
     }
 
@@ -172,8 +173,8 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     public function isBranchAdmin(?int $branchId = null): bool
     {
         $branchId = $branchId ?? $this->branch_id;
-        
-        if (!$branchId) {
+
+        if (! $branchId) {
             return false;
         }
 
@@ -189,8 +190,8 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     public function getBranchAdminRecord(?int $branchId = null): ?BranchAdmin
     {
         $branchId = $branchId ?? $this->branch_id;
-        
-        if (!$branchId) {
+
+        if (! $branchId) {
             return null;
         }
 
@@ -210,6 +211,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         }
 
         $branchAdmin = $this->getBranchAdminRecord();
+
         return $branchAdmin?->can_manage_users ?? false;
     }
 
@@ -223,6 +225,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         }
 
         $branchAdmin = $this->getBranchAdminRecord();
+
         return $branchAdmin?->can_view_reports ?? $this->can('branch.reports.view');
     }
 
@@ -236,6 +239,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         }
 
         $branchAdmin = $this->getBranchAdminRecord();
+
         return $branchAdmin?->can_manage_settings ?? false;
     }
 
@@ -246,7 +250,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
     {
         // Check session for admin branch context first
         $contextBranchId = session('admin_branch_context');
-        
+
         if ($contextBranchId && $this->hasRole('Super Admin')) {
             return Branch::find($contextBranchId);
         }
@@ -259,7 +263,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
      */
     public function isBranchEmployee(): bool
     {
-        return $this->hasRole('Branch Employee') || 
+        return $this->hasRole('Branch Employee') ||
                $this->hasRole('Branch Cashier');
     }
 
@@ -268,7 +272,7 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
      */
     public function isBranchSupervisor(): bool
     {
-        return $this->hasRole('Branch Supervisor') || 
+        return $this->hasRole('Branch Supervisor') ||
                $this->hasRole('Branch Manager');
     }
 }

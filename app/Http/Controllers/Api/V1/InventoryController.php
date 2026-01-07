@@ -91,7 +91,7 @@ class InventoryController extends BaseApiController
 
         if ($warehouseId === null) {
             throw ValidationException::withMessages([
-                'warehouse_id' => [__('No warehouse available for stock movement')]
+                'warehouse_id' => [__('No warehouse available for stock movement')],
             ]);
         }
 
@@ -191,6 +191,7 @@ class InventoryController extends BaseApiController
                         'identifier' => $item['product_id'] ?? $item['external_id'],
                         'error' => __('No warehouse available for stock movement'),
                     ];
+
                     continue;
                 }
 
@@ -281,10 +282,10 @@ class InventoryController extends BaseApiController
 
     /**
      * Calculate current stock quantity for a product
-     * 
-     * @param int $productId Product ID
-     * @param int|null $warehouseId Optional warehouse ID filter
-     * @param int|null $branchId Optional branch ID filter
+     *
+     * @param  int  $productId  Product ID
+     * @param  int|null  $warehouseId  Optional warehouse ID filter
+     * @param  int|null  $branchId  Optional branch ID filter
      * @return float Current stock balance
      */
     protected function calculateCurrentStock(int $productId, ?int $warehouseId = null, ?int $branchId = null): float
@@ -296,7 +297,7 @@ class InventoryController extends BaseApiController
         }
 
         if ($branchId !== null) {
-            $query->whereHas('warehouse', fn($q) => $q->where('branch_id', $branchId));
+            $query->whereHas('warehouse', fn ($q) => $q->where('branch_id', $branchId));
         }
 
         // quantity is signed: positive = in, negative = out

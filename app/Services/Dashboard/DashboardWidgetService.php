@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * DashboardWidgetService - Widget layout and management
- * 
+ *
  * Handles:
  * - User dashboard layouts
  * - Widget positioning and sizing
@@ -31,7 +31,7 @@ class DashboardWidgetService
             ->where('is_default', true)
             ->first();
 
-        if (!$layout) {
+        if (! $layout) {
             $layout = $this->createDefaultDashboard($userId, $branchId);
         }
 
@@ -74,7 +74,7 @@ class DashboardWidgetService
         $positionX = 0;
 
         foreach ($widgets as $widget) {
-            if (!$widget->userCanView($user)) {
+            if (! $widget->userCanView($user)) {
                 continue;
             }
 
@@ -150,7 +150,7 @@ class DashboardWidgetService
             'height' => $data['height'] ?? null,
             'settings' => $data['settings'] ?? null,
             'is_visible' => $data['is_visible'] ?? null,
-        ], fn ($value) => !is_null($value)));
+        ], fn ($value) => ! is_null($value)));
 
         return $userWidget;
     }
@@ -161,7 +161,7 @@ class DashboardWidgetService
     public function toggleWidget(int $userWidgetId): bool
     {
         $userWidget = UserDashboardWidget::findOrFail($userWidgetId);
-        $userWidget->update(['is_visible' => !$userWidget->is_visible]);
+        $userWidget->update(['is_visible' => ! $userWidget->is_visible]);
 
         return $userWidget->is_visible;
     }

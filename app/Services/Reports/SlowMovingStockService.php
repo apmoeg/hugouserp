@@ -3,8 +3,6 @@
 namespace App\Services\Reports;
 
 use App\Models\Product;
-use App\Models\SaleItem;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class SlowMovingStockService
@@ -21,9 +19,9 @@ class SlowMovingStockService
             ->selectRaw('MAX(sale_items.created_at) as last_sold_date')
             ->selectRaw('DATEDIFF(NOW(), MAX(sale_items.created_at)) as days_since_sale')
             ->leftJoin('sale_items', 'products.id', '=', 'sale_items.product_id')
-            ->leftJoin('sales', function($join) {
+            ->leftJoin('sales', function ($join) {
                 $join->on('sale_items.sale_id', '=', 'sales.id')
-                     ->whereNull('sales.deleted_at');
+                    ->whereNull('sales.deleted_at');
             })
             ->where('products.stock_quantity', '>', 0)
             ->whereNull('products.deleted_at')
@@ -33,28 +31,28 @@ class SlowMovingStockService
             ->get();
 
         return [
-            'slow_moving_products' => $products->map(function($product) {
-                $stockValue = bcmul((string)$product->stock_quantity, (string)($product->default_price ?? 0), 2);
+            'slow_moving_products' => $products->map(function ($product) {
+                $stockValue = bcmul((string) $product->stock_quantity, (string) ($product->default_price ?? 0), 2);
                 $dailyRate = $this->calculateDailySalesRate($product);
-                
+
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
                     'sku' => $product->sku ?? $product->code,
                     'stock_quantity' => $product->stock_quantity,
-                    'stock_value' => (float)$stockValue,
+                    'stock_value' => (float) $stockValue,
                     'days_since_sale' => $product->days_since_sale ?? 999,
                     'last_sold_date' => $product->last_sold_date,
-                    'daily_sales_rate' => (float)$dailyRate,
-                    'days_to_stockout' => $dailyRate > 0 
-                        ? (int)bcdiv((string)$product->stock_quantity, $dailyRate, 0)
+                    'daily_sales_rate' => (float) $dailyRate,
+                    'days_to_stockout' => $dailyRate > 0
+                        ? (int) bcdiv((string) $product->stock_quantity, $dailyRate, 0)
                         : 9999,
                     'recommended_action' => $this->getRecommendedAction($product),
                 ];
             }),
             'total_slow_moving' => $products->count(),
-            'total_stock_value' => (float)$products->sum(function($product) {
-                return bcmul((string)$product->stock_quantity, (string)($product->default_price ?? 0), 2);
+            'total_stock_value' => (float) $products->sum(function ($product) {
+                return bcmul((string) $product->stock_quantity, (string) ($product->default_price ?? 0), 2);
             }),
         ];
     }
@@ -74,11 +72,11 @@ class SlowMovingStockService
             ->get();
 
         return [
-            'expiring_products' => $products->map(function($product) {
+            'expiring_products' => $products->map(function ($product) {
                 $daysToExpiry = Carbon::now()->diffInDays($product->expiry_date, false);
                 // Cost priority: actual cost -> standard cost -> 0 (for products without cost data)
-                $potentialLoss = bcmul((string)$product->stock_quantity, (string)($product->cost ?? $product->standard_cost ?? 0), 2);
-                
+                $potentialLoss = bcmul((string) $product->stock_quantity, (string) ($product->cost ?? $product->standard_cost ?? 0), 2);
+
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
@@ -86,15 +84,15 @@ class SlowMovingStockService
                     'stock_quantity' => $product->stock_quantity,
                     'expiry_date' => $product->expiry_date,
                     'days_to_expiry' => $daysToExpiry,
-                    'potential_loss' => (float)$potentialLoss,
+                    'potential_loss' => (float) $potentialLoss,
                     'urgency' => $this->getExpiryUrgency($daysToExpiry),
                     'recommended_action' => $this->getExpiryAction($daysToExpiry),
                 ];
             }),
             'total_expiring' => $products->count(),
-            'total_potential_loss' => (float)$products->sum(function($product) {
+            'total_potential_loss' => (float) $products->sum(function ($product) {
                 // Cost priority: actual cost -> standard cost -> 0 (for products without cost data)
-                return bcmul((string)$product->stock_quantity, (string)($product->cost ?? $product->standard_cost ?? 0), 2);
+                return bcmul((string) $product->stock_quantity, (string) ($product->cost ?? $product->standard_cost ?? 0), 2);
             }),
         ];
     }
@@ -104,7 +102,7 @@ class SlowMovingStockService
      */
     private function calculateDailySalesRate($product)
     {
-        if (!$product->total_sold || $product->total_sold == 0) {
+        if (! $product->total_sold || $product->total_sold == 0) {
             return '0';
         }
 
@@ -113,7 +111,7 @@ class SlowMovingStockService
             return '0';
         }
 
-        return bcdiv((string)$product->total_sold, (string)$daysSinceFirstSale, 4);
+        return bcdiv((string) $product->total_sold, (string) $daysSinceFirstSale, 4);
     }
 
     /**

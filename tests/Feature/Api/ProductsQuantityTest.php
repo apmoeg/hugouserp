@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api;
 
-use App\Http\Middleware\AuthenticateStoreToken;
 use App\Models\Branch;
 use App\Models\Product;
 use App\Models\Store;

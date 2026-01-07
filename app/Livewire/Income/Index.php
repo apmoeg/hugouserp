@@ -41,7 +41,7 @@ class Index extends Component
     public function export(): void
     {
         $user = auth()->user();
-        
+
         $data = Income::query()
             ->with(['category', 'branch', 'creator'])
             ->when($user && $user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))

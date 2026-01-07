@@ -12,7 +12,7 @@ class DepreciationServiceTest extends TestCase
 {
     public function test_get_depreciation_schedule_returns_empty_when_no_start_date(): void
     {
-        $service = new DepreciationService();
+        $service = new DepreciationService;
         $asset = new FixedAsset([
             'purchase_cost' => 1000,
             'salvage_value' => 100,

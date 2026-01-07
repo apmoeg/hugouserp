@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Analytics;
 
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * ProfitMarginAnalysisService - Analyze profit margins across products, categories, and branches
- * 
+ *
  * Provides comprehensive profit margin analysis including:
  * - Product-level profitability
  * - Category-level profitability
@@ -124,14 +124,14 @@ class ProfitMarginAnalysisService
      */
     public function getProfitTrend(?int $branchId = null, string $groupBy = 'day', int $periods = 30): array
     {
-        $dateFormat = match($groupBy) {
+        $dateFormat = match ($groupBy) {
             'week' => '%Y-%u',
             'month' => '%Y-%m',
             'year' => '%Y',
             default => '%Y-%m-%d',
         };
 
-        $startDate = match($groupBy) {
+        $startDate = match ($groupBy) {
             'week' => now()->subWeeks($periods),
             'month' => now()->subMonths($periods),
             'year' => now()->subYears($periods),

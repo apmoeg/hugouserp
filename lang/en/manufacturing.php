@@ -20,7 +20,7 @@ return [
     'capacity' => 'Capacity',
     'efficiency' => 'Efficiency',
     'cost_per_hour' => 'Cost Per Hour',
-    
+
     // Status Values
     'draft' => 'Draft',
     'active' => 'Active',
@@ -28,7 +28,7 @@ return [
     'planned' => 'Planned',
     'in_production' => 'In Production',
     'completed' => 'Completed',
-    
+
     // Messages
     'bom_created' => 'BOM created successfully',
     'bom_updated' => 'BOM updated successfully',
@@ -36,19 +36,19 @@ return [
     'production_order_started' => 'Production order started',
     'production_order_completed' => 'Production order completed',
     'work_center_created' => 'Work center created successfully',
-    
+
     // Buttons
     'create_bom' => 'Create BOM',
     'new_production_order' => 'New Production Order',
     'start_production' => 'Start Production',
     'complete_production' => 'Complete Production',
     'add_work_center' => 'Add Work Center',
-    
+
     // Navigation
     'all_boms' => 'All BOMs',
     'all_orders' => 'All Orders',
     'all_work_centers' => 'All Work Centers',
-    
+
     // Validation Messages
     'product_required' => 'Product is required',
     'quantity_required' => 'Quantity is required',

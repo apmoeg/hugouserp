@@ -27,7 +27,7 @@ class DiagnosticsController extends Controller
         $overallStatus = $hasErrors ? 'error' : ($hasWarnings ? 'warning' : 'ok');
 
         return response()->json([
-            'success' => !$hasErrors,
+            'success' => ! $hasErrors,
             'status' => $overallStatus,
             'timestamp' => now()->toIso8601String(),
             'checks' => $results,

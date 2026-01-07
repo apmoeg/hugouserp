@@ -18,35 +18,49 @@ class SetupWizard extends Component
 {
     // Current step
     public int $step = 1;
+
     public int $totalSteps = 5;
 
     // Step 1: Company Info
     public string $companyName = '';
+
     public string $companyNameAr = '';
+
     public string $companyPhone = '';
+
     public string $companyEmail = '';
+
     public string $companyAddress = '';
+
     public string $timezone = 'Africa/Cairo';
+
     public string $currency = 'EGP';
+
     public string $locale = 'ar';
 
     // Step 2: Admin User
     public string $adminName = '';
+
     public string $adminEmail = '';
+
     public string $adminPassword = '';
+
     public string $adminPasswordConfirmation = '';
 
     // Step 3: Main Branch
     public string $branchName = '';
+
     public string $branchCode = '';
+
     public string $branchPhone = '';
+
     public string $branchAddress = '';
 
     // Step 4: Select Modules
     public array $selectedModules = [];
 
     // Step 5: Review (no inputs needed)
-    
+
     // Completion status
     public bool $setupComplete = false;
 
@@ -99,19 +113,19 @@ class SetupWizard extends Component
 
         // Check if user has permission
         $user = auth()->user();
-        if ($user && !$user->hasRole('super-admin') && !$user->can('settings.manage')) {
+        if ($user && ! $user->hasRole('super-admin') && ! $user->can('settings.manage')) {
             abort(403, __('Unauthorized'));
         }
 
         // Pre-select core modules
-        $coreModules = Module::where('is_core', true)->pluck('id')->map(fn($id) => (string) $id)->toArray();
+        $coreModules = Module::where('is_core', true)->pluck('id')->map(fn ($id) => (string) $id)->toArray();
         $this->selectedModules = $coreModules;
     }
 
     public function nextStep(): void
     {
         $this->validate();
-        
+
         if ($this->step < $this->totalSteps) {
             $this->step++;
         }
@@ -247,7 +261,7 @@ class SetupWizard extends Component
             ['key' => 'setup_wizard_complete'],
             ['value' => 'true']
         );
-        
+
         return redirect()->route('dashboard');
     }
 

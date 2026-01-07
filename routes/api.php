@@ -30,22 +30,22 @@ Route::prefix('v1')->group(function () {
         ->middleware(['api-core', 'api-auth', 'api-branch', 'throttle:120,1'])
         ->scopeBindings()
         ->group(function () {
-        // Load all branch-specific route files
-        require __DIR__.'/api/branch/common.php';
-        require __DIR__.'/api/branch/hrm.php';
-        require __DIR__.'/api/branch/motorcycle.php';
-        require __DIR__.'/api/branch/rental.php';
-        require __DIR__.'/api/branch/spares.php';
-        require __DIR__.'/api/branch/wood.php';
+            // Load all branch-specific route files
+            require __DIR__.'/api/branch/common.php';
+            require __DIR__.'/api/branch/hrm.php';
+            require __DIR__.'/api/branch/motorcycle.php';
+            require __DIR__.'/api/branch/rental.php';
+            require __DIR__.'/api/branch/spares.php';
+            require __DIR__.'/api/branch/wood.php';
 
-        // Authenticated POS session management routes (consolidated into branch scope)
-        Route::prefix('pos')->group(function () {
-            Route::get('/session', [POSController::class, 'getCurrentSession']);
-            Route::post('/session/open', [POSController::class, 'openSession']);
-            Route::post('/session/{session}/close', [POSController::class, 'closeSession']);
-            Route::get('/session/{session}/report', [POSController::class, 'getSessionReport']);
+            // Authenticated POS session management routes (consolidated into branch scope)
+            Route::prefix('pos')->group(function () {
+                Route::get('/session', [POSController::class, 'getCurrentSession']);
+                Route::post('/session/open', [POSController::class, 'openSession']);
+                Route::post('/session/{session}/close', [POSController::class, 'closeSession']);
+                Route::get('/session/{session}/report', [POSController::class, 'getSessionReport']);
+            });
         });
-    });
 
     Route::middleware(['throttle:api'])->group(function () {
         Route::prefix('products')->group(function () {

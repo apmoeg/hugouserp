@@ -10,12 +10,12 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * CostingService - Inventory costing methods (FIFO, LIFO, Weighted Average, Standard)
- * 
+ *
  * STATUS: ACTIVE - Production-ready inventory costing service
  * PURPOSE: Calculate inventory costs based on configurable costing methods
  * METHODS: Supports FIFO, LIFO, Weighted Average, and Standard costing
  * USAGE: Called by inventory/stock services for cost calculations
- * 
+ *
  * This service is fully implemented and provides critical inventory valuation
  * functionality for the ERP system.
  */
@@ -31,7 +31,7 @@ class CostingService
         float $quantity
     ): array {
         // Use product-specific method if set, otherwise use system default from settings
-        $costMethod = $product->cost_method 
+        $costMethod = $product->cost_method
             ?? strtolower(setting('inventory.costing_method', 'weighted_average'));
 
         return match ($costMethod) {
@@ -169,11 +169,11 @@ class CostingService
                 if ($batch) {
                     $newQuantity = $batch->quantity - $batchInfo['quantity'];
                     $batch->quantity = max(0, $newQuantity);
-                    
+
                     if ($batch->quantity <= 0) {
                         $batch->status = 'depleted';
                     }
-                    
+
                     $batch->save();
                 }
             }
@@ -192,8 +192,8 @@ class CostingService
         ?string $batchNumber = null,
         ?array $batchData = []
     ): InventoryBatch {
-        if (!$batchNumber) {
-            $batchNumber = 'BATCH-' . date('Ymd') . '-' . uniqid();
+        if (! $batchNumber) {
+            $batchNumber = 'BATCH-'.date('Ymd').'-'.uniqid();
         }
 
         $batch = InventoryBatch::firstOrNew([
@@ -201,7 +201,7 @@ class CostingService
             'warehouse_id' => $warehouseId,
             'batch_number' => $batchNumber,
         ]);
-        
+
         if ($batch->exists) {
             // Update existing batch - increment quantity
             $batch->quantity = $batch->quantity + $quantity;
@@ -214,8 +214,9 @@ class CostingService
                 'status' => 'active',
             ], $batchData));
         }
-        
+
         $batch->save();
+
         return $batch;
     }
 }

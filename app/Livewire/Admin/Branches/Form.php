@@ -41,12 +41,14 @@ class Form extends Component
 
     /**
      * Available modules for selection
+     *
      * @var array<int,array<string,mixed>>
      */
     public array $availableModules = [];
 
     /**
      * Selected module IDs
+     *
      * @var array<int>
      */
     public array $selectedModules = [];
@@ -72,22 +74,22 @@ class Form extends Component
 
         // Get available timezones and currencies for dropdowns
         $timezones = \DateTimeZone::listIdentifiers();
-        
+
         // Get currencies with fallback if table is empty
         try {
             $currencies = \App\Models\Currency::active()->ordered()->pluck('code', 'code')->toArray();
-            
+
             // Fallback to common currencies if database is empty
             if (empty($currencies)) {
                 $currencies = $this->getDefaultCurrencies();
             }
-        } catch (\Illuminate\Database\QueryException | \PDOException $e) {
+        } catch (\Illuminate\Database\QueryException|\PDOException $e) {
             // Log the error for debugging while providing fallback for user
             Log::warning('Currency table access failed, using default currencies', [
                 'error' => $e->getMessage(),
                 'user_id' => auth()->id(),
             ]);
-            
+
             // Fallback if currencies table doesn't exist or has database errors
             $currencies = $this->getDefaultCurrencies();
         }
@@ -135,7 +137,7 @@ class Form extends Component
                 ->all();
         } else {
             $this->form['timezone'] = config('app.timezone');
-            
+
             // Pre-select core modules for new branches
             $this->selectedModules = collect($this->availableModules)
                 ->where('is_core', true)

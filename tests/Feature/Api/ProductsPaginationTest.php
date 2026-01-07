@@ -8,8 +8,8 @@ use App\Models\Branch;
 use App\Models\Product;
 use App\Models\Store;
 use App\Models\StoreToken;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -18,7 +18,9 @@ class ProductsPaginationTest extends TestCase
     use RefreshDatabase;
 
     protected Store $store;
+
     protected StoreToken $token;
+
     protected Branch $branch;
 
     protected function setUp(): void
@@ -62,6 +64,7 @@ class ProductsPaginationTest extends TestCase
         ], $attributes));
         $product->branch_id = $this->branch->id;
         $product->save();
+
         return $product;
     }
 

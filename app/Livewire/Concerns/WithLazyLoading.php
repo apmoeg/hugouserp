@@ -12,7 +12,7 @@ use Livewire\Attributes\On;
 
 /**
  * Livewire 4 Lazy Loading Trait
- * 
+ *
  * Provides:
  * - Skeleton loading states
  * - Progressive data loading
@@ -22,9 +22,11 @@ use Livewire\Attributes\On;
 trait WithLazyLoading
 {
     public bool $isLazyLoaded = false;
+
     public bool $showLoadingState = true;
+
     public int $skeletonCount = 5;
-    
+
     /**
      * Initialize lazy loading
      */
@@ -53,17 +55,16 @@ trait WithLazyLoading
 
     /**
      * Execute query with caching for better performance
-     * @return \Illuminate\Support\Collection
      */
     protected function cachedQuery(Builder $query, string $cacheKey, int $ttl = 300): \Illuminate\Support\Collection
     {
-        if (!config('settings.advanced.cache_ttl', 0)) {
+        if (! config('settings.advanced.cache_ttl', 0)) {
             return $query->get();
         }
 
         $fullCacheKey = $this->buildCacheKey($cacheKey);
-        
-        return Cache::remember($fullCacheKey, $ttl, fn() => $query->get());
+
+        return Cache::remember($fullCacheKey, $ttl, fn () => $query->get());
     }
 
     /**
@@ -81,15 +82,15 @@ trait WithLazyLoading
      */
     protected function cachedPaginate(Builder $query, int $perPage, string $cacheKey, int $ttl = 60): LengthAwarePaginator
     {
-        $totalCacheKey = $this->buildCacheKey($cacheKey . '_total');
-        
+        $totalCacheKey = $this->buildCacheKey($cacheKey.'_total');
+
         // Cache the total count for faster subsequent paginations
-        $total = Cache::remember($totalCacheKey, $ttl, fn() => (clone $query)->count());
-        
+        $total = Cache::remember($totalCacheKey, $ttl, fn () => (clone $query)->count());
+
         // Get the current page items
         $page = request()->get('page', 1);
         $items = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
-        
+
         // Create paginator with cached total
         return new LengthAwarePaginator(
             $items,
@@ -110,7 +111,7 @@ trait WithLazyLoading
     {
         $userId = auth()->id() ?? 'guest';
         $branchId = auth()->user()?->branch_id ?? 'all';
-        
+
         return "lazy_{$key}_{$userId}_{$branchId}";
     }
 
@@ -120,7 +121,7 @@ trait WithLazyLoading
     protected function clearLazyCache(string $cacheKey): void
     {
         Cache::forget($this->buildCacheKey($cacheKey));
-        Cache::forget($this->buildCacheKey($cacheKey . '_total'));
+        Cache::forget($this->buildCacheKey($cacheKey.'_total'));
     }
 
     /**
@@ -129,8 +130,8 @@ trait WithLazyLoading
     #[Computed]
     public function loadingClasses(): string
     {
-        return $this->showLoadingState && !$this->isLazyLoaded 
-            ? 'animate-pulse opacity-50' 
+        return $this->showLoadingState && ! $this->isLazyLoaded
+            ? 'animate-pulse opacity-50'
             : '';
     }
 

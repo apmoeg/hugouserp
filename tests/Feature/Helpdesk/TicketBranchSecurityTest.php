@@ -11,11 +11,11 @@ use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketPriority;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\TestCase;
 

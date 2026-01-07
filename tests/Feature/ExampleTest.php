@@ -8,7 +8,7 @@ class ExampleTest extends TestCase
 {
     /**
      * Test that unauthenticated users are redirected to login with intended URL.
-     * 
+     *
      * NOTE: This test does not use RefreshDatabase because it only tests
      * the authentication redirect behavior and does not persist any data.
      */
@@ -35,7 +35,7 @@ class ExampleTest extends TestCase
 
         // Assert the login page content is rendered
         $loginResponse->assertStatus(200);
-        
+
         // Check for Livewire login component
         $loginResponse->assertSeeLivewire('auth.login');
 

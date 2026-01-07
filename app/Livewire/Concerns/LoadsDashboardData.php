@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Shared Dashboard Data Loading Logic
- * 
+ *
  * This trait consolidates the dashboard data loading methods
  * used by both Index.php and CustomizableDashboard.php
  * to eliminate code duplication and ensure consistency.
@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\DB;
 trait LoadsDashboardData
 {
     protected int $cacheTtl = 300;
+
     protected ?int $branchId = null;
+
     protected bool $isAdmin = false;
 
     /**
@@ -31,7 +33,7 @@ trait LoadsDashboardData
     protected function initializeDashboardContext(): void
     {
         $user = auth()->user();
-        if (!$user) {
+        if (! $user) {
             abort(403);
         }
 
@@ -53,9 +55,10 @@ trait LoadsDashboardData
      */
     protected function scopeQueryToBranch($query)
     {
-        if (!$this->isAdmin && $this->branchId) {
+        if (! $this->isAdmin && $this->branchId) {
             return $query->where('branch_id', $this->branchId);
         }
+
         return $query;
     }
 
@@ -106,17 +109,17 @@ trait LoadsDashboardData
 
             return [
                 'today_sales' => number_format(
-                    (clone $salesQuery)->whereDate('created_at', $today)->sum('total_amount') ?? 0, 
+                    (clone $salesQuery)->whereDate('created_at', $today)->sum('total_amount') ?? 0,
                     2
                 ),
                 'month_sales' => number_format(
-                    (clone $salesQuery)->where('created_at', '>=', $startOfMonth)->sum('total_amount') ?? 0, 
+                    (clone $salesQuery)->where('created_at', '>=', $startOfMonth)->sum('total_amount') ?? 0,
                     2
                 ),
                 'open_invoices' => (clone $salesQuery)->where('status', 'pending')->count(),
                 'active_branches' => $this->isAdmin ? Branch::where('is_active', true)->count() : 1,
-                'active_users' => $this->isAdmin 
-                    ? User::where('is_active', true)->count() 
+                'active_users' => $this->isAdmin
+                    ? User::where('is_active', true)->count()
                     : User::where('is_active', true)->where('branch_id', $this->branchId)->count(),
                 'total_products' => (clone $productsQuery)->count(),
                 'low_stock_count' => $this->calculateLowStockCount($productsQuery),
@@ -130,7 +133,7 @@ trait LoadsDashboardData
     protected function calculateLowStockCount($productsQuery): int
     {
         $stockExpr = StockService::getStockCalculationExpression();
-        
+
         return (clone $productsQuery)
             ->whereNotNull('min_stock')
             ->where('min_stock', '>', 0)
@@ -194,7 +197,7 @@ trait LoadsDashboardData
         $raw = DB::table('sale_payments')
             ->join('sales', 'sale_payments.sale_id', '=', 'sales.id')
             ->whereMonth('sales.created_at', now()->month)
-            ->when(!$this->isAdmin && $this->branchId, fn ($q) => $q->where('sales.branch_id', $this->branchId))
+            ->when(! $this->isAdmin && $this->branchId, fn ($q) => $q->where('sales.branch_id', $this->branchId))
             ->whereNull('sales.deleted_at')
             ->select('sale_payments.payment_method', DB::raw('COUNT(*) as count'), DB::raw('SUM(sale_payments.amount) as total'))
             ->groupBy('sale_payments.payment_method')
@@ -213,7 +216,7 @@ trait LoadsDashboardData
     protected function buildInventoryChartData(): array
     {
         $stockExpr = StockService::getStockCalculationExpression();
-        $branchFilter = (!$this->isAdmin && $this->branchId) ? $this->branchId : null;
+        $branchFilter = (! $this->isAdmin && $this->branchId) ? $this->branchId : null;
 
         // Single query with CASE expressions for all inventory stats
         $result = DB::table('products')
@@ -338,6 +341,7 @@ trait LoadsDashboardData
         if ($previous === 0.0) {
             return 0.0;
         }
+
         return round((($current - $previous) / $previous) * 100, 1);
     }
 }

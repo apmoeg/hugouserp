@@ -10,13 +10,14 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * RecentItemsService - Track and retrieve recently viewed items
- * 
+ *
  * Provides functionality to track what items (products, customers, sales, etc.)
  * a user has recently viewed for quick access.
  */
 class RecentItemsService
 {
     protected const CACHE_TTL = 86400; // 24 hours
+
     protected const MAX_ITEMS = 20;
 
     /**
@@ -28,8 +29,7 @@ class RecentItemsService
         $items = $this->getRecentItems($userId);
 
         // Remove if already exists (to update position)
-        $items = array_filter($items, fn($item) => 
-            !($item['type'] === $type && $item['id'] === $itemId)
+        $items = array_filter($items, fn ($item) => ! ($item['type'] === $type && $item['id'] === $itemId)
         );
 
         // Add to beginning
@@ -59,7 +59,7 @@ class RecentItemsService
         $items = Cache::get($key, []);
 
         if ($type) {
-            $items = array_filter($items, fn($item) => $item['type'] === $type);
+            $items = array_filter($items, fn ($item) => $item['type'] === $type);
         }
 
         return array_slice(array_values($items), 0, $limit);
@@ -75,7 +75,7 @@ class RecentItemsService
 
         foreach ($items as $item) {
             $type = $item['type'];
-            if (!isset($grouped[$type])) {
+            if (! isset($grouped[$type])) {
                 $grouped[$type] = [];
             }
             if (count($grouped[$type]) < $limitPerType) {
@@ -94,7 +94,7 @@ class RecentItemsService
         if ($type) {
             $key = $this->getCacheKey($userId);
             $items = $this->getRecentItems($userId);
-            $items = array_filter($items, fn($item) => $item['type'] !== $type);
+            $items = array_filter($items, fn ($item) => $item['type'] !== $type);
             Cache::put($key, array_values($items), self::CACHE_TTL);
         } else {
             Cache::forget($this->getCacheKey($userId));
@@ -158,7 +158,7 @@ class RecentItemsService
      */
     protected function getItemLabel(string $type, int $itemId): string
     {
-        return match($type) {
+        return match ($type) {
             'product' => DB::table('products')->where('id', $itemId)->value('name') ?? "Product #{$itemId}",
             'customer' => DB::table('customers')->where('id', $itemId)->value('name') ?? "Customer #{$itemId}",
             'sale' => DB::table('sales')->where('id', $itemId)->value('code') ?? "Sale #{$itemId}",
@@ -175,7 +175,7 @@ class RecentItemsService
      */
     protected function getItemRoute(string $type, int $itemId): string
     {
-        return match($type) {
+        return match ($type) {
             'product' => route('products.edit', $itemId),
             'customer' => route('customers.edit', $itemId),
             'sale' => route('sales.show', $itemId),

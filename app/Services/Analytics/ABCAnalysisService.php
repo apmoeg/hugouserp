@@ -7,12 +7,11 @@ namespace App\Services\Analytics;
 use App\Models\Product;
 use App\Models\SaleItem;
 use App\Traits\HandlesServiceErrors;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
  * ABC Analysis Service for Inventory Classification
- * 
+ *
  * Classifies products into A, B, C categories based on their contribution to total revenue.
  * - A items: Top 20% of products contributing ~80% of revenue (high priority)
  * - B items: Next 30% of products contributing ~15% of revenue (medium priority)
@@ -26,6 +25,7 @@ class ABCAnalysisService
      * Default thresholds for ABC classification
      */
     protected const DEFAULT_A_THRESHOLD = 80;  // Top products contributing 80% of value
+
     protected const DEFAULT_B_THRESHOLD = 95;  // Next products contributing 15% of value (80-95%)
     // C items are everything else (95-100%)
 
@@ -60,7 +60,7 @@ class ABCAnalysisService
                             $q->where('branch_id', $branchId);
                         }
                         $q->whereBetween('created_at', [$startDate, $endDate])
-                          ->where('status', '!=', 'cancelled');
+                            ->where('status', '!=', 'cancelled');
                     })
                     ->whereNotNull('product_id')
                     ->groupBy('product_id')
@@ -68,7 +68,7 @@ class ABCAnalysisService
                     ->get();
 
                 $totalRevenue = $query->sum('total_revenue');
-                
+
                 if ($totalRevenue <= 0) {
                     return [
                         'categories' => ['A' => [], 'B' => [], 'C' => []],
@@ -86,7 +86,9 @@ class ABCAnalysisService
 
                 foreach ($query as $item) {
                     $product = Product::find($item->product_id);
-                    if (!$product) continue;
+                    if (! $product) {
+                        continue;
+                    }
 
                     $percentage = ($item->total_revenue / $totalRevenue) * 100;
                     $previousCumulative = $cumulativePercentage;
@@ -170,7 +172,7 @@ class ABCAnalysisService
                             $q->where('branch_id', $branchId);
                         }
                         $q->whereBetween('created_at', [$startDate, $endDate])
-                          ->where('status', '!=', 'cancelled');
+                            ->where('status', '!=', 'cancelled');
                     })
                     ->whereNotNull('product_id')
                     ->groupBy('product_id')
@@ -178,7 +180,7 @@ class ABCAnalysisService
                     ->get();
 
                 $totalQty = $query->sum('total_qty');
-                
+
                 if ($totalQty <= 0) {
                     return ['categories' => ['A' => [], 'B' => [], 'C' => []], 'total_qty' => 0];
                 }
@@ -188,7 +190,9 @@ class ABCAnalysisService
 
                 foreach ($query as $item) {
                     $product = Product::find($item->product_id);
-                    if (!$product) continue;
+                    if (! $product) {
+                        continue;
+                    }
 
                     $percentage = ($item->total_qty / $totalQty) * 100;
                     $previousCumulative = $cumulativePercentage;
@@ -232,7 +236,7 @@ class ABCAnalysisService
         return $this->handleServiceOperation(
             callback: function () use ($branchId) {
                 $analysis = $this->analyzeByRevenue($branchId);
-                
+
                 $recommendations = [];
 
                 // A items recommendations
@@ -302,9 +306,12 @@ class ABCAnalysisService
      */
     protected function calculateRevenue(array $items, float $totalRevenue): float
     {
-        if ($totalRevenue <= 0) return 0;
-        
+        if ($totalRevenue <= 0) {
+            return 0;
+        }
+
         $categoryRevenue = array_sum(array_column($items, 'total_revenue'));
+
         return round(($categoryRevenue / $totalRevenue) * 100, 1);
     }
 }

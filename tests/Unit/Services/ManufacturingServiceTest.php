@@ -16,7 +16,9 @@ class ManufacturingServiceTest extends TestCase
     use RefreshDatabase;
 
     protected ManufacturingService $service;
+
     protected Branch $branch;
+
     protected Product $product;
 
     protected function setUp(): void

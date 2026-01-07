@@ -19,10 +19,10 @@ class ReceiptPreview extends Component
     {
         $this->saleId = $saleId;
         $sale = Sale::with(['items.product', 'customer', 'branch', 'payments'])->find($saleId);
-        
+
         if ($sale) {
             $this->receiptData = [
-                'receipt_number' => $sale->code ?? 'SO-' . str_pad((string) $sale->id, 6, '0', STR_PAD_LEFT),
+                'receipt_number' => $sale->code ?? 'SO-'.str_pad((string) $sale->id, 6, '0', STR_PAD_LEFT),
                 'date' => $sale->created_at->format('Y-m-d H:i'),
                 'branch' => $sale->branch?->name ?? config('app.name'),
                 'customer' => $sale->customer?->name ?? __('Walk-in Customer'),

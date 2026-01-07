@@ -46,8 +46,8 @@ class ServiceProductFormAuthorizationTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        
-        $component = new ServicesForm();
+
+        $component = new ServicesForm;
         app()->call([$component, 'mount']);
     }
 
@@ -62,8 +62,8 @@ class ServiceProductFormAuthorizationTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        
-        $component = new ServicesForm();
+
+        $component = new ServicesForm;
         app()->call([$component, 'mount']);
     }
 
@@ -77,10 +77,10 @@ class ServiceProductFormAuthorizationTest extends TestCase
         $user->givePermissionTo(['inventory.products.create']);
 
         $this->actingAs($user);
-        
-        $component = new ServicesForm();
+
+        $component = new ServicesForm;
         app()->call([$component, 'mount']);
-        
+
         // If we reach here without exception, the component mounted successfully
         $this->assertTrue(true);
     }
@@ -103,8 +103,8 @@ class ServiceProductFormAuthorizationTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        
-        $component = new ServicesForm();
+
+        $component = new ServicesForm;
         app()->call([$component, 'mount'], ['service' => $product->id]);
     }
 
@@ -126,8 +126,8 @@ class ServiceProductFormAuthorizationTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        
-        $component = new ServicesForm();
+
+        $component = new ServicesForm;
         $component->serviceId = $product->id;
         $component->name = 'Test Service';
         $component->defaultPrice = 100;
@@ -153,9 +153,9 @@ class ServiceProductFormAuthorizationTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = new ServicesForm();
+        $component = new ServicesForm;
         app()->call([$component, 'mount'], ['moduleId' => $serviceModule->id]);
-        
+
         $component->name = 'Test Service';
         $component->defaultPrice = 100;
         app()->call([$component, 'save']);
@@ -186,8 +186,8 @@ class ServiceProductFormAuthorizationTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        
-        $component = new ServicesForm();
+
+        $component = new ServicesForm;
         app()->call([$component, 'mount'], ['moduleId' => $nonServiceModule->id]);
     }
 
@@ -208,8 +208,8 @@ class ServiceProductFormAuthorizationTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        
-        $component = new ServicesForm();
+
+        $component = new ServicesForm;
         $component->serviceId = $product->id;
         $component->name = 'Updated Service';
         $component->defaultPrice = 200;

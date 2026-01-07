@@ -2,11 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\TicketPriority;
 use Carbon\Carbon;
 
 /** @mixin \Illuminate\Database\Eloquent\Builder */
-
 class TicketSLAPolicy extends BaseModel
 {
     protected $table = 'ticket_sla_policies';
@@ -83,7 +81,7 @@ class TicketSLAPolicy extends BaseModel
             $minutes = min($minutes, $priorityModel->resolution_time_minutes);
         }
 
-        if (!$this->business_hours_only) {
+        if (! $this->business_hours_only) {
             return $baseTime->copy()->addMinutes($minutes);
         }
 
@@ -94,7 +92,7 @@ class TicketSLAPolicy extends BaseModel
 
         while ($remainingMinutes > 0) {
             // Skip to next business day if needed
-            while (!in_array($dueDate->dayOfWeek, $workingDays)) {
+            while (! in_array($dueDate->dayOfWeek, $workingDays)) {
                 $dueDate->addDay()->setTime(
                     (int) substr($this->business_hours_start, 0, 2),
                     (int) substr($this->business_hours_start, 3, 2)
@@ -114,6 +112,7 @@ class TicketSLAPolicy extends BaseModel
             // If after business hours, move to next day
             if ($dueDate->hour > $endHour || ($dueDate->hour === $endHour && $dueDate->minute >= $endMinute)) {
                 $dueDate->addDay()->setTime($startHour, $startMinute);
+
                 continue;
             }
 
@@ -137,12 +136,12 @@ class TicketSLAPolicy extends BaseModel
     {
         $time = $time ?? Carbon::now();
 
-        if (!$this->business_hours_only) {
+        if (! $this->business_hours_only) {
             return true;
         }
 
         $workingDays = $this->working_days ?? [1, 2, 3, 4, 5];
-        if (!in_array($time->dayOfWeek, $workingDays)) {
+        if (! in_array($time->dayOfWeek, $workingDays)) {
             return false;
         }
 
@@ -178,6 +177,7 @@ class TicketSLAPolicy extends BaseModel
         if ($hours > 24) {
             $days = floor($hours / 24);
             $remainingHours = $hours % 24;
+
             return $remainingHours > 0 ? "{$days}d {$remainingHours}h" : "{$days}d";
         }
 

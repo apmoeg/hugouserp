@@ -42,14 +42,14 @@ class Dashboard extends Component
 
         // Get recent tickets
         $recentTickets = Ticket::with(['customer', 'assignedAgent', 'category', 'priority'])
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->latest()
             ->limit(10)
             ->get();
 
         // Get overdue tickets
         $overdueTickets = Ticket::with(['customer', 'assignedAgent', 'category', 'priority'])
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->overdue()
             ->latest()
             ->limit(10)
@@ -57,7 +57,7 @@ class Dashboard extends Component
 
         // Get unassigned tickets
         $unassignedTickets = Ticket::with(['customer', 'category', 'priority'])
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->unassigned()
             ->latest()
             ->limit(10)
@@ -74,7 +74,7 @@ class Dashboard extends Component
 
         // Get tickets by priority
         $ticketsByPriority = Ticket::select('priority_id', DB::raw('count(*) as count'))
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereNotIn('status', ['closed'])
             ->groupBy('priority_id')
             ->pluck('count', 'priority_id')

@@ -23,6 +23,7 @@ class Index extends Component
     public string $status = '';
 
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
 
     public function mount(): void
@@ -58,12 +59,12 @@ class Index extends Component
     public function render()
     {
         $query = Project::with(['client', 'manager'])
-            ->when($this->search, fn($q) => $q->where(function ($query) {
+            ->when($this->search, fn ($q) => $q->where(function ($query) {
                 $query->where('code', 'like', "%{$this->search}%")
                     ->orWhere('name', 'like', "%{$this->search}%")
                     ->orWhere('description', 'like', "%{$this->search}%");
             }))
-            ->when($this->status, fn($q) => $q->where('status', $this->status));
+            ->when($this->status, fn ($q) => $q->where('status', $this->status));
 
         $projects = $query->orderBy($this->sortField, $this->sortDirection)
             ->paginate(15);

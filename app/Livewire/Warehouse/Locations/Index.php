@@ -53,14 +53,14 @@ class Index extends Component
         $this->authorize('warehouse.manage');
 
         $warehouse = Warehouse::findOrFail($id);
-        
+
         $user = auth()->user();
         if ($user->branch_id && $warehouse->branch_id !== $user->branch_id) {
             abort(403);
         }
 
         $warehouse->delete();
-        Cache::forget('warehouses_stats_' . ($user->branch_id ?? 'all'));
+        Cache::forget('warehouses_stats_'.($user->branch_id ?? 'all'));
         session()->flash('success', __('Warehouse deleted successfully'));
     }
 

@@ -9,7 +9,6 @@ use App\Livewire\Admin\Modules\Form as ModuleFormPage;
 use App\Livewire\Admin\Modules\Index as ModulesIndexPage;
 use App\Livewire\Admin\Reports\InventoryChartsDashboard;
 use App\Livewire\Admin\Reports\PosChartsDashboard;
-use App\Livewire\Admin\Reports\ReportsHub;
 use App\Livewire\Admin\Reports\ReportTemplatesManager;
 use App\Livewire\Admin\Reports\ScheduledReportsManager;
 use App\Livewire\Admin\Roles\Form as RoleFormPage;
@@ -231,6 +230,7 @@ Route::post('/logout', function () {
     auth()->logout();
     request()->session()->invalidate();
     request()->session()->regenerateToken();
+
     return redirect('/login');
 })->middleware('auth')->name('logout');
 
@@ -254,7 +254,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', CustomizableDashboard::class)
         ->name('dashboard')
         ->middleware('can:'.config('screen_permissions.dashboard', 'dashboard.view'));
-    
+
     // Dashboard - Classic (fallback)
     Route::get('/dashboard/classic', DashboardPage::class)
         ->name('dashboard.classic')
@@ -307,11 +307,11 @@ Route::middleware('auth')->group(function () {
             ->middleware('can:sales.view-reports');
 
         // Export & Import
-        Route::get('/export', \App\Http\Controllers\Branch\Sales\ExportImportController::class . '@exportSales')
+        Route::get('/export', \App\Http\Controllers\Branch\Sales\ExportImportController::class.'@exportSales')
             ->name('sales.export')
             ->middleware('can:sales.export');
 
-        Route::post('/import', \App\Http\Controllers\Branch\Sales\ExportImportController::class . '@importSales')
+        Route::post('/import', \App\Http\Controllers\Branch\Sales\ExportImportController::class.'@importSales')
             ->name('sales.import')
             ->middleware('can:sales.import');
 
@@ -373,11 +373,11 @@ Route::middleware('auth')->group(function () {
             ->middleware('can:purchases.manage');
 
         // Export & Import
-        Route::get('/export', \App\Http\Controllers\Branch\Purchases\ExportImportController::class . '@exportPurchases')
+        Route::get('/export', \App\Http\Controllers\Branch\Purchases\ExportImportController::class.'@exportPurchases')
             ->name('purchases.export')
             ->middleware('can:purchases.export');
 
-        Route::post('/import', \App\Http\Controllers\Branch\Purchases\ExportImportController::class . '@importPurchases')
+        Route::post('/import', \App\Http\Controllers\Branch\Purchases\ExportImportController::class.'@importPurchases')
             ->name('purchases.import')
             ->middleware('can:purchases.import');
 
@@ -509,11 +509,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/vehicle-models', \App\Livewire\Inventory\VehicleModels::class)
             ->name('vehicle-models.index')
             ->middleware('can:inventory.view');
-        
+
         Route::get('/vehicle-models/create', \App\Livewire\Inventory\VehicleModels\Form::class)
             ->name('vehicle-models.create')
             ->middleware('can:spares.compatibility.manage');
-        
+
         Route::get('/vehicle-models/{vehicleModel}/edit', \App\Livewire\Inventory\VehicleModels\Form::class)
             ->name('vehicle-models.edit')
             ->middleware('can:spares.compatibility.manage');
@@ -858,22 +858,22 @@ Route::middleware('auth')->group(function () {
         Route::get('/{document}/versions', \App\Livewire\Documents\Versions::class)
             ->name('versions')
             ->middleware('can:documents.view');
-        
+
         // Authenticated, permission-guarded download route
         Route::get('/{document}/download', \App\Http\Controllers\Documents\DownloadController::class)
             ->name('download')
             ->middleware(['auth', 'can:documents.download']);
     });
 
-// Attachments
-Route::get('/attachments/{attachment}/download', \App\Http\Controllers\Attachments\DownloadController::class)
-    ->name('attachments.download')
-    ->middleware(['auth', 'signed']);
+    // Attachments
+    Route::get('/attachments/{attachment}/download', \App\Http\Controllers\Attachments\DownloadController::class)
+        ->name('attachments.download')
+        ->middleware(['auth', 'signed']);
 
-// Media downloads for app users
-Route::get('/app/media/{media}/download', \App\Http\Controllers\Admin\MediaDownloadController::class)
-    ->name('app.media.download')
-    ->middleware(['auth', 'can:media.view']);
+    // Media downloads for app users
+    Route::get('/app/media/{media}/download', \App\Http\Controllers\Admin\MediaDownloadController::class)
+        ->name('app.media.download')
+        ->middleware(['auth', 'can:media.view']);
 
     // HELPDESK MODULE
     Route::prefix('app/helpdesk')->name('app.helpdesk.')->group(function () {

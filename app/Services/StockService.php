@@ -11,7 +11,7 @@ class StockService
     /**
      * Get current stock for a product from stock_movements table
      * Compatible with MySQL 8.4, PostgreSQL, and SQLite
-     * 
+     *
      * Migration schema uses signed `quantity` column:
      * - Positive values = stock in (purchases, returns, adjustments+)
      * - Negative values = stock out (sales, adjustments-)
@@ -76,14 +76,15 @@ class StockService
     /**
      * Get SQL expression for calculating current stock
      * Use this for SELECT queries that need to calculate stock on the fly
-     * 
-     * @param string $productIdColumn Table.column reference (e.g., 'products.id')
+     *
+     * @param  string  $productIdColumn  Table.column reference (e.g., 'products.id')
+     *
      * @throws \InvalidArgumentException if column name contains invalid characters
      */
     public static function getStockCalculationExpression(string $productIdColumn = 'products.id'): string
     {
         // Validate column name to prevent SQL injection
-        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/', $productIdColumn)) {
+        if (! preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/', $productIdColumn)) {
             throw new \InvalidArgumentException('Invalid column name format');
         }
 
@@ -93,18 +94,19 @@ class StockService
 
     /**
      * Get SQL expression for calculating stock in a specific warehouse
-     * 
-     * @param string $productIdColumn Table.column reference (e.g., 'products.id')
-     * @param string $warehouseIdColumn Table.column reference (e.g., 'warehouses.id')
+     *
+     * @param  string  $productIdColumn  Table.column reference (e.g., 'products.id')
+     * @param  string  $warehouseIdColumn  Table.column reference (e.g., 'warehouses.id')
+     *
      * @throws \InvalidArgumentException if column names contain invalid characters
      */
     public static function getWarehouseStockCalculationExpression(string $productIdColumn = 'products.id', string $warehouseIdColumn = 'warehouses.id'): string
     {
         // Validate column names to prevent SQL injection
-        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/', $productIdColumn)) {
+        if (! preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/', $productIdColumn)) {
             throw new \InvalidArgumentException('Invalid product column name format');
         }
-        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/', $warehouseIdColumn)) {
+        if (! preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/', $warehouseIdColumn)) {
             throw new \InvalidArgumentException('Invalid warehouse column name format');
         }
 

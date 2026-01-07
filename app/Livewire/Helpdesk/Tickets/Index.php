@@ -17,9 +17,13 @@ class Index extends Component
     use WithPagination;
 
     public string $search = '';
+
     public ?string $status = null;
+
     public ?int $priorityId = null;
+
     public ?int $branchId = null;
+
     public bool $hasAccess = true;
 
     public function mount(): void
@@ -29,6 +33,7 @@ class Index extends Component
         if (! $user || ! $user->can('helpdesk.view')) {
             $this->hasAccess = false;
             session()->flash('error', __('You do not have permission to view helpdesk tickets.'));
+
             return;
         }
 

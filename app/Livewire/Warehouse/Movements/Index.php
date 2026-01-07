@@ -81,7 +81,7 @@ class Index extends Component
 
         // Statistics
         $baseQuery = StockMovement::when($user->branch_id, fn ($q) => $q->whereHas('warehouse', fn ($wq) => $wq->where('branch_id', $user->branch_id)));
-        
+
         $stats = [
             'total' => (clone $baseQuery)->count(),
             // quantity > 0 = in, quantity < 0 = out

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Consolidated POS & Retail Tables Migration
- * 
+ *
  * MySQL 8.4 Optimized:
  * - POS sessions, terminals
  * - E-commerce integrations
@@ -36,34 +36,34 @@ return new class extends Migration
             $table->timestamp('opened_at')->useCurrent();
             $table->timestamp('closed_at')->nullable();
             $table->string('status', 50)->default('open'); // open, closed
-            
+
             // Cash management
             $table->decimal('opening_cash', 18, 4)->default(0);
             $table->decimal('closing_cash', 18, 4)->nullable();
             $table->decimal('expected_cash', 18, 4)->nullable();
             $table->decimal('cash_difference', 18, 4)->nullable();
-            
+
             // Totals
             $table->integer('total_transactions')->default(0);
             $table->decimal('total_sales', 18, 4)->default(0);
             $table->decimal('total_refunds', 18, 4)->default(0);
             $table->decimal('total_discounts', 18, 4)->default(0);
             $table->decimal('total_taxes', 18, 4)->default(0);
-            
+
             // Payment breakdown
             $table->decimal('total_cash', 18, 4)->default(0);
             $table->decimal('total_card', 18, 4)->default(0);
             $table->decimal('total_other', 18, 4)->default(0);
-            
+
             $table->text('notes')->nullable();
             $table->json('breakdown')->nullable();
-            
+
             $table->foreignId('closed_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
-            
+
             $table->index(['branch_id', 'status']);
             $table->index(['user_id', 'status']);
         });
@@ -122,12 +122,12 @@ return new class extends Migration
             $table->foreignId('sale_id')->nullable()
                 ->constrained()
                 ->nullOnDelete();
-            
+
             // Status
             $table->string('status', 50)->default('pending');
             $table->string('fulfillment_status', 50)->nullable();
             $table->string('payment_status', 50)->nullable();
-            
+
             // Financial
             $table->decimal('subtotal', 18, 4)->default(0);
             $table->decimal('discount_amount', 18, 4)->default(0);
@@ -135,24 +135,24 @@ return new class extends Migration
             $table->decimal('tax_amount', 18, 4)->default(0);
             $table->decimal('total_amount', 18, 4)->default(0);
             $table->string('currency', 3)->default('EGP');
-            
+
             // Customer info (denormalized for sync)
             $table->string('customer_name', 255)->nullable();
             $table->string('customer_email', 255)->nullable();
             $table->string('customer_phone', 50)->nullable();
             $table->text('shipping_address')->nullable();
             $table->text('billing_address')->nullable();
-            
+
             // Order details
             $table->json('line_items')->nullable();
             $table->json('raw_data')->nullable();
             $table->text('notes')->nullable();
-            
+
             $table->timestamp('ordered_at')->nullable();
             $table->timestamp('synced_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->unique(['store_id', 'external_id']);
             $table->index(['store_id', 'status']);
         });
@@ -190,7 +190,7 @@ return new class extends Migration
             $table->timestamp('last_synced_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->unique(['product_id', 'store_id']);
         });
 
@@ -223,13 +223,13 @@ return new class extends Migration
             $table->integer('balance_after');
             $table->text('description')->nullable();
             $table->date('expiry_date')->nullable();
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamp('created_at')->useCurrent();
-            
+
             $table->index(['customer_id', 'created_at']);
         });
     }

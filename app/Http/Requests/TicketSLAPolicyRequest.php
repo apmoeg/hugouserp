@@ -52,20 +52,20 @@ class TicketSLAPolicyRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $field = $this->isMethod('POST') ? 'created_by' : 'updated_by';
-        
+
         $this->merge([
             $field => $this->user()->id,
         ]);
 
         // Set default is_active
-        if (!$this->has('is_active') && $this->isMethod('POST')) {
+        if (! $this->has('is_active') && $this->isMethod('POST')) {
             $this->merge([
                 'is_active' => true,
             ]);
         }
 
         // Set default working days (Monday to Friday = 1 to 5)
-        if (!$this->has('working_days') && $this->business_hours_only) {
+        if (! $this->has('working_days') && $this->business_hours_only) {
             $this->merge([
                 'working_days' => [1, 2, 3, 4, 5],
             ]);

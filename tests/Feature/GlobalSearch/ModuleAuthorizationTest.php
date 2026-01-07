@@ -8,7 +8,6 @@ use App\Livewire\Components\GlobalSearch;
 use App\Models\User;
 use App\Services\GlobalSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\Livewire;
 use Tests\TestCase;
 
 class ModuleAuthorizationTest extends TestCase

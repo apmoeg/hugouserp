@@ -56,7 +56,7 @@ class PurchaseController extends Controller
         // Defense-in-depth: Verify purchase belongs to current branch
         $branchId = $this->requireBranchId($request);
         abort_if($purchase->branch_id !== $branchId, 404, 'Purchase not found in this branch');
-        
+
         return $this->ok($purchase->load('items'));
     }
 
@@ -65,7 +65,7 @@ class PurchaseController extends Controller
         // Defense-in-depth: Verify purchase belongs to current branch
         $branchId = $this->requireBranchId($request);
         abort_if($purchase->branch_id !== $branchId, 404, 'Purchase not found in this branch');
-        
+
         $purchase->fill($request->validated())->save();
 
         return $this->ok($purchase);
@@ -96,6 +96,7 @@ class PurchaseController extends Controller
     public function handleReturn(PurchaseReturnRequest $request, int $purchase)
     {
         $this->requireBranchId($request);
+
         // No payload yet, but request handles authorization
         return $this->ok(['purchase_id' => $purchase], __('Return handled'));
     }

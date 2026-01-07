@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Hash;
 
 /**
  * Customer Portal Controller
- * 
+ *
  * Allows customers to view their invoices, orders, and account information.
  */
 class CustomerPortalController extends Controller
@@ -37,13 +37,13 @@ class CustomerPortalController extends Controller
 
         $customer = Customer::where('email', $request->email)->first();
 
-        if (!$customer || !Hash::check($request->password, $customer->portal_password)) {
+        if (! $customer || ! Hash::check($request->password, $customer->portal_password)) {
             return back()->withErrors([
                 'email' => __('The provided credentials do not match our records.'),
             ]);
         }
 
-        if (!$customer->portal_enabled) {
+        if (! $customer->portal_enabled) {
             return back()->withErrors([
                 'email' => __('Portal access is not enabled for this account. Please contact support.'),
             ]);
@@ -64,7 +64,7 @@ class CustomerPortalController extends Controller
     public function dashboard()
     {
         $customer = $this->getAuthenticatedCustomer();
-        if (!$customer) {
+        if (! $customer) {
             return redirect()->route('portal.login');
         }
 
@@ -93,7 +93,7 @@ class CustomerPortalController extends Controller
     public function orders(Request $request)
     {
         $customer = $this->getAuthenticatedCustomer();
-        if (!$customer) {
+        if (! $customer) {
             return redirect()->route('portal.login');
         }
 
@@ -105,7 +105,7 @@ class CustomerPortalController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where('code', 'like', '%' . $request->search . '%');
+            $query->where('code', 'like', '%'.$request->search.'%');
         }
 
         $orders = $query->paginate(15);
@@ -119,7 +119,7 @@ class CustomerPortalController extends Controller
     public function orderDetails(int $orderId)
     {
         $customer = $this->getAuthenticatedCustomer();
-        if (!$customer) {
+        if (! $customer) {
             return redirect()->route('portal.login');
         }
 
@@ -137,7 +137,7 @@ class CustomerPortalController extends Controller
     public function downloadInvoice(int $orderId)
     {
         $customer = $this->getAuthenticatedCustomer();
-        if (!$customer) {
+        if (! $customer) {
             return redirect()->route('portal.login');
         }
 
@@ -156,7 +156,7 @@ class CustomerPortalController extends Controller
                 'phone' => $customer->phone,
                 'address' => $customer->address,
             ],
-            'items' => $order->items->map(fn($item) => [
+            'items' => $order->items->map(fn ($item) => [
                 'name' => $item->product?->name ?? __('Item'),
                 'qty' => $item->qty,
                 'price' => $item->unit_price,
@@ -178,7 +178,7 @@ class CustomerPortalController extends Controller
     public function profile()
     {
         $customer = $this->getAuthenticatedCustomer();
-        if (!$customer) {
+        if (! $customer) {
             return redirect()->route('portal.login');
         }
 
@@ -191,7 +191,7 @@ class CustomerPortalController extends Controller
     public function updateProfile(Request $request)
     {
         $customer = $this->getAuthenticatedCustomer();
-        if (!$customer) {
+        if (! $customer) {
             return redirect()->route('portal.login');
         }
 
@@ -216,7 +216,7 @@ class CustomerPortalController extends Controller
     public function changePassword(Request $request)
     {
         $customer = $this->getAuthenticatedCustomer();
-        if (!$customer) {
+        if (! $customer) {
             return redirect()->route('portal.login');
         }
 
@@ -225,7 +225,7 @@ class CustomerPortalController extends Controller
             'password' => 'required|min:8|confirmed',
         ]);
 
-        if (!Hash::check($request->current_password, $customer->portal_password)) {
+        if (! Hash::check($request->current_password, $customer->portal_password)) {
             return back()->withErrors(['current_password' => __('Current password is incorrect.')]);
         }
 
@@ -242,7 +242,7 @@ class CustomerPortalController extends Controller
     public function loyaltyPoints()
     {
         $customer = $this->getAuthenticatedCustomer();
-        if (!$customer) {
+        if (! $customer) {
             return redirect()->route('portal.login');
         }
 
@@ -259,6 +259,7 @@ class CustomerPortalController extends Controller
     public function logout()
     {
         session()->forget('customer_portal');
+
         return redirect()->route('portal.login');
     }
 
@@ -268,7 +269,7 @@ class CustomerPortalController extends Controller
     protected function getAuthenticatedCustomer(): ?Customer
     {
         $session = session('customer_portal');
-        if (!$session || !isset($session['id'])) {
+        if (! $session || ! isset($session['id'])) {
             return null;
         }
 

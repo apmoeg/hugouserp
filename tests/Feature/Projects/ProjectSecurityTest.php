@@ -17,7 +17,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 /**
@@ -60,8 +59,8 @@ class ProjectSecurityTest extends TestCase
     {
         return Project::create(array_merge([
             'branch_id' => $branch->id,
-            'code' => 'PRJ-' . Str::random(5),
-            'name' => 'Project ' . Str::random(3),
+            'code' => 'PRJ-'.Str::random(5),
+            'name' => 'Project '.Str::random(3),
             'description' => 'Test description',
             'status' => 'planning',
             'start_date' => now()->format('Y-m-d'),
@@ -73,8 +72,8 @@ class ProjectSecurityTest extends TestCase
     {
         return Customer::create([
             'uuid' => (string) Str::uuid(),
-            'code' => 'CUST-' . Str::random(5),
-            'name' => 'Customer ' . Str::random(3),
+            'code' => 'CUST-'.Str::random(5),
+            'name' => 'Customer '.Str::random(3),
             'branch_id' => $branch->id,
         ]);
     }
@@ -94,16 +93,16 @@ class ProjectSecurityTest extends TestCase
         $this->actingAs($user);
 
         // Use reflection to call the protected getUserBranchIds method
-        $form = new Form();
+        $form = new Form;
         $reflection = new \ReflectionClass($form);
         $method = $reflection->getMethod('getUserBranchIds');
         $method->setAccessible(true);
-        
+
         $userBranchIds = $method->invoke($form);
-        
+
         // Verify branchB is NOT in the user's branch IDs
         $this->assertNotContains($branchB->id, $userBranchIds, 'Foreign branch should not be in user branch IDs');
-        
+
         // Verify branchA IS in the user's branch IDs
         $this->assertContains($branchA->id, $userBranchIds, 'Own branch should be in user branch IDs');
     }
@@ -122,13 +121,13 @@ class ProjectSecurityTest extends TestCase
         $this->actingAs($user);
 
         // Use reflection to call the protected getUserBranchIds method
-        $form = new Form();
+        $form = new Form;
         $reflection = new \ReflectionClass($form);
         $method = $reflection->getMethod('getUserBranchIds');
         $method->setAccessible(true);
-        
+
         $userBranchIds = $method->invoke($form);
-        
+
         // Verify branch IS in the user's branch IDs
         $this->assertContains($branch->id, $userBranchIds, 'Own branch should be in user branch IDs');
     }

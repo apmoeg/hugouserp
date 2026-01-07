@@ -83,9 +83,9 @@ class ProductHistory extends Component
 
             if ($this->filterType === 'all' || $this->filterType === 'audit') {
                 $auditLogs = AuditLog::where(function ($q) {
-                        $q->where('auditable_type', Product::class)
-                            ->orWhere('subject_type', Product::class);
-                    })
+                    $q->where('auditable_type', Product::class)
+                        ->orWhere('subject_type', Product::class);
+                })
                     ->where(function ($q) {
                         $q->where('auditable_id', $this->product->id)
                             ->orWhere('subject_id', $this->product->id);
@@ -101,8 +101,8 @@ class ProductHistory extends Component
 
             // quantity is signed: positive = in, negative = out
             $currentStock = StockMovement::where('product_id', $this->product->id)
-                ->whereHas('warehouse', fn($q) => $q->where('branch_id', $this->branchId))
-                ->selectRaw("SUM(quantity) as stock")
+                ->whereHas('warehouse', fn ($q) => $q->where('branch_id', $this->branchId))
+                ->selectRaw('SUM(quantity) as stock')
                 ->value('stock') ?? 0;
         }
 

@@ -52,7 +52,7 @@ class QueryPerformanceService
 
         foreach ($queries as $query) {
             $totalTime += $query['time'];
-            
+
             if ($query['time'] > $this->slowQueryThreshold) {
                 $slowQueries[] = [
                     'sql' => $query['query'],
@@ -75,7 +75,7 @@ class QueryPerformanceService
      */
     public function logSlowQueries(): void
     {
-        if (!$this->loggingEnabled) {
+        if (! $this->loggingEnabled) {
             return;
         }
 
@@ -99,9 +99,9 @@ class QueryPerformanceService
     {
         return Cache::remember('db_stats', 3600, function () {
             $stats = [];
-            
+
             // Get table sizes
-            $tables = DB::select("
+            $tables = DB::select('
                 SELECT 
                     table_name,
                     table_rows,
@@ -111,12 +111,12 @@ class QueryPerformanceService
                 WHERE table_schema = ?
                 ORDER BY data_length DESC
                 LIMIT 20
-            ", [config('database.connections.mysql.database')]);
+            ', [config('database.connections.mysql.database')]);
 
             $stats['largest_tables'] = $tables;
 
             // Get index usage
-            $indexUsage = DB::select("
+            $indexUsage = DB::select('
                 SELECT 
                     table_name,
                     index_name,
@@ -127,7 +127,7 @@ class QueryPerformanceService
                 WHERE table_schema = ?
                 ORDER BY table_name, index_name, seq_in_index
                 LIMIT 100
-            ", [config('database.connections.mysql.database')]);
+            ', [config('database.connections.mysql.database')]);
 
             $stats['indexes'] = $indexUsage;
 
@@ -144,7 +144,7 @@ class QueryPerformanceService
     public function analyzeQuery(string $sql): array
     {
         try {
-            $explain = DB::select('EXPLAIN FORMAT=JSON ' . $sql);
+            $explain = DB::select('EXPLAIN FORMAT=JSON '.$sql);
             $explainData = json_decode($explain[0]->EXPLAIN ?? '{}', true);
 
             return [
@@ -169,18 +169,18 @@ class QueryPerformanceService
         $queryBlock = $explain['query_block'] ?? [];
 
         // Check for table scans
-        if (isset($queryBlock['table']['access_type']) && 
+        if (isset($queryBlock['table']['access_type']) &&
             $queryBlock['table']['access_type'] === 'ALL') {
             $suggestions[] = 'Full table scan detected. Consider adding an index.';
         }
 
         // Check for filesort
-        if (!empty($queryBlock['ordering_operation']['using_filesort'])) {
+        if (! empty($queryBlock['ordering_operation']['using_filesort'])) {
             $suggestions[] = 'Query uses filesort. Consider adding an index for ORDER BY columns.';
         }
 
         // Check for temporary tables
-        if (!empty($queryBlock['ordering_operation']['using_temporary_table'])) {
+        if (! empty($queryBlock['ordering_operation']['using_temporary_table'])) {
             $suggestions[] = 'Query creates temporary table. Consider optimizing GROUP BY or ORDER BY.';
         }
 

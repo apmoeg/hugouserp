@@ -19,22 +19,18 @@ use Livewire\WithFileUploads;
 
 class Form extends Component
 {
-    use WithFileUploads;
     use HasMultilingualValidation;
+    use WithFileUploads;
 
     public ?int $contractId = null;
 
     /**
      * Uploaded contract files (documents, images).
-     *
-     * @var array
      */
     public array $contractFiles = [];
 
     /**
      * Existing files (for edit mode).
-     *
-     * @var array
      */
     public array $existingFiles = [];
 
@@ -189,7 +185,7 @@ class Form extends Component
             }
 
             $this->dynamicData = (array) ($model->extra_attributes ?? []);
-            
+
             // Load existing files
             $this->existingFiles = $model->extra_attributes['attachments'] ?? [];
         } else {
@@ -289,16 +285,16 @@ class Form extends Component
     {
         if (isset($this->existingFiles[$index])) {
             $file = $this->existingFiles[$index];
-            
+
             // Delete from storage
             if (isset($file['path']) && Storage::disk('private')->exists($file['path'])) {
                 Storage::disk('private')->delete($file['path']);
             }
-            
+
             // Remove from array
             unset($this->existingFiles[$index]);
             $this->existingFiles = array_values($this->existingFiles);
-            
+
             // Update contract if it exists
             if ($this->contractId) {
                 $contract = RentalContract::find($this->contractId);
@@ -309,7 +305,7 @@ class Form extends Component
                     $contract->save();
                 }
             }
-            
+
             session()->flash('success', __('File removed successfully'));
         }
     }
@@ -350,11 +346,11 @@ class Form extends Component
         // Handle file uploads
         if (! empty($this->contractFiles)) {
             $uploadedFiles = [];
-            
+
             foreach ($this->contractFiles as $file) {
                 // Store file in rental-contracts directory
-                $path = $file->store('rental-contracts/' . $contract->id, 'private');
-                
+                $path = $file->store('rental-contracts/'.$contract->id, 'private');
+
                 $uploadedFiles[] = [
                     'original_name' => $file->getClientOriginalName(),
                     'path' => $path,
@@ -363,7 +359,7 @@ class Form extends Component
                     'uploaded_at' => now()->toIso8601String(),
                 ];
             }
-            
+
             // Merge with existing files
             $existingAttachments = $contract->extra_attributes['attachments'] ?? [];
             $contract->extra_attributes = array_merge(
@@ -371,7 +367,7 @@ class Form extends Component
                 ['attachments' => array_merge($existingAttachments, $uploadedFiles)]
             );
             $contract->save();
-            
+
             // Clear uploaded files
             $this->contractFiles = [];
         }

@@ -74,8 +74,10 @@ class Attendance extends BaseModel
         if ($this->worked_minutes) {
             $hours = floor($this->worked_minutes / 60);
             $minutes = $this->worked_minutes % 60;
+
             return sprintf('%d:%02d', $hours, $minutes);
         }
+
         return null;
     }
 

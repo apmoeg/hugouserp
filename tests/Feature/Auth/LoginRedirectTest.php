@@ -8,9 +8,7 @@ use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class LoginRedirectTest extends TestCase
@@ -46,11 +44,11 @@ class LoginRedirectTest extends TestCase
     public function test_first_accessible_route_returns_dashboard_for_user_with_dashboard_permission(): void
     {
         $user = $this->createUserWithPermission('dashboard.view');
-        
+
         $this->actingAs($user);
-        
+
         $route = first_accessible_route_for_user($user);
-        
+
         $this->assertEquals('dashboard', $route);
     }
 
@@ -58,11 +56,11 @@ class LoginRedirectTest extends TestCase
     {
         // Create user with only POS permission (no dashboard)
         $user = $this->createUserWithPermission('pos.use');
-        
+
         $this->actingAs($user);
-        
+
         $route = first_accessible_route_for_user($user);
-        
+
         $this->assertEquals('pos.terminal', $route);
     }
 
@@ -70,11 +68,11 @@ class LoginRedirectTest extends TestCase
     {
         // Create user with only inventory permission
         $user = $this->createUserWithPermission('inventory.products.view');
-        
+
         $this->actingAs($user);
-        
+
         $route = first_accessible_route_for_user($user);
-        
+
         $this->assertEquals('app.inventory.products.index', $route);
     }
 
@@ -86,11 +84,11 @@ class LoginRedirectTest extends TestCase
             'is_active' => true,
             'password' => Hash::make('password'),
         ]);
-        
+
         $this->actingAs($user);
-        
+
         $route = first_accessible_route_for_user($user);
-        
+
         $this->assertEquals('profile.edit', $route);
     }
 
@@ -98,11 +96,11 @@ class LoginRedirectTest extends TestCase
     {
         // Create user with only sales.view permission
         $user = $this->createUserWithPermission('sales.view');
-        
+
         $this->actingAs($user);
-        
+
         $route = first_accessible_route_for_user($user);
-        
+
         $this->assertEquals('app.sales.index', $route);
     }
 
@@ -110,18 +108,18 @@ class LoginRedirectTest extends TestCase
     {
         // Create user with only customers.view permission
         $user = $this->createUserWithPermission('customers.view');
-        
+
         $this->actingAs($user);
-        
+
         $route = first_accessible_route_for_user($user);
-        
+
         $this->assertEquals('customers.index', $route);
     }
 
     public function test_first_accessible_route_returns_login_for_guest(): void
     {
         $route = first_accessible_route_for_user(null);
-        
+
         $this->assertEquals('login', $route);
     }
 }

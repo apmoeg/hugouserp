@@ -15,7 +15,7 @@ class ExportImportController extends Controller
     public function exportEmployees(Request $request): StreamedResponse
     {
         $query = \App\Models\HREmployee::query()->with(['branch', 'user']);
-        
+
         $format = $request->input('format', 'xlsx');
 
         if ($format === 'xlsx') {

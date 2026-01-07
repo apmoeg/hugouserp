@@ -23,7 +23,7 @@ class ScopeMethodsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create a test branch for branch-aware models
         $this->branch = Branch::factory()->create();
     }

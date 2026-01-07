@@ -36,7 +36,7 @@ class BankTransactionRequest extends FormRequest
             $this->merge(['type' => $type]);
         }
 
-        if (!$this->has('status')) {
+        if (! $this->has('status')) {
             $this->merge([
                 'status' => 'completed',
             ]);

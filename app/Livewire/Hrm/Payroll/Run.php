@@ -84,7 +84,7 @@ class Run extends Component
                 $basic = (string) ($employee->salary ?? '0');
                 $allowances = '0.00';
                 $deductions = '0.00';
-                
+
                 // Calculate net salary with bcmath precision
                 $netCalc = bcadd($basic, $allowances, 2);
                 $net = bcsub($netCalc, $deductions, 2);

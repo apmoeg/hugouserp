@@ -8,7 +8,6 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class ExportDownloadAuthorizationTest extends TestCase

@@ -21,7 +21,7 @@ class ProjectUpdateRequest extends FormRequest
         $projectId = $this->route('project') ? $this->route('project')->id : 'NULL';
 
         return [
-            'code' => ['sometimes', 'required', 'string', 'max:50', 'unique:projects,code,' . $projectId],
+            'code' => ['sometimes', 'required', 'string', 'max:50', 'unique:projects,code,'.$projectId],
             'name' => $this->multilingualString(required: false, max: 255), // 'sometimes' handled automatically
             'description' => $this->unicodeText(required: false),
             'client_id' => ['nullable', 'exists:customers,id'],

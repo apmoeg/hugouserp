@@ -11,7 +11,7 @@ use App\Traits\HandlesServiceErrors;
 
 /**
  * WhatsAppService - WhatsApp messaging integration
- * 
+ *
  * STATUS: ACTIVE - Production-ready WhatsApp service
  * PURPOSE: Send WhatsApp messages for invoices, payment reminders, and loyalty notifications
  * FEATURES:
@@ -21,7 +21,7 @@ use App\Traits\HandlesServiceErrors;
  *   - Custom messages
  * INTEGRATION: Uses SmsManager for WhatsApp API connectivity
  * USAGE: Called by sales/customer/loyalty services for automated messaging
- * 
+ *
  * This service is fully implemented and provides WhatsApp messaging functionality
  * for customer communication and engagement.
  */

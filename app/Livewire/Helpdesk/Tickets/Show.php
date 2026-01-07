@@ -6,7 +6,6 @@ namespace App\Livewire\Helpdesk\Tickets;
 
 use App\Livewire\Concerns\AuthorizesWithFriendlyErrors;
 use App\Models\Ticket;
-use App\Models\TicketReply;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -16,8 +15,11 @@ class Show extends Component
     use AuthorizesWithFriendlyErrors;
 
     public Ticket $ticket;
+
     public string $replyMessage = '';
+
     public bool $isInternal = false;
+
     public bool $hasAccess = true;
 
     protected function rules(): array
@@ -35,11 +37,13 @@ class Show extends Component
         if (! $user || ! $user->can('helpdesk.view')) {
             $this->hasAccess = false;
             session()->flash('error', __('You do not have permission to view this ticket.'));
+
             return;
         }
 
         if (! $this->checkBranchAccess($user, $ticket)) {
             $this->hasAccess = false;
+
             return;
         }
 
@@ -81,6 +85,7 @@ class Show extends Component
 
         if (! $user->can('helpdesk.manage')) {
             session()->flash('error', __('You do not have permission to assign tickets.'));
+
             return;
         }
 
@@ -94,6 +99,7 @@ class Show extends Component
     {
         if (! Auth::user()->can('helpdesk.manage')) {
             session()->flash('error', __('You do not have permission to resolve tickets.'));
+
             return;
         }
 
@@ -107,11 +113,13 @@ class Show extends Component
     {
         if (! Auth::user()->can('helpdesk.manage')) {
             session()->flash('error', __('You do not have permission to close tickets.'));
+
             return;
         }
 
         if (! $this->ticket->canBeClosed()) {
             session()->flash('error', __('Ticket must be resolved before closing.'));
+
             return;
         }
 
@@ -125,11 +133,13 @@ class Show extends Component
     {
         if (! Auth::user()->can('helpdesk.manage')) {
             session()->flash('error', __('You do not have permission to reopen tickets.'));
+
             return;
         }
 
         if (! $this->ticket->canBeReopened()) {
             session()->flash('error', __('Ticket cannot be reopened.'));
+
             return;
         }
 
@@ -151,6 +161,7 @@ class Show extends Component
     {
         if (! $user) {
             session()->flash('error', __('You must be logged in to reply.'));
+
             return false;
         }
 
@@ -162,6 +173,7 @@ class Show extends Component
 
         if (! $user->can('helpdesk.manage') && ! $isAssignedAgent) {
             session()->flash('error', __('You do not have permission to reply to this ticket.'));
+
             return false;
         }
 
@@ -169,6 +181,7 @@ class Show extends Component
 
         if ($this->isInternal && ! $canAddInternal) {
             session()->flash('error', __('You do not have permission to add internal notes.'));
+
             return false;
         }
 
@@ -183,6 +196,7 @@ class Show extends Component
 
         if ((int) $ticket->branch_id !== (int) $user->branch_id) {
             session()->flash('error', __('You cannot access tickets from other branches.'));
+
             return false;
         }
 

@@ -90,6 +90,7 @@ class Payroll extends BaseModel
         if ($this->year && $this->month) {
             return \Carbon\Carbon::create($this->year, $this->month, 1)->startOfMonth();
         }
+
         return null;
     }
 
@@ -101,6 +102,7 @@ class Payroll extends BaseModel
         if ($this->year && $this->month) {
             return \Carbon\Carbon::create($this->year, $this->month, 1)->endOfMonth();
         }
+
         return null;
     }
 

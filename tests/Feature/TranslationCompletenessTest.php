@@ -63,12 +63,12 @@ class TranslationCompletenessTest extends TestCase
 
         $this->assertEmpty(
             $missingInArabic,
-            'Missing translations in Arabic: ' . implode(', ', array_slice($missingInArabic, 0, 10))
+            'Missing translations in Arabic: '.implode(', ', array_slice($missingInArabic, 0, 10))
         );
 
         $this->assertEmpty(
             $missingInEnglish,
-            'Missing translations in English: ' . implode(', ', array_slice($missingInEnglish, 0, 10))
+            'Missing translations in English: '.implode(', ', array_slice($missingInEnglish, 0, 10))
         );
     }
 
@@ -87,7 +87,7 @@ class TranslationCompletenessTest extends TestCase
                 // Check if Arabic translation is empty or exactly same as English
                 if (empty($arJson[$key]) || $arJson[$key] === $enValue) {
                     // Allow some technical terms to be the same
-                    if (!$this->isTechnicalTerm($key)) {
+                    if (! $this->isTechnicalTerm($key)) {
                         $untranslated[] = $key;
                     }
                 }
@@ -131,14 +131,14 @@ class TranslationCompletenessTest extends TestCase
         $missingLabels = [];
 
         foreach ($matches[1] as $label) {
-            if (!isset($enJson[$label]) || !isset($arJson[$label])) {
+            if (! isset($enJson[$label]) || ! isset($arJson[$label])) {
                 $missingLabels[] = $label;
             }
         }
 
         $this->assertEmpty(
             $missingLabels,
-            'Sidebar labels missing translations: ' . implode(', ', $missingLabels)
+            'Sidebar labels missing translations: '.implode(', ', $missingLabels)
         );
     }
 
@@ -161,14 +161,14 @@ class TranslationCompletenessTest extends TestCase
         $missingHeaders = [];
 
         foreach ($matches[1] as $header) {
-            if (!isset($enJson[$header]) || !isset($arJson[$header])) {
+            if (! isset($enJson[$header]) || ! isset($arJson[$header])) {
                 $missingHeaders[] = $header;
             }
         }
 
         $this->assertEmpty(
             $missingHeaders,
-            'Section headers missing translations: ' . implode(', ', $missingHeaders)
+            'Section headers missing translations: '.implode(', ', $missingHeaders)
         );
     }
 
@@ -180,7 +180,7 @@ class TranslationCompletenessTest extends TestCase
         $commonStrings = [
             'Save', 'Cancel', 'Delete', 'Edit', 'Create', 'Search',
             'Actions', 'Status', 'Active', 'Inactive', 'Dashboard',
-            'Settings', 'Reports', 'Users', 'Yes', 'No'
+            'Settings', 'Reports', 'Users', 'Yes', 'No',
         ];
 
         $enJson = $this->getEnglishTranslations();
@@ -189,14 +189,14 @@ class TranslationCompletenessTest extends TestCase
         $missing = [];
 
         foreach ($commonStrings as $string) {
-            if (!isset($enJson[$string]) || !isset($arJson[$string])) {
+            if (! isset($enJson[$string]) || ! isset($arJson[$string])) {
                 $missing[] = $string;
             }
         }
 
         $this->assertEmpty(
             $missing,
-            'Common UI strings missing: ' . implode(', ', $missing)
+            'Common UI strings missing: '.implode(', ', $missing)
         );
     }
 
@@ -207,15 +207,15 @@ class TranslationCompletenessTest extends TestCase
     public function test_arabic_locale_smoke_test(): void
     {
         $arJson = $this->getArabicTranslations();
-        
+
         // Common English UI tokens that should NOT appear in Arabic translations
         // (except as part of technical terms or placeholders)
         $englishTokens = [
             'WORKSPACE', 'SALES & PURCHASES', 'Business Modules',
         ];
-        
+
         $violations = [];
-        
+
         foreach ($englishTokens as $token) {
             // Check if this exact English token exists as a value in Arabic translations
             // where it shouldn't (i.e., the Arabic value equals the English token)
@@ -223,10 +223,10 @@ class TranslationCompletenessTest extends TestCase
                 $violations[] = $token;
             }
         }
-        
+
         $this->assertEmpty(
             $violations,
-            'Arabic translations contain untranslated English UI tokens: ' . implode(', ', $violations)
+            'Arabic translations contain untranslated English UI tokens: '.implode(', ', $violations)
         );
     }
 
@@ -237,19 +237,19 @@ class TranslationCompletenessTest extends TestCase
     public function test_english_locale_smoke_test(): void
     {
         $enJson = $this->getEnglishTranslations();
-        
+
         $arabicPattern = '/[\x{0600}-\x{06FF}]/u'; // Arabic Unicode range
         $violations = [];
-        
+
         foreach ($enJson as $key => $value) {
             if (is_string($value) && preg_match($arabicPattern, $value)) {
                 $violations[] = $key;
             }
         }
-        
+
         $this->assertEmpty(
             $violations,
-            'English translations contain Arabic text: ' . implode(', ', array_slice($violations, 0, 10))
+            'English translations contain Arabic text: '.implode(', ', array_slice($violations, 0, 10))
         );
     }
 
@@ -284,10 +284,10 @@ class TranslationCompletenessTest extends TestCase
         $untranslated = [];
 
         foreach ($criticalStrings as $string) {
-            if (!isset($enJson[$string])) {
+            if (! isset($enJson[$string])) {
                 $missing[] = "$string (missing in EN)";
             }
-            if (!isset($arJson[$string])) {
+            if (! isset($arJson[$string])) {
                 $missing[] = "$string (missing in AR)";
             }
             // Check if Arabic translation is different from English (i.e., actually translated)
@@ -298,12 +298,12 @@ class TranslationCompletenessTest extends TestCase
 
         $this->assertEmpty(
             $missing,
-            'Critical UI strings missing: ' . implode(', ', $missing)
+            'Critical UI strings missing: '.implode(', ', $missing)
         );
 
         $this->assertEmpty(
             $untranslated,
-            'Critical UI strings not translated to Arabic: ' . implode(', ', $untranslated)
+            'Critical UI strings not translated to Arabic: '.implode(', ', $untranslated)
         );
     }
 
@@ -376,7 +376,7 @@ class TranslationCompletenessTest extends TestCase
 
         $this->assertEmpty(
             $untranslated,
-            'Form strings not translated to Arabic: ' . implode(', ', $untranslated)
+            'Form strings not translated to Arabic: '.implode(', ', $untranslated)
         );
     }
 
@@ -429,7 +429,7 @@ class TranslationCompletenessTest extends TestCase
 
         $this->assertEmpty(
             $untranslated,
-            'Button strings not translated to Arabic: ' . implode(', ', $untranslated)
+            'Button strings not translated to Arabic: '.implode(', ', $untranslated)
         );
     }
 
@@ -501,7 +501,7 @@ class TranslationCompletenessTest extends TestCase
         // Categories of critical UI strings organized by section
         $criticalSections = [
             'Sidebar Navigation' => [
-                'Workspace', 'Sales & Purchases', 'Inventory & Warehouse', 
+                'Workspace', 'Sales & Purchases', 'Inventory & Warehouse',
                 'Finance & Banking', 'People & HR', 'Operations', 'Administration',
                 'Dashboard', 'POS Terminal', 'Reports Hub', 'Sales', 'Purchases',
                 'Customers', 'Suppliers', 'Products', 'Warehouse', 'Accounting',
@@ -552,11 +552,11 @@ class TranslationCompletenessTest extends TestCase
 
         foreach ($criticalSections as $section => $strings) {
             foreach ($strings as $string) {
-                if (!isset($enJson[$string])) {
+                if (! isset($enJson[$string])) {
                     $missing[] = "[$section] '$string' missing in EN";
-                } elseif (!isset($arJson[$string])) {
+                } elseif (! isset($arJson[$string])) {
                     $missing[] = "[$section] '$string' missing in AR";
-                } elseif ($arJson[$string] === $enJson[$string] && !$this->isTechnicalTerm($string)) {
+                } elseif ($arJson[$string] === $enJson[$string] && ! $this->isTechnicalTerm($string)) {
                     $untranslated[] = "[$section] '$string' not translated to Arabic";
                 }
             }
@@ -564,14 +564,14 @@ class TranslationCompletenessTest extends TestCase
 
         $this->assertEmpty(
             $missing,
-            "Critical UI strings missing:\n" . implode("\n", $missing)
+            "Critical UI strings missing:\n".implode("\n", $missing)
         );
 
         // Allow a small percentage of untranslated strings for technical terms
         $this->assertLessThan(
             5,
             count($untranslated),
-            "Too many untranslated critical UI strings:\n" . implode("\n", $untranslated)
+            "Too many untranslated critical UI strings:\n".implode("\n", $untranslated)
         );
     }
 
@@ -604,7 +604,7 @@ class TranslationCompletenessTest extends TestCase
 
         $this->assertEmpty(
             $missing,
-            'Validation attributes not translated: ' . implode(', ', $missing)
+            'Validation attributes not translated: '.implode(', ', $missing)
         );
     }
 
@@ -626,7 +626,7 @@ class TranslationCompletenessTest extends TestCase
         $untranslated = [];
         foreach ($modalStrings as $string) {
             if (isset($enJson[$string]) && isset($arJson[$string])) {
-                if ($arJson[$string] === $enJson[$string] && !$this->isTechnicalTerm($string)) {
+                if ($arJson[$string] === $enJson[$string] && ! $this->isTechnicalTerm($string)) {
                     $untranslated[] = $string;
                 }
             }
@@ -634,7 +634,7 @@ class TranslationCompletenessTest extends TestCase
 
         $this->assertEmpty(
             $untranslated,
-            'Modal/dialog strings not translated: ' . implode(', ', $untranslated)
+            'Modal/dialog strings not translated: '.implode(', ', $untranslated)
         );
     }
 
@@ -644,7 +644,7 @@ class TranslationCompletenessTest extends TestCase
     public function test_sidebar_new_uses_translation_functions(): void
     {
         $sidebarFile = resource_path('views/layouts/sidebar-new.blade.php');
-        if (!file_exists($sidebarFile)) {
+        if (! file_exists($sidebarFile)) {
             $this->markTestSkipped('sidebar-new.blade.php not found');
         }
 
@@ -664,14 +664,14 @@ class TranslationCompletenessTest extends TestCase
         $missing = [];
 
         foreach (array_merge($titleMatches[1], $labelMatches[1]) as $label) {
-            if (!isset($enJson[$label]) || !isset($arJson[$label])) {
+            if (! isset($enJson[$label]) || ! isset($arJson[$label])) {
                 $missing[] = $label;
             }
         }
 
         $this->assertEmpty(
             $missing,
-            'Sidebar labels missing translations: ' . implode(', ', $missing)
+            'Sidebar labels missing translations: '.implode(', ', $missing)
         );
     }
 }

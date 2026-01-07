@@ -158,7 +158,7 @@ class HREmployee extends BaseModel
     // Backward compatibility accessors
     public function getNameAttribute(): string
     {
-        return trim($this->first_name . ' ' . $this->last_name);
+        return trim($this->first_name.' '.$this->last_name);
     }
 
     public function getSalaryAttribute()
@@ -178,7 +178,7 @@ class HREmployee extends BaseModel
 
     public function getFullNameArAttribute(): string
     {
-        return trim(($this->first_name_ar ?? '') . ' ' . ($this->last_name_ar ?? ''));
+        return trim(($this->first_name_ar ?? '').' '.($this->last_name_ar ?? ''));
     }
 
     protected static function booted(): void

@@ -45,13 +45,13 @@ class TicketCategoryRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $field = $this->isMethod('POST') ? 'created_by' : 'updated_by';
-        
+
         $this->merge([
             $field => $this->user()->id,
         ]);
 
         // Set default is_active
-        if (!$this->has('is_active') && $this->isMethod('POST')) {
+        if (! $this->has('is_active') && $this->isMethod('POST')) {
             $this->merge([
                 'is_active' => true,
             ]);

@@ -14,7 +14,7 @@ class ProductStockHelpersTest extends TestCase
 
     public function test_reserve_stock_throws_when_product_missing(): void
     {
-        $product = new Product();
+        $product = new Product;
 
         $this->expectException(\RuntimeException::class);
         $product->reserveStock(1);
@@ -22,7 +22,7 @@ class ProductStockHelpersTest extends TestCase
 
     public function test_release_stock_throws_when_product_missing(): void
     {
-        $product = new Product();
+        $product = new Product;
 
         $this->expectException(\RuntimeException::class);
         $product->releaseStock(1);

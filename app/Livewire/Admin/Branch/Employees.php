@@ -20,27 +20,29 @@ class Employees extends Component
     use WithPagination;
 
     public ?Branch $branch = null;
-    
+
     public ?string $search = '';
+
     public ?string $status = null;
+
     public ?string $role = null;
 
     public function mount(): void
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('branch.employees.manage')) {
+        if (! $user || ! $user->can('branch.employees.manage')) {
             abort(403);
         }
 
         $this->branch = $user->branch;
-        
-        if (!$this->branch) {
+
+        if (! $this->branch) {
             abort(403, __('No branch assigned to this user.'));
         }
 
         // Check if user is a branch admin
-        if (!$user->isBranchAdmin($this->branch->id) && !$user->hasRole('Super Admin')) {
+        if (! $user->isBranchAdmin($this->branch->id) && ! $user->hasRole('Super Admin')) {
             abort(403);
         }
     }
@@ -67,7 +69,7 @@ class Employees extends Component
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('branch.employees.manage')) {
+        if (! $user || ! $user->can('branch.employees.manage')) {
             abort(403);
         }
 
@@ -76,7 +78,7 @@ class Employees extends Component
             ->first();
 
         if ($employee && $employee->id !== $user->id) {
-            $employee->update(['is_active' => !$employee->is_active]);
+            $employee->update(['is_active' => ! $employee->is_active]);
             session()->flash('success', __('Employee status updated.'));
         }
     }
@@ -114,14 +116,14 @@ class Employees extends Component
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('branch.employees.manage')) {
+        if (! $user || ! $user->can('branch.employees.manage')) {
             abort(403);
         }
 
         $employees = User::where('branch_id', $this->branch->id)
             ->with('roles')
             ->when($this->search !== null && $this->search !== '', function ($q) {
-                $term = '%' . $this->search . '%';
+                $term = '%'.$this->search.'%';
                 $q->where(function ($query) use ($term) {
                     $query->where('name', 'like', $term)
                         ->orWhere('email', 'like', $term)

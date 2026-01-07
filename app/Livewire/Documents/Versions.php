@@ -18,7 +18,9 @@ class Versions extends Component
     use WithFileUploads;
 
     public Document $document;
+
     public ?\Illuminate\Http\UploadedFile $file = null;
+
     public string $changeNotes = '';
 
     protected DocumentService $documentService;
@@ -39,7 +41,7 @@ class Versions extends Component
         }
 
         // Check if user can access this document
-        if (!$document->canBeAccessedBy(auth()->user())) {
+        if (! $document->canBeAccessedBy(auth()->user())) {
             abort(403, 'You do not have permission to manage versions for this document');
         }
     }

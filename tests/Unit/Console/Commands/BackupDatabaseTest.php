@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Console\Commands;
 
-use App\Console\Commands\BackupDatabase;
 use App\Services\BackupService;
 use Illuminate\Support\Facades\Cache;
 use Mockery;
@@ -51,12 +50,12 @@ class BackupDatabaseTest extends TestCase
     {
         // Mock the BackupService
         $mockBackupService = Mockery::mock(BackupService::class);
-        
+
         $result = [
             'path' => 'backups/backup_20231209_120000.sql.gz',
             'size' => 1024000,
         ];
-        
+
         $mockBackupService->shouldReceive('run')
             ->once()
             ->with(true) // verify should be true
@@ -108,12 +107,12 @@ class BackupDatabaseTest extends TestCase
     {
         // Mock the BackupService
         $mockBackupService = Mockery::mock(BackupService::class);
-        
+
         $result = [
             'path' => 'backups/backup_20231209_120000.sql.gz',
             'size' => 1024000,
         ];
-        
+
         $mockBackupService->shouldReceive('run')
             ->once()
             ->with(true)

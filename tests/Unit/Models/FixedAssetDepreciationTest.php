@@ -14,7 +14,7 @@ class FixedAssetDepreciationTest extends TestCase
 
     public function test_default_numeric_attributes_prevent_null_arithmetic(): void
     {
-        $asset = new FixedAsset();
+        $asset = new FixedAsset;
 
         $this->assertEquals(0, $asset->purchase_cost);
         $this->assertEquals(0, $asset->salvage_value);

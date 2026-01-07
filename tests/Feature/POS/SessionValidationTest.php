@@ -12,7 +12,6 @@ use App\Models\User;
 use App\Models\Warehouse;
 use App\Services\POSService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Response;
 use Tests\TestCase;
 
 class SessionValidationTest extends TestCase
@@ -20,9 +19,13 @@ class SessionValidationTest extends TestCase
     use RefreshDatabase;
 
     protected POSService $service;
+
     protected Branch $branch;
+
     protected User $user;
+
     protected Product $product;
+
     protected Warehouse $warehouse;
 
     protected function setUp(): void

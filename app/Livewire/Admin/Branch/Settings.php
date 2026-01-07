@@ -16,32 +16,38 @@ use Livewire\Component;
 class Settings extends Component
 {
     public ?Branch $branch = null;
-    
+
     // Settings form data
     public string $name = '';
+
     public string $code = '';
+
     public ?string $address = null;
+
     public ?string $phone = null;
+
     public string $timezone = 'UTC';
+
     public string $currency = 'EGP';
+
     public array $settings = [];
 
     public function mount(): void
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('branch.settings.manage')) {
+        if (! $user || ! $user->can('branch.settings.manage')) {
             abort(403);
         }
 
         $this->branch = $user->branch;
-        
-        if (!$this->branch) {
+
+        if (! $this->branch) {
             abort(403, __('No branch assigned to this user.'));
         }
 
         // Check if user is a branch admin
-        if (!$user->isBranchAdmin($this->branch->id) && !$user->hasRole('Super Admin')) {
+        if (! $user->isBranchAdmin($this->branch->id) && ! $user->hasRole('Super Admin')) {
             abort(403);
         }
 
@@ -50,7 +56,7 @@ class Settings extends Component
 
     protected function loadBranchData(): void
     {
-        if (!$this->branch) {
+        if (! $this->branch) {
             return;
         }
 
@@ -67,13 +73,13 @@ class Settings extends Component
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('branch.settings.manage')) {
+        if (! $user || ! $user->can('branch.settings.manage')) {
             abort(403);
         }
 
         $this->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:50|unique:branches,code,' . $this->branch->id,
+            'code' => 'required|string|max:50|unique:branches,code,'.$this->branch->id,
             'address' => 'nullable|string|max:500',
             'phone' => 'nullable|string|max:50',
             'timezone' => 'required|string',
@@ -98,7 +104,7 @@ class Settings extends Component
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('branch.settings.manage')) {
+        if (! $user || ! $user->can('branch.settings.manage')) {
             abort(403);
         }
 

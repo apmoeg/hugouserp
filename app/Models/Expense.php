@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Expense extends BaseModel
 {
-
     protected $table = 'expenses';
 
     /**

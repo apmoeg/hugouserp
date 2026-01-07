@@ -42,13 +42,13 @@ class DocumentStoreRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (!$this->has('branch_id') && $this->user()->branch_id) {
+        if (! $this->has('branch_id') && $this->user()->branch_id) {
             $this->merge([
                 'branch_id' => $this->user()->branch_id,
             ]);
         }
 
-        if (!$this->has('is_public')) {
+        if (! $this->has('is_public')) {
             $this->merge([
                 'is_public' => false,
             ]);

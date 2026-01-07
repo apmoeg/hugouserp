@@ -2,18 +2,18 @@
 
 namespace App\Models;
 
+use App\Traits\HasBranch;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Carbon\Carbon;
-use App\Traits\HasBranch;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Project extends Model
 {
-    use HasFactory, SoftDeletes, HasBranch;
+    use HasBranch, HasFactory, SoftDeletes;
 
     /**
      * Fillable fields aligned with migration:
@@ -64,7 +64,7 @@ class Project extends Model
 
         static::creating(function ($project) {
             if (empty($project->code)) {
-                $project->code = 'PRJ-' . date('Ymd') . '-' . str_pad(
+                $project->code = 'PRJ-'.date('Ymd').'-'.str_pad(
                     static::whereDate('created_at', Carbon::today())->count() + 1,
                     6,
                     '0',
@@ -161,20 +161,20 @@ class Project extends Model
     public function scopeOverdue(Builder $query): Builder
     {
         return $query->where('end_date', '<', Carbon::now())
-                    ->whereNotIn('status', ['completed', 'cancelled']);
+            ->whereNotIn('status', ['completed', 'cancelled']);
     }
 
     // Business Methods
     public function getCalculatedProgress(): int
     {
         $totalTasks = $this->tasks()->count();
-        
+
         if ($totalTasks === 0) {
             return 0;
         }
 
         $completedTasks = $this->tasks()->where('status', 'completed')->count();
-        
+
         return (int) round(($completedTasks / $totalTasks) * 100);
     }
 
@@ -220,13 +220,13 @@ class Project extends Model
         // Get unique users from tasks, time logs
         $taskAssignees = $this->tasks()->pluck('assigned_to')->unique()->filter();
         $timeLoggers = $this->timeLogs()->pluck('employee_id')->unique()->filter();
-        
+
         return $taskAssignees->merge($timeLoggers)->unique()->values()->toArray();
     }
 
     public function getRemainingDays(): ?int
     {
-        if (!$this->end_date || in_array($this->status, ['completed', 'cancelled'])) {
+        if (! $this->end_date || in_array($this->status, ['completed', 'cancelled'])) {
             return null;
         }
 

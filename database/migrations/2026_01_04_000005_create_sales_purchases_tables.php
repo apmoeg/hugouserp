@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Consolidated Sales & Purchases Tables Migration
- * 
+ *
  * MySQL 8.4 Optimized:
  * - Sales orders, invoices, payments
  * - Purchase orders, GRN
@@ -43,12 +43,12 @@ return new class extends Migration
                 ->comment('Source channel: pos, api, shopify, woocommerce, etc.');
             $table->string('status', 50)->default('pending'); // pending, confirmed, processing, completed, cancelled
             $table->string('payment_status', 50)->default('unpaid'); // unpaid, partial, paid
-            
+
             // Dates
             $table->date('sale_date');
             $table->date('due_date')->nullable();
             $table->date('delivery_date')->nullable();
-            
+
             // Amounts
             $table->decimal('subtotal', 18, 4)->default(0);
             $table->string('discount_type', 20)->nullable(); // fixed or percentage
@@ -60,19 +60,19 @@ return new class extends Migration
             $table->decimal('change_amount', 18, 4)->default(0);
             $table->string('currency', 3)->default('EGP');
             $table->decimal('exchange_rate', 18, 8)->default(1);
-            
+
             // Shipping
             $table->text('shipping_address')->nullable();
             $table->string('shipping_method', 100)->nullable();
             $table->string('tracking_number', 100)->nullable();
-            
+
             // Additional
             $table->text('notes')->nullable();
             $table->text('internal_notes')->nullable();
             $table->text('terms_conditions')->nullable();
             $table->json('custom_fields')->nullable();
             $table->json('extra_attributes')->nullable(); // Extra attributes
-            
+
             // References
             $table->foreignId('store_order_id')->nullable();
             $table->foreignId('quotation_id')->nullable();
@@ -82,14 +82,14 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             // POS specific
             $table->foreignId('pos_session_id')->nullable();
             $table->boolean('is_pos_sale')->default(false);
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             // Indexes
             $table->index(['branch_id', 'sale_date']);
             $table->index(['customer_id', 'status']);
@@ -107,7 +107,7 @@ return new class extends Migration
                 ->constrained('product_variations')
                 ->nullOnDelete();
             $table->foreignId('warehouse_id')->constrained();
-            
+
             $table->string('product_name', 255);
             $table->string('sku', 100)->nullable();
             $table->decimal('quantity', 18, 4);
@@ -121,16 +121,16 @@ return new class extends Migration
             $table->decimal('tax_percent', 5, 2)->default(0);
             $table->decimal('tax_amount', 18, 4)->default(0);
             $table->decimal('line_total', 18, 4);
-            
+
             // Batch/Serial tracking
             $table->foreignId('batch_id')->nullable()
                 ->constrained('inventory_batches')
                 ->nullOnDelete();
             $table->json('serial_numbers')->nullable();
-            
+
             $table->text('notes')->nullable();
             $table->timestamps();
-            
+
             $table->index(['sale_id', 'product_id']);
         });
 
@@ -146,19 +146,19 @@ return new class extends Migration
             $table->date('payment_date');
             $table->string('currency', 3)->default('EGP');
             $table->decimal('exchange_rate', 18, 8)->default(1);
-            
+
             // Card/Bank details
             $table->string('card_last_four', 4)->nullable();
             $table->string('bank_name', 255)->nullable();
             $table->string('cheque_number', 100)->nullable();
             $table->date('cheque_date')->nullable();
-            
+
             $table->text('notes')->nullable();
             $table->foreignId('received_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
             $table->timestamps();
-            
+
             $table->index(['sale_id', 'status']);
         });
 
@@ -180,12 +180,12 @@ return new class extends Migration
                 ->comment('Source channel: manual, api, etc.');
             $table->string('status', 50)->default('pending'); // pending, confirmed, received, completed, cancelled
             $table->string('payment_status', 50)->default('unpaid');
-            
+
             // Dates
             $table->date('purchase_date');
             $table->date('due_date')->nullable();
             $table->date('expected_date')->nullable();
-            
+
             // Amounts
             $table->decimal('subtotal', 18, 4)->default(0);
             $table->decimal('discount_amount', 18, 4)->default(0);
@@ -196,12 +196,12 @@ return new class extends Migration
             $table->decimal('paid_amount', 18, 4)->default(0);
             $table->string('currency', 3)->default('EGP');
             $table->decimal('exchange_rate', 18, 8)->default(1);
-            
+
             $table->text('notes')->nullable();
             $table->text('terms_conditions')->nullable();
             $table->json('custom_fields')->nullable();
             $table->json('extra_attributes')->nullable(); // Extra attributes
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
@@ -209,10 +209,10 @@ return new class extends Migration
                 ->constrained('users')
                 ->nullOnDelete();
             $table->timestamp('approved_at')->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'purchase_date']);
             $table->index(['supplier_id', 'status']);
             $table->index('purchase_date');
@@ -227,7 +227,7 @@ return new class extends Migration
             $table->foreignId('variation_id')->nullable()
                 ->constrained('product_variations')
                 ->nullOnDelete();
-            
+
             $table->string('product_name', 255);
             $table->string('sku', 100)->nullable();
             $table->decimal('quantity', 18, 4);
@@ -240,13 +240,13 @@ return new class extends Migration
             $table->decimal('tax_percent', 5, 2)->default(0);
             $table->decimal('tax_amount', 18, 4)->default(0);
             $table->decimal('line_total', 18, 4);
-            
+
             $table->date('expiry_date')->nullable();
             $table->string('batch_number', 100)->nullable();
-            
+
             $table->text('notes')->nullable();
             $table->timestamps();
-            
+
             $table->index(['purchase_id', 'product_id']);
         });
 
@@ -266,7 +266,7 @@ return new class extends Migration
             $table->text('purpose')->nullable();
             $table->text('notes')->nullable();
             $table->decimal('estimated_total', 18, 4)->nullable(); // Estimated total
-            
+
             $table->foreignId('requested_by')->constrained('users');
             $table->foreignId('approved_by')->nullable()
                 ->constrained('users')
@@ -278,10 +278,10 @@ return new class extends Migration
             $table->json('extra_attributes')->nullable(); // Extra attributes
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete(); // Created by
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete(); // Updated by
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'status']);
         });
 
@@ -323,7 +323,7 @@ return new class extends Migration
             $table->string('status', 50)->default('pending'); // pending, received, accepted, rejected, expired
             $table->date('quotation_date');
             $table->date('valid_until')->nullable();
-            
+
             $table->string('currency', 3)->default('EGP');
             $table->decimal('sub_total', 18, 4)->default(0); // Sub total
             $table->decimal('discount_total', 18, 4)->default(0); // Discount total
@@ -341,15 +341,15 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->text('rejection_reason')->nullable(); // Rejection reason
             $table->json('extra_attributes')->nullable(); // Extra attributes
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete(); // Updated by
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['supplier_id', 'status']);
         });
 
@@ -388,10 +388,10 @@ return new class extends Migration
             $table->string('supplier_delivery_note', 100)->nullable();
             $table->string('status', 50)->default('pending'); // pending, inspecting, completed, rejected
             $table->date('received_date');
-            
+
             $table->text('notes')->nullable();
             $table->string('received_by_name', 255)->nullable();
-            
+
             $table->foreignId('received_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
@@ -399,10 +399,10 @@ return new class extends Migration
                 ->constrained('users')
                 ->nullOnDelete();
             $table->timestamp('inspected_at')->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'received_date']);
         });
 
@@ -449,19 +449,19 @@ return new class extends Migration
             $table->foreignId('warehouse_id')->constrained();
             $table->string('status', 50)->default('pending');
             $table->date('return_date');
-            
+
             $table->text('reason')->nullable();
             $table->decimal('total_amount', 18, 4)->default(0);
             $table->string('refund_method', 50)->nullable();
             $table->boolean('restock_items')->default(true);
-            
+
             $table->foreignId('processed_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'type']);
         });
 
@@ -502,11 +502,11 @@ return new class extends Migration
             $table->decimal('shipping_cost', 18, 4)->default(0);
             $table->text('notes')->nullable();
             $table->string('signature_image', 500)->nullable();
-            
+
             $table->foreignId('delivered_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
             $table->softDeletes();
         });

@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 
 /**
  * SendPaymentRemindersCommand - Automated payment reminders
- * 
+ *
  * NEW FEATURE: Scheduled command for payment reminders
  */
 class SendPaymentRemindersCommand extends Command
@@ -32,16 +32,17 @@ class SendPaymentRemindersCommand extends Command
 
         if (empty($alerts)) {
             $this->info('No overdue payments found.');
+
             return self::SUCCESS;
         }
 
-        $this->warn('Found ' . count($alerts) . ' overdue payments:');
+        $this->warn('Found '.count($alerts).' overdue payments:');
 
         // Group by severity
-        $critical = array_filter($alerts, fn($a) => $a['severity'] === 'critical');
-        $high = array_filter($alerts, fn($a) => $a['severity'] === 'high');
-        $medium = array_filter($alerts, fn($a) => $a['severity'] === 'medium');
-        $low = array_filter($alerts, fn($a) => $a['severity'] === 'low');
+        $critical = array_filter($alerts, fn ($a) => $a['severity'] === 'critical');
+        $high = array_filter($alerts, fn ($a) => $a['severity'] === 'high');
+        $medium = array_filter($alerts, fn ($a) => $a['severity'] === 'medium');
+        $low = array_filter($alerts, fn ($a) => $a['severity'] === 'low');
 
         $this->table(
             ['Severity', 'Count', 'Total Amount Due'],
@@ -55,11 +56,11 @@ class SendPaymentRemindersCommand extends Command
 
         // Show top 10 overdue
         $this->info("\nTop 10 Overdue Payments:");
-        usort($alerts, fn($a, $b) => $b['days_overdue'] <=> $a['days_overdue']);
+        usort($alerts, fn ($a, $b) => $b['days_overdue'] <=> $a['days_overdue']);
 
         $this->table(
             ['Invoice', 'Customer', 'Amount Due', 'Days Overdue', 'Severity'],
-            array_map(fn($a) => [
+            array_map(fn ($a) => [
                 $a['sale_code'],
                 $a['customer_name'],
                 number_format($a['amount_due'], 2),
@@ -70,6 +71,7 @@ class SendPaymentRemindersCommand extends Command
 
         if ($dryRun) {
             $this->info("\nDry run mode - no reminders were sent");
+
             return self::SUCCESS;
         }
 

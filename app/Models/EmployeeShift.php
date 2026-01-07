@@ -46,6 +46,7 @@ class EmployeeShift extends BaseModel
     public function scopeCurrent(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         $today = now()->toDateString();
+
         return $query->where('is_current', true)
             ->where('start_date', '<=', $today)
             ->where(function ($q) use ($today) {
@@ -56,7 +57,7 @@ class EmployeeShift extends BaseModel
 
     public function isCurrentlyActive(): bool
     {
-        if (!$this->is_current) {
+        if (! $this->is_current) {
             return false;
         }
 

@@ -17,8 +17,8 @@ class Form extends Component
 {
     use AuthorizesRequests;
     use HandlesErrors;
-    use WithFileUploads;
     use HasMultilingualValidation;
+    use WithFileUploads;
 
     public ?Expense $expense = null;
 
@@ -85,7 +85,7 @@ class Form extends Component
             $this->attachment = $expense->attachment ?? null;
         }
     }
-    
+
     #[On('file-uploaded')]
     public function handleFileUploaded(string $fieldId, string $path, array $fileInfo): void
     {
@@ -93,7 +93,7 @@ class Form extends Component
             $this->attachment = $path;
         }
     }
-    
+
     #[On('file-cleared')]
     public function handleFileCleared(string $fieldId): void
     {

@@ -19,19 +19,30 @@ class Expenses extends Component
     use AuthorizesRequests, WithPagination;
 
     public Project $project;
+
     public ?ProjectExpense $editingExpense = null;
+
     public bool $showModal = false;
+
     public ?int $editingExpenseId = null;
+
     public array $form = [];
 
     // Form fields
     public string $category = '';
+
     public float $amount = 0;
+
     public ?string $expense_date = null;
+
     public ?string $vendor = null;
+
     public ?string $description = null;
+
     public bool $billable = true;
+
     public ?int $user_id = null;
+
     public ?int $task_id = null;
 
     public function mount(int $projectId): void
@@ -108,7 +119,7 @@ class Expenses extends Component
         $this->editingExpense = $this->project->expenses()->findOrFail($id);
         $this->fill($this->editingExpense->only([
             'category', 'amount', 'expense_date', 'vendor', 'description',
-            'billable', 'user_id', 'task_id'
+            'billable', 'user_id', 'task_id',
         ]));
     }
 
@@ -119,7 +130,7 @@ class Expenses extends Component
 
         $data = $this->only([
             'category', 'amount', 'expense_date', 'vendor', 'description',
-            'billable', 'user_id', 'task_id'
+            'billable', 'user_id', 'task_id',
         ]);
 
         if ($this->editingExpense) {
@@ -163,7 +174,7 @@ class Expenses extends Component
     public function resetForm(): void
     {
         $this->reset([
-            'category', 'amount', 'vendor', 'description', 'billable', 'task_id'
+            'category', 'amount', 'vendor', 'description', 'billable', 'task_id',
         ]);
         $this->expense_date = now()->format('Y-m-d');
         $this->user_id = auth()->id();

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Livewire\Helpdesk\Tickets;
 
 use App\Livewire\Concerns\AuthorizesWithFriendlyErrors;
+use App\Models\Customer;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketPriority;
 use App\Models\TicketSLAPolicy;
-use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -20,19 +20,30 @@ class Form extends Component
     use AuthorizesWithFriendlyErrors;
 
     public ?Ticket $ticket = null;
+
     public bool $isEditing = false;
+
     public bool $hasAccess = true;
 
     // Form fields
     public string $subject = '';
+
     public string $description = '';
+
     public string $status = 'new';
+
     public ?int $priority_id = null;
+
     public ?int $customer_id = null;
+
     public ?int $assigned_to = null;
+
     public ?int $category_id = null;
+
     public ?int $sla_policy_id = null;
+
     public ?string $due_date = null;
+
     public array $tags = [];
 
     protected function rules(): array
@@ -58,6 +69,7 @@ class Form extends Component
         if (! $user || ! $user->can('helpdesk.manage')) {
             $this->hasAccess = false;
             session()->flash('error', __('You do not have permission to manage tickets.'));
+
             return;
         }
 
@@ -65,6 +77,7 @@ class Form extends Component
             if (! $user->can('update', $ticket)) {
                 $this->hasAccess = false;
                 session()->flash('error', __('You do not have permission to edit this ticket.'));
+
                 return;
             }
 
@@ -92,6 +105,7 @@ class Form extends Component
         $user = Auth::user();
         if ($this->isEditing && $this->ticket && ! $user?->can('update', $this->ticket)) {
             session()->flash('error', __('You do not have permission to update this ticket.'));
+
             return;
         }
 

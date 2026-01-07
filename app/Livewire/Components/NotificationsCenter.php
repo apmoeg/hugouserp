@@ -11,9 +11,9 @@ use Livewire\Component;
 class NotificationsCenter extends Component
 {
     public int $unreadCount = 0;
-    
+
     public array $notifications = [];
-    
+
     public bool $showDropdown = false;
 
     public function mount(): void
@@ -24,8 +24,8 @@ class NotificationsCenter extends Component
     public function loadNotifications(): void
     {
         $user = Auth::user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return;
         }
 
@@ -35,7 +35,7 @@ class NotificationsCenter extends Component
             ->latest()
             ->limit(20);
 
-        $this->notifications = $notificationQuery->get()->map(fn($n) => [
+        $this->notifications = $notificationQuery->get()->map(fn ($n) => [
             'id' => $n->id,
             'type' => $this->getNotificationType($n->type),
             'title' => $n->data['title'] ?? __('Notification'),
@@ -55,13 +55,13 @@ class NotificationsCenter extends Component
 
     public function toggleDropdown(): void
     {
-        $this->showDropdown = !$this->showDropdown;
+        $this->showDropdown = ! $this->showDropdown;
     }
 
     public function markAsRead(string $notificationId): void
     {
         $notification = Notification::find($notificationId);
-        
+
         if ($notification && $notification->notifiable_id === Auth::id()) {
             $notification->markAsRead();
             $this->loadNotifications();
@@ -82,8 +82,8 @@ class NotificationsCenter extends Component
     {
         $parts = explode('\\', $type);
         $className = end($parts);
-        
-        return match(true) {
+
+        return match (true) {
             str_contains($className, 'Sale') => 'sales',
             str_contains($className, 'Purchase') => 'purchases',
             str_contains($className, 'Stock') || str_contains($className, 'Inventory') => 'inventory',
@@ -96,8 +96,8 @@ class NotificationsCenter extends Component
     protected function getNotificationIcon(string $type): string
     {
         $category = $this->getNotificationType($type);
-        
-        return match($category) {
+
+        return match ($category) {
             'sales' => 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
             'purchases' => 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z',
             'inventory' => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
@@ -110,8 +110,8 @@ class NotificationsCenter extends Component
     protected function getNotificationColor(string $type): string
     {
         $category = $this->getNotificationType($type);
-        
-        return match($category) {
+
+        return match ($category) {
             'sales' => 'green',
             'purchases' => 'blue',
             'inventory' => 'purple',

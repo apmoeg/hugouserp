@@ -11,10 +11,10 @@ use Livewire\Component;
 
 /**
  * Branch Switcher Component
- * 
+ *
  * Allows Super Admin and users with 'branches.view-all' permission to switch
  * between branches and view the system from that branch's perspective.
- * 
+ *
  * The selected branch is stored in session and affects:
  * - Sidebar menu items (only shows modules enabled for the selected branch)
  * - Reports and data filtering
@@ -26,7 +26,7 @@ class BranchSwitcher extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        
+
         // Get the stored branch ID from session, or use user's own branch
         $this->selectedBranchId = session('admin_branch_context', $user?->branch_id);
     }
@@ -37,11 +37,11 @@ class BranchSwitcher extends Component
     public function canSwitchBranches(): bool
     {
         $user = Auth::user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return false;
         }
-        
+
         // Super Admin or users with branches.view-all can switch
         return $user->hasRole('Super Admin') || $user->can('branches.view-all');
     }
@@ -51,7 +51,7 @@ class BranchSwitcher extends Component
      */
     public function switchBranch(?int $branchId): void
     {
-        if (!$this->canSwitchBranches()) {
+        if (! $this->canSwitchBranches()) {
             return;
         }
 
@@ -62,7 +62,7 @@ class BranchSwitcher extends Component
         } else {
             // Verify branch exists and is active
             $branch = Branch::where('is_active', true)->find($branchId);
-            
+
             if ($branch) {
                 session(['admin_branch_context' => $branchId]);
                 $this->selectedBranchId = $branchId;
@@ -78,7 +78,7 @@ class BranchSwitcher extends Component
      */
     public function getBranches(): array
     {
-        if (!$this->canSwitchBranches()) {
+        if (! $this->canSwitchBranches()) {
             return [];
         }
 
@@ -94,7 +94,7 @@ class BranchSwitcher extends Component
      */
     public function getSelectedBranchProperty(): ?Branch
     {
-        if (!$this->selectedBranchId) {
+        if (! $this->selectedBranchId) {
             return null;
         }
 
@@ -106,7 +106,7 @@ class BranchSwitcher extends Component
      */
     public function getSelectedBranchModulesProperty(): array
     {
-        if (!$this->selectedBranchId) {
+        if (! $this->selectedBranchId) {
             return [];
         }
 

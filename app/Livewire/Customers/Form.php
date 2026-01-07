@@ -80,7 +80,7 @@ class Form extends Component
             }
             $this->customer = $customer;
             $this->editMode = true;
-            
+
             // Explicitly set all fields to ensure proper initialization
             $this->name = $customer->name ?? '';
             $this->email = $customer->email ?? '';
@@ -103,7 +103,7 @@ class Form extends Component
     public function save(): mixed
     {
         $validated = $this->validate($this->getRules());
-        
+
         // Get the user's branch - handle both direct branch_id and relationship
         $user = auth()->user();
         $branchId = $this->customer?->branch_id ?? $user?->branch_id ?? $user?->branches()->first()?->id;
@@ -118,7 +118,7 @@ class Form extends Component
         $validated['status'] = $validated['status'] ?? 'active';
 
         // Only set created_by for new records
-        if (!$this->editMode) {
+        if (! $this->editMode) {
             $validated['created_by'] = auth()->id();
         }
 

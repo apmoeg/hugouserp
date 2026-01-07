@@ -80,10 +80,8 @@ class Account extends BaseModel
 
     /**
      * Scope to filter active accounts
-     * 
-     * @param Builder $query
-     * @return Builder
-     * 
+     *
+     *
      * @example Account::active()->get()
      */
     public function scopeActive(Builder $query): Builder
@@ -93,11 +91,9 @@ class Account extends BaseModel
 
     /**
      * Scope to filter accounts by type
-     * 
-     * @param Builder $query
-     * @param string $type Account type (asset, liability, equity, revenue, expense)
-     * @return Builder
-     * 
+     *
+     * @param  string  $type  Account type (asset, liability, equity, revenue, expense)
+     *
      * @example Account::type('asset')->get()
      */
     public function scopeType(Builder $query, string $type): Builder
@@ -107,11 +103,9 @@ class Account extends BaseModel
 
     /**
      * Scope to filter accounts by category
-     * 
-     * @param Builder $query
-     * @param string $category Account category
-     * @return Builder
-     * 
+     *
+     * @param  string  $category  Account category
+     *
      * @example Account::category('current_assets')->get()
      */
     public function scopeCategory(Builder $query, string $category): Builder

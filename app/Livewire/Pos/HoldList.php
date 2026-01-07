@@ -27,12 +27,12 @@ class HoldList extends Component
     {
         if (isset($this->holds[$index])) {
             $hold = $this->holds[$index];
-            
+
             // Remove from holds
             unset($this->holds[$index]);
             $this->holds = array_values($this->holds);
             session()->put('pos_holds', $this->holds);
-            
+
             // Dispatch event to resume the cart
             $this->dispatch('resumeCart', cart: $hold);
         }
@@ -44,7 +44,7 @@ class HoldList extends Component
             unset($this->holds[$index]);
             $this->holds = array_values($this->holds);
             session()->put('pos_holds', $this->holds);
-            
+
             $this->dispatch('notify', type: 'success', message: __('Hold deleted successfully'));
         }
     }

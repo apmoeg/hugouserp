@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Customer Behavior Analysis Service
- * 
+ *
  * Analyzes customer purchasing patterns, preferences, and behavior
  * to provide actionable insights for marketing and sales strategies.
  */
@@ -62,7 +62,7 @@ class CustomerBehaviorService
                 $customers = $data->map(function ($row) {
                     $customer = Customer::find($row->customer_id);
                     $daysSinceLastPurchase = now()->diffInDays($row->last_purchase);
-                    
+
                     return [
                         'customer_id' => $row->customer_id,
                         'customer_name' => $customer?->name ?? __('Unknown'),
@@ -85,13 +85,13 @@ class CustomerBehaviorService
                     $rScore = $this->getPercentileScore($c['recency_days'], $recencyValues, true); // Lower is better
                     $fScore = $this->getPercentileScore($c['frequency'], $frequencyValues, false); // Higher is better
                     $mScore = $this->getPercentileScore($c['monetary'], $monetaryValues, false); // Higher is better
-                    
+
                     $c['r_score'] = $rScore;
                     $c['f_score'] = $fScore;
                     $c['m_score'] = $mScore;
-                    $c['rfm_score'] = $rScore . $fScore . $mScore;
+                    $c['rfm_score'] = $rScore.$fScore.$mScore;
                     $c['segment'] = $this->determineSegment($rScore, $fScore, $mScore);
-                    
+
                     return $c;
                 });
 
@@ -151,8 +151,8 @@ class CustomerBehaviorService
 
                 $frequencies = $data->map(function ($row) {
                     $daysBetween = now()->parse($row->first_purchase)->diffInDays($row->last_purchase);
-                    $avgDaysBetweenPurchases = $row->purchase_count > 1 
-                        ? $daysBetween / ($row->purchase_count - 1) 
+                    $avgDaysBetweenPurchases = $row->purchase_count > 1
+                        ? $daysBetween / ($row->purchase_count - 1)
                         : 0;
 
                     return [
@@ -166,11 +166,11 @@ class CustomerBehaviorService
 
                 // Group by frequency
                 $groups = [
-                    'weekly' => $frequencies->filter(fn($f) => $f['avg_days_between'] <= 7)->count(),
-                    'biweekly' => $frequencies->filter(fn($f) => $f['avg_days_between'] > 7 && $f['avg_days_between'] <= 14)->count(),
-                    'monthly' => $frequencies->filter(fn($f) => $f['avg_days_between'] > 14 && $f['avg_days_between'] <= 30)->count(),
-                    'quarterly' => $frequencies->filter(fn($f) => $f['avg_days_between'] > 30 && $f['avg_days_between'] <= 90)->count(),
-                    'infrequent' => $frequencies->filter(fn($f) => $f['avg_days_between'] > 90)->count(),
+                    'weekly' => $frequencies->filter(fn ($f) => $f['avg_days_between'] <= 7)->count(),
+                    'biweekly' => $frequencies->filter(fn ($f) => $f['avg_days_between'] > 7 && $f['avg_days_between'] <= 14)->count(),
+                    'monthly' => $frequencies->filter(fn ($f) => $f['avg_days_between'] > 14 && $f['avg_days_between'] <= 30)->count(),
+                    'quarterly' => $frequencies->filter(fn ($f) => $f['avg_days_between'] > 30 && $f['avg_days_between'] <= 90)->count(),
+                    'infrequent' => $frequencies->filter(fn ($f) => $f['avg_days_between'] > 90)->count(),
                 ];
 
                 return [
@@ -200,7 +200,7 @@ class CustomerBehaviorService
                     )
                     ->whereHas('sale', function ($q) use ($customerId) {
                         $q->where('customer_id', $customerId)
-                          ->where('status', '!=', 'cancelled');
+                            ->where('status', '!=', 'cancelled');
                     })
                     ->whereNotNull('product_id')
                     ->groupBy('product_id')
@@ -210,6 +210,7 @@ class CustomerBehaviorService
 
                 return $purchases->map(function ($item) {
                     $product = \App\Models\Product::find($item->product_id);
+
                     return [
                         'product_id' => $item->product_id,
                         'product_name' => $product?->name ?? __('Unknown'),
@@ -238,11 +239,11 @@ class CustomerBehaviorService
                 $query = Customer::query()
                     ->whereHas('sales', function ($q) use ($activeThreshold) {
                         $q->where('created_at', '<', $activeThreshold)
-                          ->where('status', '!=', 'cancelled');
+                            ->where('status', '!=', 'cancelled');
                     })
                     ->whereDoesntHave('sales', function ($q) use ($activeThreshold) {
                         $q->where('created_at', '>=', $activeThreshold)
-                          ->where('status', '!=', 'cancelled');
+                            ->where('status', '!=', 'cancelled');
                     })
                     ->withCount(['sales' => function ($q) {
                         $q->where('status', '!=', 'cancelled');
@@ -260,6 +261,7 @@ class CustomerBehaviorService
                     ->get()
                     ->map(function ($customer) {
                         $lastSale = $customer->sales()->latest()->first();
+
                         return [
                             'id' => $customer->id,
                             'name' => $customer->name,
@@ -308,7 +310,7 @@ class CustomerBehaviorService
                         $firstSale = $c->sales()->oldest()->first();
                         $monthsActive = $firstSale ? max(1, now()->diffInMonths($firstSale->created_at)) : 1;
                         $monthlyValue = ($c->sales_sum_total_amount ?? 0) / $monthsActive;
-                        
+
                         return [
                             'id' => $c->id,
                             'name' => $c->name,
@@ -338,32 +340,52 @@ class CustomerBehaviorService
      */
     protected function getPercentileScore($value, Collection $values, bool $inverse = false): int
     {
-        if ($values->isEmpty()) return 3;
-        
+        if ($values->isEmpty()) {
+            return 3;
+        }
+
         $count = $values->count();
         $position = $values->search(function ($v) use ($value) {
             return $v >= $value;
         });
-        
+
         if ($position === false) {
             $position = $count;
         }
-        
+
         $percentile = ($position / $count) * 100;
-        
+
         if ($inverse) {
             // For recency, lower values are better
-            if ($percentile <= 20) return 5;
-            if ($percentile <= 40) return 4;
-            if ($percentile <= 60) return 3;
-            if ($percentile <= 80) return 2;
+            if ($percentile <= 20) {
+                return 5;
+            }
+            if ($percentile <= 40) {
+                return 4;
+            }
+            if ($percentile <= 60) {
+                return 3;
+            }
+            if ($percentile <= 80) {
+                return 2;
+            }
+
             return 1;
         } else {
             // For frequency and monetary, higher values are better
-            if ($percentile >= 80) return 5;
-            if ($percentile >= 60) return 4;
-            if ($percentile >= 40) return 3;
-            if ($percentile >= 20) return 2;
+            if ($percentile >= 80) {
+                return 5;
+            }
+            if ($percentile >= 60) {
+                return 4;
+            }
+            if ($percentile >= 40) {
+                return 3;
+            }
+            if ($percentile >= 20) {
+                return 2;
+            }
+
             return 1;
         }
     }
@@ -374,15 +396,29 @@ class CustomerBehaviorService
     protected function determineSegment(int $r, int $f, int $m): string
     {
         $avgScore = ($r + $f + $m) / 3;
-        
-        if ($r >= 4 && $f >= 4 && $m >= 4) return 'champions';
-        if ($r >= 4 && $f >= 3) return 'loyal_customers';
-        if ($r >= 4 && $f <= 2) return 'new_customers';
-        if ($r <= 2 && $f >= 4 && $m >= 4) return 'at_risk';
-        if ($r <= 2 && $f >= 2) return 'needs_attention';
-        if ($r <= 2 && $f <= 2) return 'hibernating';
-        if ($r >= 3 && $m >= 4) return 'potential_loyalists';
-        
+
+        if ($r >= 4 && $f >= 4 && $m >= 4) {
+            return 'champions';
+        }
+        if ($r >= 4 && $f >= 3) {
+            return 'loyal_customers';
+        }
+        if ($r >= 4 && $f <= 2) {
+            return 'new_customers';
+        }
+        if ($r <= 2 && $f >= 4 && $m >= 4) {
+            return 'at_risk';
+        }
+        if ($r <= 2 && $f >= 2) {
+            return 'needs_attention';
+        }
+        if ($r <= 2 && $f <= 2) {
+            return 'hibernating';
+        }
+        if ($r >= 3 && $m >= 4) {
+            return 'potential_loyalists';
+        }
+
         return 'regular';
     }
 
@@ -391,7 +427,7 @@ class CustomerBehaviorService
      */
     protected function getSegmentLabel(string $segment): string
     {
-        return match($segment) {
+        return match ($segment) {
             'champions' => __('Champions'),
             'loyal_customers' => __('Loyal Customers'),
             'new_customers' => __('New Customers'),

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Consolidated Core Tables Migration
- * 
+ *
  * MySQL 8.4 Optimized:
  * - Uses InnoDB engine with proper character set (utf8mb4_0900_ai_ci)
  * - Optimized index strategies
@@ -121,7 +121,7 @@ return new class extends Migration
             $table->json('settings')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            
+
             // Composite indexes for common queries
             $table->index(['is_active', 'is_main']);
             $table->index(['created_at']);
@@ -146,18 +146,18 @@ return new class extends Migration
             $table->string('timezone', 100)->nullable();
             $table->json('preferences')->nullable();
             $table->rememberToken();
-            
+
             // Discount and pricing permissions
             $table->decimal('max_discount_percent', 5, 2)->nullable(); // Max discount percent
             $table->decimal('daily_discount_limit', 15, 2)->nullable(); // Daily discount limit
             $table->boolean('can_modify_price')->default(false); // Can modify price flag
-            
+
             // 2FA fields
             $table->boolean('two_factor_enabled')->default(false);
             $table->string('two_factor_secret', 255)->nullable();
             $table->text('two_factor_recovery_codes')->nullable();
             $table->timestamp('two_factor_confirmed_at')->nullable();
-            
+
             // Security fields
             $table->timestamp('password_changed_at')->nullable();
             $table->timestamp('last_login_at')->nullable();
@@ -165,10 +165,10 @@ return new class extends Migration
             $table->integer('failed_login_attempts')->default(0);
             $table->timestamp('locked_until')->nullable();
             $table->integer('max_sessions')->default(5); // Max concurrent sessions
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             // Indexes
             $table->index(['is_active', 'branch_id']);
             $table->index(['email', 'is_active']);
@@ -182,7 +182,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->boolean('is_default')->default(false);
             $table->timestamps();
-            
+
             $table->unique(['branch_id', 'user_id']);
         });
 
@@ -202,7 +202,7 @@ return new class extends Migration
             $table->timestamp('last_activity')->nullable(); // Last activity timestamp
             $table->timestamp('last_activity_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['user_id', 'last_activity_at']);
         });
 
@@ -222,7 +222,7 @@ return new class extends Migration
             $table->string('failure_reason', 255)->nullable();
             $table->json('metadata')->nullable();
             $table->timestamp('created_at')->useCurrent();
-            
+
             $table->index(['user_id', 'created_at']);
             $table->index(['email', 'status', 'created_at']);
             $table->index(['ip_address', 'created_at']);
@@ -242,7 +242,7 @@ return new class extends Migration
             $table->text('description')->nullable(); // Description field
             $table->integer('sort_order')->default(0); // Sort order
             $table->timestamps();
-            
+
             $table->index(['group', 'key']);
         });
 
@@ -270,7 +270,7 @@ return new class extends Migration
             $table->date('effective_date')->index();
             $table->string('source', 100)->nullable();
             $table->timestamps();
-            
+
             $table->unique(['currency_id', 'effective_date']);
         });
     }

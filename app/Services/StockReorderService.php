@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * StockReorderService - Automated stock reorder management
- * 
+ *
  * NEW FEATURE: Automated stock monitoring and reorder suggestions
- * 
+ *
  * FEATURES:
  * - Identify products that need reordering
  * - Calculate optimal reorder quantities
@@ -123,7 +123,7 @@ class StockReorderService
         return $products->map(function (Product $product) {
             $reorderQty = $this->calculateReorderQuantity($product);
             $salesVelocity = $this->calculateSalesVelocity($product->id);
-            $daysUntilStockout = $salesVelocity > 0 
+            $daysUntilStockout = $salesVelocity > 0
                 ? ceil($product->stock_quantity / $salesVelocity)
                 : null;
 
@@ -188,7 +188,7 @@ class StockReorderService
         }
 
         $requisitionsByBranch = collect($suggestions)
-            ->filter(fn($s) => $s['priority'] >= 3) // Only auto-generate for priority 3+
+            ->filter(fn ($s) => $s['priority'] >= 3) // Only auto-generate for priority 3+
             ->groupBy('branch_id');
 
         $createdRequisitions = [];
@@ -196,7 +196,7 @@ class StockReorderService
         DB::transaction(function () use ($requisitionsByBranch, $userId, &$createdRequisitions) {
             foreach ($requisitionsByBranch as $branchId => $items) {
                 $requisition = PurchaseRequisition::create([
-                    'code' => 'REQ-AUTO-' . strtoupper(uniqid()),
+                    'code' => 'REQ-AUTO-'.strtoupper(uniqid()),
                     'branch_id' => $branchId,
                     'status' => 'pending',
                     'priority' => 'high',
@@ -228,7 +228,7 @@ class StockReorderService
 
         return [
             'success' => true,
-            'message' => count($createdRequisitions) . ' requisitions created',
+            'message' => count($createdRequisitions).' requisitions created',
             'requisitions' => $createdRequisitions,
         ];
     }
@@ -242,7 +242,7 @@ class StockReorderService
         $lowStock = $this->getLowStockProducts($branchId)->count();
         $outOfStock = Product::outOfStock()
             ->where('status', 'active')
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->count();
 
         $suggestions = $this->generateReorderSuggestions($branchId);

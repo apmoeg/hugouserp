@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class RentalContract extends BaseModel
 {
     use SoftDeletes;
+
     protected ?string $moduleKey = 'rentals';
 
     /**

@@ -22,7 +22,7 @@ class BankAccountUpdateRequest extends FormRequest
 
         return [
             'account_name' => array_merge(['sometimes', 'required'], $this->multilingualString(required: true, max: 255)),
-            'account_number' => ['sometimes', 'required', 'string', 'max:50', 'unique:bank_accounts,account_number,' . $accountId],
+            'account_number' => ['sometimes', 'required', 'string', 'max:50', 'unique:bank_accounts,account_number,'.$accountId],
             'bank_name' => array_merge(['sometimes', 'required'], $this->multilingualString(required: true, max: 255)),
             'branch_name' => $this->multilingualString(required: false, max: 255),
             'currency' => ['sometimes', 'required', 'string', 'max:3'],

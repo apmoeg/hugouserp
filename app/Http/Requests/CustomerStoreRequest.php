@@ -10,8 +10,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CustomerStoreRequest extends FormRequest
 {
-    use HasPaymentTermsValidation;
     use HasMultilingualValidation;
+    use HasPaymentTermsValidation;
 
     public function authorize(): bool
     {
@@ -34,8 +34,8 @@ class CustomerStoreRequest extends FormRequest
             'preferred_currency' => ['nullable', 'string', 'size:3'],
             'notes' => $this->unicodeText(required: false),
         ],
-        $this->paymentTermsRules(),
-        $this->paymentDueDaysRules()
+            $this->paymentTermsRules(),
+            $this->paymentDueDaysRules()
         );
     }
 }

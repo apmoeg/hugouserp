@@ -13,10 +13,10 @@ use Tests\TestCase;
 
 /**
  * Regression test to ensure Livewire and Alpine scripts are loaded exactly once.
- * 
+ *
  * This test prevents the bug where multiple instances of Livewire/Alpine
  * are initialized, causing console warnings and broken Livewire behavior.
- * 
+ *
  * Root cause: When Livewire's `inject_assets` config is set to true,
  * Livewire v3 automatically injects both Livewire scripts AND Alpine.js.
  * Combined with manual @livewireScripts/@livewireStyles in layouts,
@@ -32,20 +32,20 @@ class DuplicateScriptsRegressionTest extends TestCase
     {
         parent::setUp();
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        
+
         // Create dashboard permission
         Permission::findOrCreate('dashboard.view', 'web');
     }
 
     /**
      * Test the Livewire config has inject_assets disabled.
-     * 
+     *
      * This is the critical guard that prevents duplicate scripts.
-     * 
+     *
      * When inject_assets is true in Livewire v3:
      * - Livewire automatically injects its scripts
      * - Alpine.js is also injected (bundled with Livewire v3)
-     * 
+     *
      * Combined with manual @livewireScripts/@livewireStyles in layouts,
      * this causes the "Detected multiple instances" console errors.
      */
@@ -59,7 +59,7 @@ class DuplicateScriptsRegressionTest extends TestCase
 
     /**
      * Test that Livewire scripts/styles directives aren't duplicated in layouts.
-     * 
+     *
      * When using @livewireScripts/@livewireStyles in layouts, they should only appear once.
      */
     public function test_livewire_directives_not_duplicated(): void
@@ -74,14 +74,14 @@ class DuplicateScriptsRegressionTest extends TestCase
         // Check for duplicate Livewire script tags with src attribute
         // This pattern matches actual script tag loads, not inline mentions
         $livewireScriptTags = preg_match_all('/<script[^>]+livewire[^>]+src=[^>]+>/', $content);
-        
-        $this->assertLessThanOrEqual(1, $livewireScriptTags, 
+
+        $this->assertLessThanOrEqual(1, $livewireScriptTags,
             'Livewire script tag should appear at most once in the page.');
     }
 
     /**
      * Test that the app layout has livewire directives.
-     * 
+     *
      * Ensures that @livewireStyles and @livewireScripts are present in the layout
      * (since inject_assets is disabled, we need manual inclusion).
      */
@@ -89,10 +89,10 @@ class DuplicateScriptsRegressionTest extends TestCase
     {
         $layoutPath = resource_path('views/layouts/app.blade.php');
         $layoutContent = file_get_contents($layoutPath);
-        
+
         $this->assertStringContainsString('@livewireStyles', $layoutContent,
             'App layout should include @livewireStyles directive.');
-        
+
         $this->assertStringContainsString('@livewireScripts', $layoutContent,
             'App layout should include @livewireScripts directive.');
     }
@@ -104,10 +104,10 @@ class DuplicateScriptsRegressionTest extends TestCase
     {
         $layoutPath = resource_path('views/layouts/guest.blade.php');
         $layoutContent = file_get_contents($layoutPath);
-        
+
         $this->assertStringContainsString('@livewireStyles', $layoutContent,
             'Guest layout should include @livewireStyles directive.');
-        
+
         $this->assertStringContainsString('@livewireScripts', $layoutContent,
             'Guest layout should include @livewireScripts directive.');
     }

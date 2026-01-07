@@ -104,10 +104,10 @@ class DynamicForm extends Component
                     // Security: Only allow whitelisted disks, default to 'local' (private)
                     $requestedDisk = $field['disk'] ?? 'local';
                     $disk = in_array($requestedDisk, $this->allowedDisks, true) ? $requestedDisk : 'local';
-                    
+
                     // Security: Validate file against server-side rules
                     $this->validateFileUpload($file, $field);
-                    
+
                     $path = $file->store('dynamic-uploads', $disk);
                     $this->data[$name] = $path;
                 }
@@ -131,7 +131,7 @@ class DynamicForm extends Component
         $rules = [];
         foreach ($this->schema as $field) {
             $name = $field['name'] ?? '';
-            if (!$name) {
+            if (! $name) {
                 continue;
             }
 
@@ -166,7 +166,7 @@ class DynamicForm extends Component
 
         $mimes = $field['mimes'] ?? $this->defaultFileMimes;
         if (! empty($mimes)) {
-            $rules[] = 'mimes:' . implode(',', $mimes);
+            $rules[] = 'mimes:'.implode(',', $mimes);
         }
 
         return array_values(array_unique($rules));
@@ -179,10 +179,10 @@ class DynamicForm extends Component
     {
         // Get allowed MIME types from field or use default
         $allowedMimes = $field['mimes'] ?? $this->defaultFileMimes;
-        
+
         // Get file extension
         $extension = strtolower($file->getClientOriginalExtension());
-        
+
         // Security: Block potentially dangerous file types
         $blockedExtensions = ['php', 'phtml', 'php3', 'php4', 'php5', 'phar', 'exe', 'sh', 'bat', 'cmd', 'com'];
         if (in_array($extension, $blockedExtensions, true)) {
@@ -190,14 +190,14 @@ class DynamicForm extends Component
             $validator->errors()->add('file', 'This file type is not allowed for security reasons.');
             throw new \Illuminate\Validation\ValidationException($validator);
         }
-        
+
         // Security: Check MIME type matches allowed types
-        if (!in_array($extension, $allowedMimes, true)) {
+        if (! in_array($extension, $allowedMimes, true)) {
             $validator = validator([], []);
-            $validator->errors()->add('file', 'Only the following file types are allowed: ' . implode(', ', $allowedMimes));
+            $validator->errors()->add('file', 'Only the following file types are allowed: '.implode(', ', $allowedMimes));
             throw new \Illuminate\Validation\ValidationException($validator);
         }
-        
+
         // Security: Scan for HTML/script content in uploads
         if (in_array($extension, ['html', 'htm', 'svg'], true)) {
             $content = file_get_contents($file->getRealPath());
@@ -207,7 +207,7 @@ class DynamicForm extends Component
                 throw new \Illuminate\Validation\ValidationException($validator);
             }
         }
-        
+
         // Security: Enforce max file size
         $maxSize = ($field['max'] ?? 10240) * 1024; // Convert KB to bytes
         if ($file->getSize() > $maxSize) {

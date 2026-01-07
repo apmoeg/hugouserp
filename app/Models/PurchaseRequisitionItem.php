@@ -22,28 +22,28 @@ class PurchaseRequisitionItem extends BaseModel
         'estimated_price' => 'decimal:4',
         'extra_attributes' => 'array',
     ];
-    
+
     // Backward compatibility accessors
     public function getQtyAttribute()
     {
         return $this->quantity;
     }
-    
+
     public function getUomAttribute()
     {
         return $this->unit_id;
     }
-    
+
     public function getEstimatedUnitCostAttribute()
     {
         return $this->estimated_price;
     }
-    
+
     public function getEstimatedTotalAttribute()
     {
-        return bcmul((string)($this->quantity ?? 0), (string)($this->estimated_price ?? 0), 4);
+        return bcmul((string) ($this->quantity ?? 0), (string) ($this->estimated_price ?? 0), 4);
     }
-    
+
     public function getNotesAttribute()
     {
         return $this->specifications;
@@ -59,12 +59,12 @@ class PurchaseRequisitionItem extends BaseModel
     {
         return $this->belongsTo(Product::class);
     }
-    
+
     public function unit(): BelongsTo
     {
         return $this->belongsTo(UnitOfMeasure::class, 'unit_id');
     }
-    
+
     public function preferredSupplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class, 'preferred_supplier_id');

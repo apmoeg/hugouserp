@@ -18,8 +18,11 @@ class SalesCacheInvalidationTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Branch $branch;
+
     protected Customer $customer;
+
     protected Warehouse $warehouse;
 
     protected function setUp(): void
@@ -43,7 +46,7 @@ class SalesCacheInvalidationTest extends TestCase
     public function test_cache_is_cleared_when_sale_is_created(): void
     {
         // Pre-populate cache
-        $cacheKey = 'sales_stats_' . $this->branch->id;
+        $cacheKey = 'sales_stats_'.$this->branch->id;
         Cache::put($cacheKey, ['total_sales' => 0, 'total_revenue' => '0.00'], 300);
 
         // Verify cache exists
@@ -82,7 +85,7 @@ class SalesCacheInvalidationTest extends TestCase
         ]);
 
         // Pre-populate cache
-        $cacheKey = 'sales_stats_' . $this->branch->id;
+        $cacheKey = 'sales_stats_'.$this->branch->id;
         Cache::put($cacheKey, ['total_sales' => 1, 'total_revenue' => '100.00'], 300);
 
         // Verify cache exists
@@ -111,7 +114,7 @@ class SalesCacheInvalidationTest extends TestCase
         ]);
 
         // Pre-populate cache
-        $cacheKey = 'sales_stats_' . $this->branch->id;
+        $cacheKey = 'sales_stats_'.$this->branch->id;
         Cache::put($cacheKey, ['total_sales' => 1, 'total_revenue' => '100.00'], 300);
 
         // Verify cache exists
@@ -134,9 +137,9 @@ class SalesCacheInvalidationTest extends TestCase
         ]);
 
         // Pre-populate cache for both branches
-        $cacheKey1 = 'sales_stats_' . $this->branch->id;
-        $cacheKey2 = 'sales_stats_' . $branch2->id;
-        
+        $cacheKey1 = 'sales_stats_'.$this->branch->id;
+        $cacheKey2 = 'sales_stats_'.$branch2->id;
+
         Cache::put($cacheKey1, ['total_sales' => 0], 300);
         Cache::put($cacheKey2, ['total_sales' => 0], 300);
 

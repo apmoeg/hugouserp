@@ -29,15 +29,16 @@ class UpdateStockOnPurchase implements ShouldQueue
                 ->where('product_id', $item->product_id)
                 ->where('quantity', '>', 0) // Positive quantity = in movement
                 ->exists();
-                
+
             if ($existing) {
                 Log::info('Stock movement already recorded for purchase', [
                     'purchase_id' => $purchase->getKey(),
                     'product_id' => $item->product_id,
                 ]);
+
                 continue;
             }
-            
+
             // Validate quantity is positive (use quantity column)
             $itemQty = (float) $item->quantity;
             if ($itemQty <= 0) {

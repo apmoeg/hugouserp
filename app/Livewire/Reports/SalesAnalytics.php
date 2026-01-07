@@ -39,9 +39,9 @@ class SalesAnalytics extends Component
     public array $hourlyDistribution = [];
 
     public array $categoryPerformance = [];
-    
+
     protected DatabaseCompatibilityService $dbService;
-    
+
     public function boot(DatabaseCompatibilityService $dbService): void
     {
         $this->dbService = $dbService;
@@ -164,7 +164,7 @@ class SalesAnalytics extends Component
         }
 
         $prevTotalSales = $prevPeriodQuery->sum('grand_total') ?? 0;
-        
+
         if (bccomp((string) $prevTotalSales, '0', 2) > 0) {
             $diff = bcsub((string) $totalSales, (string) $prevTotalSales, 4);
             $salesGrowth = (float) bcdiv(bcmul($diff, '100', 6), (string) $prevTotalSales, 1);

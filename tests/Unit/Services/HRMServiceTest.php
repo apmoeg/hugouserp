@@ -16,7 +16,9 @@ class HRMServiceTest extends TestCase
     use RefreshDatabase;
 
     protected HRMService $service;
+
     protected Branch $branch;
+
     protected HREmployee $employee;
 
     protected function setUp(): void

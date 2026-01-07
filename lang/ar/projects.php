@@ -22,19 +22,19 @@ return [
     'time_logs' => 'سجلات الوقت',
     'expenses' => 'المصروفات',
     'expense' => 'مصروف',
-    
+
     // Status Values
     'planning' => 'التخطيط',
     'active' => 'نشط',
     'on_hold' => 'معلق',
     'completed' => 'مكتمل',
     'cancelled' => 'ملغي',
-    
+
     // Task Status
     'pending' => 'معلق',
     'in_progress' => 'قيد التنفيذ',
     'done' => 'منتهي',
-    
+
     // Messages
     'project_created' => 'تم إنشاء المشروع بنجاح',
     'project_updated' => 'تم تحديث المشروع بنجاح',
@@ -44,7 +44,7 @@ return [
     'task_deleted' => 'تم حذف المهمة',
     'time_logged' => 'تم تسجيل الوقت بنجاح',
     'expense_added' => 'تمت إضافة المصروف بنجاح',
-    
+
     // Buttons
     'new_project' => 'مشروع جديد',
     'create_project' => 'إنشاء مشروع',
@@ -52,13 +52,13 @@ return [
     'log_time' => 'تسجيل الوقت',
     'add_expense' => 'إضافة مصروف',
     'view_details' => 'عرض التفاصيل',
-    
+
     // Navigation
     'all_projects' => 'جميع المشاريع',
     'my_projects' => 'مشاريعي',
     'active_projects' => 'المشاريع النشطة',
     'completed_projects' => 'المشاريع المكتملة',
-    
+
     // Table Headers
     'project_name' => 'اسم المشروع',
     'project_code' => 'رمز المشروع',
@@ -67,13 +67,13 @@ return [
     'amount' => 'المبلغ',
     'date' => 'التاريخ',
     'category' => 'الفئة',
-    
+
     // Expense Categories
     'materials' => 'المواد',
     'labor' => 'العمالة',
     'equipment' => 'المعدات',
     'other' => 'أخرى',
-    
+
     // Validation Messages
     'name_required' => 'الاسم مطلوب',
     'code_required' => 'الرمز مطلوب',

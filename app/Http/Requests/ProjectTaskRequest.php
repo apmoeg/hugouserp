@@ -36,13 +36,13 @@ class ProjectTaskRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (!$this->has('status')) {
+        if (! $this->has('status')) {
             $this->merge([
                 'status' => 'pending',
             ]);
         }
 
-        if (!$this->has('priority')) {
+        if (! $this->has('priority')) {
             $this->merge([
                 'priority' => 'medium',
             ]);

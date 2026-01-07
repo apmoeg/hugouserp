@@ -228,14 +228,14 @@ class AccountingService
         // Critical ERP: Use bcmath for precise balance validation
         $totalDebit = '0';
         $totalCredit = '0';
-        
+
         foreach ($entry->lines as $line) {
             $totalDebit = bcadd($totalDebit, (string) $line->debit, 2);
             $totalCredit = bcadd($totalCredit, (string) $line->credit, 2);
         }
-        
+
         $difference = bcsub($totalDebit, $totalCredit, 2);
-        
+
         // Log unbalanced entries for audit
         if (abs((float) $difference) >= 0.01) {
             Log::error('Unbalanced journal entry detected', [
@@ -352,20 +352,20 @@ class AccountingService
 
     /**
      * Create a manual journal entry
-     * 
-     * @param array $data Journal entry data with items array
-     * @return JournalEntry
+     *
+     * @param  array  $data  Journal entry data with items array
+     *
      * @throws Exception If entry is not balanced
      */
     public function createJournalEntry(array $data): JournalEntry
     {
         $items = $data['items'] ?? [];
-        
+
         if (empty($items)) {
             throw new Exception('Journal entry must have at least one line item');
         }
 
-        if (!$this->validateBalancedEntry($items)) {
+        if (! $this->validateBalancedEntry($items)) {
             throw new Exception('Journal entry is not balanced - total debits must equal total credits');
         }
 
@@ -373,8 +373,8 @@ class AccountingService
             $fiscalPeriod = FiscalPeriod::getCurrentPeriod($data['branch_id'] ?? null);
 
             // Determine reference number with preference order
-            $referenceNumber = $data['reference'] 
-                ?? $data['reference_number'] 
+            $referenceNumber = $data['reference']
+                ?? $data['reference_number']
                 ?? $this->generateReferenceNumber('JE', time());
 
             $entry = JournalEntry::create([
@@ -408,8 +408,8 @@ class AccountingService
 
     /**
      * Validate that journal entry lines are balanced
-     * 
-     * @param array $items Array of line items with debit and credit amounts
+     *
+     * @param  array  $items  Array of line items with debit and credit amounts
      * @return bool True if balanced (within 0.01 tolerance)
      */
     public function validateBalancedEntry(array $items): bool
@@ -422,7 +422,7 @@ class AccountingService
             $totalDebit = bcadd($totalDebit, (string) ($item['debit'] ?? 0), 2);
             $totalCredit = bcadd($totalCredit, (string) ($item['credit'] ?? 0), 2);
         }
-        
+
         $difference = bcsub($totalDebit, $totalCredit, 2);
 
         return abs((float) $difference) < 0.01;
@@ -430,8 +430,8 @@ class AccountingService
 
     /**
      * Get account balance from journal entry lines
-     * 
-     * @param int $accountId Account ID
+     *
+     * @param  int  $accountId  Account ID
      * @return float Net balance (sum of debits minus credits)
      */
     public function getAccountBalance(int $accountId): float
@@ -445,8 +445,8 @@ class AccountingService
 
     /**
      * Get account ID from mapping key
-     * 
-     * @param string $key Mapping key (e.g., 'fixed_assets.depreciation_expense')
+     *
+     * @param  string  $key  Mapping key (e.g., 'fixed_assets.depreciation_expense')
      * @return int|null Account ID or null if not configured
      */
     public function getAccountMapping(string $key): ?int
@@ -457,20 +457,21 @@ class AccountingService
 
     /**
      * Create a journal entry with lines
-     * 
-     * @param array $data Entry data including lines array
+     *
+     * @param  array  $data  Entry data including lines array
      * @return JournalEntry Created journal entry
+     *
      * @throws Exception If entry is not balanced
      */
     public function createEntry(array $data): JournalEntry
     {
         $lines = $data['lines'] ?? [];
-        
+
         if (empty($lines)) {
             throw new Exception('Journal entry must have at least one line');
         }
 
-        if (!$this->validateBalancedEntry($lines)) {
+        if (! $this->validateBalancedEntry($lines)) {
             throw new Exception('Journal entry debits and credits must balance');
         }
 
@@ -478,7 +479,7 @@ class AccountingService
             $branchId = $data['branch_id'] ?? auth()->user()?->branch_id ?? 1;
             $entry = JournalEntry::create([
                 'branch_id' => $branchId,
-                'reference_number' => $data['reference_number'] ?? 'JE-' . now()->format('YmdHis'),
+                'reference_number' => $data['reference_number'] ?? 'JE-'.now()->format('YmdHis'),
                 'entry_date' => $data['entry_date'] ?? now(),
                 'description' => $data['description'] ?? '',
                 'status' => 'posted',

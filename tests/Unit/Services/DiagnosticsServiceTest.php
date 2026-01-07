@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Services\DiagnosticsService;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Tests\TestCase;
 
 class DiagnosticsServiceTest extends TestCase
 {
-    public function testDatabaseQueueCheckUsesConfiguredConnection(): void
+    public function test_database_queue_check_uses_configured_connection(): void
     {
         Config::set('queue.default', 'database');
         Config::set('queue.connections.database', [

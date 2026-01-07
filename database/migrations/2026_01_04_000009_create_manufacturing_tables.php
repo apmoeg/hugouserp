@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Consolidated Manufacturing Tables Migration
- * 
+ *
  * MySQL 8.4 Optimized:
  * - Bills of materials
  * - Production orders
@@ -64,14 +64,14 @@ return new class extends Migration
             $table->string('status', 50)->default('draft'); // draft, active, obsolete
             $table->text('notes')->nullable();
             $table->json('custom_fields')->nullable();
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['product_id', 'status']);
         });
 
@@ -95,7 +95,7 @@ return new class extends Migration
             $table->integer('sort_order')->default(0);
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['bom_id', 'sort_order']);
         });
 
@@ -119,7 +119,7 @@ return new class extends Migration
             $table->json('quality_checks')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['bom_id', 'sequence']);
         });
 
@@ -135,43 +135,43 @@ return new class extends Migration
             $table->string('reference_number', 100)->unique();
             $table->string('status', 50)->default('draft'); // draft, planned, in_progress, completed, cancelled
             $table->string('priority', 50)->default('normal');
-            
+
             // Quantities
             $table->decimal('planned_quantity', 18, 4);
             $table->decimal('produced_quantity', 18, 4)->default(0);
             $table->decimal('rejected_quantity', 18, 4)->default(0);
-            
+
             // Dates
             $table->date('planned_start_date');
             $table->date('planned_end_date')->nullable();
             $table->timestamp('actual_start_date')->nullable();
             $table->timestamp('actual_end_date')->nullable();
-            
+
             // Costs
             $table->decimal('estimated_cost', 18, 4)->default(0);
             $table->decimal('actual_cost', 18, 4)->default(0);
             $table->decimal('material_cost', 18, 4)->default(0);
             $table->decimal('labor_cost', 18, 4)->default(0);
             $table->decimal('overhead_cost', 18, 4)->default(0);
-            
+
             // References
             $table->foreignId('sale_id')->nullable()
                 ->constrained()
                 ->nullOnDelete();
-            
+
             $table->text('notes')->nullable();
             $table->json('custom_fields')->nullable();
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
             $table->foreignId('approved_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'status']);
             $table->index(['planned_start_date', 'status']);
         });
@@ -211,22 +211,22 @@ return new class extends Migration
             $table->string('name', 255);
             $table->integer('sequence')->default(1);
             $table->string('status', 50)->default('pending'); // pending, in_progress, completed
-            
+
             // Times
             $table->decimal('planned_hours', 8, 2)->default(0);
             $table->decimal('actual_hours', 8, 2)->default(0);
             $table->timestamp('started_at')->nullable();
             $table->timestamp('completed_at')->nullable();
-            
+
             // Assigned
             $table->foreignId('assigned_to')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->text('notes')->nullable();
             $table->json('quality_results')->nullable();
             $table->timestamps();
-            
+
             $table->index(['production_order_id', 'sequence']);
         });
 
@@ -246,13 +246,13 @@ return new class extends Migration
                 ->constrained('inventory_batches')
                 ->nullOnDelete();
             $table->text('notes')->nullable();
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamp('created_at')->useCurrent();
-            
+
             $table->index(['production_order_id', 'type']);
         });
     }

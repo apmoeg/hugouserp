@@ -18,9 +18,13 @@ class HelpdeskServiceTest extends TestCase
     use RefreshDatabase;
 
     protected HelpdeskService $service;
+
     protected Branch $branch;
+
     protected TicketPriority $priority;
+
     protected TicketCategory $category;
+
     protected User $user;
 
     protected function setUp(): void
@@ -69,8 +73,9 @@ class HelpdeskServiceTest extends TestCase
     {
         static $counter = 0;
         $counter++;
+
         return Ticket::create(array_merge($this->createTicketData(), [
-            'ticket_number' => 'TKT-' . str_pad((string) $counter, 6, '0', STR_PAD_LEFT),
+            'ticket_number' => 'TKT-'.str_pad((string) $counter, 6, '0', STR_PAD_LEFT),
         ], $overrides));
     }
 

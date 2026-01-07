@@ -51,13 +51,13 @@ class EmployeeStoreRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (!$this->has('branch_id') && $this->user()->branch_id) {
+        if (! $this->has('branch_id') && $this->user()->branch_id) {
             $this->merge([
                 'branch_id' => $this->user()->branch_id,
             ]);
         }
 
-        if (!$this->has('status')) {
+        if (! $this->has('status')) {
             $this->merge([
                 'status' => 'active',
             ]);

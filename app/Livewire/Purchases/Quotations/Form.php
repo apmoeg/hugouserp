@@ -2,10 +2,10 @@
 
 namespace App\Livewire\Purchases\Quotations;
 
+use App\Models\Product;
 use App\Models\PurchaseRequisition;
 use App\Models\Supplier;
 use App\Models\SupplierQuotation;
-use App\Models\Product;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -16,18 +16,28 @@ class Form extends Component
     use AuthorizesRequests;
 
     public ?SupplierQuotation $quotation = null;
+
     public $quotationId = null;
 
     // Form fields
     public $requisition_id = '';
+
     public $supplier_id = '';
+
     public $quotation_date = '';
+
     public $valid_until = '';
+
     public $validity_days = 30;
+
     public $payment_terms = '';
+
     public $delivery_terms = '';
+
     public $lead_time_days = '';
+
     public $notes = '';
+
     public $terms_conditions = '';
 
     // Items
@@ -115,12 +125,12 @@ class Form extends Component
 
     public function loadRequisitionItems()
     {
-        if (!$this->requisition_id) {
+        if (! $this->requisition_id) {
             return;
         }
 
         $requisition = PurchaseRequisition::with('items.product')->find($this->requisition_id);
-        
+
         if ($requisition) {
             $this->items = $requisition->items->map(function ($item) {
                 return [

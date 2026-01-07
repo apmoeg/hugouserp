@@ -66,7 +66,7 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
     {
         $baseQuery = $this->baseQuery()
             ->where('product_id', $productId)
-            ->whereHas('warehouse', fn($q) => $q->where('branch_id', $branchId));
+            ->whereHas('warehouse', fn ($q) => $q->where('branch_id', $branchId));
 
         // quantity > 0 = in, quantity < 0 = out
         $in = (float) (clone $baseQuery)->where('quantity', '>', 0)->sum('quantity');
@@ -83,7 +83,7 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
     {
         $baseQuery = $this->baseQuery()
             ->where('product_id', $productId)
-            ->whereHas('warehouse', fn($q) => $q->where('branch_id', $branchId));
+            ->whereHas('warehouse', fn ($q) => $q->where('branch_id', $branchId));
 
         // Sum all quantities (positive = in, negative = out)
         return (float) $baseQuery->sum('quantity');
@@ -93,7 +93,7 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
     {
         $movements = $this->baseQuery()
             ->where('product_id', $productId)
-            ->whereHas('warehouse', fn($q) => $q->where('branch_id', $branchId))
+            ->whereHas('warehouse', fn ($q) => $q->where('branch_id', $branchId))
             ->get(['warehouse_id', 'quantity']);
 
         $map = $movements->groupBy('warehouse_id')
@@ -123,7 +123,7 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
         // Handle quantity: direction 'out' should be negative
         $qty = abs((float) ($data['qty'] ?? $data['quantity'] ?? 0));
         $direction = $data['direction'] ?? 'in';
-        
+
         if ($direction === 'out') {
             $qty = -$qty;
         }

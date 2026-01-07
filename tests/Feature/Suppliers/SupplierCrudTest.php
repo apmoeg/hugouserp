@@ -15,6 +15,7 @@ class SupplierCrudTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Branch $branch;
 
     protected function setUp(): void
@@ -130,7 +131,7 @@ class SupplierCrudTest extends TestCase
         $this->assertNotNull($retrieved->company_name, 'company_name should not be null');
         $this->assertNotNull($retrieved->city, 'city should not be null');
         $this->assertNotNull($retrieved->country, 'country should not be null');
-        
+
         $this->assertEquals('Test Company Name', $retrieved->company_name);
         $this->assertEquals('Test City', $retrieved->city);
         $this->assertEquals('Test Country', $retrieved->country);
@@ -230,7 +231,7 @@ class SupplierCrudTest extends TestCase
         ]);
 
         $retrieved = Supplier::find($supplier->id);
-        
+
         // Verify every Arabic field
         $this->assertEquals('اسم المورد', $retrieved->name);
         $this->assertEquals('اسم الشركة', $retrieved->company_name);

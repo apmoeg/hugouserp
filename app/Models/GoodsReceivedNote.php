@@ -44,8 +44,8 @@ class GoodsReceivedNote extends BaseModel
         parent::booted();
 
         static::creating(function ($model) {
-            if (!$model->reference_number) {
-                $model->reference_number = 'GRN-' . date('Ymd') . '-' . str_pad((string) (static::whereDate('created_at', today())->count() + 1), 5, '0', STR_PAD_LEFT);
+            if (! $model->reference_number) {
+                $model->reference_number = 'GRN-'.date('Ymd').'-'.str_pad((string) (static::whereDate('created_at', today())->count() + 1), 5, '0', STR_PAD_LEFT);
             }
         });
     }
