@@ -457,12 +457,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('branch_id')->nullable()->constrained()->nullOnDelete();
             $table->string('name', 255);
+            $table->string('code', 100)->nullable();
+            $table->string('module_name', 100)->nullable();
             $table->string('entity_type', 255);
-            $table->string('trigger_event', 100);
-            $table->json('conditions')->nullable();
-            $table->json('steps')->nullable();
+            $table->text('description')->nullable();
+            $table->json('stages')->nullable();
+            $table->json('rules')->nullable();
             $table->boolean('is_active')->default(true);
-            $table->integer('priority')->default(0);
+            $table->boolean('is_mandatory')->default(false);
             
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
@@ -476,14 +478,14 @@ return new class extends Migration
         Schema::create('workflow_rules', function (Blueprint $table) {
             $this->setTableOptions($table);
             $table->id();
-            $table->foreignId('workflow_id')
+            $table->foreignId('workflow_definition_id')
                 ->constrained('workflow_definitions')
                 ->cascadeOnDelete();
             $table->string('name', 255);
-            $table->integer('sequence')->default(0);
-            $table->string('action_type', 100);
-            $table->json('action_config')->nullable();
+            $table->integer('priority')->default(0);
             $table->json('conditions')->nullable();
+            $table->json('actions')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
 
@@ -491,15 +493,18 @@ return new class extends Migration
         Schema::create('workflow_instances', function (Blueprint $table) {
             $this->setTableOptions($table);
             $table->id();
-            $table->foreignId('workflow_id')
+            $table->foreignId('workflow_definition_id')
                 ->constrained('workflow_definitions')
                 ->cascadeOnDelete();
+            $table->foreignId('branch_id')->nullable()->constrained()->nullOnDelete();
             $table->string('entity_type', 255);
             $table->unsignedBigInteger('entity_id');
+            $table->string('current_stage', 50)->nullable();
             $table->string('status', 50)->default('active'); // active, completed, cancelled
-            $table->integer('current_step')->default(0);
-            $table->json('context')->nullable();
+            $table->foreignId('initiated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('initiated_at')->nullable();
             $table->timestamp('completed_at')->nullable();
+            $table->json('metadata')->nullable();
             $table->timestamps();
             
             $table->index(['entity_type', 'entity_id']);
@@ -509,35 +514,46 @@ return new class extends Migration
         Schema::create('workflow_approvals', function (Blueprint $table) {
             $this->setTableOptions($table);
             $table->id();
-            $table->foreignId('instance_id')
+            $table->foreignId('workflow_instance_id')
                 ->constrained('workflow_instances')
                 ->cascadeOnDelete();
-            $table->integer('step_number');
+            $table->string('stage_name', 100)->nullable();
+            $table->integer('stage_order')->default(0);
             $table->foreignId('approver_id')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
+            $table->string('approver_role', 100)->nullable();
             $table->string('status', 50)->default('pending'); // pending, approved, rejected
             $table->text('comments')->nullable();
-            $table->timestamp('decided_at')->nullable();
+            $table->timestamp('requested_at')->nullable();
+            $table->timestamp('responded_at')->nullable();
+            $table->json('additional_data')->nullable();
             $table->timestamps();
             
-            $table->index(['instance_id', 'status']);
+            $table->index(['workflow_instance_id', 'status']);
         });
 
         // Workflow notifications
         Schema::create('workflow_notifications', function (Blueprint $table) {
             $this->setTableOptions($table);
             $table->id();
-            $table->foreignId('instance_id')
+            $table->foreignId('workflow_instance_id')
                 ->constrained('workflow_instances')
                 ->cascadeOnDelete();
+            $table->foreignId('workflow_approval_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('user_id')->nullable()
                 ->constrained()
                 ->nullOnDelete();
             $table->string('type', 50);
+            $table->string('channel', 50)->default('database');
             $table->text('message');
-            $table->boolean('is_read')->default(false);
+            $table->json('metadata')->nullable();
+            $table->boolean('is_sent')->default(false);
+            $table->string('delivery_status', 50)->default('pending');
+            $table->string('priority', 50)->default('normal');
+            $table->timestamp('delivered_at')->nullable();
             $table->timestamp('read_at')->nullable();
+            $table->timestamp('sent_at')->nullable();
             $table->timestamps();
         });
 
@@ -545,17 +561,19 @@ return new class extends Migration
         Schema::create('workflow_audit_logs', function (Blueprint $table) {
             $this->setTableOptions($table);
             $table->id();
-            $table->foreignId('instance_id')
+            $table->foreignId('workflow_instance_id')
                 ->constrained('workflow_instances')
                 ->cascadeOnDelete();
-            $table->string('action', 100);
             $table->foreignId('user_id')->nullable()
                 ->constrained()
                 ->nullOnDelete();
-            $table->json('old_values')->nullable();
-            $table->json('new_values')->nullable();
-            $table->text('notes')->nullable();
-            $table->timestamp('created_at')->useCurrent();
+            $table->string('action', 100);
+            $table->string('from_stage', 100)->nullable();
+            $table->string('to_stage', 100)->nullable();
+            $table->text('comments')->nullable();
+            $table->json('metadata')->nullable();
+            $table->timestamp('performed_at')->nullable();
+            $table->timestamps();
         });
 
         // Media table (Spatie Media Library compatible)

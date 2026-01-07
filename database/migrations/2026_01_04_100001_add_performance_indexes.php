@@ -86,14 +86,14 @@ return new class extends Migration
         }
 
         // Audit logs indexes - for compliance queries
-        if (Schema::hasTable('audit_logs') && Schema::hasColumn('audit_logs', 'user_id')) {
+        if (Schema::hasTable('audit_logs') && Schema::hasColumn('audit_logs', 'causer_id')) {
             Schema::table('audit_logs', function (Blueprint $table) {
-                // Index for user activity reports
-                $this->addIndexIfNotExists($table, 'audit_logs', ['user_id', 'action', 'created_at'], 'idx_audit_user_action_date');
+                // Index for user activity reports - using correct column names (causer_id, event)
+                $this->addIndexIfNotExists($table, 'audit_logs', ['causer_id', 'event', 'created_at'], 'idx_audit_causer_event_date');
                 
-                // Index for module activity
-                if (Schema::hasColumn('audit_logs', 'module_key')) {
-                    $this->addIndexIfNotExists($table, 'audit_logs', ['module_key', 'created_at'], 'idx_audit_module_date');
+                // Index for log_name activity
+                if (Schema::hasColumn('audit_logs', 'log_name')) {
+                    $this->addIndexIfNotExists($table, 'audit_logs', ['log_name', 'created_at'], 'idx_audit_log_created');
                 }
             });
         }
@@ -144,7 +144,7 @@ return new class extends Migration
             'stock_movements' => ['idx_stock_product_created', 'idx_stock_warehouse_type_date'],
             'customers' => ['idx_customers_phone', 'idx_customers_branch_active'],
             'purchases' => ['idx_purchases_supplier_date', 'idx_purchases_payment_due'],
-            'audit_logs' => ['idx_audit_user_action_date', 'idx_audit_module_date'],
+            'audit_logs' => ['idx_audit_causer_event_date', 'idx_audit_log_created'],
             'pos_sessions' => ['idx_pos_branch_status', 'idx_pos_user_opened'],
             'journal_entries' => ['idx_journal_date_posted', 'idx_journal_branch_date'],
             'notifications' => ['idx_notif_user_read_created'],
@@ -152,15 +152,25 @@ return new class extends Migration
 
         foreach ($indexesToDrop as $tableName => $indexes) {
             if (Schema::hasTable($tableName)) {
-                Schema::table($tableName, function (Blueprint $table) use ($indexes) {
+                // Get existing indexes once per table
+                try {
+                    $existingIndexes = Schema::getIndexes($tableName);
+                    $existingIndexNames = array_column($existingIndexes, 'name');
+                    
                     foreach ($indexes as $indexName) {
-                        try {
-                            $table->dropIndex($indexName);
-                        } catch (\Throwable) {
-                            // Index may not exist, ignore
+                        if (in_array($indexName, $existingIndexNames)) {
+                            try {
+                                Schema::table($tableName, function (Blueprint $table) use ($indexName) {
+                                    $table->dropIndex($indexName);
+                                });
+                            } catch (\Throwable $e) {
+                                // Index cannot be dropped, ignore
+                            }
                         }
                     }
-                });
+                } catch (\Throwable $e) {
+                    // Cannot get indexes for table, skip
+                }
             }
         }
     }
