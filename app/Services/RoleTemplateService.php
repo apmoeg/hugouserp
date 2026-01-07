@@ -446,14 +446,29 @@ class RoleTemplateService
         }
 
         $expanded = [];
+        $wildcardPatterns = [];
+        
+        // Separate wildcards and regular permissions
         foreach ($permissions as $permission) {
             if (str_contains($permission, '*')) {
-                $pattern = str_replace('*', '%', $permission);
-                $matching = Permission::where('name', 'like', $pattern)->pluck('name')->toArray();
-                $expanded = array_merge($expanded, $matching);
+                $wildcardPatterns[] = str_replace('*', '%', $permission);
             } else {
                 $expanded[] = $permission;
             }
+        }
+        
+        // Batch query for all wildcard patterns
+        if (!empty($wildcardPatterns)) {
+            $query = Permission::query();
+            foreach ($wildcardPatterns as $index => $pattern) {
+                if ($index === 0) {
+                    $query->where('name', 'like', $pattern);
+                } else {
+                    $query->orWhere('name', 'like', $pattern);
+                }
+            }
+            $matching = $query->pluck('name')->toArray();
+            $expanded = array_merge($expanded, $matching);
         }
 
         return array_unique($expanded);

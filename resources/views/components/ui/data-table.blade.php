@@ -27,10 +27,10 @@
         },
         
         toggleSelectAll() {
-            if (this.selectedRows.length === {{ count($rows) }}) {
+            if (this.selectedRows.length === @json(count($rows))) {
                 this.selectedRows = [];
             } else {
-                this.selectedRows = {{ json_encode(array_keys($rows)) }};
+                this.selectedRows = @json(array_keys($rows));
             }
         },
         
@@ -127,7 +127,7 @@
                         <input 
                             type="checkbox"
                             @click="toggleSelectAll"
-                            :checked="selectedRows.length === {{ count($rows) }}"
+                            :checked="selectedRows.length === @json(count($rows))"
                             class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
                     </th>

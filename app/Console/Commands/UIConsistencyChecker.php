@@ -193,10 +193,16 @@ class UIConsistencyChecker extends Command
             $content = $file->getContents();
             $filePath = str_replace(base_path().'/', '', $file->getPathname());
 
-            // Check for buttons without aria-label
-            if (preg_match('/<button[^>]*>(?!.*aria-label)(?!.*\w)/', $content)) {
-                $this->suggestions['add_aria_labels'][] = $filePath;
-                $accessibilityIssues++;
+            // Check for buttons without aria-label or text content (icon-only buttons)
+            if (preg_match_all('/<button[^>]*>/', $content, $matches)) {
+                foreach ($matches[0] as $buttonTag) {
+                    // Check if button has aria-label or aria-labelledby
+                    if (!preg_match('/aria-label(ledby)?=/', $buttonTag)) {
+                        $this->suggestions['add_aria_labels'][] = $filePath;
+                        $accessibilityIssues++;
+                        break;
+                    }
+                }
             }
 
             // Check for images without alt

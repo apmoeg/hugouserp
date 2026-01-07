@@ -170,9 +170,9 @@ document.addEventListener('keydown', function(e) {
     // F1 for POS
     if (e.key === 'F1') {
         e.preventDefault();
-        @can('pos.use')
+        @if(auth()->check() && auth()->user()->can('pos.use'))
         window.location.href = '{{ route('pos.terminal') }}';
-        @endcan
+        @endif
     }
     
     // Ctrl + S to prevent default and trigger save event

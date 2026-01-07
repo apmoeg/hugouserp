@@ -121,7 +121,7 @@
                 }
             @endphp
             
-            @if($childHasPermission && matchesSearch($child['label'] ?? ''))
+            @if($childHasPermission)
             <a
                 href="{{ route($child['route']) }}"
                 @click="addToRecent('{{ $child['key'] }}', '{{ $child['label'] }}', '{{ route($child['route']) }}', '{{ $child['icon'] ?? '📄' }}')"

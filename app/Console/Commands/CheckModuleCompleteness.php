@@ -235,7 +235,7 @@ class CheckModuleCompleteness extends Command
         }
 
         // Check for relationships
-        if (preg_match('/public function \w+\(\).*belongsTo|hasMany|hasOne|belongsToMany/', $content)) {
+        if (preg_match('/public function \w+\(\).*(belongsTo|hasMany|hasOne|belongsToMany)/', $content)) {
             $score += 10;
         }
 
