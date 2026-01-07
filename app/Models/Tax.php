@@ -12,10 +12,11 @@ class Tax extends BaseModel
 
     protected $table = 'taxes';
 
-    protected $fillable = ['branch_id', 'code', 'name', 'description', 'rate', 'type', 'is_inclusive', 'is_active', 'extra_attributes'];
+    protected $fillable = ['branch_id', 'code', 'name', 'name_ar', 'description', 'rate', 'type', 'is_compound', 'is_inclusive', 'is_active', 'extra_attributes'];
 
     protected $casts = [
         'rate' => 'decimal:4',
+        'is_compound' => 'bool',
         'is_inclusive' => 'bool',
         'is_active' => 'bool',
         'extra_attributes' => 'array',

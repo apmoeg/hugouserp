@@ -17,6 +17,7 @@ class SearchHistory extends BaseModel
         'user_id',
         'query',
         'module',
+        'context',
         'results_count',
     ];
 
