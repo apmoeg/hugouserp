@@ -37,14 +37,34 @@ return new class extends Migration
             $table->unsignedBigInteger('subject_id')->nullable();
             $table->string('causer_type', 255)->nullable();
             $table->unsignedBigInteger('causer_id')->nullable();
+            $table->foreignId('user_id')->nullable()
+                ->constrained()
+                ->nullOnDelete()
+                ->comment('Maps to causer_id for easier queries');
             $table->string('event', 255)->nullable()->index();
+            $table->string('action', 255)->nullable()->index()
+                ->comment('Maps to event for application-specific action names');
             $table->json('properties')->nullable();
+            $table->json('old_values')->nullable()
+                ->comment('For storing previous state');
+            $table->json('new_values')->nullable()
+                ->comment('For storing new state');
+            $table->json('meta')->nullable()
+                ->comment('For additional metadata');
             $table->uuid('batch_uuid')->nullable()->index();
             
             // Additional tracking
             $table->string('ip_address', 45)->nullable();
+            $table->string('ip', 45)->nullable()
+                ->comment('Maps to ip_address for consistency with existing code');
             $table->string('user_agent', 500)->nullable();
             $table->foreignId('branch_id')->nullable();
+            $table->string('module_key', 100)->nullable()->index()
+                ->comment('For module context tracking');
+            $table->foreignId('target_user_id')->nullable()
+                ->constrained('users')
+                ->nullOnDelete()
+                ->comment('For tracking actions on other users');
             
             // Auditable fields (for enhanced tracking)
             $table->string('auditable_type', 255)->nullable();
