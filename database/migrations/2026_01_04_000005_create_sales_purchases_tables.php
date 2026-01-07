@@ -36,7 +36,11 @@ return new class extends Migration
                 ->constrained()
                 ->nullOnDelete();
             $table->string('reference_number', 100)->unique();
+            $table->string('external_reference', 255)->nullable()->index()
+                ->comment('External order ID from integrated platforms');
             $table->string('type', 50)->default('sale'); // sale, quotation, order
+            $table->string('channel', 50)->nullable()->index()
+                ->comment('Source channel: pos, api, shopify, woocommerce, etc.');
             $table->string('status', 50)->default('pending'); // pending, confirmed, processing, completed, cancelled
             $table->string('payment_status', 50)->default('unpaid'); // unpaid, partial, paid
             
@@ -168,8 +172,12 @@ return new class extends Migration
                 ->constrained()
                 ->nullOnDelete();
             $table->string('reference_number', 100)->unique();
+            $table->string('external_reference', 255)->nullable()->index()
+                ->comment('External order ID from integrated platforms');
             $table->string('supplier_invoice', 100)->nullable();
             $table->string('type', 50)->default('purchase'); // purchase, order, quotation
+            $table->string('channel', 50)->nullable()->index()
+                ->comment('Source channel: manual, api, etc.');
             $table->string('status', 50)->default('pending'); // pending, confirmed, received, completed, cancelled
             $table->string('payment_status', 50)->default('unpaid');
             
