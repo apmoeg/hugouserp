@@ -152,20 +152,24 @@ return new class extends Migration
 
         foreach ($indexesToDrop as $tableName => $indexes) {
             if (Schema::hasTable($tableName)) {
-                foreach ($indexes as $indexName) {
-                    try {
-                        // Check if index exists before trying to drop
-                        $existingIndexes = Schema::getIndexes($tableName);
-                        $existingIndexNames = array_column($existingIndexes, 'name');
-                        
+                // Get existing indexes once per table
+                try {
+                    $existingIndexes = Schema::getIndexes($tableName);
+                    $existingIndexNames = array_column($existingIndexes, 'name');
+                    
+                    foreach ($indexes as $indexName) {
                         if (in_array($indexName, $existingIndexNames)) {
-                            Schema::table($tableName, function (Blueprint $table) use ($indexName) {
-                                $table->dropIndex($indexName);
-                            });
+                            try {
+                                Schema::table($tableName, function (Blueprint $table) use ($indexName) {
+                                    $table->dropIndex($indexName);
+                                });
+                            } catch (\Throwable $e) {
+                                // Index cannot be dropped, ignore
+                            }
                         }
-                    } catch (\Throwable) {
-                        // Index may not exist or cannot be dropped, ignore
                     }
+                } catch (\Throwable $e) {
+                    // Cannot get indexes for table, skip
                 }
             }
         }

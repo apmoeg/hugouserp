@@ -55,19 +55,8 @@ return new class extends Migration
     public function down(): void
     {
         if (Schema::hasTable('audit_logs')) {
-            Schema::table('audit_logs', function (Blueprint $table) {
-                try {
-                    $table->dropIndex('idx_audit_causer_event_date');
-                } catch (\Throwable) {
-                    // Index may not exist, ignore
-                }
-                
-                try {
-                    $table->dropIndex('idx_audit_log_created');
-                } catch (\Throwable) {
-                    // Index may not exist, ignore
-                }
-            });
+            $this->dropIndexIfExists('audit_logs', 'idx_audit_causer_event_date');
+            $this->dropIndexIfExists('audit_logs', 'idx_audit_log_created');
         }
     }
 
@@ -83,13 +72,32 @@ return new class extends Migration
             if (!in_array($indexName, $existingIndexNames)) {
                 $table->index($columns, $indexName);
             }
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
             // If we can't check, try to add (may fail silently if exists)
             try {
                 $table->index($columns, $indexName);
-            } catch (\Throwable) {
+            } catch (\Throwable $e) {
                 // Index already exists, ignore
             }
+        }
+    }
+
+    /**
+     * Drop index if it exists
+     */
+    private function dropIndexIfExists(string $tableName, string $indexName): void
+    {
+        try {
+            $indexes = Schema::getIndexes($tableName);
+            $existingIndexNames = array_column($indexes, 'name');
+            
+            if (in_array($indexName, $existingIndexNames)) {
+                Schema::table($tableName, function (Blueprint $table) use ($indexName) {
+                    $table->dropIndex($indexName);
+                });
+            }
+        } catch (\Throwable $e) {
+            // Index may not exist or cannot be dropped, ignore
         }
     }
 };
