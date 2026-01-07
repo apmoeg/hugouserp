@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Inventory\Serials;
 
-use App\Models\InventorySerial;
 use App\Models\InventoryBatch;
+use App\Models\InventorySerial;
 use App\Models\Product;
 use App\Models\Warehouse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -17,23 +17,31 @@ class Form extends Component
     use AuthorizesRequests;
 
     public ?InventorySerial $serial = null;
+
     public bool $isEditing = false;
 
     // Form fields
     public ?int $product_id = null;
+
     public ?int $warehouse_id = null;
+
     public ?int $batch_id = null;
+
     public string $serial_number = '';
+
     public string $unit_cost = '';
+
     public string $warranty_start = '';
+
     public string $warranty_end = '';
+
     public string $notes = '';
 
     protected function rules(): array
     {
         $uniqueRule = 'unique:inventory_serials,serial_number';
         if ($this->isEditing && $this->serial) {
-            $uniqueRule .= ',' . $this->serial->id;
+            $uniqueRule .= ','.$this->serial->id;
         }
 
         return [
@@ -51,7 +59,7 @@ class Form extends Component
     public function mount(?InventorySerial $serial = null): void
     {
         $this->authorize('inventory.products.view');
-        
+
         if ($serial && $serial->exists) {
             $this->isEditing = true;
             $this->serial = $serial;
@@ -59,7 +67,7 @@ class Form extends Component
             $this->warranty_start = $serial->warranty_start?->format('Y-m-d') ?? '';
             $this->warranty_end = $serial->warranty_end?->format('Y-m-d') ?? '';
         } else {
-            $this->serial_number = 'SN-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+            $this->serial_number = 'SN-'.date('Ymd').'-'.strtoupper(substr(uniqid(), -6));
         }
     }
 
@@ -95,7 +103,7 @@ class Form extends Component
     public function render()
     {
         $branchId = auth()->user()->branch_id;
-        
+
         $products = Product::where('branch_id', $branchId)
             ->where('is_serialized', true)
             ->orderBy('name')

@@ -12,23 +12,34 @@ use Livewire\Component;
 
 class Form extends Component
 {
-    use AuthorizesRequests;
     use \App\Http\Requests\Traits\HasMultilingualValidation;
+    use AuthorizesRequests;
 
     public ?BankAccount $account = null;
+
     public bool $isEditing = false;
 
     // Form fields
     public string $account_number = '';
+
     public string $account_name = '';
+
     public string $bank_name = '';
+
     public string $bank_branch = '';
+
     public string $swift_code = '';
+
     public string $iban = '';
+
     public string $currency = 'USD';
+
     public string $account_type = 'checking';
+
     public string $opening_balance = '0';
+
     public string $opening_date = '';
+
     public string $notes = '';
 
     public array $currencies = [];
@@ -36,7 +47,7 @@ class Form extends Component
     protected function rules(): array
     {
         return [
-            'account_number' => 'required|string|max:255|unique:bank_accounts,account_number,' . ($this->account->id ?? 'NULL'),
+            'account_number' => 'required|string|max:255|unique:bank_accounts,account_number,'.($this->account->id ?? 'NULL'),
             'account_name' => $this->multilingualString(required: true, max: 255),
             'bank_name' => $this->multilingualString(required: true, max: 255),
             'bank_branch' => $this->multilingualString(required: false, max: 255),
@@ -56,10 +67,10 @@ class Form extends Component
         $currencyList = Currency::query()
             ->where('is_active', true)
             ->get(['code', 'name']);
-        
+
         if ($currencyList->isNotEmpty()) {
             $this->currencies = $currencyList->mapWithKeys(function ($currency) {
-                return [$currency->code => $currency->name . ' (' . $currency->code . ')'];
+                return [$currency->code => $currency->name.' ('.$currency->code.')'];
             })->toArray();
         } else {
             // Fallback currencies if none configured
@@ -79,7 +90,7 @@ class Form extends Component
         } else {
             $this->authorize('banking.create');
             $this->opening_date = now()->format('Y-m-d');
-            
+
             // Set default currency if available
             $defaultCurrency = \App\Models\SystemSetting::where('key', 'default_currency')->value('value');
             // Handle JSON-casted value or string value
@@ -88,7 +99,7 @@ class Form extends Component
             }
             if ($defaultCurrency && isset($this->currencies[$defaultCurrency])) {
                 $this->currency = $defaultCurrency;
-            } elseif (!empty($this->currencies)) {
+            } elseif (! empty($this->currencies)) {
                 // Default to first available currency
                 $this->currency = array_key_first($this->currencies);
             }
@@ -117,20 +128,20 @@ class Form extends Component
 
         if ($this->isEditing) {
             $data['updated_by'] = auth()->id();
-            
+
             // Check if account has transactions before updating balance
             $hasTransactions = \DB::table('bank_transactions')
                 ->where('bank_account_id', $this->account->id)
                 ->exists();
-            
+
             $this->account->update($data);
-            
+
             // Update current balance if opening balance changed and no transactions exist
-            if (!$hasTransactions) {
+            if (! $hasTransactions) {
                 $this->account->current_balance = $this->opening_balance;
                 $this->account->save();
             }
-            
+
             session()->flash('success', __('Bank account updated successfully'));
         } else {
             $data['created_by'] = auth()->id();

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Livewire\Inventory;
 
 use App\Models\Product;
-use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -17,6 +16,7 @@ class StockAlerts extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $alertType = 'all'; // all, low, out, expiring
 
     public function mount(): void

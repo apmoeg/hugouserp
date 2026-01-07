@@ -6,7 +6,6 @@ namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -34,15 +33,15 @@ class Handler extends ExceptionHandler
                 if ($request->wantsJson() || $request->expectsJson() || $request->is('livewire/*')) {
                     return response()->json([
                         'message' => 'Session expired. Refreshing...',
-                        'redirect' => $request->url()
+                        'redirect' => $request->url(),
                     ], 419);
                 }
-                
+
                 // For regular requests, silently refresh the page
                 return redirect($request->url())
                     ->with('info', __('Your session was refreshed. Please try again.'));
             }
-            
+
             if ($request->is('api/*') || $request->wantsJson()) {
                 return $this->renderBusinessException($e, $request);
             }
@@ -55,7 +54,7 @@ class Handler extends ExceptionHandler
     protected function renderBusinessException(Throwable $e, $request)
     {
         $isBusinessException = $e instanceof BusinessException;
-        
+
         $message = $isBusinessException
             ? $e->getMessage()
             : (config('app.debug') ? $e->getMessage() : __('Something went wrong.'));

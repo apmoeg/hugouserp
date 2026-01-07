@@ -39,7 +39,7 @@ class AttachmentAuthorizationService
     ];
 
     /**
-     * @param class-string $modelType
+     * @param  class-string  $modelType
      *
      * @throws AuthorizationException
      */

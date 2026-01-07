@@ -19,7 +19,7 @@ class WorkCenterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'max:50', 'unique:work_centers,code,' . ($this->route('workCenter') ? $this->route('workCenter')->id : 'NULL')],
+            'code' => ['required', 'string', 'max:50', 'unique:work_centers,code,'.($this->route('workCenter') ? $this->route('workCenter')->id : 'NULL')],
             'name' => $this->multilingualString(required: true, max: 255),
             'name_ar' => $this->arabicName(required: false, max: 255),
             'description' => $this->unicodeText(required: false),
@@ -58,13 +58,13 @@ class WorkCenterRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (!$this->has('branch_id') && $this->user()->branch_id) {
+        if (! $this->has('branch_id') && $this->user()->branch_id) {
             $this->merge([
                 'branch_id' => $this->user()->branch_id,
             ]);
         }
 
-        if ($this->isMethod('POST') && !$this->has('is_active')) {
+        if ($this->isMethod('POST') && ! $this->has('is_active')) {
             $this->merge([
                 'is_active' => true,
             ]);

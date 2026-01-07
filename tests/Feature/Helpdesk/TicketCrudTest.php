@@ -17,8 +17,11 @@ class TicketCrudTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Branch $branch;
+
     protected TicketCategory $category;
+
     protected TicketPriority $priority;
 
     protected function setUp(): void
@@ -47,7 +50,7 @@ class TicketCrudTest extends TestCase
         $counter++;
 
         return Ticket::create(array_merge([
-            'ticket_number' => 'TKT-' . str_pad((string) $counter, 6, '0', STR_PAD_LEFT),
+            'ticket_number' => 'TKT-'.str_pad((string) $counter, 6, '0', STR_PAD_LEFT),
             'subject' => 'Test Issue',
             'description' => 'Test description',
             'status' => 'new',

@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
-use Illuminate\Database\Eloquent\Builder;
 
 class Purchase extends BaseModel
 {
     use LogsActivity, SoftDeletes;
+
     protected ?string $moduleKey = 'purchases';
 
     protected $table = 'purchases';
@@ -178,7 +179,7 @@ class Purchase extends BaseModel
     {
         $receivedQty = $this->getTotalQuantityReceived();
 
-        return $receivedQty > 0 && !$this->isFullyReceived();
+        return $receivedQty > 0 && ! $this->isFullyReceived();
     }
 
     public function getTotalPaidAttribute(): float
@@ -205,7 +206,7 @@ class Purchase extends BaseModel
     {
         return $this->due_date &&
             $this->due_date->isPast() &&
-            !$this->isPaid();
+            ! $this->isPaid();
     }
 
     public function isReceived(): bool
@@ -305,6 +306,6 @@ class Purchase extends BaseModel
             ->logOnly(['reference_number', 'status', 'total_amount', 'paid_amount', 'supplier_id', 'branch_id', 'approved_by', 'approved_at'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
-            ->setDescriptionForEvent(fn(string $eventName) => "Purchase {$this->reference_number} was {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "Purchase {$this->reference_number} was {$eventName}");
     }
 }

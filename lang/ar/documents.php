@@ -20,17 +20,17 @@ return [
     'tags' => 'الوسوم',
     'category' => 'الفئة',
     'access_level' => 'مستوى الوصول',
-    
+
     // Status Values
     'active' => 'نشط',
     'archived' => 'مؤرشف',
     'draft' => 'مسودة',
-    
+
     // Access Levels
     'private' => 'خاص',
     'public' => 'عام',
     'restricted' => 'مقيد',
-    
+
     // Messages
     'document_uploaded' => 'تم رفع المستند بنجاح',
     'document_updated' => 'تم تحديث المستند بنجاح',
@@ -39,7 +39,7 @@ return [
     'version_created' => 'تم إنشاء الإصدار الجديد',
     'tag_created' => 'تم إنشاء الوسم بنجاح',
     'access_denied' => 'تم رفض الوصول',
-    
+
     // Buttons
     'upload_document' => 'رفع مستند',
     'download' => 'تحميل',
@@ -47,21 +47,21 @@ return [
     'new_version' => 'إصدار جديد',
     'view_versions' => 'عرض الإصدارات',
     'add_tag' => 'إضافة وسم',
-    
+
     // Navigation
     'all_documents' => 'جميع المستندات',
     'my_documents' => 'مستنداتي',
     'shared_documents' => 'المستندات المشتركة',
     'recent_documents' => 'المستندات الأخيرة',
     'tag_management' => 'إدارة الوسوم',
-    
+
     // Table Headers
     'name' => 'الاسم',
     'size' => 'الحجم',
     'modified' => 'آخر تعديل',
     'owner' => 'المالك',
     'actions' => 'الإجراءات',
-    
+
     // Validation Messages
     'title_required' => 'العنوان مطلوب',
     'file_required' => 'الملف مطلوب',

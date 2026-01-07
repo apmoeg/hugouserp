@@ -46,7 +46,7 @@ class OrdersSecurityTest extends TestCase
     public function test_order_creation_rejects_warehouse_from_other_branch(): void
     {
         $this->withExceptionHandling();
-        
+
         $branchA = Branch::factory()->create();
         $branchB = Branch::factory()->create();
 
@@ -86,7 +86,7 @@ class OrdersSecurityTest extends TestCase
 
         // Should reject due to warehouse not belonging to branch
         $response->assertStatus(422);
-        $this->assertStringContainsString('warehouse', strtolower($response->json('message') ?? '') . strtolower(json_encode($response->json('errors') ?? [])));
+        $this->assertStringContainsString('warehouse', strtolower($response->json('message') ?? '').strtolower(json_encode($response->json('errors') ?? [])));
     }
 
     /**
@@ -182,7 +182,7 @@ class OrdersSecurityTest extends TestCase
     public function test_default_warehouse_fallback_is_scoped_to_branch(): void
     {
         $this->withExceptionHandling();
-        
+
         $branchA = Branch::factory()->create();
         $branchB = Branch::factory()->create();
 
@@ -215,6 +215,6 @@ class OrdersSecurityTest extends TestCase
 
         // Should fail with warehouse error (not fall back to branch B warehouse)
         $response->assertStatus(422);
-        $this->assertStringContainsString('warehouse', strtolower($response->json('message') ?? '') . strtolower(json_encode($response->json('errors') ?? [])));
+        $this->assertStringContainsString('warehouse', strtolower($response->json('message') ?? '').strtolower(json_encode($response->json('errors') ?? [])));
     }
 }

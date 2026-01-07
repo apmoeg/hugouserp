@@ -33,19 +33,19 @@ class BankAccountStoreRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (!$this->has('branch_id') && $this->user()->branch_id) {
+        if (! $this->has('branch_id') && $this->user()->branch_id) {
             $this->merge([
                 'branch_id' => $this->user()->branch_id,
             ]);
         }
 
-        if (!$this->has('is_active')) {
+        if (! $this->has('is_active')) {
             $this->merge([
                 'is_active' => true,
             ]);
         }
 
-        if (!$this->has('current_balance')) {
+        if (! $this->has('current_balance')) {
             $this->merge([
                 'current_balance' => $this->initial_balance,
             ]);

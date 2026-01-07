@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Helpdesk;
 
-use App\Http\Requests\TicketReplyRequest;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Services\HelpdeskService;
@@ -19,8 +18,11 @@ class TicketDetail extends Component
     use AuthorizesRequests;
 
     public Ticket $ticket;
+
     public string $replyMessage = '';
+
     public bool $isInternal = false;
+
     public ?int $assignToUser = null;
 
     public bool $hasAccess = true;
@@ -37,6 +39,7 @@ class TicketDetail extends Component
         $this->authorize('helpdesk.view');
         if (! $this->ensureSameBranch(auth()->user(), $ticket)) {
             $this->hasAccess = false;
+
             return;
         }
         $this->ticket = $ticket->load(['customer', 'assignedAgent', 'category', 'priority', 'slaPolicy', 'replies.user']);
@@ -99,8 +102,9 @@ class TicketDetail extends Component
     {
         $this->authorize('helpdesk.close');
 
-        if (!$this->ticket->canBeClosed()) {
+        if (! $this->ticket->canBeClosed()) {
             session()->flash('error', __('Ticket must be resolved before closing'));
+
             return;
         }
 
@@ -114,8 +118,9 @@ class TicketDetail extends Component
     {
         $this->authorize('helpdesk.edit');
 
-        if (!$this->ticket->canBeReopened()) {
+        if (! $this->ticket->canBeReopened()) {
             session()->flash('error', __('Ticket cannot be reopened'));
+
             return;
         }
 
@@ -143,9 +148,9 @@ class TicketDetail extends Component
 
         $agents = User::whereHas('roles', function ($query) {
             $query->where('name', 'like', '%agent%')
-                  ->orWhere('name', 'like', '%support%')
-                  ->orWhere('name', 'Super Admin')
-                  ->orWhere('name', 'super-admin');
+                ->orWhere('name', 'like', '%support%')
+                ->orWhere('name', 'Super Admin')
+                ->orWhere('name', 'super-admin');
         })
             ->when(! $user?->hasAnyRole(['Super Admin', 'super-admin']) && $branchId, fn ($query) => $query->where('branch_id', $branchId))
             ->get();
@@ -163,6 +168,7 @@ class TicketDetail extends Component
     {
         if (! $user) {
             session()->flash('error', __('You must be logged in to access this ticket.'));
+
             return false;
         }
 
@@ -173,6 +179,7 @@ class TicketDetail extends Component
             && ! $user->hasAnyRole(['Super Admin', 'super-admin'])
         ) {
             session()->flash('error', __('You cannot access tickets from other branches.'));
+
             return false;
         }
 

@@ -13,9 +13,9 @@ use App\Models\User;
 use App\Services\HelpdeskService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
-use Livewire\Features\SupportRedirects\Redirector;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\Features\SupportRedirects\Redirector;
 
 #[Layout('layouts.app')]
 class TicketForm extends Component
@@ -65,6 +65,7 @@ class TicketForm extends Component
             if ($user && $user->branch_id && $ticket->branch_id !== $user->branch_id && ! $isSuperAdmin) {
                 session()->flash('error', __('You cannot edit tickets from other branches.'));
                 $this->redirectRoute('app.helpdesk.tickets.index', navigate: true);
+
                 return;
             }
             $this->isEdit = true;
@@ -125,11 +126,13 @@ class TicketForm extends Component
 
         if (! $branchId && ! $isSuperAdmin) {
             session()->flash('error', __('You must be assigned to a branch to manage tickets.'));
+
             return $this->redirectRoute('app.helpdesk.tickets.index', navigate: true);
         }
 
         if ($this->ticket && $branchId && $this->ticket->branch_id !== $branchId && ! $isSuperAdmin) {
             session()->flash('error', __('You cannot modify tickets from other branches.'));
+
             return $this->redirectRoute('app.helpdesk.tickets.index', navigate: true);
         }
 

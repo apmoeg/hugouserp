@@ -15,20 +15,29 @@ class WarehouseSettings extends Component
 {
     // Warehouse settings
     public bool $enable_multi_location = false;
+
     public bool $enable_batch_tracking = true;
+
     public bool $enable_serial_tracking = true;
+
     public bool $auto_allocate_stock = true;
+
     public string $stock_allocation_method = 'FIFO';
+
     public bool $enable_negative_stock = false;
+
     public int $stock_count_frequency_days = 30;
+
     public bool $require_approval_for_adjustments = true;
+
     public bool $enable_barcode_scanning = true;
+
     public string $default_warehouse_location = 'main';
 
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('settings.view')) {
+        if (! $user || ! $user->can('settings.view')) {
             abort(403);
         }
 

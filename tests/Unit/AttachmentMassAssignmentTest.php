@@ -11,7 +11,7 @@ class AttachmentMassAssignmentTest extends TestCase
 {
     public function test_disk_and_path_are_not_mass_assignable(): void
     {
-        $attachment = new Attachment();
+        $attachment = new Attachment;
 
         $this->assertFalse($attachment->isFillable('disk'));
         $this->assertFalse($attachment->isFillable('path'));

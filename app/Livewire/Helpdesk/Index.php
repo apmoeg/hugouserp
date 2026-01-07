@@ -36,6 +36,7 @@ class Index extends Component
     public string $assigned = '';
 
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
 
     protected HelpdeskService $helpdeskService;
@@ -83,17 +84,17 @@ class Index extends Component
 
         // Build query
         $query = Ticket::with(['customer', 'assignedAgent', 'category', 'priority'])
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
-            ->when($this->search, fn($q) => $q->where(function ($query) {
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
+            ->when($this->search, fn ($q) => $q->where(function ($query) {
                 $query->where('ticket_number', 'like', "%{$this->search}%")
                     ->orWhere('subject', 'like', "%{$this->search}%")
                     ->orWhere('description', 'like', "%{$this->search}%");
             }))
-            ->when($this->status, fn($q) => $q->where('status', $this->status))
-            ->when($this->priorityId, fn($q) => $q->where('priority_id', $this->priorityId))
-            ->when($this->category, fn($q) => $q->where('category_id', $this->category))
-            ->when($this->assigned === 'me', fn($q) => $q->where('assigned_to', $user->id))
-            ->when($this->assigned === 'unassigned', fn($q) => $q->whereNull('assigned_to'));
+            ->when($this->status, fn ($q) => $q->where('status', $this->status))
+            ->when($this->priorityId, fn ($q) => $q->where('priority_id', $this->priorityId))
+            ->when($this->category, fn ($q) => $q->where('category_id', $this->category))
+            ->when($this->assigned === 'me', fn ($q) => $q->where('assigned_to', $user->id))
+            ->when($this->assigned === 'unassigned', fn ($q) => $q->whereNull('assigned_to'));
 
         $tickets = $query->orderBy($this->sortField, $this->sortDirection)
             ->paginate(15);

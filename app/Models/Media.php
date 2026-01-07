@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Database\Eloquent\Builder;
 
 class Media extends Model
 {
@@ -59,7 +59,7 @@ class Media extends Model
 
     public function getThumbnailUrlAttribute(): ?string
     {
-        if (!$this->thumbnail_path) {
+        if (! $this->thumbnail_path) {
             return null;
         }
 
@@ -73,17 +73,19 @@ class Media extends Model
 
     public function getOptimizedHumanSizeAttribute(): ?string
     {
-        if (!$this->optimized_size) {
+        if (! $this->optimized_size) {
             return null;
         }
+
         return $this->formatBytes($this->optimized_size);
     }
 
     public function getCompressionRatioAttribute(): ?float
     {
-        if (!$this->optimized_size || $this->size == 0) {
+        if (! $this->optimized_size || $this->size == 0) {
             return null;
         }
+
         return round((1 - ($this->optimized_size / $this->size)) * 100, 2);
     }
 
@@ -103,17 +105,19 @@ class Media extends Model
             'text/plain',
             'text/csv',
         ];
+
         return in_array($this->mime_type, $documentTypes);
     }
 
     protected function formatBytes(int $bytes): string
     {
         if ($bytes >= 1048576) {
-            return round($bytes / 1048576, 2) . ' MB';
+            return round($bytes / 1048576, 2).' MB';
         } elseif ($bytes >= 1024) {
-            return round($bytes / 1024, 2) . ' KB';
+            return round($bytes / 1024, 2).' KB';
         }
-        return $bytes . ' bytes';
+
+        return $bytes.' bytes';
     }
 
     public function scopeImages(Builder $query): Builder
@@ -132,6 +136,7 @@ class Media extends Model
             'text/plain',
             'text/csv',
         ];
+
         return $query->whereIn('mime_type', $documentTypes);
     }
 

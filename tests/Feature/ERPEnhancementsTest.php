@@ -4,35 +4,36 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
-use App\Models\SystemSetting;
-use App\Enums\SaleStatus;
 use App\Enums\PurchaseStatus;
 use App\Enums\RentalContractStatus;
+use App\Enums\SaleStatus;
 use App\Enums\TicketStatus;
-use App\Services\SettingsService;
+use App\Models\User;
 use App\Services\DashboardService;
+use App\Services\SettingsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
+use Tests\TestCase;
 
 class ERPEnhancementsTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private SettingsService $settingsService;
+
     private DashboardService $dashboardService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create a test user with Super Admin role
         $this->user = User::factory()->create();
         $role = Role::create(['name' => 'Super Admin']);
         $this->user->assignRole($role);
-        
+
         $this->settingsService = app(SettingsService::class);
         $this->dashboardService = app(DashboardService::class);
     }
@@ -42,14 +43,14 @@ class ERPEnhancementsTest extends TestCase
     {
         // Test setting() helper function
         $this->settingsService->set('test.key', 'test_value');
-        
+
         $value = setting('test.key', 'default');
         $this->assertEquals('test_value', $value);
-        
+
         // Test with non-existent key
         $defaultValue = setting('non.existent.key', 'my_default');
         $this->assertEquals('my_default', $defaultValue);
-        
+
         echo "✓ setting() helper works correctly\n";
     }
 
@@ -57,7 +58,7 @@ class ERPEnhancementsTest extends TestCase
     public function settings_config_exists()
     {
         $config = config('settings');
-        
+
         $this->assertIsArray($config);
         $this->assertArrayHasKey('general', $config);
         $this->assertArrayHasKey('pos', $config);
@@ -68,7 +69,7 @@ class ERPEnhancementsTest extends TestCase
         $this->assertArrayHasKey('hrm', $config);
         $this->assertArrayHasKey('accounting', $config);
         $this->assertArrayHasKey('integrations', $config);
-        
+
         echo "✓ Settings config exists with all groups\n";
     }
 
@@ -76,7 +77,7 @@ class ERPEnhancementsTest extends TestCase
     public function quick_actions_config_exists()
     {
         $config = config('quick-actions');
-        
+
         $this->assertIsArray($config);
         $this->assertArrayHasKey('sales', $config);
         $this->assertArrayHasKey('purchases', $config);
@@ -84,7 +85,7 @@ class ERPEnhancementsTest extends TestCase
         $this->assertArrayHasKey('inventory', $config);
         $this->assertArrayHasKey('hrm', $config);
         $this->assertArrayHasKey('admin', $config);
-        
+
         echo "✓ Quick actions config exists with all role groups\n";
     }
 
@@ -106,20 +107,20 @@ class ERPEnhancementsTest extends TestCase
     public function sale_status_enum_validates_transitions()
     {
         $draft = SaleStatus::DRAFT;
-        
+
         // Valid transitions
         $this->assertTrue($draft->canTransitionTo(SaleStatus::CONFIRMED));
         $this->assertTrue($draft->canTransitionTo(SaleStatus::CANCELLED));
-        
+
         // Invalid transitions
         $this->assertFalse($draft->canTransitionTo(SaleStatus::PAID));
         $this->assertFalse($draft->canTransitionTo(SaleStatus::REFUNDED));
-        
+
         // Test final status
         $paid = SaleStatus::PAID;
         $this->assertTrue($paid->isFinal());
         $this->assertFalse($draft->isFinal());
-        
+
         echo "✓ SaleStatus enum validates transitions correctly\n";
     }
 
@@ -127,10 +128,10 @@ class ERPEnhancementsTest extends TestCase
     public function purchase_status_enum_validates_transitions()
     {
         $draft = PurchaseStatus::DRAFT;
-        
+
         $this->assertTrue($draft->canTransitionTo(PurchaseStatus::APPROVED));
         $this->assertFalse($draft->canTransitionTo(PurchaseStatus::RECEIVED));
-        
+
         echo "✓ PurchaseStatus enum validates transitions correctly\n";
     }
 
@@ -138,11 +139,11 @@ class ERPEnhancementsTest extends TestCase
     public function rental_contract_status_enum_validates_transitions()
     {
         $active = RentalContractStatus::ACTIVE;
-        
+
         $this->assertTrue($active->canTransitionTo(RentalContractStatus::SUSPENDED));
         $this->assertTrue($active->canTransitionTo(RentalContractStatus::TERMINATED));
         $this->assertFalse($active->canTransitionTo(RentalContractStatus::DRAFT));
-        
+
         echo "✓ RentalContractStatus enum validates transitions correctly\n";
     }
 
@@ -150,10 +151,10 @@ class ERPEnhancementsTest extends TestCase
     public function ticket_status_enum_validates_transitions()
     {
         $open = TicketStatus::OPEN;
-        
+
         $this->assertTrue($open->canTransitionTo(TicketStatus::IN_PROGRESS));
         $this->assertFalse($open->canTransitionTo(TicketStatus::RESOLVED));
-        
+
         echo "✓ TicketStatus enum validates transitions correctly\n";
     }
 
@@ -162,16 +163,16 @@ class ERPEnhancementsTest extends TestCase
     {
         $this->assertIsString(SaleStatus::DRAFT->label());
         $this->assertIsString(SaleStatus::DRAFT->color());
-        
+
         $this->assertIsString(PurchaseStatus::APPROVED->label());
         $this->assertIsString(PurchaseStatus::APPROVED->color());
-        
+
         $this->assertIsString(RentalContractStatus::ACTIVE->label());
         $this->assertIsString(RentalContractStatus::ACTIVE->color());
-        
+
         $this->assertIsString(TicketStatus::OPEN->label());
         $this->assertIsString(TicketStatus::OPEN->color());
-        
+
         echo "✓ All status enums have labels and colors\n";
     }
 
@@ -186,11 +187,11 @@ class ERPEnhancementsTest extends TestCase
             'resources/views/components/ui/form/select.blade.php',
             'resources/views/components/ui/form/textarea.blade.php',
         ];
-        
+
         foreach ($components as $component) {
             $this->assertFileExists(base_path($component));
         }
-        
+
         echo "✓ All UI components exist\n";
     }
 
@@ -199,7 +200,7 @@ class ERPEnhancementsTest extends TestCase
     {
         $this->assertFileExists(base_path('resources/views/components/dashboard/quick-actions.blade.php'));
         $this->assertFileExists(base_path('resources/views/components/attachments/uploader.blade.php'));
-        
+
         echo "✓ Dashboard components exist\n";
     }
 
@@ -207,7 +208,7 @@ class ERPEnhancementsTest extends TestCase
     public function sidebar_organized_exists()
     {
         $this->assertFileExists(base_path('resources/views/layouts/sidebar-organized.blade.php'));
-        
+
         echo "✓ Organized sidebar exists\n";
     }
 
@@ -215,12 +216,12 @@ class ERPEnhancementsTest extends TestCase
     public function performance_indexes_migration_exists()
     {
         $migrations = scandir(base_path('database/migrations'));
-        $indexMigration = array_filter($migrations, function($file) {
+        $indexMigration = array_filter($migrations, function ($file) {
             return str_contains($file, 'add_performance_indexes_to_tables');
         });
-        
+
         $this->assertNotEmpty($indexMigration);
-        
+
         echo "✓ Performance indexes migration exists\n";
     }
 
@@ -228,7 +229,7 @@ class ERPEnhancementsTest extends TestCase
     public function documentation_exists()
     {
         $this->assertFileExists(base_path('ERP_ENHANCEMENTS_SUMMARY.md'));
-        
+
         echo "✓ Documentation exists\n";
     }
 }

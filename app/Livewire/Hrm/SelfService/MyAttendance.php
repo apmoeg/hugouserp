@@ -19,14 +19,16 @@ class MyAttendance extends Component
     use WithPagination;
 
     public ?string $fromDate = null;
+
     public ?string $toDate = null;
+
     public ?string $status = null;
 
     public function mount(): void
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('employee.self.attendance')) {
+        if (! $user || ! $user->can('employee.self.attendance')) {
             abort(403);
         }
 
@@ -56,8 +58,8 @@ class MyAttendance extends Component
     public function getStatistics(): array
     {
         $user = Auth::user();
-        
-        if (!$user || !$user->employee_id) {
+
+        if (! $user || ! $user->employee_id) {
             return [
                 'total_days' => 0,
                 'present' => 0,
@@ -68,8 +70,8 @@ class MyAttendance extends Component
         }
 
         $query = Attendance::where('employee_id', $user->employee_id)
-            ->when($this->fromDate, fn($q) => $q->whereDate('attendance_date', '>=', $this->fromDate))
-            ->when($this->toDate, fn($q) => $q->whereDate('attendance_date', '<=', $this->toDate));
+            ->when($this->fromDate, fn ($q) => $q->whereDate('attendance_date', '>=', $this->fromDate))
+            ->when($this->toDate, fn ($q) => $q->whereDate('attendance_date', '<=', $this->toDate));
 
         return [
             'total_days' => (clone $query)->count(),
@@ -85,7 +87,7 @@ class MyAttendance extends Component
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('employee.self.attendance')) {
+        if (! $user || ! $user->can('employee.self.attendance')) {
             abort(403);
         }
 
@@ -96,9 +98,9 @@ class MyAttendance extends Component
 
         if ($employeeId) {
             $records = Attendance::where('employee_id', $employeeId)
-                ->when($this->fromDate, fn($q) => $q->whereDate('attendance_date', '>=', $this->fromDate))
-                ->when($this->toDate, fn($q) => $q->whereDate('attendance_date', '<=', $this->toDate))
-                ->when($this->status, fn($q) => $q->where('status', $this->status))
+                ->when($this->fromDate, fn ($q) => $q->whereDate('attendance_date', '>=', $this->fromDate))
+                ->when($this->toDate, fn ($q) => $q->whereDate('attendance_date', '<=', $this->toDate))
+                ->when($this->status, fn ($q) => $q->where('status', $this->status))
                 ->orderByDesc('attendance_date')
                 ->paginate(20);
         }

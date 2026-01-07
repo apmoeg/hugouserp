@@ -214,6 +214,7 @@ class Branch extends BaseModel
 
             if (isset($permissionMap[$permission])) {
                 $capability = $permissionMap[$permission];
+
                 return $branchAdmin->$capability ?? false;
             }
         }
@@ -235,7 +236,7 @@ class Branch extends BaseModel
      */
     public function hasUser(User $user): bool
     {
-        return $user->branch_id === $this->id || 
+        return $user->branch_id === $this->id ||
                $this->users()->where('users.id', $user->id)->exists();
     }
 }

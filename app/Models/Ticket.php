@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Builder;
 
 class Ticket extends Model
 {
@@ -51,7 +51,7 @@ class Ticket extends Model
 
         static::creating(function ($ticket) {
             if (empty($ticket->ticket_number)) {
-                $ticket->ticket_number = 'TKT-' . date('Ymd') . '-' . str_pad(rand(1, 999999), 6, '0', STR_PAD_LEFT);
+                $ticket->ticket_number = 'TKT-'.date('Ymd').'-'.str_pad(rand(1, 999999), 6, '0', STR_PAD_LEFT);
             }
 
             // Calculate due date based on SLA policy
@@ -204,7 +204,7 @@ class Ticket extends Model
         $this->replies()->save($reply);
 
         // Mark first response time if not set
-        if (!$this->first_response_at && !$isInternal) {
+        if (! $this->first_response_at && ! $isInternal) {
             $this->first_response_at = now();
             $this->save();
         }
@@ -214,7 +214,7 @@ class Ticket extends Model
 
     public function getRemainingTime()
     {
-        if (!$this->due_date || in_array($this->status, ['resolved', 'closed'])) {
+        if (! $this->due_date || in_array($this->status, ['resolved', 'closed'])) {
             return null;
         }
 
@@ -228,7 +228,7 @@ class Ticket extends Model
 
     public function isOverdue(): bool
     {
-        if (!$this->due_date || in_array($this->status, ['resolved', 'closed'])) {
+        if (! $this->due_date || in_array($this->status, ['resolved', 'closed'])) {
             return false;
         }
 
@@ -237,7 +237,7 @@ class Ticket extends Model
 
     public function getResponseTime()
     {
-        if (!$this->first_response_at) {
+        if (! $this->first_response_at) {
             return null;
         }
 
@@ -246,7 +246,7 @@ class Ticket extends Model
 
     public function getResolutionTime()
     {
-        if (!$this->resolved_at) {
+        if (! $this->resolved_at) {
             return null;
         }
 

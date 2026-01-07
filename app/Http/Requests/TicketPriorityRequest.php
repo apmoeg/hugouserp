@@ -47,7 +47,7 @@ class TicketPriorityRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         // Set default is_active
-        if (!$this->has('is_active') && $this->isMethod('POST')) {
+        if (! $this->has('is_active') && $this->isMethod('POST')) {
             $this->merge([
                 'is_active' => true,
             ]);

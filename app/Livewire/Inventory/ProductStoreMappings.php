@@ -40,7 +40,7 @@ class ProductStoreMappings extends Component
 
         if ($productId) {
             $this->product = Product::findOrFail($productId);
-            
+
             // Enforce branch scoping: user must have access to product's branch
             $this->authorizeProductBranch($this->product);
         }
@@ -54,7 +54,7 @@ class ProductStoreMappings extends Component
     protected function requireUserBranch(): int
     {
         $user = Auth::user();
-        
+
         if (! $user || ! $user->branch_id) {
             abort(403, __('User must be assigned to a branch to perform this action'));
         }
@@ -68,7 +68,7 @@ class ProductStoreMappings extends Component
     protected function authorizeProductBranch(Product $product): void
     {
         $userBranchId = $this->requireUserBranch();
-        
+
         if ($product->branch_id !== $userBranchId) {
             abort(403, __('Access denied to product from another branch'));
         }
@@ -80,7 +80,7 @@ class ProductStoreMappings extends Component
     protected function authorizeAction(string $permission): void
     {
         $user = Auth::user();
-        
+
         if (! $user || ! $user->can($permission)) {
             abort(403, __('Unauthorized'));
         }

@@ -42,7 +42,7 @@ class DynamicFormSecurityTest extends TestCase
         // Verify that schema is protected with Locked attribute
         $reflection = new \ReflectionClass(DynamicForm::class);
         $schemaProperty = $reflection->getProperty('schema');
-        
+
         // Check if the property has the Locked attribute
         $attributes = $schemaProperty->getAttributes(\Livewire\Attributes\Locked::class);
         $this->assertNotEmpty($attributes, 'Schema property should have Locked attribute');
@@ -67,8 +67,8 @@ class DynamicFormSecurityTest extends TestCase
             ->call('submit');
 
         // File should be stored in 'local' disk (whitelist default), not 'public'
-        Storage::disk('local')->assertExists('dynamic-uploads/' . basename($file->hashName()));
-        Storage::disk('public')->assertMissing('dynamic-uploads/' . basename($file->hashName()));
+        Storage::disk('local')->assertExists('dynamic-uploads/'.basename($file->hashName()));
+        Storage::disk('public')->assertMissing('dynamic-uploads/'.basename($file->hashName()));
     }
 
     public function test_dangerous_file_extensions_are_blocked(): void
@@ -177,7 +177,7 @@ class DynamicFormSecurityTest extends TestCase
             ->assertDispatched('formSubmitted');
 
         // Verify file was stored on local disk only
-        Storage::disk('local')->assertExists('dynamic-uploads/' . basename($file->hashName()));
+        Storage::disk('local')->assertExists('dynamic-uploads/'.basename($file->hashName()));
     }
 
     public function test_schema_with_non_whitelisted_disk_defaults_to_local(): void
@@ -199,6 +199,6 @@ class DynamicFormSecurityTest extends TestCase
             ->call('submit');
 
         // Should default to 'local' disk
-        Storage::disk('local')->assertExists('dynamic-uploads/' . basename($file->hashName()));
+        Storage::disk('local')->assertExists('dynamic-uploads/'.basename($file->hashName()));
     }
 }

@@ -52,7 +52,7 @@ class Index extends Component
         $this->authorize('warehouse.manage');
 
         $transfer = Transfer::findOrFail($id);
-        
+
         $user = auth()->user();
         if ($user->branch_id && $transfer->branch_id !== $user->branch_id) {
             abort(403);
@@ -68,7 +68,7 @@ class Index extends Component
         $this->authorize('warehouse.manage');
 
         $transfer = Transfer::findOrFail($id);
-        
+
         $user = auth()->user();
         if ($user->branch_id && $transfer->branch_id !== $user->branch_id) {
             abort(403);
@@ -84,7 +84,7 @@ class Index extends Component
         $this->authorize('warehouse.manage');
 
         $transfer = Transfer::findOrFail($id);
-        
+
         $user = auth()->user();
         if ($user->branch_id && $transfer->branch_id !== $user->branch_id) {
             abort(403);

@@ -20,11 +20,11 @@ class PaymentReminderNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = ['database'];
-        
+
         if ($notifiable->email) {
             $channels[] = 'mail';
         }
-        
+
         return $channels;
     }
 
@@ -37,7 +37,7 @@ class PaymentReminderNotification extends Notification implements ShouldQueue
             ->line(__('Invoice: :reference', ['reference' => $this->alert->reference]))
             ->line(__('Amount Due: :amount', ['amount' => money($this->alert->amount_due)]))
             ->line(__('Due Date: :date', ['date' => $this->alert->due_date]))
-            ->action(__('View Invoice'), url('/invoices/' . $this->alert->id))
+            ->action(__('View Invoice'), url('/invoices/'.$this->alert->id))
             ->line(__('Thank you for your business!'));
     }
 

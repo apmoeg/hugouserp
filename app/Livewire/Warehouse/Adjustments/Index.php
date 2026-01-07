@@ -51,7 +51,7 @@ class Index extends Component
         $this->authorize('warehouse.manage');
 
         $adjustment = Adjustment::findOrFail($id);
-        
+
         // Check if user has access to this branch's data
         $user = auth()->user();
         if ($user->branch_id && $adjustment->branch_id !== $user->branch_id) {

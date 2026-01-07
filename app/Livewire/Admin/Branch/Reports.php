@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Livewire\Admin\Branch;
 
 use App\Models\Branch;
-use App\Models\Sale;
-use App\Models\Product;
 use App\Models\Customer;
+use App\Models\Product;
+use App\Models\Sale;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -20,22 +20,24 @@ use Livewire\Component;
 class Reports extends Component
 {
     public ?Branch $branch = null;
-    
+
     public string $period = 'month'; // day, week, month, year
+
     public ?string $fromDate = null;
+
     public ?string $toDate = null;
 
     public function mount(): void
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('branch.reports.view')) {
+        if (! $user || ! $user->can('branch.reports.view')) {
             abort(403);
         }
 
         $this->branch = $user->branch;
-        
-        if (!$this->branch) {
+
+        if (! $this->branch) {
             abort(403, __('No branch assigned to this user.'));
         }
 
@@ -72,7 +74,7 @@ class Reports extends Component
     public function getSalesStats(): array
     {
         $query = Sale::where('branch_id', $this->branch->id)
-            ->whereBetween('created_at', [$this->fromDate . ' 00:00:00', $this->toDate . ' 23:59:59']);
+            ->whereBetween('created_at', [$this->fromDate.' 00:00:00', $this->toDate.' 23:59:59']);
 
         return [
             'total_sales' => (clone $query)->count(),
@@ -108,9 +110,9 @@ class Reports extends Component
     public function getCustomerStats(): array
     {
         $query = Customer::where('branch_id', $this->branch->id);
-        
+
         $newCustomers = (clone $query)
-            ->whereBetween('created_at', [$this->fromDate . ' 00:00:00', $this->toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$this->fromDate.' 00:00:00', $this->toDate.' 23:59:59'])
             ->count();
 
         return [
@@ -129,7 +131,7 @@ class Reports extends Component
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.branch_id', $this->branch->id)
-            ->whereBetween('sales.created_at', [$this->fromDate . ' 00:00:00', $this->toDate . ' 23:59:59'])
+            ->whereBetween('sales.created_at', [$this->fromDate.' 00:00:00', $this->toDate.' 23:59:59'])
             ->select('products.name', DB::raw('SUM(sale_items.quantity) as total_qty'), DB::raw('SUM(sale_items.total) as total_amount'))
             ->groupBy('sale_items.product_id', 'products.name')
             ->orderByDesc('total_qty')
@@ -144,7 +146,7 @@ class Reports extends Component
     public function getDailySales(): array
     {
         return Sale::where('branch_id', $this->branch->id)
-            ->whereBetween('created_at', [$this->fromDate . ' 00:00:00', $this->toDate . ' 23:59:59'])
+            ->whereBetween('created_at', [$this->fromDate.' 00:00:00', $this->toDate.' 23:59:59'])
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total) as total'))
             ->groupBy('date')
             ->orderBy('date')
@@ -157,7 +159,7 @@ class Reports extends Component
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('branch.reports.view')) {
+        if (! $user || ! $user->can('branch.reports.view')) {
             abort(403);
         }
 

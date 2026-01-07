@@ -11,7 +11,7 @@ use Livewire\Component;
 
 /**
  * Dashboard Index Component
- * 
+ *
  * Main dashboard view with statistics, charts, and recent data.
  * Uses shared LoadsDashboardData trait for data loading logic.
  */
@@ -20,19 +20,24 @@ class Index extends Component
     use LoadsDashboardData;
 
     #[Layout('layouts.app')]
-    
     public array $stats = [];
+
     public array $salesChartData = [];
+
     public array $inventoryChartData = [];
+
     public array $paymentMethodsData = [];
+
     public array $lowStockProducts = [];
+
     public array $recentSales = [];
+
     public array $trendIndicators = [];
 
     public function mount(): void
     {
         $user = Auth::user();
-        if (!$user || !$user->can('dashboard.view')) {
+        if (! $user || ! $user->can('dashboard.view')) {
             abort(403);
         }
 

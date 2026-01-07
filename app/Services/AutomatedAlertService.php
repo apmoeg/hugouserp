@@ -8,16 +8,12 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\Sale;
-use App\Models\User;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 
 /**
  * AutomatedAlertService - Automated business alerts and notifications
- * 
+ *
  * NEW FEATURE: Proactive business monitoring and alerting
- * 
+ *
  * FEATURES:
  * - Low stock alerts
  * - Overdue payment alerts
@@ -34,7 +30,7 @@ class AutomatedAlertService
     {
         $products = Product::lowStock()
             ->where('status', 'active')
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->with(['branch', 'module'])
             ->get();
 
@@ -89,7 +85,7 @@ class AutomatedAlertService
             ->whereNotNull('payment_due_date')
             ->where('payment_due_date', '<', now())
             ->whereIn('payment_status', ['unpaid', 'partial'])
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->with(['customer', 'branch'])
             ->get();
 
@@ -100,7 +96,7 @@ class AutomatedAlertService
 
             $customerName = $sale->customer ? $sale->customer->name : 'Unknown';
             $amountDue = $sale->amount_due ? $sale->amount_due : $sale->due_total;
-            
+
             $alerts[] = [
                 'type' => 'overdue_payment',
                 'severity' => $this->getPaymentOverdueSeverity($daysOverdue),
@@ -145,7 +141,7 @@ class AutomatedAlertService
             ->where('credit_limit', '>', 0)
             ->whereRaw('balance >= (credit_limit * 0.8)') // 80% of credit limit
             ->where('status', 'active')
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->with('branch')
             ->get();
 
@@ -161,11 +157,11 @@ class AutomatedAlertService
 
             $severity = $utilization >= 100 ? 'critical' : ($utilization >= 90 ? 'high' : 'medium');
             $action = $utilization >= 100 ? 'credit_hold' : 'review_credit';
-            
+
             // Calculate available credit with bcmath
             $availableCredit = (float) bcsub((string) $customer->credit_limit, (string) $customer->balance, 2);
             $availableCredit = bccomp($availableCredit, '0', 2) < 0 ? 0 : $availableCredit;
-            
+
             $alerts[] = [
                 'type' => 'credit_limit_warning',
                 'severity' => $severity,
@@ -176,7 +172,7 @@ class AutomatedAlertService
                 'utilization_percentage' => $utilization,
                 'available_credit' => $availableCredit,
                 'branch_id' => $customer->branch_id,
-                'message' => "Credit limit warning: {$customer->name} is at " . (int) $utilization . "% of credit limit",
+                'message' => "Credit limit warning: {$customer->name} is at ".(int) $utilization.'% of credit limit',
                 'action_required' => $action,
             ];
         }
@@ -194,7 +190,7 @@ class AutomatedAlertService
             ->whereNotNull('expiry_date')
             ->whereBetween('expiry_date', [now(), now()->addDays($days)])
             ->where('stock_quantity', '>', 0)
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->with('branch')
             ->get();
 
@@ -251,7 +247,7 @@ class AutomatedAlertService
             ->whereNull('actual_delivery_date')
             ->where('expected_delivery_date', '<', now())
             ->whereNotIn('status', ['cancelled', 'completed'])
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->with(['supplier', 'branch'])
             ->get();
 
@@ -333,8 +329,8 @@ class AutomatedAlertService
         $critical = [];
 
         foreach ($allAlerts as $type => $typeAlerts) {
-            $criticalOfType = array_filter($typeAlerts, fn($a) => ($a['severity'] ?? '') === 'critical');
-            if (!empty($criticalOfType)) {
+            $criticalOfType = array_filter($typeAlerts, fn ($a) => ($a['severity'] ?? '') === 'critical');
+            if (! empty($criticalOfType)) {
                 $critical[$type] = array_values($criticalOfType);
             }
         }

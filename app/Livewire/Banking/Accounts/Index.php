@@ -26,6 +26,7 @@ class Index extends Component
     public string $currency = '';
 
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
 
     public function mount(): void

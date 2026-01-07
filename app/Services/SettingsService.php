@@ -25,7 +25,7 @@ class SettingsService
     private function resolveValue(mixed $value, string $type = 'string'): mixed
     {
         // For non-arrays, return as-is
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             return $value;
         }
 
@@ -67,13 +67,13 @@ class SettingsService
                 if ($setting->is_encrypted && $value) {
                     try {
                         $decrypted = Crypt::decryptString(is_array($value) ? ($value[0] ?? '') : $value);
-                        
+
                         // Attempt to decode JSON - if it's a valid array, return it as such
                         $decoded = json_decode($decrypted, true);
                         if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                             return $decoded;
                         }
-                        
+
                         return $decrypted;
                     } catch (\Exception $e) {
                         Log::error('Failed to decrypt setting', ['key' => $key, 'error' => $e->getMessage()]);

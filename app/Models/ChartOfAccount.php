@@ -6,7 +6,7 @@ namespace App\Models;
 
 /**
  * ChartOfAccount - Legacy compatibility alias for Account model
- * 
+ *
  * Provides backward compatibility by mapping legacy attribute names:
  * - account_code <-> account_number
  * - account_name <-> name

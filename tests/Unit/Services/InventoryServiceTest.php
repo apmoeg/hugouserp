@@ -17,8 +17,11 @@ class InventoryServiceTest extends TestCase
     use RefreshDatabase;
 
     protected InventoryService $service;
+
     protected Branch $branch;
+
     protected Warehouse $warehouse;
+
     protected Product $product;
 
     protected function setUp(): void

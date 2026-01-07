@@ -6,7 +6,7 @@ namespace App\Services\UX;
 
 /**
  * KeyboardShortcutsService - Global keyboard shortcuts for power users
- * 
+ *
  * Provides keyboard shortcut definitions and handlers for common actions
  * across the ERP system. Shortcuts are locale-aware and customizable.
  */
@@ -186,6 +186,7 @@ class KeyboardShortcutsService
                 ];
             }
         }
+
         return $shortcuts;
     }
 

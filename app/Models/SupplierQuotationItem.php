@@ -24,33 +24,33 @@ class SupplierQuotationItem extends BaseModel
         'line_total' => 'decimal:4',
         'extra_attributes' => 'array',
     ];
-    
+
     // Backward compatibility accessors
     public function getQtyAttribute()
     {
         return $this->quantity;
     }
-    
+
     public function getUnitCostAttribute()
     {
         return $this->unit_price;
     }
-    
+
     public function getTaxRateAttribute()
     {
         return $this->tax_percent;
     }
-    
+
     public function getUomAttribute()
     {
         return null; // Not in migration, backward compat only
     }
-    
+
     public function getDiscountAttribute()
     {
         return 0; // Not in migration, backward compat only
     }
-    
+
     public function getSpecificationsAttribute()
     {
         return null; // Not in migration, backward compat only

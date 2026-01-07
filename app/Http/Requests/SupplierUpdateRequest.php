@@ -38,9 +38,9 @@ class SupplierUpdateRequest extends FormRequest
             'quality_rating' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:5'],
             'delivery_rating' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:5'],
             'service_rating' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:5'],
-        ], 
-        $this->paymentTermsRules(false),
-        $this->paymentDueDaysRules(false)
+        ],
+            $this->paymentTermsRules(false),
+            $this->paymentDueDaysRules(false)
         );
     }
 }

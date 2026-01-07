@@ -19,18 +19,31 @@ class BranchIsolationTest extends TestCase
     use RefreshDatabase;
 
     protected Branch $branchA;
+
     protected Branch $branchB;
+
     protected User $userA;
+
     protected User $userB;
+
     protected Tenant $tenantA;
+
     protected Tenant $tenantB;
+
     protected Property $propertyA;
+
     protected Property $propertyB;
+
     protected RentalUnit $unitA;
+
     protected RentalUnit $unitB;
+
     protected RentalContract $contractA;
+
     protected RentalContract $contractB;
+
     protected RentalInvoice $invoiceA;
+
     protected RentalInvoice $invoiceB;
 
     protected function setUp(): void

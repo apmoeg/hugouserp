@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Notes;
 
-use App\Livewire\Components\NotesAttachments;
 use App\Models\User;
-use App\Services\AttachmentAuthorizationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Livewire\Livewire;
 use Tests\TestCase;
 
 class AttachmentValidationTest extends TestCase

@@ -13,19 +13,24 @@ use Livewire\Component;
 
 /**
  * Purchase Approval Panel Component
- * 
+ *
  * Shows approval workflow status and actions for a purchase.
  * Integrates with WorkflowService for multi-stage approvals.
  */
 class ApprovalPanel extends Component
 {
     public ?Purchase $purchase = null;
+
     public ?WorkflowInstance $workflowInstance = null;
+
     public ?WorkflowApproval $pendingApproval = null;
-    
+
     public bool $showApproveModal = false;
+
     public bool $showRejectModal = false;
+
     public string $approvalComments = '';
+
     public string $rejectionReason = '';
 
     protected WorkflowService $workflowService;
@@ -46,7 +51,7 @@ class ApprovalPanel extends Component
      */
     protected function loadWorkflowData(): void
     {
-        if (!$this->purchase) {
+        if (! $this->purchase) {
             return;
         }
 
@@ -68,12 +73,12 @@ class ApprovalPanel extends Component
      */
     public function getCanApproveProperty(): bool
     {
-        if (!$this->pendingApproval) {
+        if (! $this->pendingApproval) {
             return false;
         }
 
         $userId = auth()->id();
-        
+
         // Direct approver match
         if ($this->pendingApproval->approver_id === $userId) {
             return true;
@@ -92,11 +97,11 @@ class ApprovalPanel extends Component
      */
     public function getStatusColorProperty(): string
     {
-        if (!$this->workflowInstance) {
+        if (! $this->workflowInstance) {
             return 'gray';
         }
 
-        return match($this->workflowInstance->status) {
+        return match ($this->workflowInstance->status) {
             'pending' => 'amber',
             'approved' => 'green',
             'rejected' => 'red',
@@ -110,7 +115,7 @@ class ApprovalPanel extends Component
      */
     public function initiateWorkflow(): void
     {
-        if (!$this->purchase) {
+        if (! $this->purchase) {
             return;
         }
 
@@ -134,7 +139,7 @@ class ApprovalPanel extends Component
                 session()->flash('info', __('No approval workflow configured for purchases'));
             }
         } catch (\Exception $e) {
-            session()->flash('error', __('Failed to initiate workflow: ') . $e->getMessage());
+            session()->flash('error', __('Failed to initiate workflow: ').$e->getMessage());
         }
     }
 
@@ -143,8 +148,9 @@ class ApprovalPanel extends Component
      */
     public function approve(): void
     {
-        if (!$this->pendingApproval || !$this->canApprove) {
+        if (! $this->pendingApproval || ! $this->canApprove) {
             session()->flash('error', __('You are not authorized to approve this request'));
+
             return;
         }
 
@@ -170,8 +176,9 @@ class ApprovalPanel extends Component
      */
     public function reject(): void
     {
-        if (!$this->pendingApproval || !$this->canApprove) {
+        if (! $this->pendingApproval || ! $this->canApprove) {
             session()->flash('error', __('You are not authorized to reject this request'));
+
             return;
         }
 
@@ -204,7 +211,7 @@ class ApprovalPanel extends Component
      */
     public function cancelWorkflow(): void
     {
-        if (!$this->workflowInstance || $this->workflowInstance->isCompleted()) {
+        if (! $this->workflowInstance || $this->workflowInstance->isCompleted()) {
             return;
         }
 

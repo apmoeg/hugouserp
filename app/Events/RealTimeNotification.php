@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Events;
 
-use App\Models\User;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -14,7 +12,7 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Real-time notification event for WebSocket broadcasting
- * 
+ *
  * This event is broadcast to users in real-time via WebSockets
  * to provide instant notification updates without polling.
  */
@@ -42,7 +40,7 @@ class RealTimeNotification implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('App.Models.User.' . $this->userId),
+            new PrivateChannel('App.Models.User.'.$this->userId),
         ];
     }
 

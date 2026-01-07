@@ -254,7 +254,7 @@ class CurrencyService
      *
      * @param  string  $baseCurrency  The currency code to convert from.
      * @param  array  $targets  Target currency codes to resolve.
-     * @return array<string,float>  Map of currency code to rate. Falls back to reverse rates when direct rates are missing.
+     * @return array<string,float> Map of currency code to rate. Falls back to reverse rates when direct rates are missing.
      */
     public function getRatesFor(string $baseCurrency, array $targets): array
     {

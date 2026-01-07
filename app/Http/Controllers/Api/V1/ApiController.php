@@ -17,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Enhanced API Controller Base
- * 
+ *
  * Provides:
  * - Standardized response formatting
  * - Request validation helpers
@@ -86,7 +86,7 @@ abstract class ApiController extends Controller
             'data' => $data,
         ];
 
-        if (!empty($meta)) {
+        if (! empty($meta)) {
             $response['meta'] = $meta;
         }
 
@@ -111,7 +111,7 @@ abstract class ApiController extends Controller
             $response['error_code'] = $errorCode;
         }
 
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $response['errors'] = $errors;
         }
 
@@ -126,7 +126,7 @@ abstract class ApiController extends Controller
         string $message = 'Success',
         ?string $resourceClass = null
     ): JsonResponse {
-        $items = $resourceClass 
+        $items = $resourceClass
             ? $resourceClass::collection($paginator->items())
             : $paginator->items();
 
@@ -257,7 +257,7 @@ abstract class ApiController extends Controller
     {
         $perPage = (int) $request->input('per_page', $this->defaultPerPage);
         $perPage = min($perPage, $this->maxPerPage);
-        
+
         return [
             'per_page' => $perPage,
             'page' => (int) $request->input('page', 1),
@@ -271,17 +271,17 @@ abstract class ApiController extends Controller
     {
         $sortField = $request->input('sort_by', $defaultField);
         $sortDirection = strtolower($request->input('sort_direction', 'desc'));
-        
+
         // Validate sort field
-        if (!in_array($sortField, $allowedFields)) {
+        if (! in_array($sortField, $allowedFields)) {
             $sortField = $defaultField;
         }
-        
+
         // Validate direction
-        if (!in_array($sortDirection, ['asc', 'desc'])) {
+        if (! in_array($sortDirection, ['asc', 'desc'])) {
             $sortDirection = 'desc';
         }
-        
+
         return [
             'field' => $sortField,
             'direction' => $sortDirection,
@@ -294,7 +294,7 @@ abstract class ApiController extends Controller
     protected function cacheResponse(string $key, callable $callback, ?int $ttl = null): mixed
     {
         $ttl = $ttl ?? $this->cacheTtl;
-        
+
         return Cache::remember($key, $ttl, $callback);
     }
 
@@ -306,7 +306,7 @@ abstract class ApiController extends Controller
         $userId = $this->getAuthUserId($request);
         $branchId = $this->getBranchId($request);
         $queryString = http_build_query($request->query());
-        
+
         $parts = [
             'api',
             $this->apiVersion,
@@ -315,7 +315,7 @@ abstract class ApiController extends Controller
             "branch:{$branchId}",
             md5($queryString),
         ];
-        
+
         return implode(':', array_filter($parts));
     }
 
@@ -357,7 +357,7 @@ abstract class ApiController extends Controller
 
         // Don't expose internal errors in production
         $message = config('app.debug') ? $e->getMessage() : 'An unexpected error occurred';
-        
+
         return $this->serverErrorResponse($message);
     }
 }

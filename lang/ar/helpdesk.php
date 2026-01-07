@@ -25,7 +25,7 @@ return [
     'attachments' => 'المرفقات',
     'tags' => 'الوسوم',
     'sla_policy' => 'سياسة SLA',
-    
+
     // Status Values
     'new' => 'جديد',
     'open' => 'مفتوح',
@@ -33,14 +33,14 @@ return [
     'waiting_customer' => 'في انتظار العميل',
     'resolved' => 'تم الحل',
     'closed' => 'مغلق',
-    
+
     // Priority Values
     'low' => 'منخفضة',
     'normal' => 'عادية',
     'high' => 'عالية',
     'urgent' => 'عاجلة',
     'critical' => 'حرجة',
-    
+
     // Messages
     'ticket_created' => 'تم إنشاء التذكرة بنجاح',
     'ticket_updated' => 'تم تحديث التذكرة بنجاح',
@@ -52,7 +52,7 @@ return [
     'category_created' => 'تم إنشاء الفئة بنجاح',
     'priority_created' => 'تم إنشاء الأولوية بنجاح',
     'sla_policy_created' => 'تم إنشاء سياسة SLA بنجاح',
-    
+
     // Buttons
     'create_ticket' => 'إنشاء تذكرة',
     'update_ticket' => 'تحديث التذكرة',
@@ -61,7 +61,7 @@ return [
     'assign_ticket' => 'تعيين التذكرة',
     'add_reply' => 'إضافة رد',
     'view_ticket' => 'عرض التذكرة',
-    
+
     // Navigation
     'dashboard' => 'لوحة التحكم',
     'my_tickets' => 'تذاكري',
@@ -69,21 +69,21 @@ return [
     'categories' => 'الفئات',
     'priorities' => 'الأولويات',
     'sla_policies' => 'سياسات SLA',
-    
+
     // Table Headers
     'ticket_number' => 'رقم التذكرة',
     'title' => 'العنوان',
     'requester' => 'مقدم الطلب',
     'last_update' => 'آخر تحديث',
     'response_time' => 'وقت الاستجابة',
-    
+
     // Modal Titles
     'new_category' => 'فئة جديدة',
     'edit_category' => 'تعديل الفئة',
     'new_priority' => 'أولوية جديدة',
     'edit_priority' => 'تعديل الأولوية',
     'new_sla_policy' => 'سياسة SLA جديدة',
-    
+
     // Validation Messages
     'subject_required' => 'الموضوع مطلوب',
     'description_required' => 'الوصف مطلوب',

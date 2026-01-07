@@ -10,9 +10,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DownloadController extends Controller
 {
-    public function __construct(protected DocumentService $documentService)
-    {
-    }
+    public function __construct(protected DocumentService $documentService) {}
 
     public function __invoke(Document $document): StreamedResponse
     {

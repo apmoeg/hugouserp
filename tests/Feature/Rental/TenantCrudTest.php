@@ -15,6 +15,7 @@ class TenantCrudTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Branch $branch;
 
     protected function setUp(): void

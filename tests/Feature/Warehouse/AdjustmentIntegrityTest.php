@@ -30,8 +30,8 @@ class AdjustmentIntegrityTest extends TestCase
     private function makeWarehouse(Branch $branch): Warehouse
     {
         return Warehouse::create([
-            'name' => 'WH ' . Str::random(4),
-            'code' => 'WH-' . Str::random(5),
+            'name' => 'WH '.Str::random(4),
+            'code' => 'WH-'.Str::random(5),
             'status' => 'active',
             'branch_id' => $branch->id,
         ]);

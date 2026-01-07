@@ -62,7 +62,7 @@ class UploadController extends Controller
 
         Storage::disk($disk)->delete($path);
 
-        return $this->ok([ 'deleted' => true, 'disk' => $disk, 'path' => $path ], __('File deleted successfully'));
+        return $this->ok(['deleted' => true, 'disk' => $disk, 'path' => $path], __('File deleted successfully'));
     }
 
     /**

@@ -19,13 +19,14 @@ class MyPayslips extends Component
     use WithPagination;
 
     public ?string $year = null;
+
     public ?string $month = null;
 
     public function mount(): void
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('employee.self.payslip-view')) {
+        if (! $user || ! $user->can('employee.self.payslip-view')) {
             abort(403);
         }
 
@@ -48,8 +49,8 @@ class MyPayslips extends Component
     public function getYtdSummary(): array
     {
         $user = Auth::user();
-        
-        if (!$user || !$user->employee_id) {
+
+        if (! $user || ! $user->employee_id) {
             return [
                 'gross_earnings' => 0,
                 'total_deductions' => 0,
@@ -75,13 +76,14 @@ class MyPayslips extends Component
     public function downloadPayslip(int $payrollId): void
     {
         $user = Auth::user();
-        
+
         $payroll = Payroll::where('id', $payrollId)
             ->where('employee_id', $user->employee_id)
             ->first();
 
-        if (!$payroll) {
+        if (! $payroll) {
             session()->flash('error', __('Payslip not found.'));
+
             return;
         }
 
@@ -94,7 +96,7 @@ class MyPayslips extends Component
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('employee.self.payslip-view')) {
+        if (! $user || ! $user->can('employee.self.payslip-view')) {
             abort(403);
         }
 
@@ -104,8 +106,8 @@ class MyPayslips extends Component
 
         if ($employeeId) {
             $records = Payroll::where('employee_id', $employeeId)
-                ->when($this->year, fn($q) => $q->where('year', $this->year))
-                ->when($this->month, fn($q) => $q->where('month', $this->month))
+                ->when($this->year, fn ($q) => $q->where('year', $this->year))
+                ->when($this->month, fn ($q) => $q->where('month', $this->month))
                 ->orderByDesc('year')
                 ->orderByDesc('month')
                 ->paginate(12);
@@ -115,7 +117,7 @@ class MyPayslips extends Component
             'records' => $records,
             'ytdSummary' => $this->getYtdSummary(),
             'years' => range(now()->year, now()->year - 5),
-            'months' => collect(range(1, 12))->mapWithKeys(fn($m) => [$m => now()->month($m)->format('F')]),
+            'months' => collect(range(1, 12))->mapWithKeys(fn ($m) => [$m => now()->month($m)->format('F')]),
         ]);
     }
 }

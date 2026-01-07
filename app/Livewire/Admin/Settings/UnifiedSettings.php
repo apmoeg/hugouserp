@@ -82,30 +82,46 @@ class UnifiedSettings extends Component
 
     // General settings
     public string $company_name = '';
+
     public string $company_email = '';
+
     public string $company_phone = '';
+
     public string $timezone = 'UTC';
+
     public string $date_format = 'Y-m-d';
+
     public string $default_currency = 'USD';
 
     // Branding settings
     public ?int $branding_logo_id = null;
+
     public ?int $branding_favicon_id = null;
+
     public string $branding_logo = '';  // Legacy URL support
+
     public string $branding_favicon = '';  // Legacy URL support
+
     public string $branding_primary_color = '#10b981';
+
     public string $branding_secondary_color = '#3b82f6';
+
     public string $branding_tagline = '';
 
     // Inventory settings
     public string $inventory_costing_method = 'FIFO';
+
     public int $stock_alert_threshold = 10;
+
     public bool $use_per_product_threshold = true;
 
     // POS settings
     public bool $pos_allow_negative_stock = false;
+
     public int $pos_max_discount_percent = 20;
+
     public bool $pos_auto_print_receipt = true;
+
     public string $pos_rounding_rule = 'none';
 
     // Accounting settings
@@ -113,48 +129,70 @@ class UnifiedSettings extends Component
 
     // HRM settings
     public int $hrm_working_days_per_week = 5;
+
     public float $hrm_working_hours_per_day = 8.0;
+
     public int $hrm_late_arrival_threshold = 15;
+
     public string $hrm_transport_allowance_type = 'percentage';
+
     public float $hrm_transport_allowance_value = 10.0;
+
     public string $hrm_housing_allowance_type = 'percentage';
+
     public float $hrm_housing_allowance_value = 0.0;
+
     public float $hrm_meal_allowance = 0.0;
+
     public float $hrm_health_insurance_deduction = 0.0;
 
     // Rental settings
     public int $rental_grace_period_days = 5;
+
     public string $rental_penalty_type = 'percentage';
+
     public float $rental_penalty_value = 5.0;
 
     // Sales settings
     public int $sales_payment_terms_days = 30;
+
     public string $sales_invoice_prefix = 'INV-';
+
     public int $sales_invoice_starting_number = 1000;
 
     // Branch settings
     public bool $multi_branch = false;
+
     public bool $require_branch_selection = true;
 
     // Security settings
     public bool $require_2fa = false;
+
     public int $session_timeout = 120;
+
     public bool $enable_audit_log = true;
 
     // Advanced settings
     public bool $enable_api = true;
+
     public bool $enable_webhooks = false;
+
     public int $cache_ttl = 3600;
 
     // Backup settings
     public bool $auto_backup = false;
+
     public string $backup_frequency = 'daily';
+
     public int $backup_retention_days = 30;
+
     public string $backup_storage = 'local';
 
     // Notifications
     public bool $notifications_low_stock = true;
+
     public bool $notifications_payment_due = true;
+
     public bool $notifications_new_order = true;
 
     public function mount(): void
@@ -166,12 +204,12 @@ class UnifiedSettings extends Component
 
         // Get tab from query string (supports both ?tab= and hash via JS)
         $this->activeTab = request()->query('tab', 'general');
-        
+
         // Validate the tab exists
-        if (!array_key_exists($this->activeTab, $this->tabs)) {
+        if (! array_key_exists($this->activeTab, $this->tabs)) {
             $this->activeTab = 'general';
         }
-        
+
         $this->loadSettings();
     }
 
@@ -267,6 +305,7 @@ class UnifiedSettings extends Component
         $settings = Cache::remember('system_settings_all', 3600, function () {
             return SystemSetting::pluck('value', 'key')->toArray();
         });
+
         return $settings[$key] ?? $default;
     }
 
@@ -358,21 +397,21 @@ class UnifiedSettings extends Component
         // Save media IDs (preferred) and also URLs for backward compatibility
         $this->setSetting('branding.logo_id', $this->branding_logo_id, 'branding');
         $this->setSetting('branding.favicon_id', $this->branding_favicon_id, 'branding');
-        
+
         // Get URLs from media if IDs are set, otherwise use the legacy URL values
         $logoUrl = $this->branding_logo;
         $faviconUrl = $this->branding_favicon;
-        
+
         if ($this->branding_logo_id) {
             $logoMedia = Media::find($this->branding_logo_id);
             $logoUrl = $logoMedia?->url ?? $this->branding_logo;
         }
-        
+
         if ($this->branding_favicon_id) {
             $faviconMedia = Media::find($this->branding_favicon_id);
             $faviconUrl = $faviconMedia?->url ?? $this->branding_favicon;
         }
-        
+
         $this->setSetting('branding.logo', $logoUrl, 'branding');
         $this->setSetting('branding.favicon', $faviconUrl, 'branding');
         $this->setSetting('branding.primary_color', $this->branding_primary_color, 'branding');
@@ -593,18 +632,18 @@ class UnifiedSettings extends Component
     {
         // Load defaults from config
         $defaults = config("settings.{$group}", []);
-        
+
         foreach ($defaults as $key => $config) {
             $defaultValue = $config['default'] ?? null;
             $fullKey = "{$group}.{$key}";
-            
+
             SystemSetting::where('key', $fullKey)->delete();
         }
 
         Cache::forget('system_settings');
         Cache::forget('system_settings_all');
         $this->loadSettings();
-        
+
         session()->flash('success', __('Settings restored to defaults for :group', ['group' => $group]));
 
         return $this->redirectToTab($this->activeTab);
@@ -613,7 +652,7 @@ class UnifiedSettings extends Component
     public function render()
     {
         $currencies = \App\Models\Currency::active()->ordered()->get(['code', 'name', 'symbol']);
-        
+
         return view('livewire.admin.settings.unified-settings', [
             'currencies' => $currencies,
         ]);

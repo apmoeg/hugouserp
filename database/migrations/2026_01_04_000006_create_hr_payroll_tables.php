@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Consolidated HR & Payroll Tables Migration
- * 
+ *
  * MySQL 8.4 Optimized:
  * - Employees, attendance, leaves
  * - Payroll processing
@@ -36,7 +36,7 @@ return new class extends Migration
             $table->foreignId('branch_id')->nullable()
                 ->constrained()
                 ->nullOnDelete();
-            
+
             // Personal info
             $table->string('employee_code', 50)->unique();
             $table->string('first_name', 100);
@@ -53,17 +53,17 @@ return new class extends Migration
             $table->string('national_id', 50)->nullable();
             $table->string('passport_number', 50)->nullable();
             $table->date('passport_expiry')->nullable();
-            
+
             // Address
             $table->text('address')->nullable();
             $table->string('city', 100)->nullable();
             $table->string('country', 100)->nullable();
-            
+
             // Emergency contact
             $table->string('emergency_contact_name', 255)->nullable();
             $table->string('emergency_contact_phone', 50)->nullable();
             $table->string('emergency_contact_relation', 100)->nullable();
-            
+
             // Employment info
             $table->string('position', 255)->nullable();
             $table->string('department', 255)->nullable();
@@ -76,7 +76,7 @@ return new class extends Migration
             $table->date('termination_date')->nullable();
             $table->string('employment_type', 50)->default('full_time'); // full_time, part_time, contract, intern
             $table->string('status', 50)->default('active'); // active, on_leave, suspended, terminated
-            
+
             // Salary info
             $table->decimal('basic_salary', 18, 4)->default(0);
             $table->string('salary_currency', 3)->default('EGP');
@@ -84,36 +84,36 @@ return new class extends Migration
             $table->string('bank_name', 255)->nullable();
             $table->string('bank_account', 100)->nullable();
             $table->string('bank_iban', 50)->nullable();
-            
+
             // Allowances
             $table->decimal('housing_allowance', 18, 4)->default(0);
             $table->decimal('transport_allowance', 18, 4)->default(0);
             $table->decimal('meal_allowance', 18, 4)->default(0);
             $table->decimal('other_allowances', 18, 4)->default(0);
-            
+
             // Leave balances
             $table->integer('annual_leave_balance')->default(0);
             $table->integer('sick_leave_balance')->default(0);
-            
+
             // Working hours
             $table->time('work_start_time')->nullable();
             $table->time('work_end_time')->nullable();
             $table->json('work_days')->nullable();
-            
+
             // Additional
             $table->string('profile_photo', 500)->nullable();
             $table->json('documents')->nullable();
             $table->json('skills')->nullable();
             $table->text('notes')->nullable();
             $table->json('custom_fields')->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'status']);
             $table->index(['department', 'status']);
         });
-        
+
         // Add fulltext index for MySQL only (hr_employees)
         if (config('database.default') === 'mysql') {
             Schema::table('hr_employees', function (Blueprint $table) {
@@ -131,7 +131,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->boolean('is_primary')->default(false);
             $table->timestamps();
-            
+
             $table->unique(['branch_id', 'employee_id']);
         });
 
@@ -169,7 +169,7 @@ return new class extends Migration
             $table->date('end_date')->nullable();
             $table->boolean('is_current')->default(true);
             $table->timestamps();
-            
+
             $table->index(['employee_id', 'is_current']);
         });
 
@@ -183,20 +183,20 @@ return new class extends Migration
             $table->foreignId('branch_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('shift_id')->nullable()->constrained()->nullOnDelete();
             $table->date('attendance_date')->index();
-            
+
             // Clock times
             $table->timestamp('clock_in')->nullable();
             $table->timestamp('clock_out')->nullable();
             $table->time('scheduled_in')->nullable();
             $table->time('scheduled_out')->nullable();
-            
+
             // Status calculations
             $table->string('status', 50)->default('present'); // present, absent, late, half_day, on_leave
             $table->integer('late_minutes')->default(0);
             $table->integer('early_leave_minutes')->default(0);
             $table->integer('overtime_minutes')->default(0);
             $table->integer('worked_minutes')->default(0);
-            
+
             // Location tracking
             $table->string('clock_in_ip', 45)->nullable();
             $table->string('clock_out_ip', 45)->nullable();
@@ -204,15 +204,15 @@ return new class extends Migration
             $table->decimal('clock_in_longitude', 11, 8)->nullable();
             $table->decimal('clock_out_latitude', 10, 8)->nullable();
             $table->decimal('clock_out_longitude', 11, 8)->nullable();
-            
+
             $table->text('notes')->nullable();
             $table->boolean('is_manual')->default(false);
             $table->foreignId('approved_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
-            
+
             $table->unique(['employee_id', 'attendance_date']);
             $table->index(['attendance_date', 'status']);
         });
@@ -232,15 +232,15 @@ return new class extends Migration
             $table->text('reason')->nullable();
             $table->text('rejection_reason')->nullable();
             $table->string('attachment', 500)->nullable();
-            
+
             $table->foreignId('approved_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
             $table->timestamp('approved_at')->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['employee_id', 'status']);
             $table->index(['start_date', 'end_date']);
         });
@@ -257,7 +257,7 @@ return new class extends Migration
             $table->integer('year');
             $table->integer('month');
             $table->string('status', 50)->default('draft'); // draft, calculated, approved, paid
-            
+
             // Earnings
             $table->decimal('basic_salary', 18, 4)->default(0);
             $table->decimal('housing_allowance', 18, 4)->default(0);
@@ -268,7 +268,7 @@ return new class extends Migration
             $table->decimal('bonus', 18, 4)->default(0);
             $table->decimal('commission', 18, 4)->default(0);
             $table->decimal('gross_salary', 18, 4)->default(0);
-            
+
             // Deductions
             $table->decimal('tax_deduction', 18, 4)->default(0);
             $table->decimal('insurance_deduction', 18, 4)->default(0);
@@ -278,10 +278,10 @@ return new class extends Migration
             $table->decimal('late_deduction', 18, 4)->default(0);
             $table->decimal('other_deductions', 18, 4)->default(0);
             $table->decimal('total_deductions', 18, 4)->default(0);
-            
+
             // Net
             $table->decimal('net_salary', 18, 4)->default(0);
-            
+
             // Working summary
             $table->integer('working_days')->default(0);
             $table->integer('present_days')->default(0);
@@ -289,15 +289,15 @@ return new class extends Migration
             $table->integer('late_days')->default(0);
             $table->integer('overtime_hours')->default(0);
             $table->integer('leave_days')->default(0);
-            
+
             // Payment
             $table->date('payment_date')->nullable();
             $table->string('payment_method', 50)->nullable();
             $table->string('bank_reference', 100)->nullable();
-            
+
             $table->text('notes')->nullable();
             $table->json('breakdown')->nullable();
-            
+
             $table->foreignId('calculated_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
@@ -305,10 +305,10 @@ return new class extends Migration
                 ->constrained('users')
                 ->nullOnDelete();
             $table->timestamp('approved_at')->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->unique(['employee_id', 'year', 'month']);
             $table->index(['year', 'month', 'status']);
         });

@@ -8,13 +8,12 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\User;
 use App\Notifications\GeneralNotification;
-use App\Services\StockService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Smart Notifications Service
- * 
+ *
  * Handles automatic notifications for:
  * - Low stock alerts
  * - Overdue invoices
@@ -32,14 +31,14 @@ class SmartNotificationsService
 
         try {
             $stockExpr = StockService::getStockCalculationExpression();
-            
+
             $query = Product::query()
                 ->select('products.*')
                 ->selectRaw("{$stockExpr} as current_quantity")
                 ->whereRaw("{$stockExpr} <= products.min_stock")
                 ->where('products.min_stock', '>', 0)
                 ->where('products.track_stock_alerts', true)
-                ->when($branchId, fn($q) => $q->where('products.branch_id', $branchId));
+                ->when($branchId, fn ($q) => $q->where('products.branch_id', $branchId));
 
             $lowStockProducts = $query->get();
 
@@ -60,7 +59,7 @@ class SmartNotificationsService
                         ->whereJsonContains('data->product_id', $product->id)
                         ->exists();
 
-                    if (!$alreadyNotified) {
+                    if (! $alreadyNotified) {
                         $user->notify(new GeneralNotification(
                             type: 'low_stock',
                             title: __('Low Stock Alert'),
@@ -83,7 +82,7 @@ class SmartNotificationsService
                 }
             }
         } catch (\Exception $e) {
-            Log::error('Low stock notification error: ' . $e->getMessage());
+            Log::error('Low stock notification error: '.$e->getMessage());
         }
 
         return $notified;
@@ -102,7 +101,7 @@ class SmartNotificationsService
                 ->where('due_total', '>', 0)
                 ->whereNotNull('due_date')
                 ->whereDate('due_date', '<', today())
-                ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+                ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
                 ->with(['customer']);
 
             $overdueInvoices = $query->get();
@@ -124,7 +123,7 @@ class SmartNotificationsService
                         ->whereJsonContains('data->invoice_id', $invoice->id)
                         ->exists();
 
-                    if (!$alreadyNotified) {
+                    if (! $alreadyNotified) {
                         $customerName = $invoice->customer?->name ?? __('Walk-in');
                         $daysOverdue = now()->diffInDays($invoice->due_date);
 
@@ -152,7 +151,7 @@ class SmartNotificationsService
                 }
             }
         } catch (\Exception $e) {
-            Log::error('Overdue invoice notification error: ' . $e->getMessage());
+            Log::error('Overdue invoice notification error: '.$e->getMessage());
         }
 
         return $notified;
@@ -173,7 +172,7 @@ class SmartNotificationsService
                 ->where('due_total', '>', 0)
                 ->whereNotNull('due_date')
                 ->whereDate('due_date', $dueDate)
-                ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+                ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
                 ->with(['customer']);
 
             $upcomingInvoices = $query->get();
@@ -212,7 +211,7 @@ class SmartNotificationsService
                 }
             }
         } catch (\Exception $e) {
-            Log::error('Payment reminder notification error: ' . $e->getMessage());
+            Log::error('Payment reminder notification error: '.$e->getMessage());
         }
 
         return $notified;
@@ -226,7 +225,7 @@ class SmartNotificationsService
         return User::query()
             ->where('is_active', true)
             ->whereNotNull('email')
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->permission($permission)
             ->get();
     }

@@ -119,7 +119,7 @@ class StoreOrdersExportController extends Controller
         if ($format === 'excel') {
             $filename = 'store_orders_'.now()->format('Ymd_His').'.xlsx';
 
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             // Set headers

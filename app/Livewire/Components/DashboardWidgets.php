@@ -16,9 +16,9 @@ use Livewire\Component;
 class DashboardWidgets extends Component
 {
     public array $widgets = [];
-    
+
     public array $widgetData = [];
-    
+
     protected int $cacheTtl = 300;
 
     public function mount(): void
@@ -30,8 +30,8 @@ class DashboardWidgets extends Component
     public function loadUserWidgets(): void
     {
         $user = Auth::user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return;
         }
 
@@ -44,7 +44,7 @@ class DashboardWidgets extends Component
             // Default widgets
             $this->widgets = $this->getDefaultWidgets();
         } else {
-            $this->widgets = $userWidgets->map(fn($w) => [
+            $this->widgets = $userWidgets->map(fn ($w) => [
                 'id' => $w->widget_key,
                 'title' => __($w->widget_title),
                 'visible' => $w->is_visible,
@@ -56,13 +56,13 @@ class DashboardWidgets extends Component
     public function loadWidgetData(): void
     {
         $user = Auth::user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return;
         }
 
         $cacheKey = "dashboard_widgets:user_{$user->id}:branch_{$user->branch_id}";
-        
+
         $this->widgetData = Cache::remember($cacheKey, $this->cacheTtl, function () use ($user) {
             $isAdmin = $user->hasRole('super-admin') || $user->hasRole('admin');
             $branchId = $user->branch_id;
@@ -71,7 +71,7 @@ class DashboardWidgets extends Component
             $productsQuery = Product::query();
             $customersQuery = Customer::query();
 
-            if (!$isAdmin && $branchId) {
+            if (! $isAdmin && $branchId) {
                 $salesQuery->where('branch_id', $branchId);
                 $productsQuery->where('branch_id', $branchId);
                 $customersQuery->where('branch_id', $branchId);
@@ -102,7 +102,7 @@ class DashboardWidgets extends Component
                     ->whereNull('products.deleted_at')
                     ->whereNotNull('products.min_stock')
                     ->where('products.min_stock', '>', 0)
-                    ->when(!$isAdmin && $branchId, fn($q) => $q->where('products.branch_id', $branchId))
+                    ->when(! $isAdmin && $branchId, fn ($q) => $q->where('products.branch_id', $branchId))
                     ->select('products.id')
                     ->selectRaw('COALESCE(SUM(stock_movements.quantity), 0) as current_stock')
                     ->groupBy('products.id', 'products.min_stock')
@@ -116,8 +116,8 @@ class DashboardWidgets extends Component
     public function toggleWidget(string $widgetId): void
     {
         $user = Auth::user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return;
         }
 
@@ -126,7 +126,7 @@ class DashboardWidgets extends Component
             ->first();
 
         if ($widget) {
-            $widget->update(['is_visible' => !$widget->is_visible]);
+            $widget->update(['is_visible' => ! $widget->is_visible]);
         } else {
             // Create widget preference
             $defaultWidget = collect($this->getDefaultWidgets())->firstWhere('id', $widgetId);

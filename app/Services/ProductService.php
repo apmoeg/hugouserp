@@ -26,7 +26,7 @@ class ProductService implements ProductServiceInterface
     public function search(int $branchId, string $q = '', int $perPage = 15)
     {
         return $this->handleServiceOperation(
-            callback: fn() => $this->productRepository->search($branchId, $q, $perPage),
+            callback: fn () => $this->productRepository->search($branchId, $q, $perPage),
             operation: 'search',
             context: ['branch_id' => $branchId, 'query' => $q, 'per_page' => $perPage]
         );
@@ -209,11 +209,11 @@ class ProductService implements ProductServiceInterface
 
     /**
      * Create a product for a specific module with module-aware validation and fields
-     * 
-     * @param Module $module The module to create the product for
-     * @param array $data Product data including basic fields and custom fields
-     * @param \Illuminate\Http\UploadedFile|null $thumbnail Optional thumbnail file
-     * @return Product
+     *
+     * @param  Module  $module  The module to create the product for
+     * @param  array  $data  Product data including basic fields and custom fields
+     * @param  \Illuminate\Http\UploadedFile|null  $thumbnail  Optional thumbnail file
+     *
      * @throws \Exception If module doesn't support items
      */
     public function createProductForModule(\App\Models\Module $module, array $data, ?\Illuminate\Http\UploadedFile $thumbnail = null): Product
@@ -221,7 +221,7 @@ class ProductService implements ProductServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($module, $data, $thumbnail) {
                 // Verify module supports items
-                if (!$module->supportsItems()) {
+                if (! $module->supportsItems()) {
                     throw new \Exception("Module {$module->key} does not support items/products");
                 }
 
@@ -259,7 +259,7 @@ class ProductService implements ProductServiceInterface
                     $product = $this->productRepository->create($productData);
 
                     // Save custom fields if module supports them
-                    if ($module->supports_custom_fields && !empty($customFields)) {
+                    if ($module->supports_custom_fields && ! empty($customFields)) {
                         $this->saveCustomFields($product, $module, $customFields);
                     }
 
@@ -283,11 +283,10 @@ class ProductService implements ProductServiceInterface
 
     /**
      * Update a product with module-aware validation
-     * 
-     * @param Product $product The product to update
-     * @param array $data Updated product data
-     * @param \Illuminate\Http\UploadedFile|null $thumbnail Optional new thumbnail file
-     * @return Product
+     *
+     * @param  Product  $product  The product to update
+     * @param  array  $data  Updated product data
+     * @param  \Illuminate\Http\UploadedFile|null  $thumbnail  Optional new thumbnail file
      */
     public function updateProductForModule(Product $product, array $data, ?\Illuminate\Http\UploadedFile $thumbnail = null): Product
     {
@@ -329,7 +328,7 @@ class ProductService implements ProductServiceInterface
                     $product = $this->productRepository->update($product, $updateData);
 
                     // Update custom fields if module supports them
-                    if ($product->module && $product->module->supports_custom_fields && !empty($customFields)) {
+                    if ($product->module && $product->module->supports_custom_fields && ! empty($customFields)) {
                         $this->saveCustomFields($product, $product->module, $customFields);
                     }
 
@@ -348,10 +347,6 @@ class ProductService implements ProductServiceInterface
 
     /**
      * Save custom fields for a product
-     * 
-     * @param Product $product
-     * @param \App\Models\Module $module
-     * @param array $customFields
      */
     private function saveCustomFields(Product $product, \App\Models\Module $module, array $customFields): void
     {

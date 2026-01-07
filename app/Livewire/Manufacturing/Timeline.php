@@ -12,7 +12,7 @@ use Livewire\Component;
 
 /**
  * Production Timeline Component
- * 
+ *
  * Visual timeline view of production orders showing:
  * - Order progress over time
  * - Status indicators
@@ -31,12 +31,13 @@ class Timeline extends Component
     public string $status = '';
 
     public string $startDate = '';
+
     public string $endDate = '';
 
     public function mount(): void
     {
         $this->authorize('manufacturing.view');
-        
+
         $this->setDateRange();
     }
 
@@ -46,7 +47,7 @@ class Timeline extends Component
     protected function setDateRange(): void
     {
         $now = now();
-        
+
         if ($this->viewMode === 'week') {
             $this->startDate = $now->startOfWeek()->toDateString();
             $this->endDate = $now->endOfWeek()->toDateString();
@@ -62,7 +63,7 @@ class Timeline extends Component
     public function previousPeriod(): void
     {
         $start = \Carbon\Carbon::parse($this->startDate);
-        
+
         if ($this->viewMode === 'week') {
             $this->startDate = $start->subWeek()->startOfWeek()->toDateString();
             $this->endDate = \Carbon\Carbon::parse($this->startDate)->endOfWeek()->toDateString();
@@ -78,7 +79,7 @@ class Timeline extends Component
     public function nextPeriod(): void
     {
         $start = \Carbon\Carbon::parse($this->startDate);
-        
+
         if ($this->viewMode === 'week') {
             $this->startDate = $start->addWeek()->startOfWeek()->toDateString();
             $this->endDate = \Carbon\Carbon::parse($this->startDate)->endOfWeek()->toDateString();
@@ -110,22 +111,22 @@ class Timeline extends Component
     public function getOrdersProperty()
     {
         $user = auth()->user();
-        
+
         return ProductionOrder::query()
-            ->when($user && $user->branch_id, fn($q) => $q->where('branch_id', $user->branch_id))
-            ->when($this->status, fn($q) => $q->where('status', $this->status))
-            ->where(function($query) {
+            ->when($user && $user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))
+            ->when($this->status, fn ($q) => $q->where('status', $this->status))
+            ->where(function ($query) {
                 $query->whereBetween('start_date', [$this->startDate, $this->endDate])
                     ->orWhereBetween('due_date', [$this->startDate, $this->endDate])
-                    ->orWhere(function($q) {
+                    ->orWhere(function ($q) {
                         $q->where('start_date', '<=', $this->startDate)
-                          ->where('due_date', '>=', $this->endDate);
+                            ->where('due_date', '>=', $this->endDate);
                     });
             })
             ->with(['product', 'workCenter'])
             ->orderBy('start_date')
             ->get()
-            ->map(function($order) {
+            ->map(function ($order) {
                 return [
                     'id' => $order->id,
                     'order_number' => $order->order_number,
@@ -135,8 +136,8 @@ class Timeline extends Component
                     'priority' => $order->priority,
                     'quantity_planned' => $order->quantity_planned,
                     'quantity_produced' => $order->quantity_produced,
-                    'progress' => $order->quantity_planned > 0 
-                        ? round(($order->quantity_produced / $order->quantity_planned) * 100) 
+                    'progress' => $order->quantity_planned > 0
+                        ? round(($order->quantity_produced / $order->quantity_planned) * 100)
                         : 0,
                     'start_date' => $order->start_date?->format('Y-m-d'),
                     'due_date' => $order->due_date?->format('Y-m-d'),
@@ -154,7 +155,7 @@ class Timeline extends Component
         $days = [];
         $current = \Carbon\Carbon::parse($this->startDate);
         $end = \Carbon\Carbon::parse($this->endDate);
-        
+
         while ($current <= $end) {
             $days[] = [
                 'date' => $current->format('Y-m-d'),
@@ -165,7 +166,7 @@ class Timeline extends Component
             ];
             $current->addDay();
         }
-        
+
         return $days;
     }
 
@@ -174,7 +175,7 @@ class Timeline extends Component
      */
     public function getStatusColor(string $status): string
     {
-        return match($status) {
+        return match ($status) {
             'draft' => 'bg-gray-400',
             'planned' => 'bg-blue-400',
             'in_progress' => 'bg-amber-400',
@@ -189,7 +190,7 @@ class Timeline extends Component
      */
     public function getPriorityColor(string $priority): string
     {
-        return match($priority) {
+        return match ($priority) {
             'urgent' => 'bg-red-500 text-white',
             'high' => 'bg-orange-500 text-white',
             'normal' => 'bg-blue-500 text-white',
@@ -206,17 +207,21 @@ class Timeline extends Component
         $startDate = \Carbon\Carbon::parse($this->startDate);
         $endDate = \Carbon\Carbon::parse($this->endDate);
         $totalDays = $startDate->diffInDays($endDate) + 1;
-        
+
         $orderStart = $order['start_date'] ? \Carbon\Carbon::parse($order['start_date']) : $startDate;
         $orderEnd = $order['due_date'] ? \Carbon\Carbon::parse($order['due_date']) : $orderStart;
-        
+
         // Clamp to visible range
-        if ($orderStart < $startDate) $orderStart = $startDate;
-        if ($orderEnd > $endDate) $orderEnd = $endDate;
-        
+        if ($orderStart < $startDate) {
+            $orderStart = $startDate;
+        }
+        if ($orderEnd > $endDate) {
+            $orderEnd = $endDate;
+        }
+
         $leftDays = $startDate->diffInDays($orderStart);
         $widthDays = max(1, $orderStart->diffInDays($orderEnd) + 1);
-        
+
         return [
             'left' => ($leftDays / $totalDays) * 100,
             'width' => ($widthDays / $totalDays) * 100,

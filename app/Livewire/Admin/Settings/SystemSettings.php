@@ -126,16 +126,19 @@ class SystemSettings extends Component
 
             if ($key === '') {
                 $this->addError("rows.$index.key", __('A key is required.'));
+
                 continue;
             }
 
             if (mb_strlen($key) > 191) {
                 $this->addError("rows.$index.key", __('Keys must be 191 characters or fewer.'));
+
                 continue;
             }
 
             if (isset($seenKeys[$key])) {
                 $this->addError("rows.$index.key", __('Duplicate setting key.'));
+
                 continue;
             }
 

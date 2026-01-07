@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Consolidated Accounting & Finance Tables Migration
- * 
+ *
  * MySQL 8.4 Optimized:
  * - Chart of accounts, journal entries
  * - Banking, reconciliation
@@ -37,7 +37,7 @@ return new class extends Migration
             $table->string('status', 50)->default('open'); // open, closed, locked
             $table->boolean('is_current')->default(false)->index();
             $table->timestamps();
-            
+
             $table->index(['start_date', 'end_date']);
         });
 
@@ -64,7 +64,7 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['type', 'is_active']);
             $table->index(['parent_id', 'is_active']);
         });
@@ -78,7 +78,7 @@ return new class extends Migration
             $table->foreignId('account_id')->constrained();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
+
             $table->unique(['branch_id', 'mapping_key']);
         });
 
@@ -101,11 +101,11 @@ return new class extends Migration
             $table->decimal('total_credit', 18, 4)->default(0);
             $table->string('currency', 3)->default('EGP');
             $table->decimal('exchange_rate', 18, 8)->default(1);
-            
+
             $table->foreignId('reversed_entry_id')->nullable()
                 ->constrained('journal_entries')
                 ->nullOnDelete();
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
@@ -113,10 +113,10 @@ return new class extends Migration
                 ->constrained('users')
                 ->nullOnDelete();
             $table->timestamp('posted_at')->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'entry_date']);
             $table->index(['reference_type', 'reference_id']);
         });
@@ -134,7 +134,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('reference', 255)->nullable();
             $table->timestamps();
-            
+
             $table->index(['account_id', 'created_at']);
         });
 
@@ -177,18 +177,18 @@ return new class extends Migration
             $table->string('cheque_number', 100)->nullable();
             $table->boolean('is_reconciled')->default(false)->index();
             $table->foreignId('reconciliation_id')->nullable();
-            
+
             // Link to journal
             $table->foreignId('journal_entry_id')->nullable()
                 ->constrained()
                 ->nullOnDelete();
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
-            
+
             $table->index(['bank_account_id', 'transaction_date']);
         });
 
@@ -205,12 +205,12 @@ return new class extends Migration
             $table->decimal('difference', 18, 4)->default(0);
             $table->string('status', 50)->default('draft'); // draft, completed
             $table->text('notes')->nullable();
-            
+
             $table->foreignId('reconciled_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
             $table->timestamp('reconciled_at')->nullable();
-            
+
             $table->timestamps();
         });
 
@@ -228,7 +228,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->unique(['branch_id', 'name']);
         });
 
@@ -256,7 +256,7 @@ return new class extends Migration
             $table->string('vendor_name', 255)->nullable();
             $table->string('receipt_number', 100)->nullable();
             $table->json('attachments')->nullable();
-            
+
             $table->foreignId('journal_entry_id')->nullable()
                 ->constrained()
                 ->nullOnDelete();
@@ -266,10 +266,10 @@ return new class extends Migration
             $table->foreignId('approved_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'expense_date']);
         });
 
@@ -287,7 +287,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->unique(['branch_id', 'name']);
         });
 
@@ -315,17 +315,17 @@ return new class extends Migration
             $table->string('payer_name', 255)->nullable();
             $table->string('receipt_number', 100)->nullable();
             $table->json('attachments')->nullable();
-            
+
             $table->foreignId('journal_entry_id')->nullable()
                 ->constrained()
                 ->nullOnDelete();
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'income_date']);
         });
 
@@ -344,7 +344,7 @@ return new class extends Migration
             $table->foreignId('assigned_to')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             // Financial
             $table->date('purchase_date');
             $table->decimal('purchase_cost', 18, 4);
@@ -353,7 +353,7 @@ return new class extends Migration
             $table->string('depreciation_method', 50)->default('straight_line');
             $table->decimal('accumulated_depreciation', 18, 4)->default(0);
             $table->decimal('current_value', 18, 4);
-            
+
             // Accounts
             $table->foreignId('asset_account_id')->nullable()
                 ->constrained('accounts')
@@ -364,27 +364,27 @@ return new class extends Migration
             $table->foreignId('expense_account_id')->nullable()
                 ->constrained('accounts')
                 ->nullOnDelete();
-            
+
             // Status
             $table->string('status', 50)->default('active'); // active, disposed, fully_depreciated
             $table->date('disposal_date')->nullable();
             $table->decimal('disposal_value', 18, 4)->nullable();
             $table->text('disposal_notes')->nullable();
-            
+
             // Maintenance
             $table->date('last_maintenance_date')->nullable();
             $table->date('next_maintenance_date')->nullable();
             $table->text('maintenance_notes')->nullable();
-            
+
             // Warranty
             $table->date('warranty_expiry')->nullable();
             $table->string('warranty_vendor', 255)->nullable();
-            
+
             $table->json('custom_fields')->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'status']);
         });
 
@@ -404,7 +404,7 @@ return new class extends Migration
                 ->constrained()
                 ->nullOnDelete();
             $table->timestamps();
-            
+
             $table->index(['asset_id', 'depreciation_date']);
         });
 
@@ -448,11 +448,11 @@ return new class extends Migration
             $table->decimal('paid_amount', 18, 4)->default(0);
             $table->decimal('remaining_amount', 18, 4);
             $table->text('notes')->nullable();
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
             $table->softDeletes();
         });
@@ -475,13 +475,13 @@ return new class extends Migration
             $table->string('status', 50)->default('pending'); // pending, paid, overdue, partial
             $table->string('payment_method', 50)->nullable();
             $table->text('notes')->nullable();
-            
+
             $table->foreignId('received_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
-            
+
             $table->unique(['plan_id', 'installment_number']);
         });
     }

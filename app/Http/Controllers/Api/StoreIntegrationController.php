@@ -176,7 +176,7 @@ class StoreIntegrationController extends Controller
 
     /**
      * Store order endpoint.
-     * 
+     *
      * Handles store order creation with best-effort conversion to Sale.
      * If conversion fails, the error is logged but the API response remains stable (201 Created).
      * This ensures external integrations remain reliable while allowing internal diagnosis

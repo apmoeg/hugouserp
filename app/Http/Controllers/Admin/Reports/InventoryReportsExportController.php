@@ -53,7 +53,7 @@ class InventoryReportsExportController extends Controller
         // Use selected columns or all columns
         $requestedColumns = $validated['columns'] ?? array_keys($availableColumns);
         $columns = array_intersect_key($availableColumns, array_flip($requestedColumns));
-        
+
         // Preserve order of requested columns
         if (! empty($validated['columns'])) {
             $orderedColumns = [];
@@ -87,8 +87,8 @@ class InventoryReportsExportController extends Controller
 
         if ($format === 'excel') {
             $filename = 'inventory_report_'.now()->format('Ymd_His').'.xlsx';
-            
-            $spreadsheet = new Spreadsheet();
+
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             // Set headers

@@ -3,8 +3,6 @@
 namespace App\Services\Reports;
 
 use App\Models\Customer;
-use App\Models\Sale;
-use Illuminate\Support\Facades\DB;
 
 class CustomerSegmentationService
 {
@@ -59,12 +57,12 @@ class CustomerSegmentationService
         $monetary = $customer->lifetime_revenue ?? 0;
 
         // Champions: Recent, frequent, high value
-        if ($recency <= 30 && $frequency >= 5 && bccomp((string)$monetary, '10000', 2) >= 0) {
+        if ($recency <= 30 && $frequency >= 5 && bccomp((string) $monetary, '10000', 2) >= 0) {
             return 'champions';
         }
 
         // Loyal: Frequent purchases, good value
-        if ($frequency >= 3 && bccomp((string)$monetary, '5000', 2) >= 0) {
+        if ($frequency >= 3 && bccomp((string) $monetary, '5000', 2) >= 0) {
             return 'loyal';
         }
 
@@ -119,14 +117,14 @@ class CustomerSegmentationService
         foreach ($segments as $name => $customers) {
             $totalRevenue = '0';
             foreach ($customers as $customer) {
-                $totalRevenue = bcadd($totalRevenue, (string)$customer['lifetime_revenue'], 2);
+                $totalRevenue = bcadd($totalRevenue, (string) $customer['lifetime_revenue'], 2);
             }
 
             $summary[$name] = [
                 'count' => count($customers),
-                'total_revenue' => (float)$totalRevenue,
-                'avg_revenue' => count($customers) > 0 
-                    ? (float)bcdiv($totalRevenue, (string)count($customers), 2)
+                'total_revenue' => (float) $totalRevenue,
+                'avg_revenue' => count($customers) > 0
+                    ? (float) bcdiv($totalRevenue, (string) count($customers), 2)
                     : 0,
             ];
         }
@@ -150,7 +148,7 @@ class CustomerSegmentationService
             ->get();
 
         return [
-            'at_risk_customers' => $at_risk->map(function($customer) {
+            'at_risk_customers' => $at_risk->map(function ($customer) {
                 return [
                     'id' => $customer->id,
                     'name' => $customer->name,
@@ -161,7 +159,7 @@ class CustomerSegmentationService
                 ];
             }),
             'total_at_risk' => $at_risk->count(),
-            'revenue_at_risk' => (float)$at_risk->sum('lifetime_revenue'),
+            'revenue_at_risk' => (float) $at_risk->sum('lifetime_revenue'),
         ];
     }
 

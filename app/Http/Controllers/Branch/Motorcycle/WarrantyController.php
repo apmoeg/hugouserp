@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Branch\Motorcycle;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\Branch\Concerns\RequiresBranchContext;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\WarrantyStoreRequest;
 use App\Http\Requests\WarrantyUpdateRequest;
 use App\Models\Warranty;
@@ -37,7 +37,7 @@ class WarrantyController extends Controller
         $branchId = $this->requireBranchId(request());
         $warranty->load('vehicle');
         abort_if($warranty->vehicle?->branch_id !== $branchId, 404, 'Warranty not found in this branch');
-        
+
         return $this->ok($warranty);
     }
 
@@ -47,7 +47,7 @@ class WarrantyController extends Controller
         $branchId = $this->requireBranchId($request);
         $warranty->load('vehicle');
         abort_if($warranty->vehicle?->branch_id !== $branchId, 404, 'Warranty not found in this branch');
-        
+
         $warranty->fill($request->validated())->save();
 
         return $this->ok($warranty);

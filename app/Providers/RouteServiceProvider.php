@@ -34,6 +34,7 @@ class RouteServiceProvider extends ServiceProvider
         // General API rate limiting - 120 requests per minute
         RateLimiter::for('api', function (Request $request) {
             $key = optional($request->user())->getKey() ?: $request->ip();
+
             return Limit::perMinute(120)->by($key);
         });
 
@@ -45,18 +46,21 @@ class RouteServiceProvider extends ServiceProvider
         // Export/Report endpoints - limited to prevent abuse
         RateLimiter::for('exports', function (Request $request) {
             $key = optional($request->user())->getKey() ?: $request->ip();
+
             return Limit::perMinute(10)->by($key);
         });
 
         // Bulk operations - very limited
         RateLimiter::for('bulk', function (Request $request) {
             $key = optional($request->user())->getKey() ?: $request->ip();
+
             return Limit::perMinute(5)->by($key);
         });
 
         // Uploads - moderate limits
         RateLimiter::for('uploads', function (Request $request) {
             $key = optional($request->user())->getKey() ?: $request->ip();
+
             return Limit::perMinute(30)->by($key);
         });
     }

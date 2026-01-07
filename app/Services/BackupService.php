@@ -40,8 +40,8 @@ class BackupService implements BackupServiceInterface
                     throw new \RuntimeException('Backup file missing after run.');
                 }
 
-                $size = Storage::disk($this->disk)->exists($path) 
-                    ? Storage::disk($this->disk)->size($path) 
+                $size = Storage::disk($this->disk)->exists($path)
+                    ? Storage::disk($this->disk)->size($path)
                     : 0;
 
                 return [
@@ -59,7 +59,7 @@ class BackupService implements BackupServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($result) {
                 $path = $result['path'] ?? '';
-                
+
                 if (empty($path)) {
                     return false;
                 }
@@ -120,7 +120,7 @@ class BackupService implements BackupServiceInterface
 
     /**
      * Restore database from a backup file
-     * 
+     *
      * WARNING: This will replace all current data with the backup data.
      * Make sure to create a backup before restoring.
      */
@@ -129,8 +129,8 @@ class BackupService implements BackupServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($path) {
                 // Validate the backup file exists
-                if (!Storage::disk($this->disk)->exists($path)) {
-                    throw new \RuntimeException('Backup file not found: ' . $path);
+                if (! Storage::disk($this->disk)->exists($path)) {
+                    throw new \RuntimeException('Backup file not found: '.$path);
                 }
 
                 // Get the full path
@@ -160,7 +160,7 @@ class BackupService implements BackupServiceInterface
                     escapeshellarg($host),
                     escapeshellarg((string) $port),
                     escapeshellarg($username),
-                    $password ? '-p' . escapeshellarg($password) : '',
+                    $password ? '-p'.escapeshellarg($password) : '',
                     escapeshellarg($database),
                     $isCompressed ? '-' : escapeshellarg($fullPath)
                 );
@@ -171,7 +171,7 @@ class BackupService implements BackupServiceInterface
                 exec($command, $output, $returnVar);
 
                 if ($returnVar !== 0) {
-                    throw new \RuntimeException('Restore failed: ' . implode("\n", $output));
+                    throw new \RuntimeException('Restore failed: '.implode("\n", $output));
                 }
 
                 // Clear all caches after restore
@@ -196,7 +196,7 @@ class BackupService implements BackupServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($path) {
-                if (!Storage::disk($this->disk)->exists($path)) {
+                if (! Storage::disk($this->disk)->exists($path)) {
                     throw new \RuntimeException('Backup file not found');
                 }
 
@@ -215,12 +215,12 @@ class BackupService implements BackupServiceInterface
     {
         return $this->handleServiceOperation(
             callback: function () use ($path) {
-                if (!Storage::disk($this->disk)->exists($path)) {
+                if (! Storage::disk($this->disk)->exists($path)) {
                     return null;
                 }
 
                 $disk = Storage::disk($this->disk);
-                
+
                 return [
                     'path' => $path,
                     'filename' => basename($path),
@@ -247,7 +247,7 @@ class BackupService implements BackupServiceInterface
         $pow = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, $precision) . ' ' . $units[$pow];
+        return round($bytes, $precision).' '.$units[$pow];
     }
 
     /**

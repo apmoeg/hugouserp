@@ -82,8 +82,8 @@ class Form extends Component
                 'required',
                 'string',
                 'max:255',
-                $this->unitId 
-                    ? Rule::unique('units_of_measure', 'name')->ignore($this->unitId) 
+                $this->unitId
+                    ? Rule::unique('units_of_measure', 'name')->ignore($this->unitId)
                     : Rule::unique('units_of_measure', 'name'),
             ],
             'nameAr' => 'nullable|string|max:255',
@@ -91,8 +91,8 @@ class Form extends Component
                 'required',
                 'string',
                 'max:20',
-                $this->unitId 
-                    ? Rule::unique('units_of_measure', 'symbol')->ignore($this->unitId) 
+                $this->unitId
+                    ? Rule::unique('units_of_measure', 'symbol')->ignore($this->unitId)
                     : Rule::unique('units_of_measure', 'symbol'),
             ],
             'type' => 'required|string|in:unit,weight,length,volume,area,time,other',

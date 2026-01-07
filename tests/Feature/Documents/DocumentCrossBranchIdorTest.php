@@ -19,11 +19,17 @@ class DocumentCrossBranchIdorTest extends TestCase
     use RefreshDatabase;
 
     protected User $userBranchA;
+
     protected User $userBranchB;
+
     protected User $userBranchAWithoutDownload;
+
     protected Branch $branchA;
+
     protected Branch $branchB;
+
     protected Document $documentBranchA;
+
     protected Document $documentBranchB;
 
     protected function setUp(): void
@@ -57,7 +63,7 @@ class DocumentCrossBranchIdorTest extends TestCase
         // Create documents in each branch
         $this->documentBranchA = Document::forceCreate([
             'title' => 'Document in Branch A',
-            'code' => 'DOC-A-' . Str::random(6),
+            'code' => 'DOC-A-'.Str::random(6),
             'file_name' => 'test-a.pdf',
             'file_path' => 'documents/test-a.pdf',
             'file_size' => 1024,
@@ -70,7 +76,7 @@ class DocumentCrossBranchIdorTest extends TestCase
 
         $this->documentBranchB = Document::forceCreate([
             'title' => 'Document in Branch B',
-            'code' => 'DOC-B-' . Str::random(6),
+            'code' => 'DOC-B-'.Str::random(6),
             'file_name' => 'test-b.pdf',
             'file_path' => 'documents/test-b.pdf',
             'file_size' => 1024,

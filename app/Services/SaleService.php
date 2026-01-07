@@ -55,22 +55,22 @@ class SaleService implements SaleServiceInterface
                     $refund = '0.00';
                     foreach ($items as $it) {
                         // Validate required fields
-                        if (!isset($it['product_id']) || !isset($it['qty'])) {
+                        if (! isset($it['product_id']) || ! isset($it['qty'])) {
                             continue;
                         }
-                        
+
                         $si = $sale->items->firstWhere('product_id', $it['product_id']);
                         if (! $si) {
                             continue;
                         }
                         // Use quantity column (not qty)
                         $qty = min((float) $it['qty'], (float) $si->quantity);
-                        
+
                         // Skip if qty is zero or negative
                         if ($qty <= 0) {
                             continue;
                         }
-                        
+
                         // Use bcmath for precise money calculation
                         $line = bcmul((string) $qty, (string) $si->unit_price, 2);
                         $refund = bcadd($refund, $line, 2);
@@ -80,7 +80,7 @@ class SaleService implements SaleServiceInterface
                     $note = ReturnNote::create([
                         'branch_id' => $sale->branch_id,
                         'sale_id' => $sale->getKey(),
-                        'reference_number' => 'RET-' . date('Ymd') . '-' . str_pad((string) (ReturnNote::whereDate('created_at', today())->count() + 1), 5, '0', STR_PAD_LEFT),
+                        'reference_number' => 'RET-'.date('Ymd').'-'.str_pad((string) (ReturnNote::whereDate('created_at', today())->count() + 1), 5, '0', STR_PAD_LEFT),
                         'type' => 'sale_return',
                         'warehouse_id' => $sale->warehouse_id,
                         'customer_id' => $sale->customer_id,

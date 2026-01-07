@@ -18,12 +18,19 @@ class Form extends Component
     public ?int $priorityId = null;
 
     public string $name = '';
+
     public string $name_ar = '';
+
     public int $level = 1;
+
     public string $color = '#3B82F6';
+
     public int $response_time_minutes = 60;
+
     public int $resolution_time_minutes = 480;
+
     public bool $is_active = true;
+
     public int $sort_order = 0;
 
     public function mount(?int $priority = null): void

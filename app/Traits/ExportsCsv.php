@@ -72,7 +72,7 @@ trait ExportsCsv
         $filename = $filenamePrefix.'_'.now()->format('Ymd_His').'.xlsx';
 
         $callback = function () use ($query, $headers, $rowMapper, $chunkSize) {
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             // Set headers

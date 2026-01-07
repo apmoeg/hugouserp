@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Services;
 
 use App\Models\Branch;
+use App\Models\PosSession;
 use App\Models\Product;
 use App\Models\User;
-use App\Models\PosSession;
 use App\Services\POSService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -17,8 +17,11 @@ class POSServiceTest extends TestCase
     use RefreshDatabase;
 
     protected POSService $service;
+
     protected Branch $branch;
+
     protected Product $product;
+
     protected User $user;
 
     protected function setUp(): void

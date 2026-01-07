@@ -46,16 +46,17 @@ class Index extends Component
     public function delete(int $id): void
     {
         $this->authorize('warehouse.manage');
-        
+
         $warehouse = Warehouse::find($id);
         if ($warehouse) {
             if ($warehouse->stockMovements()->count() > 0) {
                 session()->flash('error', __('Cannot delete warehouse with stock movements'));
+
                 return;
             }
             $warehouse->delete();
             session()->flash('success', __('Warehouse deleted successfully'));
-            
+
             $user = auth()->user();
             Cache::forget('warehouse_stats_'.($user?->branch_id ?? 'all'));
             Cache::forget('all_warehouses_'.($user?->branch_id ?? 'all'));
@@ -65,12 +66,12 @@ class Index extends Component
     public function toggleStatus(int $id): void
     {
         $this->authorize('warehouse.manage');
-        
+
         $warehouse = Warehouse::find($id);
         if ($warehouse) {
             $newStatus = $warehouse->status === 'active' ? 'inactive' : 'active';
             $warehouse->update(['status' => $newStatus]);
-            
+
             $user = auth()->user();
             Cache::forget('warehouse_stats_'.($user?->branch_id ?? 'all'));
             Cache::forget('all_warehouses_'.($user?->branch_id ?? 'all'));

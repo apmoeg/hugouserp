@@ -19,8 +19,11 @@ class Show extends Component
     private const SHARE_USER_LIMIT = 50;
 
     public Document $document;
+
     public int $shareUserId = 0;
+
     public string $sharePermission = 'view';
+
     public ?string $shareExpiresAt = null;
 
     protected DocumentService $documentService;
@@ -36,7 +39,7 @@ class Show extends Component
 
         // Prevent cross-branch document access (IDOR protection)
         $this->ensureDocumentBranchAccess(auth()->user(), $document);
-        
+
         $this->document = $document->load(['uploader', 'tags', 'versions.uploader', 'shares.user', 'activities.user']);
 
         // Check if user can access this document

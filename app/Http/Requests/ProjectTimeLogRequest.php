@@ -35,23 +35,23 @@ class ProjectTimeLogRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         // Auto-calculate hours if not provided
-        if (!$this->has('hours') && $this->has('start_time') && $this->has('end_time')) {
+        if (! $this->has('hours') && $this->has('start_time') && $this->has('end_time')) {
             $start = \Carbon\Carbon::createFromFormat('H:i', $this->start_time);
             $end = \Carbon\Carbon::createFromFormat('H:i', $this->end_time);
             $hours = $end->diffInMinutes($start) / 60;
-            
+
             $this->merge([
                 'hours' => round($hours, 2),
             ]);
         }
 
-        if (!$this->has('is_billable')) {
+        if (! $this->has('is_billable')) {
             $this->merge([
                 'is_billable' => true,
             ]);
         }
 
-        if (!$this->has('user_id')) {
+        if (! $this->has('user_id')) {
             $this->merge([
                 'user_id' => $this->user()->id,
             ]);

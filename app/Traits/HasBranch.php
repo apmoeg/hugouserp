@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * HasBranch - Unified trait for branch-aware models
- * 
+ *
  * Provides:
  *   - Auto-assignment of branch_id on create
  *   - Branch relationship
@@ -43,6 +43,7 @@ trait HasBranch
     public function scopeForBranch(Builder $query, $branch): Builder
     {
         $id = is_object($branch) ? $branch->getKey() : $branch;
+
         return $query->where($this->getTable().'.branch_id', $id);
     }
 
@@ -69,7 +70,7 @@ trait HasBranch
         $user = $user ?? $this->resolveCurrentUser();
 
         if (! $user) {
-            return $query->whereNull($this->getTable() . '.id');
+            return $query->whereNull($this->getTable().'.id');
         }
 
         $branchIds = [];
@@ -85,8 +86,8 @@ trait HasBranch
             $branchIds[] = $user->branch_id;
         }
 
-        return empty($branchIds) 
-            ? $query->whereNull($this->getTable() . '.id') 
+        return empty($branchIds)
+            ? $query->whereNull($this->getTable().'.id')
             : $query->whereIn($this->getTable().'.branch_id', $branchIds);
     }
 
@@ -96,6 +97,7 @@ trait HasBranch
     public function scopeInRequestBranch(Builder $query): Builder
     {
         $id = method_exists($this, 'currentBranchId') ? $this->currentBranchId() : null;
+
         return $id ? $query->where($this->getTable().'.branch_id', $id) : $query;
     }
 

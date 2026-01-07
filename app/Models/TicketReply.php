@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Builder;
 
 class TicketReply extends Model
 {
@@ -73,7 +73,7 @@ class TicketReply extends Model
 
     public function isFromAgent(): bool
     {
-        return !$this->isFromCustomer();
+        return ! $this->isFromCustomer();
     }
 
     public function isInternal(): bool
@@ -83,7 +83,7 @@ class TicketReply extends Model
 
     public function markAsRead()
     {
-        if (!$this->read_at) {
+        if (! $this->read_at) {
             $this->read_at = now();
             $this->save();
         }

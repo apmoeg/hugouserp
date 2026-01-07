@@ -100,7 +100,7 @@ class ModuleContextService
     public static function matchesRouteKey(): bool
     {
         $routeKey = self::routeKey();
-        if (!$routeKey) {
+        if (! $routeKey) {
             return true; // No route key means we're in a non-module route
         }
 
@@ -128,6 +128,7 @@ class ModuleContextService
         ];
 
         $mappedContext = $keyMap[$routeKey] ?? $routeKey;
+
         return $context === $mappedContext;
     }
 }

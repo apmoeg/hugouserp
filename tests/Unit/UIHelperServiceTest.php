@@ -132,7 +132,7 @@ class UIHelperServiceTest extends TestCase
         // Test value just under 1024 KB (1 MB boundary)
         $result = $this->service->formatBytes(1023 * 1024, precision: 2);
         $this->assertStringContainsString('KB', $result);
-        
+
         // Test value just over 1024 KB (1 MB boundary)
         $result = $this->service->formatBytes(1025 * 1024, precision: 2);
         $this->assertStringContainsString('MB', $result);
@@ -145,7 +145,7 @@ class UIHelperServiceTest extends TestCase
         // This is 1048575 bytes = 1023.999... KB, which rounds to 1024 KB
         // Should be promoted to 1 MB
         $this->assertSame('1 MB', $this->service->formatBytes((1024 * 1024) - 1, precision: 2));
-        
+
         // Similar test for GB boundary
         $this->assertSame('1 GB', $this->service->formatBytes((1024 * 1024 * 1024) - 1, precision: 2));
     }

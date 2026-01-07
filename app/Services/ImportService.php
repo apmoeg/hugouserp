@@ -19,7 +19,9 @@ class ImportService
     use HandlesServiceErrors;
 
     protected array $errors = [];
+
     protected int $successCount = 0;
+
     protected int $failedCount = 0;
 
     /**
@@ -28,7 +30,7 @@ class ImportService
     public function getImportableEntities(?int $moduleId = null): array
     {
         $productColumns = $this->getProductColumnsForModule($moduleId);
-        
+
         return [
             'products' => [
                 'name' => __('Products'),
@@ -177,19 +179,19 @@ class ImportService
 
             foreach ($moduleFields as $field) {
                 $fieldKey = $field->field_key;
-                
+
                 // Add to optional columns
                 $optional[] = $fieldKey;
-                
+
                 // Generate validation rule based on field type
                 $validationRule = $this->getValidationRuleForField($field);
-                
+
                 if ($field->is_required) {
                     $required[] = $fieldKey;
                     // Remove 'nullable|' prefix correctly using str_replace
-                    $validationRule = 'required|' . str_replace('nullable|', '', $validationRule);
+                    $validationRule = 'required|'.str_replace('nullable|', '', $validationRule);
                 }
-                
+
                 $validation[$fieldKey] = $validationRule;
             }
         }
@@ -235,11 +237,12 @@ class ImportService
     public function getTemplateColumns(string $entityType, ?int $moduleId = null): array
     {
         $entities = $this->getImportableEntities($moduleId);
-        if (!isset($entities[$entityType])) {
+        if (! isset($entities[$entityType])) {
             return [];
         }
 
         $entity = $entities[$entityType];
+
         return array_merge($entity['required_columns'], $entity['optional_columns']);
     }
 
@@ -252,7 +255,7 @@ class ImportService
                     return null;
                 }
 
-                $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+                $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet;
                 $sheet = $spreadsheet->getActiveSheet();
 
                 // Write header row
@@ -271,11 +274,11 @@ class ImportService
                 }
 
                 $moduleSuffix = $moduleId ? "_module{$moduleId}" : '';
-                $filename = "import_template_{$entityType}{$moduleSuffix}_" . date('Y-m-d') . '.xlsx';
-                $path = 'imports/templates/' . $filename;
-                
+                $filename = "import_template_{$entityType}{$moduleSuffix}_".date('Y-m-d').'.xlsx';
+                $path = 'imports/templates/'.$filename;
+
                 Storage::disk('local')->makeDirectory('imports/templates');
-                
+
                 $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
                 $writer->save(Storage::disk('local')->path($path));
 
@@ -296,7 +299,7 @@ class ImportService
         return $this->handleServiceOperation(
             callback: function () use ($entityType, $filePath, $options, $moduleId) {
                 $entities = $this->getImportableEntities($moduleId);
-                if (!isset($entities[$entityType])) {
+                if (! isset($entities[$entityType])) {
                     throw new \InvalidArgumentException("Unknown entity type: {$entityType}");
                 }
 
@@ -328,7 +331,7 @@ class ImportService
                     foreach ($rows as $rowNum => $row) {
                         $rowData = [];
                         foreach ($headers as $index => $header) {
-                            $rowData[$header] = isset($row[$index]) ? trim((string)$row[$index]) : null;
+                            $rowData[$header] = isset($row[$index]) ? trim((string) $row[$index]) : null;
                         }
 
                         // Skip empty rows
@@ -344,6 +347,7 @@ class ImportService
                                 'errors' => $validator->errors()->all(),
                             ];
                             $this->failedCount++;
+
                             continue;
                         }
 
@@ -409,11 +413,11 @@ class ImportService
     protected function importProduct(array $data, ?int $branchId, bool $updateExisting, bool $skipDuplicates, ?int $moduleId = null): bool
     {
         $query = Product::query();
-        
+
         // Check for existing product by SKU or barcode
-        if (!empty($data['sku'])) {
+        if (! empty($data['sku'])) {
             $existing = $query->where('sku', $data['sku'])->first();
-        } elseif (!empty($data['barcode'])) {
+        } elseif (! empty($data['barcode'])) {
             $existing = $query->where('barcode', $data['barcode'])->first();
         } else {
             $existing = null;
@@ -425,7 +429,7 @@ class ImportService
             $moduleFields = \App\Models\ModuleProductField::where('module_id', $moduleId)
                 ->where('is_active', true)
                 ->get();
-            
+
             foreach ($moduleFields as $field) {
                 if (isset($data[$field->field_key])) {
                     $moduleFieldValues[$field->field_key] = $data[$field->field_key];
@@ -434,84 +438,89 @@ class ImportService
         }
 
         if ($existing) {
-            if ($skipDuplicates && !$updateExisting) {
+            if ($skipDuplicates && ! $updateExisting) {
                 return false;
             }
             if ($updateExisting) {
                 $existing->fill($this->sanitizeProductData($data, $branchId, $moduleId));
                 $existing->save();
-                
+
                 // Refresh to get updated module_id for setFieldValue
                 $existing->refresh();
-                
+
                 // Update module field values (only if product has matching module_id)
-                if ($moduleId && !empty($moduleFieldValues) && $existing->module_id === $moduleId) {
+                if ($moduleId && ! empty($moduleFieldValues) && $existing->module_id === $moduleId) {
                     foreach ($moduleFieldValues as $fieldKey => $value) {
                         $existing->setFieldValue($fieldKey, $value);
                     }
                 }
+
                 return true;
             }
         }
 
         $product = Product::create($this->sanitizeProductData($data, $branchId, $moduleId));
-        
+
         // Save module field values for new product (refresh to ensure module_id is set)
         $product->refresh();
-        if ($moduleId && !empty($moduleFieldValues) && $product->module_id === $moduleId) {
+        if ($moduleId && ! empty($moduleFieldValues) && $product->module_id === $moduleId) {
             foreach ($moduleFieldValues as $fieldKey => $value) {
                 $product->setFieldValue($fieldKey, $value);
             }
         }
-        
+
         return true;
     }
 
     protected function importCustomer(array $data, ?int $branchId, bool $updateExisting, bool $skipDuplicates): bool
     {
         $existing = null;
-        if (!empty($data['email'])) {
+        if (! empty($data['email'])) {
             $existing = Customer::where('email', $data['email'])->first();
-        } elseif (!empty($data['phone'])) {
+        } elseif (! empty($data['phone'])) {
             $existing = Customer::where('phone', $data['phone'])->first();
         }
 
         if ($existing) {
-            if ($skipDuplicates && !$updateExisting) {
+            if ($skipDuplicates && ! $updateExisting) {
                 return false;
             }
             if ($updateExisting) {
                 $existing->fill($this->sanitizeCustomerData($data, $branchId));
                 $existing->save();
+
                 return true;
             }
         }
 
         Customer::create($this->sanitizeCustomerData($data, $branchId));
+
         return true;
     }
 
     protected function importSupplier(array $data, ?int $branchId, bool $updateExisting, bool $skipDuplicates): bool
     {
         $existing = null;
-        if (!empty($data['email'])) {
+        if (! empty($data['email'])) {
             $existing = Supplier::where('email', $data['email'])->first();
-        } elseif (!empty($data['phone'])) {
+        } elseif (! empty($data['phone'])) {
             $existing = Supplier::where('phone', $data['phone'])->first();
         }
 
         if ($existing) {
-            if ($skipDuplicates && !$updateExisting) {
+            if ($skipDuplicates && ! $updateExisting) {
                 return false;
             }
             if ($updateExisting) {
                 $existing->fill($this->sanitizeSupplierData($data, $branchId));
                 $existing->save();
+
                 return true;
             }
         }
 
         Supplier::create($this->sanitizeSupplierData($data, $branchId));
+
         return true;
     }
 
@@ -526,8 +535,8 @@ class ImportService
             'min_stock' => (int) ($data['min_stock'] ?? 0),
             'is_active' => filter_var($data['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN),
             'branch_id' => $branchId,
-            'category_id' => !empty($data['category_id']) ? (int) $data['category_id'] : null,
-            'module_id' => $moduleId ?: (!empty($data['module_id']) ? (int) $data['module_id'] : null),
+            'category_id' => ! empty($data['category_id']) ? (int) $data['category_id'] : null,
+            'module_id' => $moduleId ?: (! empty($data['module_id']) ? (int) $data['module_id'] : null),
         ];
     }
 

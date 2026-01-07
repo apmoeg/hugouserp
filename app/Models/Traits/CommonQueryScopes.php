@@ -23,6 +23,7 @@ trait CommonQueryScopes
         if ($endDate) {
             $query->where($column, '<=', $endDate);
         }
+
         return $query;
     }
 
@@ -125,6 +126,7 @@ trait CommonQueryScopes
         if ($this->hasAttribute('status')) {
             return $query->where('status', 'active');
         }
+
         return $query;
     }
 
@@ -139,6 +141,7 @@ trait CommonQueryScopes
         if ($this->hasAttribute('status')) {
             return $query->where('status', 'inactive');
         }
+
         return $query;
     }
 
@@ -165,20 +168,20 @@ trait CommonQueryScopes
     public function getDisplayValue(string $attribute, string $default = '-'): string
     {
         $value = $this->{$attribute};
-        
+
         if ($value === null || $value === '') {
             return $default;
         }
-        
+
         // Handle different types
         if (is_bool($value)) {
             return $value ? __('Yes') : __('No');
         }
-        
+
         if ($value instanceof \DateTime) {
             return $value->format('Y-m-d H:i');
         }
-        
+
         if (is_numeric($value)) {
             // Common money-related suffixes/prefixes for attribute names
             $moneySuffixes = ['_price', '_cost', '_total', '_amount', 'price', 'cost', 'total', 'amount'];
@@ -189,7 +192,7 @@ trait CommonQueryScopes
                 }
             }
         }
-        
+
         return (string) $value;
     }
 }

@@ -18,6 +18,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class Product extends BaseModel
 {
     use LogsActivity, SoftDeletes;
+
     protected ?string $moduleKey = 'inventory';
 
     protected $table = 'products';
@@ -256,10 +257,8 @@ class Product extends BaseModel
     /**
      * Scope to filter products with low stock levels
      * Returns products where current stock is at or below the alert threshold
-     * 
-     * @param Builder $query
-     * @return Builder
-     * 
+     *
+     *
      * @example Product::lowStock()->get()
      */
     public function scopeLowStock(Builder $query): Builder
@@ -270,10 +269,8 @@ class Product extends BaseModel
 
     /**
      * Scope to filter products that are out of stock
-     * 
-     * @param Builder $query
-     * @return Builder
-     * 
+     *
+     *
      * @example Product::outOfStock()->count()
      */
     public function scopeOutOfStock(Builder $query): Builder
@@ -283,10 +280,8 @@ class Product extends BaseModel
 
     /**
      * Scope to filter products that are in stock
-     * 
-     * @param Builder $query
-     * @return Builder
-     * 
+     *
+     *
      * @example Product::inStock()->get()
      */
     public function scopeInStock(Builder $query): Builder
@@ -296,11 +291,9 @@ class Product extends BaseModel
 
     /**
      * Scope to filter perishable products expiring within a specified number of days
-     * 
-     * @param Builder $query
-     * @param int $days Number of days to look ahead (default: 30)
-     * @return Builder
-     * 
+     *
+     * @param  int  $days  Number of days to look ahead (default: 30)
+     *
      * @example Product::expiringSoon(7)->get() // Products expiring in 7 days
      */
     public function scopeExpiringSoon(Builder $query, int $days = 30): Builder
@@ -452,7 +445,7 @@ class Product extends BaseModel
 
     public function getReorderSuggestion(): ?float
     {
-        if (!$this->needsReorder()) {
+        if (! $this->needsReorder()) {
             return null;
         }
 
@@ -466,7 +459,7 @@ class Product extends BaseModel
 
     public function getWarrantyExpiryDate(\DateTime $purchaseDate): ?\DateTime
     {
-        if (!$this->hasWarranty()) {
+        if (! $this->hasWarranty()) {
             return null;
         }
 
@@ -559,6 +552,6 @@ class Product extends BaseModel
             ->logOnly(['name', 'sku', 'default_price', 'cost', 'is_active', 'min_stock', 'category_id'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
-            ->setDescriptionForEvent(fn(string $eventName) => "Product {$this->name} was {$eventName}");
+            ->setDescriptionForEvent(fn (string $eventName) => "Product {$this->name} was {$eventName}");
     }
 }

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class UserFavorite extends Model
 {
@@ -40,6 +40,7 @@ class UserFavorite extends Model
     public function scopeForUser(Builder $query, ?int $userId = null): Builder
     {
         $userId = $userId ?? auth()->id();
+
         return $query->where('user_id', $userId);
     }
 
@@ -84,6 +85,7 @@ class UserFavorite extends Model
 
         if ($favorite) {
             $favorite->delete();
+
             return false;
         }
 

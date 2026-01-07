@@ -20,7 +20,7 @@ class PerformanceServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(QueryPerformanceService::class, function ($app) {
-            return new QueryPerformanceService();
+            return new QueryPerformanceService;
         });
     }
 
@@ -30,7 +30,7 @@ class PerformanceServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Only enable in development or when explicitly enabled
-        if (!$this->shouldEnablePerformanceMonitoring()) {
+        if (! $this->shouldEnablePerformanceMonitoring()) {
             return;
         }
 
@@ -42,7 +42,7 @@ class PerformanceServiceProvider extends ServiceProvider
      */
     protected function shouldEnablePerformanceMonitoring(): bool
     {
-        return app()->environment('local') || 
+        return app()->environment('local') ||
                config('settings.advanced.enable_query_logging', false);
     }
 

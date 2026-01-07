@@ -15,6 +15,7 @@ use Livewire\Component;
 class Form extends Component
 {
     use HasMultilingualValidation;
+
     public ?int $categoryId = null;
 
     public string $name = '';
@@ -62,8 +63,8 @@ class Form extends Component
                 'required',
                 'string',
                 'max:255',
-                $this->categoryId 
-                    ? Rule::unique('product_categories', 'name')->ignore($this->categoryId) 
+                $this->categoryId
+                    ? Rule::unique('product_categories', 'name')->ignore($this->categoryId)
                     : Rule::unique('product_categories', 'name'),
             ],
             'nameAr' => 'nullable|string|max:255',

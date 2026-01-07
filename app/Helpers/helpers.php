@@ -73,7 +73,6 @@ if (! function_exists('setting')) {
      *
      * @param  string  $key  Setting key (e.g., 'pos.max_discount_percent', 'inventory.default_costing_method')
      * @param  mixed  $default  Default value if setting doesn't exist
-     * @return mixed
      */
     function setting(string $key, mixed $default = null): mixed
     {
@@ -229,13 +228,12 @@ if (! function_exists('first_accessible_route_for_user')) {
      * Get the first accessible route for a user based on their permissions.
      * This is used for post-login redirects to determine where the user should land.
      *
-     * @param  \Illuminate\Contracts\Auth\Authenticatable|null  $user
      * @return string The route name of the first accessible module
      */
     function first_accessible_route_for_user(?\Illuminate\Contracts\Auth\Authenticatable $user = null): string
     {
         $user = $user ?? Auth::user();
-        
+
         if ($user === null) {
             return 'login';
         }
@@ -285,9 +283,6 @@ if (! function_exists('first_accessible_route_for_user')) {
 if (! function_exists('join_paths')) {
     /**
      * Join file paths with the appropriate directory separator.
-     *
-     * @param  string  ...$paths
-     * @return string
      */
     function join_paths(string ...$paths): string
     {
@@ -307,10 +302,6 @@ if (! function_exists('join_paths')) {
 if (! function_exists('value')) {
     /**
      * Return the default value of the given value.
-     *
-     * @param  mixed  $value
-     * @param  mixed  ...$args
-     * @return mixed
      */
     function value(mixed $value, mixed ...$args): mixed
     {
@@ -321,9 +312,6 @@ if (! function_exists('value')) {
 if (! function_exists('array_last')) {
     /**
      * Get the last element from an array.
-     *
-     * @param  array  $array
-     * @return mixed
      */
     function array_last(array $array): mixed
     {

@@ -15,7 +15,7 @@ class ExportImportController extends Controller
     public function exportUnits(Request $request): StreamedResponse
     {
         $query = \App\Models\RentalUnit::query()->with('property');
-        
+
         $format = $request->input('format', 'xlsx');
 
         if ($format === 'xlsx') {
@@ -54,7 +54,7 @@ class ExportImportController extends Controller
     public function exportTenants(Request $request): StreamedResponse
     {
         $query = \App\Models\Tenant::query();
-        
+
         $format = $request->input('format', 'xlsx');
 
         if ($format === 'xlsx') {
@@ -91,7 +91,7 @@ class ExportImportController extends Controller
     public function exportContracts(Request $request): StreamedResponse
     {
         $query = \App\Models\RentalContract::query()->with(['unit.property', 'tenant']);
-        
+
         $format = $request->input('format', 'xlsx');
 
         if ($format === 'xlsx') {

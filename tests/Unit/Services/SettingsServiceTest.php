@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services;
 
-use App\Models\SystemSetting;
 use App\Services\SettingsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -18,7 +17,7 @@ class SettingsServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new SettingsService();
+        $this->service = new SettingsService;
     }
 
     /**
@@ -202,10 +201,10 @@ class SettingsServiceTest extends TestCase
         $this->assertIsArray($categorySettings);
         $this->assertArrayHasKey($plainKey, $categorySettings);
         $this->assertArrayHasKey($encryptedKey, $categorySettings);
-        
+
         // Verify plain value
         $this->assertEquals($plainValue, $categorySettings[$plainKey]);
-        
+
         // Verify encrypted array was decoded
         $this->assertIsArray($categorySettings[$encryptedKey]);
         $this->assertEquals($encryptedValue, $categorySettings[$encryptedKey]);

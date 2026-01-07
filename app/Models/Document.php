@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
-use Illuminate\Database\Eloquent\Builder;
 
 class Document extends Model
 {
@@ -67,13 +67,13 @@ class Document extends Model
                 $document->uploaded_by ??= $user?->id;
             }
 
-            if (!$document->version) {
+            if (! $document->version) {
                 $document->version = 1;
             }
-            if (!$document->version_number) {
+            if (! $document->version_number) {
                 $document->version_number = 1;
             }
-            if (!$document->status) {
+            if (! $document->status) {
                 $document->status = 'draft';
             }
         });
@@ -145,7 +145,7 @@ class Document extends Model
             $size /= 1024;
         }
 
-        return round($size, 2) . ' ' . $units[$i];
+        return round($size, 2).' '.$units[$i];
     }
 
     public function getDownloadUrl(): string

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Critical ERP: Audit trail for price changes
- * 
+ *
  * This observer logs all price changes for products to maintain
  * a complete audit trail required for financial compliance and
  * cost analysis in ERP systems.
@@ -27,9 +27,9 @@ class PriceAuditObserver
             $newPrice = $product->default_price;
             $oldCost = $product->getOriginal('cost');
             $newCost = $product->cost;
-            
+
             $changes = [];
-            
+
             if ($product->isDirty('default_price')) {
                 $changes['selling_price'] = [
                     'old' => $oldPrice,
@@ -38,7 +38,7 @@ class PriceAuditObserver
                     'change_percent' => $oldPrice > 0 ? (($newPrice - $oldPrice) / $oldPrice) * 100 : 0,
                 ];
             }
-            
+
             if ($product->isDirty('cost')) {
                 $changes['cost'] = [
                     'old' => $oldCost,
@@ -46,7 +46,7 @@ class PriceAuditObserver
                     'change' => $newCost - $oldCost,
                     'change_percent' => $oldCost > 0 ? (($newCost - $oldCost) / $oldCost) * 100 : 0,
                 ];
-                
+
                 // Calculate margin change
                 if ($product->default_price > 0) {
                     $oldMargin = $oldPrice > 0 ? (($oldPrice - $oldCost) / $oldPrice) * 100 : 0;
@@ -58,7 +58,7 @@ class PriceAuditObserver
                     ];
                 }
             }
-            
+
             Log::info('Product price change detected', [
                 'product_id' => $product->id,
                 'product_name' => $product->name,
@@ -68,13 +68,13 @@ class PriceAuditObserver
                 'timestamp' => now()->toIso8601String(),
             ]);
         }
-        
+
         // Critical ERP: Validate reorder logic
         if ($product->isDirty('reorder_point') || $product->isDirty('min_stock') || $product->isDirty('max_stock')) {
             $reorderPoint = $product->reorder_point ?? 0;
             $minStock = $product->min_stock ?? 0;
             $maxStock = $product->max_stock;
-            
+
             // Validate reorder point is between min and max
             if ($reorderPoint < $minStock) {
                 Log::warning('Reorder point is below minimum stock', [
@@ -83,7 +83,7 @@ class PriceAuditObserver
                     'min_stock' => $minStock,
                 ]);
             }
-            
+
             if ($maxStock && $reorderPoint > $maxStock) {
                 Log::warning('Reorder point is above maximum stock', [
                     'product_id' => $product->id,
@@ -91,7 +91,7 @@ class PriceAuditObserver
                     'max_stock' => $maxStock,
                 ]);
             }
-            
+
             // Validate max stock is greater than min stock
             if ($maxStock && $maxStock < $minStock) {
                 throw new \InvalidArgumentException(

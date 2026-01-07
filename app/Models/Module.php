@@ -267,17 +267,17 @@ class Module extends Model
         if ($this->key === 'inventory') {
             return __('Stock Module');
         }
-        
+
         // Product modules - create items/products
         if ($this->supports_items) {
             return __('Product Module');
         }
-        
+
         // Operational modules - use products from other modules
         if (in_array($this->key, ['sales', 'purchases', 'pos'])) {
             return __('Operational Module');
         }
-        
+
         // Management modules - administrative tasks
         return __('Management Module');
     }
@@ -290,15 +290,15 @@ class Module extends Model
         if ($this->key === 'inventory') {
             return 'bg-blue-100 text-blue-700';
         }
-        
+
         if ($this->supports_items) {
             return 'bg-emerald-100 text-emerald-700';
         }
-        
+
         if (in_array($this->key, ['sales', 'purchases', 'pos'])) {
             return 'bg-amber-100 text-amber-700';
         }
-        
+
         return 'bg-slate-100 text-slate-700';
     }
 

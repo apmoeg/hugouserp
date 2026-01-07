@@ -50,7 +50,7 @@ class SystemDiagnostics extends Command
     /**
      * Display results as formatted text
      *
-     * @param array<string, mixed> $results
+     * @param  array<string, mixed>  $results
      */
     private function displayAsText(array $results): void
     {
@@ -82,7 +82,7 @@ class SystemDiagnostics extends Command
                 $driver
             ));
 
-            if (isset($result['warnings']) && !empty($result['warnings'])) {
+            if (isset($result['warnings']) && ! empty($result['warnings'])) {
                 foreach ($result['warnings'] as $warning) {
                     $this->line("  <yellow>- {$warning}</>");
                 }
@@ -95,7 +95,7 @@ class SystemDiagnostics extends Command
     /**
      * Display results as table
      *
-     * @param array<string, mixed> $results
+     * @param  array<string, mixed>  $results
      */
     private function displayAsTable(array $results): void
     {
@@ -116,7 +116,7 @@ class SystemDiagnostics extends Command
             $rows[] = [
                 ucfirst($component),
                 $driver,
-                $icon . ' ' . ucfirst($status),
+                $icon.' '.ucfirst($status),
                 $message,
             ];
         }

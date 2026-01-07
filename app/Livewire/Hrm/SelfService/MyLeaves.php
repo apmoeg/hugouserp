@@ -19,20 +19,25 @@ class MyLeaves extends Component
     use WithPagination;
 
     public ?string $status = null;
+
     public ?string $year = null;
-    
+
     // For creating new leave request
     public bool $showRequestModal = false;
+
     public ?string $leaveType = null;
+
     public ?string $startDate = null;
+
     public ?string $endDate = null;
+
     public ?string $reason = null;
 
     public function mount(): void
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('employee.self.leave-request')) {
+        if (! $user || ! $user->can('employee.self.leave-request')) {
             abort(403);
         }
 
@@ -73,7 +78,7 @@ class MyLeaves extends Component
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('employee.self.leave-request')) {
+        if (! $user || ! $user->can('employee.self.leave-request')) {
             abort(403);
         }
 
@@ -108,7 +113,7 @@ class MyLeaves extends Component
     public function cancelRequest(int $requestId): void
     {
         $user = Auth::user();
-        
+
         $request = LeaveRequest::where('id', $requestId)
             ->where('employee_id', $user->employee_id)
             ->where('status', 'pending')
@@ -126,8 +131,8 @@ class MyLeaves extends Component
     public function getLeaveBalance(): array
     {
         $user = Auth::user();
-        
-        if (!$user || !$user->employee_id) {
+
+        if (! $user || ! $user->employee_id) {
             return [
                 'annual' => ['total' => 0, 'used' => 0, 'remaining' => 0],
                 'sick' => ['total' => 0, 'used' => 0, 'remaining' => 0],
@@ -154,7 +159,7 @@ class MyLeaves extends Component
     {
         $user = Auth::user();
 
-        if (!$user || !$user->can('employee.self.leave-request')) {
+        if (! $user || ! $user->can('employee.self.leave-request')) {
             abort(403);
         }
 
@@ -164,8 +169,8 @@ class MyLeaves extends Component
 
         if ($employeeId) {
             $records = LeaveRequest::where('employee_id', $employeeId)
-                ->when($this->status, fn($q) => $q->where('status', $this->status))
-                ->when($this->year, fn($q) => $q->whereYear('start_date', $this->year))
+                ->when($this->status, fn ($q) => $q->where('status', $this->status))
+                ->when($this->year, fn ($q) => $q->whereYear('start_date', $this->year))
                 ->orderByDesc('created_at')
                 ->paginate(15);
         }

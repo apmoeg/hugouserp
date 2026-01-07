@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FixedAsset extends BaseModel
 {
-
     /**
      * Fillable fields aligned with migration:
      * 2026_01_04_000007_create_accounting_tables.php
@@ -73,13 +72,13 @@ class FixedAsset extends BaseModel
         parent::boot();
 
         static::creating(function ($asset) {
-            if (!$asset->asset_code) {
+            if (! $asset->asset_code) {
                 // Generate unique asset code using timestamp and random component
                 // Format: FA-YYYYMMDD-HHMMSS-RAND
-                $asset->asset_code = 'FA-' . date('Ymd-His') . '-' . strtoupper(substr(uniqid(), -4));
+                $asset->asset_code = 'FA-'.date('Ymd-His').'-'.strtoupper(substr(uniqid(), -4));
             }
-            
-            if (!$asset->current_value) {
+
+            if (! $asset->current_value) {
                 $asset->current_value = $asset->purchase_cost;
             }
         });
@@ -156,7 +155,7 @@ class FixedAsset extends BaseModel
     {
         $currentValue = (float) ($this->current_value ?? 0);
         $salvageValue = (float) ($this->salvage_value ?? 0);
-        
+
         return $currentValue <= $salvageValue;
     }
 
@@ -175,11 +174,11 @@ class FixedAsset extends BaseModel
     {
         $purchaseCost = (float) ($this->purchase_cost ?? 0);
         $salvageValue = (float) ($this->salvage_value ?? 0);
-        
+
         // Prevent negative depreciable amounts when salvage exceeds purchase cost
         $depreciableAmount = max(0, $purchaseCost - $salvageValue);
         $totalMonths = $this->getTotalUsefulLifeMonths();
-        
+
         return $totalMonths > 0 ? $depreciableAmount / $totalMonths : 0;
     }
 

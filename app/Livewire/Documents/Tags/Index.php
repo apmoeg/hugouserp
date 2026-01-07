@@ -24,9 +24,10 @@ class Index extends Component
     public function delete(int $id): void
     {
         $tag = DocumentTag::findOrFail($id);
-        
+
         if ($tag->getDocumentCount() > 0) {
             session()->flash('error', __('Cannot delete tag that is being used'));
+
             return;
         }
 

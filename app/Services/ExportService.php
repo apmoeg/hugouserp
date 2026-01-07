@@ -271,7 +271,7 @@ class ExportService
                     $sheet->setCellValue($cellCoordinate, $label);
                     $colIndex++;
                 }
-                
+
                 // Style header row
                 $lastColumn = Coordinate::stringFromColumnIndex(count($columns));
                 $headerRange = 'A1:'.$lastColumn.'1';
@@ -279,7 +279,7 @@ class ExportService
                 $sheet->getStyle($headerRange)->getFill()
                     ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                     ->getStartColor()->setARGB('FFE0E0E0');
-                
+
                 $rowIndex++;
             }
 
@@ -348,7 +348,7 @@ class ExportService
         $locale = app()->getLocale();
         $isRtl = $locale === 'ar';
         $textAlign = $isRtl ? 'right' : 'left';
-        
+
         $html = '<!DOCTYPE html>';
         $html .= '<html dir="'.($isRtl ? 'rtl' : 'ltr').'" lang="'.$locale.'"><head><meta charset="UTF-8">';
         // Note: DejaVu Sans is bundled with Dompdf and supports Unicode including Arabic
@@ -393,7 +393,7 @@ class ExportService
         if (! empty($options['title'])) {
             $html .= '<h1>'.htmlspecialchars($options['title']).'</h1>';
         }
-        
+
         // Add export metadata
         $html .= '<div class="export-info">';
         $html .= htmlspecialchars(__('Exported on')).': '.now()->format('Y-m-d H:i:s');

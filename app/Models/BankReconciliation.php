@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 
 class BankReconciliation extends Model
 {
@@ -41,8 +41,8 @@ class BankReconciliation extends Model
         parent::boot();
 
         static::creating(function ($reconciliation) {
-            if (!$reconciliation->reconciliation_number) {
-                $reconciliation->reconciliation_number = 'RECON-' . date('Ymd') . '-' . uniqid();
+            if (! $reconciliation->reconciliation_number) {
+                $reconciliation->reconciliation_number = 'RECON-'.date('Ymd').'-'.uniqid();
             }
         });
     }

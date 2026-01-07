@@ -52,6 +52,7 @@ class Index extends Component
         if ($category) {
             if ($category->incomes()->count() > 0) {
                 session()->flash('error', __('Cannot delete category with incomes'));
+
                 return;
             }
             $category->delete();

@@ -15,7 +15,9 @@ class BankingServiceTest extends TestCase
     use RefreshDatabase;
 
     protected BankingService $service;
+
     protected Branch $branch;
+
     protected BankAccount $account;
 
     protected function setUp(): void

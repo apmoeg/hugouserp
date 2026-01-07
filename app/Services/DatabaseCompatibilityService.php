@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Database Compatibility Service
- * 
+ *
  * Provides database-portable SQL expressions for common operations
  * that differ between MySQL, PostgreSQL, and SQLite.
- * 
+ *
  * This service ensures the application works consistently across:
  * - MySQL 8.4+
  * - PostgreSQL 13+
@@ -53,8 +53,8 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression to extract hour from a datetime column.
-     * 
-     * @param string $column The datetime column name
+     *
+     * @param  string  $column  The datetime column name
      * @return string SQL expression that returns hour as integer (0-23)
      */
     public function hourExpression(string $column): string
@@ -68,8 +68,8 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression to extract day from a datetime column.
-     * 
-     * @param string $column The datetime column name
+     *
+     * @param  string  $column  The datetime column name
      * @return string SQL expression that returns day as integer (1-31)
      */
     public function dayExpression(string $column): string
@@ -83,8 +83,8 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression to extract month from a datetime column.
-     * 
-     * @param string $column The datetime column name
+     *
+     * @param  string  $column  The datetime column name
      * @return string SQL expression that returns month as integer (1-12)
      */
     public function monthExpression(string $column): string
@@ -98,8 +98,8 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression to extract year from a datetime column.
-     * 
-     * @param string $column The datetime column name
+     *
+     * @param  string  $column  The datetime column name
      * @return string SQL expression that returns year as integer
      */
     public function yearExpression(string $column): string
@@ -113,8 +113,8 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression to truncate datetime to date (YYYY-MM-DD).
-     * 
-     * @param string $column The datetime column name
+     *
+     * @param  string  $column  The datetime column name
      * @return string SQL expression that returns date
      */
     public function dateExpression(string $column): string
@@ -124,8 +124,8 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression to truncate datetime to start of month.
-     * 
-     * @param string $column The datetime column name
+     *
+     * @param  string  $column  The datetime column name
      * @return string SQL expression that returns first day of month
      */
     public function monthTruncateExpression(string $column): string
@@ -139,8 +139,8 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression to truncate datetime to start of week (Monday).
-     * 
-     * @param string $column The datetime column name
+     *
+     * @param  string  $column  The datetime column name
      * @return string SQL expression that returns first day of week
      */
     public function weekTruncateExpression(string $column): string
@@ -154,8 +154,8 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression to truncate datetime to start of year.
-     * 
-     * @param string $column The datetime column name
+     *
+     * @param  string  $column  The datetime column name
      * @return string SQL expression that returns first day of year
      */
     public function yearTruncateExpression(string $column): string
@@ -169,9 +169,9 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression for case-insensitive LIKE comparison.
-     * 
-     * @param string $column The column name
-     * @param string $pattern The pattern to match (use :placeholder for binding)
+     *
+     * @param  string  $column  The column name
+     * @param  string  $pattern  The pattern to match (use :placeholder for binding)
      * @return string SQL expression for case-insensitive comparison
      */
     public function ilike(string $column, string $pattern): string
@@ -184,8 +184,8 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression to concatenate strings.
-     * 
-     * @param array $columns Array of column names or string literals
+     *
+     * @param  array  $columns  Array of column names or string literals
      * @return string SQL expression for concatenation
      */
     public function concat(array $columns): string
@@ -195,6 +195,7 @@ class DatabaseCompatibilityService
             if (str_contains($col, "'") || str_contains($col, '"')) {
                 return $col;
             }
+
             return $col;
         }, $columns);
 
@@ -206,7 +207,7 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression for current timestamp.
-     * 
+     *
      * @return string SQL expression for current timestamp
      */
     public function now(): string
@@ -220,9 +221,9 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression to add days to a datetime.
-     * 
-     * @param string $column The datetime column name
-     * @param int $days Number of days to add (can be negative)
+     *
+     * @param  string  $column  The datetime column name
+     * @param  int  $days  Number of days to add (can be negative)
      * @return string SQL expression
      */
     public function addDays(string $column, int $days): string
@@ -236,9 +237,9 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression to calculate difference in days between two dates.
-     * 
-     * @param string $date1 First date column
-     * @param string $date2 Second date column
+     *
+     * @param  string  $date1  First date column
+     * @param  string  $date2  Second date column
      * @return string SQL expression that returns days as integer
      */
     public function daysDifference(string $date1, string $date2): string
@@ -252,12 +253,12 @@ class DatabaseCompatibilityService
 
     /**
      * Get SQL expression for JSON value extraction.
-     * 
+     *
      * Note: This provides basic JSON extraction. For complex JSON operations,
      * consider using Eloquent casts instead.
-     * 
-     * @param string $column The JSON column name
-     * @param string $path The JSON path (e.g., '$.key' or 'key')
+     *
+     * @param  string  $column  The JSON column name
+     * @param  string  $path  The JSON path (e.g., '$.key' or 'key')
      * @return string SQL expression
      */
     public function jsonExtract(string $column, string $path): string

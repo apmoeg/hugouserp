@@ -86,8 +86,9 @@ class Form extends Component
         $user = auth()->user();
         $branchId = $user->branch_id ?? Branch::first()?->id;
 
-        if (!$branchId) {
+        if (! $branchId) {
             session()->flash('error', __('No branch available. Please contact your administrator.'));
+
             return null;
         }
 

@@ -17,6 +17,7 @@ class FinancialReportServiceTest extends TestCase
     use RefreshDatabase;
 
     protected FinancialReportService $service;
+
     protected Branch $branch;
 
     protected function setUp(): void

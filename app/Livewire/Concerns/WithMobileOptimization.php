@@ -9,7 +9,7 @@ use Livewire\Attributes\On;
 
 /**
  * Mobile UX Optimization Trait
- * 
+ *
  * Provides:
  * - Responsive breakpoint detection
  * - Touch-friendly interactions
@@ -20,9 +20,13 @@ use Livewire\Attributes\On;
 trait WithMobileOptimization
 {
     public string $viewMode = 'auto'; // auto, list, grid, card
+
     public bool $isMobileView = false;
+
     public bool $showMobileFilters = false;
+
     public int $mobilePerPage = 10;
+
     public int $desktopPerPage = 25;
 
     /**
@@ -41,7 +45,7 @@ trait WithMobileOptimization
     public function setMobileView(bool $isMobile): void
     {
         $this->isMobileView = $isMobile;
-        
+
         // Adjust per page for mobile
         if (property_exists($this, 'perPage')) {
             $this->perPage = $isMobile ? $this->mobilePerPage : $this->desktopPerPage;
@@ -53,7 +57,7 @@ trait WithMobileOptimization
      */
     public function toggleMobileFilters(): void
     {
-        $this->showMobileFilters = !$this->showMobileFilters;
+        $this->showMobileFilters = ! $this->showMobileFilters;
     }
 
     /**
@@ -93,7 +97,7 @@ trait WithMobileOptimization
     #[Computed]
     public function gridClasses(): string
     {
-        return match($this->currentViewMode) {
+        return match ($this->currentViewMode) {
             'grid' => 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4',
             'card' => 'grid grid-cols-1 gap-4',
             default => 'divide-y divide-slate-200 dark:divide-slate-700',
@@ -102,8 +106,9 @@ trait WithMobileOptimization
 
     /**
      * Handle swipe action (for mobile list items)
-     * @param string $direction The swipe direction ('left' or 'right')
-     * @param int|string $itemId The ID of the item being swiped
+     *
+     * @param  string  $direction  The swipe direction ('left' or 'right')
+     * @param  int|string  $itemId  The ID of the item being swiped
      */
     #[On('swipe-action')]
     public function handleSwipeAction(string $direction, int|string $itemId): void

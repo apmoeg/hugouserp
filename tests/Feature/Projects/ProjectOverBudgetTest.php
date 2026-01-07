@@ -16,6 +16,7 @@ class ProjectOverBudgetTest extends TestCase
     use RefreshDatabase;
 
     protected Branch $branch;
+
     protected User $user;
 
     protected function setUp(): void

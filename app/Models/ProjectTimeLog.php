@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProjectTimeLog extends Model
 {
@@ -123,6 +123,7 @@ class ProjectTimeLog extends Model
             return $this->asDateTime($value);
         }
         $rawDate = $this->attributes['date'] ?? null;
+
         return $rawDate ? $this->asDateTime($rawDate) : null;
     }
 
@@ -132,6 +133,7 @@ class ProjectTimeLog extends Model
         if ($value !== null) {
             return $value;
         }
+
         return $this->attributes['employee_id'] ?? null;
     }
 
@@ -142,6 +144,7 @@ class ProjectTimeLog extends Model
             return (bool) $value;
         }
         $legacyBillable = $this->attributes['billable'] ?? null;
+
         return $legacyBillable !== null ? (bool) $legacyBillable : true;
     }
 

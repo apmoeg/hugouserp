@@ -23,7 +23,7 @@ final class PurchaseItemRepository extends EloquentBaseRepository implements Pur
     protected function baseBranchQuery(int $branchId): Builder
     {
         return $this->query()
-            ->whereHas('purchase', fn($q) => $q->where('branch_id', $branchId));
+            ->whereHas('purchase', fn ($q) => $q->where('branch_id', $branchId));
     }
 
     public function paginateForBranch(int $branchId, int $perPage = 20): LengthAwarePaginator

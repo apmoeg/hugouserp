@@ -65,16 +65,16 @@ class Form extends Component
     {
         $prefix = 'WH';
         $base = strtoupper(Str::slug(Str::limit($this->name, 10, ''), ''));
-        
+
         if (empty($base)) {
             $base = sprintf('%03d', Warehouse::count() + 1);
         }
-        
-        $code = $prefix . '-' . $base;
+
+        $code = $prefix.'-'.$base;
         $counter = 1;
 
         while (Warehouse::where('code', $code)->where('id', '!=', $this->warehouseId)->exists()) {
-            $code = $prefix . $base . $counter;
+            $code = $prefix.$base.$counter;
             $counter++;
         }
 

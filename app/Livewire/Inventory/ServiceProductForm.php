@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\Inventory;
 
-use App\Models\Module;
-use App\Models\Product;
-use App\Models\Tax;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -43,4 +39,3 @@ class ServiceProductForm extends Component
         return view('livewire.inventory.service-product-form');
     }
 }
-

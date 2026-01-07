@@ -21,6 +21,7 @@ class Index extends Component
     public string $statusFilter = '';
 
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
 
     public function updatingSearch(): void
@@ -55,7 +56,7 @@ class Index extends Component
         $grn = GoodsReceivedNote::findOrFail($id);
         $grn->update([
             'status' => 'rejected',
-            'rejection_reason' => $reason
+            'rejection_reason' => $reason,
         ]);
 
         session()->flash('success', __('GRN rejected successfully.'));
@@ -95,7 +96,7 @@ class Index extends Component
                         });
                 });
             })
-            ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
+            ->when($this->statusFilter, fn ($q) => $q->where('status', $this->statusFilter))
             ->orderBy($this->sortField, $this->sortDirection);
 
         $grns = $query->paginate(15);

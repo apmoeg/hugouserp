@@ -21,7 +21,7 @@ class Index extends Component
     use WithPagination;
 
     private const ALLOWED_SORT_FIELDS = ['created_at', 'title', 'file_name'];
-    
+
     // Image MIME types to exclude from documents
     private const IMAGE_MIME_TYPES = [
         'image/jpeg',
@@ -46,6 +46,7 @@ class Index extends Component
     public ?int $tag = null;
 
     public string $sortField = 'created_at';
+
     public string $sortDirection = 'desc';
 
     protected DocumentService $documentService;
@@ -137,15 +138,15 @@ class Index extends Component
                     });
             })
             ->whereNotIn('mime_type', self::IMAGE_MIME_TYPES)
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
-            ->when($search !== '', fn($q) => $q->where(function ($query) use ($search) {
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
+            ->when($search !== '', fn ($q) => $q->where(function ($query) use ($search) {
                 $query->where('title', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
                     ->orWhere('file_name', 'like', "%{$search}%");
             }))
-            ->when($this->category, fn($q) => $q->where('category', $this->category))
-            ->when($this->folder, fn($q) => $q->where('folder', $this->folder))
-            ->when($this->tag, fn($q) => $q->whereHas('tags', fn($tq) => $tq->where('document_tags.id', $this->tag)));
+            ->when($this->category, fn ($q) => $q->where('category', $this->category))
+            ->when($this->folder, fn ($q) => $q->where('folder', $this->folder))
+            ->when($this->tag, fn ($q) => $q->whereHas('tags', fn ($tq) => $tq->where('document_tags.id', $this->tag)));
 
         $documents = $query->orderBy($sortField, $sortDirection)
             ->paginate(15);
@@ -157,12 +158,12 @@ class Index extends Component
         $tags = DocumentTag::all();
         $categories = Document::select('category')
             ->whereNotNull('category')
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->distinct()
             ->pluck('category');
         $folders = Document::select('folder')
             ->whereNotNull('folder')
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->distinct()
             ->pluck('folder');
 

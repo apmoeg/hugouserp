@@ -38,21 +38,22 @@ class MediaLibrary extends Component
     ];
 
     public $files = [];
-    
+
     #[Url]
     public string $search = '';
-    
+
     #[Url]
     public string $filterOwner = 'all'; // all, mine
-    
+
     // Image preview modal
     public bool $showPreview = false;
+
     public ?array $previewImage = null;
 
     public function mount(): void
     {
         $user = auth()->user();
-        if (!$user || !$user->can('media.view')) {
+        if (! $user || ! $user->can('media.view')) {
             abort(403, __('Unauthorized access to media library'));
         }
     }
@@ -65,13 +66,14 @@ class MediaLibrary extends Component
     public function updatedFiles(): void
     {
         $this->validate([
-            'files.*' => 'file|max:10240|mimes:' . implode(',', self::ALLOWED_EXTENSIONS) .
-                '|mimetypes:' . implode(',', self::ALLOWED_MIME_TYPES), // 10MB max, restricted types
+            'files.*' => 'file|max:10240|mimes:'.implode(',', self::ALLOWED_EXTENSIONS).
+                '|mimetypes:'.implode(',', self::ALLOWED_MIME_TYPES), // 10MB max, restricted types
         ]);
 
         $user = auth()->user();
-        if (!$user->can('media.upload')) {
+        if (! $user->can('media.upload')) {
             session()->flash('error', __('You do not have permission to upload files'));
+
             return;
         }
 
@@ -107,13 +109,14 @@ class MediaLibrary extends Component
     public function viewImage(int $id): void
     {
         $user = auth()->user();
-        $canBypassBranch = !$user->branch_id || $user->can('media.manage-all');
+        $canBypassBranch = ! $user->branch_id || $user->can('media.manage-all');
         $media = Media::query()
             ->when($user->branch_id && ! $canBypassBranch, fn ($q) => $q->forBranch($user->branch_id))
             ->findOrFail($id);
 
-        if (!$media->isImage()) {
+        if (! $media->isImage()) {
             session()->flash('error', __('This file is not an image'));
+
             return;
         }
 
@@ -139,7 +142,7 @@ class MediaLibrary extends Component
     public function delete(int $id): void
     {
         $user = auth()->user();
-        $canBypassBranch = !$user->branch_id || $user->can('media.manage-all');
+        $canBypassBranch = ! $user->branch_id || $user->can('media.manage-all');
         $media = Media::query()
             ->when($user->branch_id && ! $canBypassBranch, fn ($q) => $q->forBranch($user->branch_id))
             ->findOrFail($id);
@@ -148,8 +151,9 @@ class MediaLibrary extends Component
         $canDelete = $user->can('media.manage') ||
                      ($user->can('media.delete') && $media->user_id === $user->id);
 
-        if (!$canDelete) {
+        if (! $canDelete) {
             session()->flash('error', __('You do not have permission to delete this file'));
+
             return;
         }
 
@@ -166,14 +170,14 @@ class MediaLibrary extends Component
     public function render()
     {
         $user = auth()->user();
-        $canBypassBranch = !$user->branch_id || $user->can('media.manage-all');
+        $canBypassBranch = ! $user->branch_id || $user->can('media.manage-all');
 
         $query = Media::query()
             ->with('user')
             ->when($user->branch_id && ! $canBypassBranch, fn ($q) => $q->forBranch($user->branch_id))
             ->images() // Only show images in media library
             ->when(
-                $this->filterOwner === 'mine' || !$user->can('media.view-others'),
+                $this->filterOwner === 'mine' || ! $user->can('media.view-others'),
                 fn ($q) => $q->forUser($user->id)
             )
             ->when($this->search, function ($query) {

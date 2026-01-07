@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Builder;
 
 class AuditLog extends Model
 {
@@ -20,10 +20,10 @@ class AuditLog extends Model
         'branch_id',
         'module_key',
         'action',
-         'subject_type',
-         'subject_id',
-         'auditable_type',
-         'auditable_id',
+        'subject_type',
+        'subject_id',
+        'auditable_type',
+        'auditable_id',
         'ip',
         'user_agent',
         'old_values',

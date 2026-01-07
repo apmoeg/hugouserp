@@ -51,14 +51,14 @@ class TicketStoreRequest extends FormRequest
         ]);
 
         // Set branch_id if not provided
-        if (!$this->has('branch_id') && $this->user()->branch_id) {
+        if (! $this->has('branch_id') && $this->user()->branch_id) {
             $this->merge([
                 'branch_id' => $this->user()->branch_id,
             ]);
         }
 
         // Set default status
-        if (!$this->has('status')) {
+        if (! $this->has('status')) {
             $this->merge([
                 'status' => 'new',
             ]);

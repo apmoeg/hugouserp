@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Branch\Motorcycle;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\Branch\Concerns\RequiresBranchContext;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\VehicleStoreRequest;
 use App\Http\Requests\VehicleUpdateRequest;
 use App\Models\Vehicle;
 use App\Services\Contracts\MotorcycleServiceInterface as Motos;
-use Illuminate\Http\Request;
 
 class VehicleController extends Controller
 {
@@ -36,7 +35,7 @@ class VehicleController extends Controller
         // Defense-in-depth: Verify vehicle belongs to current branch
         $branchId = $this->requireBranchId(request());
         abort_if($vehicle->branch_id !== $branchId, 404, 'Vehicle not found in this branch');
-        
+
         return $this->ok($vehicle);
     }
 
@@ -45,7 +44,7 @@ class VehicleController extends Controller
         // Defense-in-depth: Verify vehicle belongs to current branch
         $branchId = $this->requireBranchId($request);
         abort_if($vehicle->branch_id !== $branchId, 404, 'Vehicle not found in this branch');
-        
+
         $vehicle->fill($request->validated())->save();
 
         return $this->ok($vehicle);

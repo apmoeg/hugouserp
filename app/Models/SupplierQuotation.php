@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 
 class SupplierQuotation extends BaseModel
 {
@@ -37,8 +36,8 @@ class SupplierQuotation extends BaseModel
         parent::booted();
 
         static::creating(function ($model) {
-            if (!$model->code) {
-                $model->code = 'QT-' . date('Ymd') . '-' . str_pad((string) (static::whereDate('created_at', today())->count() + 1), 5, '0', STR_PAD_LEFT);
+            if (! $model->code) {
+                $model->code = 'QT-'.date('Ymd').'-'.str_pad((string) (static::whereDate('created_at', today())->count() + 1), 5, '0', STR_PAD_LEFT);
             }
         });
     }
@@ -117,6 +116,6 @@ class SupplierQuotation extends BaseModel
 
     public function canBeAccepted(): bool
     {
-        return in_array($this->status, ['sent', 'received']) && !$this->isExpired();
+        return in_array($this->status, ['sent', 'received']) && ! $this->isExpired();
     }
 }

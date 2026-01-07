@@ -16,17 +16,26 @@ class Form extends Component
     use AuthorizesRequests;
 
     public ?InventoryBatch $batch = null;
+
     public bool $isEditing = false;
 
     // Form fields
     public ?int $product_id = null;
+
     public ?int $warehouse_id = null;
+
     public string $batch_number = '';
+
     public string $manufacturing_date = '';
+
     public string $expiry_date = '';
+
     public string $quantity = '';
+
     public string $unit_cost = '';
+
     public string $supplier_batch_ref = '';
+
     public string $notes = '';
 
     protected function rules(): array
@@ -47,7 +56,7 @@ class Form extends Component
     public function mount(?InventoryBatch $batch = null): void
     {
         $this->authorize('inventory.products.view');
-        
+
         if ($batch && $batch->exists) {
             $this->isEditing = true;
             $this->batch = $batch;
@@ -55,7 +64,7 @@ class Form extends Component
             $this->manufacturing_date = $batch->manufacturing_date?->format('Y-m-d') ?? '';
             $this->expiry_date = $batch->expiry_date?->format('Y-m-d') ?? '';
         } else {
-            $this->batch_number = 'BATCH-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
+            $this->batch_number = 'BATCH-'.date('Ymd').'-'.strtoupper(substr(uniqid(), -4));
         }
     }
 
@@ -92,7 +101,7 @@ class Form extends Component
     public function render()
     {
         $branchId = auth()->user()->branch_id;
-        
+
         $products = Product::where('branch_id', $branchId)
             ->where('is_batch_tracked', true)
             ->orderBy('name')

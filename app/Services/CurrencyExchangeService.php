@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * CurrencyExchangeService - Multi-currency exchange rate management
- * 
+ *
  * NEW FEATURE: Automated currency exchange rate management
- * 
+ *
  * FEATURES:
  * - Convert amounts between currencies
  * - Cache exchange rates for performance
@@ -47,6 +47,7 @@ class CurrencyExchangeService
 
         if ($rate === null) {
             Log::warning("Exchange rate not found for {$fromCurrency} to {$toCurrency}");
+
             return $amount; // Return original amount if rate not found
         }
 
@@ -64,7 +65,7 @@ class CurrencyExchangeService
         }
 
         $date = $date ?? now();
-        $cacheKey = "exchange_rate_{$fromCurrency}_{$toCurrency}_" . $date->format('Y-m-d');
+        $cacheKey = "exchange_rate_{$fromCurrency}_{$toCurrency}_".$date->format('Y-m-d');
 
         return Cache::remember($cacheKey, 3600, function () use ($fromCurrency, $toCurrency, $date) {
             // Try direct conversion
@@ -143,7 +144,7 @@ class CurrencyExchangeService
         ]);
 
         // Clear cache
-        $cacheKey = "exchange_rate_{$fromCurrency}_{$toCurrency}_" . $effectiveDate->format('Y-m-d');
+        $cacheKey = "exchange_rate_{$fromCurrency}_{$toCurrency}_".$effectiveDate->format('Y-m-d');
         Cache::forget($cacheKey);
 
         return $currencyRate;
@@ -179,7 +180,7 @@ class CurrencyExchangeService
             return Currency::where('is_active', true)
                 ->orderBy('code')
                 ->get()
-                ->map(fn($c) => [
+                ->map(fn ($c) => [
                     'code' => $c->code,
                     'name' => $c->name,
                     'symbol' => $c->symbol,
@@ -199,6 +200,7 @@ class CurrencyExchangeService
         foreach ($currencies as $currency) {
             if ($currency['code'] === $this->baseCurrency) {
                 $rates[$currency['code']] = 1.0;
+
                 continue;
             }
 
@@ -217,7 +219,7 @@ class CurrencyExchangeService
         $currency = Currency::where('code', $currencyCode)->first();
         $symbol = $currency?->symbol ?? $currencyCode;
 
-        return $symbol . ' ' . number_format($amount, 2);
+        return $symbol.' '.number_format($amount, 2);
     }
 
     /**
@@ -231,7 +233,7 @@ class CurrencyExchangeService
             ->where('effective_date', '>=', now()->subDays($days))
             ->orderBy('effective_date', 'desc')
             ->get()
-            ->map(fn($r) => [
+            ->map(fn ($r) => [
                 'date' => $r->effective_date,
                 'rate' => (float) $r->rate,
                 'source' => $r->source,
@@ -250,7 +252,7 @@ class CurrencyExchangeService
             ->orderBy('effective_date', 'desc')
             ->first();
 
-        if (!$latestRate) {
+        if (! $latestRate) {
             return true;
         }
 

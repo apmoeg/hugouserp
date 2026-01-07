@@ -9,7 +9,6 @@ use App\Models\Note;
 use App\Services\AttachmentAuthorizationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -192,11 +191,11 @@ class NotesAttachments extends Component
         $storage = Storage::disk('local');
 
         foreach ($this->newFiles as $file) {
-            $path = $file->store('attachments/' . strtolower(class_basename($this->modelType)), 'local');
+            $path = $file->store('attachments/'.strtolower(class_basename($this->modelType)), 'local');
 
             $storedMime = $storage->mimeType($path) ?? $file->getMimeType();
             $clientMime = $file->getMimeType();
-            $allowedExtensions = ['jpg','jpeg','png','gif','webp','pdf','doc','docx','xls','xlsx','ppt','pptx','csv','txt'];
+            $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'csv', 'txt'];
             $allowedMimeTypes = [
                 'image/jpeg',
                 'image/png',

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class CashflowProjection extends Model
 {
@@ -64,7 +64,7 @@ class CashflowProjection extends Model
         if ($this->actual_balance === null) {
             return 0;
         }
-        
+
         return $this->actual_balance - $this->projected_balance;
     }
 

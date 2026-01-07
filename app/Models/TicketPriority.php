@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 
 class TicketPriority extends Model
 {
@@ -56,7 +56,7 @@ class TicketPriority extends Model
     // Business Methods
     public function getResponseTimeFormatted(): string
     {
-        if (!$this->response_time_minutes) {
+        if (! $this->response_time_minutes) {
             return 'N/A';
         }
 
@@ -72,7 +72,7 @@ class TicketPriority extends Model
 
     public function getResolutionTimeFormatted(): string
     {
-        if (!$this->resolution_time_minutes) {
+        if (! $this->resolution_time_minutes) {
             return 'N/A';
         }
 
@@ -82,6 +82,7 @@ class TicketPriority extends Model
         if ($hours > 24) {
             $days = floor($hours / 24);
             $remainingHours = $hours % 24;
+
             return $remainingHours > 0 ? "{$days}d {$remainingHours}h" : "{$days}d";
         }
 

@@ -11,11 +11,10 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpKernel\Exception\HttpException;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 #[Layout('layouts.app')]
 class Form extends Component
@@ -24,20 +23,32 @@ class Form extends Component
     use HasMultilingualValidation;
 
     public ?Project $project = null;
+
     public ?int $projectId = null;
 
     // Form fields
     public ?int $branch_id = null;
+
     public string $name = '';
+
     public string $code = '';
+
     public string $description = '';
+
     public ?int $client_id = null;
+
     public ?int $project_manager_id = null;
+
     public ?string $start_date = null;
+
     public ?string $end_date = null;
+
     public string $status = 'planning';
+
     public float $budget_amount = 0;
+
     public ?string $notes = null;
+
     public ?string $currency = null;
 
     public bool $overrideCode = false;
@@ -85,16 +96,16 @@ class Form extends Component
     {
         $prefix = 'PRJ';
         $base = strtoupper(Str::slug(Str::limit($this->name, 10, ''), ''));
-        
+
         if (empty($base)) {
             $base = sprintf('%03d', Project::count() + 1);
         }
-        
-        $code = $prefix . '-' . $base;
+
+        $code = $prefix.'-'.$base;
         $counter = 1;
 
         while (Project::where('code', $code)->where('id', '!=', $this->project?->id)->exists()) {
-            $code = $prefix . '-' . $base . $counter;
+            $code = $prefix.'-'.$base.$counter;
             $counter++;
         }
 
@@ -140,7 +151,7 @@ class Form extends Component
                 Rule::in($userBranchIds),
             ],
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'string', 'max:50', 'unique:projects,code,' . $this->project?->id],
+            'code' => ['required', 'string', 'max:50', 'unique:projects,code,'.$this->project?->id],
             'description' => ['required', 'string'],
             'client_id' => [
                 'nullable',
@@ -200,7 +211,7 @@ class Form extends Component
         return array_merge(
             $this->only([
                 'branch_id', 'name', 'code', 'description', 'client_id', 'project_manager_id',
-                'status', 'budget_amount', 'notes', 'currency'
+                'status', 'budget_amount', 'notes', 'currency',
             ]),
             [
                 'start_date' => $this->normalizeDate($this->start_date, 'start_date'),

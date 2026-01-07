@@ -39,12 +39,12 @@ class Form extends Component
             $this->authorize('warehouse.manage');
             $this->transferId = $id;
             $this->transfer = Transfer::with('items.product')->findOrFail($id);
-            
+
             $user = auth()->user();
             if ($user->branch_id && $this->transfer->branch_id !== $user->branch_id) {
                 abort(403);
             }
-            
+
             $this->loadTransfer();
         } else {
             $this->authorize('warehouse.manage');

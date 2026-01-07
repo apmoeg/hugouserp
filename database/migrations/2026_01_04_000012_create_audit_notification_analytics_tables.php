@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Consolidated Audit, Notification & Analytics Tables Migration
- * 
+ *
  * MySQL 8.4 Optimized:
  * - Audit logging
  * - Notifications
@@ -52,7 +52,7 @@ return new class extends Migration
             $table->json('meta')->nullable()
                 ->comment('For additional metadata');
             $table->uuid('batch_uuid')->nullable()->index();
-            
+
             // Additional tracking
             $table->string('ip_address', 45)->nullable();
             $table->string('ip', 45)->nullable()
@@ -65,13 +65,13 @@ return new class extends Migration
                 ->constrained('users')
                 ->nullOnDelete()
                 ->comment('For tracking actions on other users');
-            
+
             // Auditable fields (for enhanced tracking)
             $table->string('auditable_type', 255)->nullable();
             $table->unsignedBigInteger('auditable_id')->nullable();
-            
+
             $table->timestamps();
-            
+
             $table->index(['subject_type', 'subject_id']);
             $table->index(['causer_type', 'causer_id']);
             $table->index(['auditable_type', 'auditable_id']);
@@ -88,7 +88,7 @@ return new class extends Migration
             $table->text('data');
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['notifiable_type', 'notifiable_id']);
             $table->index(['type', 'read_at']);
         });
@@ -110,11 +110,11 @@ return new class extends Migration
             $table->json('chart_config')->nullable();
             $table->boolean('is_system')->default(false);
             $table->boolean('is_active')->default(true);
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
         });
 
@@ -156,11 +156,11 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamp('last_run_at')->nullable();
             $table->timestamp('next_run_at')->nullable();
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
             $table->softDeletes();
         });
@@ -208,13 +208,13 @@ return new class extends Migration
             $table->json('formatting')->nullable();
             $table->string('default_format', 50)->default('xlsx');
             $table->boolean('is_default')->default(false);
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
-            
+
             $table->unique(['branch_id', 'model_type', 'name']);
         });
 
@@ -242,7 +242,7 @@ return new class extends Migration
             $table->json('layout')->nullable();
             $table->boolean('is_default')->default(false);
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'dashboard_type']);
         });
 
@@ -280,7 +280,7 @@ return new class extends Migration
             $table->timestamp('cached_at')->nullable(); // Cached at timestamp
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['widget_id', 'branch_id', 'cache_key']);
         });
 
@@ -292,7 +292,7 @@ return new class extends Migration
             $table->string('key', 255);
             $table->text('value')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'key']);
         });
 
@@ -305,7 +305,7 @@ return new class extends Migration
             $table->unsignedBigInteger('favoritable_id');
             $table->integer('sort_order')->default(0);
             $table->timestamps();
-            
+
             $table->unique(['user_id', 'favoritable_type', 'favoritable_id']);
             $table->index(['favoritable_type', 'favoritable_id']);
         });
@@ -320,7 +320,7 @@ return new class extends Migration
             $table->string('context', 100)->nullable(); // products, customers, etc.
             $table->integer('results_count')->nullable(); // Results count field (primary)
             $table->timestamp('created_at')->useCurrent();
-            
+
             $table->index(['user_id', 'created_at']);
         });
 
@@ -338,10 +338,10 @@ return new class extends Migration
             $table->string('url', 500)->nullable(); // URL field
             $table->json('metadata')->nullable();
             $table->timestamp('indexed_at')->useCurrent();
-            
+
             $table->index(['searchable_type', 'searchable_id']);
         });
-        
+
         // Add fulltext index for MySQL only (search_index)
         if (config('database.default') === 'mysql') {
             Schema::table('search_index', function (Blueprint $table) {
@@ -364,11 +364,11 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->integer('cooldown_minutes')->default(60);
             $table->timestamp('last_triggered_at')->nullable();
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
         });
 
@@ -405,7 +405,7 @@ return new class extends Migration
             $table->timestamp('acknowledged_at')->nullable();
             $table->timestamp('resolved_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['alert_rule_id', 'status']);
         });
 
@@ -423,7 +423,7 @@ return new class extends Migration
             $table->decimal('max_value', 18, 4)->nullable();
             $table->integer('sample_count')->default(0);
             $table->timestamp('calculated_at')->useCurrent();
-            
+
             $table->unique(['branch_id', 'metric_name', 'period', 'period_value']);
         });
 
@@ -442,7 +442,7 @@ return new class extends Migration
             $table->unsignedBigInteger('source_id')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
-            
+
             $table->index(['branch_id', 'projection_date']);
             $table->index(['type', 'projection_date']);
         });
@@ -485,11 +485,11 @@ return new class extends Migration
             $table->json('rules')->nullable();
             $table->boolean('is_active')->default(true);
             $table->boolean('is_mandatory')->default(false);
-            
+
             $table->foreignId('created_by')->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            
+
             $table->timestamps();
             $table->softDeletes();
         });
@@ -526,7 +526,7 @@ return new class extends Migration
             $table->timestamp('completed_at')->nullable();
             $table->json('metadata')->nullable();
             $table->timestamps();
-            
+
             $table->index(['entity_type', 'entity_id']);
         });
 
@@ -549,7 +549,7 @@ return new class extends Migration
             $table->timestamp('responded_at')->nullable();
             $table->json('additional_data')->nullable();
             $table->timestamps();
-            
+
             $table->index(['workflow_instance_id', 'status']);
         });
 
@@ -626,7 +626,7 @@ return new class extends Migration
             $table->json('responsive_images');
             $table->unsignedInteger('order_column')->nullable()->index();
             $table->nullableTimestamps();
-            
+
             $table->index(['model_type', 'model_id']);
         });
 
@@ -654,7 +654,7 @@ return new class extends Migration
             $table->json('extra_attributes')->nullable(); // Extra attributes
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['serial_number', 'status']);
             $table->index(['customer_id', 'status']);
         });
@@ -674,7 +674,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->boolean('is_verified')->default(false); // Verified flag
             $table->timestamps();
-            
+
             $table->unique(['product_id', 'compatible_product_id']);
         });
 
@@ -693,7 +693,7 @@ return new class extends Migration
             $table->integer('sort_order')->default(0);
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->unique(['module_id', 'field_key']);
         });
 
@@ -707,7 +707,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->text('value')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['product_id', 'field_id']);
         });
 
@@ -717,19 +717,19 @@ return new class extends Migration
             $table->id();
             $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            
+
             // Branch admin permission flags
             $table->boolean('can_manage_users')->default(false);    // Manage users within branch
             $table->boolean('can_manage_roles')->default(false);    // Manage roles within branch
             $table->boolean('can_view_reports')->default(false);    // View branch reports
             $table->boolean('can_export_data')->default(false);     // Export branch data
             $table->boolean('can_manage_settings')->default(false); // Manage branch settings
-            
+
             // Status flags
             $table->boolean('is_primary')->default(false);  // Primary admin of branch
             $table->boolean('is_active')->default(true);    // Admin status active
             $table->timestamps();
-            
+
             $table->unique(['branch_id', 'user_id']);
             $table->index(['branch_id', 'is_active']);
         });

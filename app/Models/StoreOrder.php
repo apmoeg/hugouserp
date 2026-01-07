@@ -37,7 +37,7 @@ class StoreOrder extends Model
     {
         static::creating(function (StoreOrder $order): void {
             if (! $order->external_order_id) {
-                $order->external_order_id = 'LOCAL-' . uniqid();
+                $order->external_order_id = 'LOCAL-'.uniqid();
             }
 
             if ($order->payload === null) {

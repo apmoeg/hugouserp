@@ -18,6 +18,7 @@ class ArabicInputSystemWideTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Branch $branch;
 
     protected function setUp(): void
@@ -140,7 +141,7 @@ class ArabicInputSystemWideTest extends TestCase
     {
         // Test various Arabic special characters and diacritics
         $text = 'اختبار الحروف: ء ئ ؤ أ إ آ ة ى التشكيل: َ ُ ِ ّ ْ';
-        
+
         $project = Project::create([
             'name' => $text,
             'code' => 'PRJ-003',

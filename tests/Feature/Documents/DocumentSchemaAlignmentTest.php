@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Documents;
 
 use App\Models\Branch;
-use App\Models\Document;
 use App\Models\User;
 use App\Services\DocumentService;
 use App\Services\UIHelperService;
@@ -27,7 +26,7 @@ class DocumentSchemaAlignmentTest extends TestCase
         $branch = Branch::factory()->create();
         $this->actingAs($user);
 
-        $service = new DocumentService(new UIHelperService());
+        $service = new DocumentService(new UIHelperService);
 
         $document = $service->uploadDocument(
             UploadedFile::fake()->create('contract.pdf', 10, 'application/pdf'),
@@ -76,7 +75,7 @@ class DocumentSchemaAlignmentTest extends TestCase
 
         $this->actingAs($owner);
 
-        $service = new DocumentService(new UIHelperService());
+        $service = new DocumentService(new UIHelperService);
         $document = $service->uploadDocument(
             UploadedFile::fake()->create('handbook.pdf', 6, 'application/pdf'),
             [

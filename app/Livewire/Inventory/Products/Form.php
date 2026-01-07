@@ -8,13 +8,11 @@ use App\Livewire\Concerns\HandlesErrors;
 use App\Models\Currency;
 use App\Models\Module;
 use App\Models\Product;
-use App\Models\ProductFieldValue;
 use App\Services\ModuleProductService;
 use App\Services\ProductService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -31,13 +29,13 @@ class Form extends Component
     public ?int $productId = null;
 
     public ?int $selectedModuleId = null;
-    
+
     // URL parameter to pre-select module (e.g., ?module=motorcycle)
     #[Url]
     public ?string $module = null;
 
     public $thumbnailFile;
-    
+
     // Media Library integration for product image
     public ?int $thumbnail_media_id = null;
 
@@ -65,7 +63,7 @@ class Form extends Component
     public array $dynamicSchema = [];
 
     public array $dynamicData = [];
-    
+
     public array $availableCurrencies = [];
 
     public array $categories = [];
@@ -73,6 +71,7 @@ class Form extends Component
     public array $units = [];
 
     protected ModuleProductService $moduleProductService;
+
     protected ProductService $productService;
 
     public function boot(ModuleProductService $moduleProductService, ProductService $productService): void
@@ -92,21 +91,21 @@ class Form extends Component
         if ($this->form['branch_id'] === 0) {
             abort(403);
         }
-        
+
         // Load currencies once and cache in component property
         $this->availableCurrencies = Currency::active()->ordered()->get(['code', 'name', 'symbol'])->toArray();
 
         $this->categories = \App\Models\ProductCategory::active()->orderBy('name')->get(['id', 'name'])->toArray();
         $this->units = \App\Models\UnitOfMeasure::active()->orderBy('name')->get(['id', 'name', 'symbol'])->toArray();
-        
+
         // Set default currency from base currency
         $baseCurrency = Currency::getBaseCurrency();
         $defaultCurrency = $baseCurrency?->code ?? 'USD';
         $this->form['price_currency'] = $defaultCurrency;
         $this->form['cost_currency'] = $defaultCurrency;
-        
+
         // Pre-select module if passed via URL (e.g., ?module=motorcycle or ?module=rental)
-        if (!$product && $this->module) {
+        if (! $product && $this->module) {
             $preselectedModule = Module::where('key', $this->module)->where('supports_items', true)->first();
             if ($preselectedModule) {
                 $this->selectedModuleId = $preselectedModule->id;
@@ -234,7 +233,7 @@ class Form extends Component
     protected function rules(): array
     {
         $id = $this->productId;
-        
+
         // Use cached currencies from mount
         $validCurrencies = array_column($this->availableCurrencies, 'code');
         if (empty($validCurrencies)) {
@@ -292,7 +291,7 @@ class Form extends Component
     {
         $this->dynamicData = $data;
     }
-    
+
     #[On('media-selected')]
     public function handleMediaSelected(string $fieldId, int $mediaId, array $media): void
     {
@@ -355,16 +354,18 @@ class Form extends Component
                 );
             } else {
                 // Create new product - require module selection
-                if (!$this->form['module_id']) {
+                if (! $this->form['module_id']) {
                     $this->addError('form.module_id', __('Please select a module for this product'));
+
                     return null;
                 }
 
                 $module = Module::findOrFail($this->form['module_id']);
 
                 // Verify module supports items
-                if (!$module->supportsItems()) {
+                if (! $module->supportsItems()) {
                     $this->addError('form.module_id', __('Selected module does not support items/products'));
+
                     return null;
                 }
 
@@ -410,8 +411,8 @@ class Form extends Component
                     ->get();
             }
         }
-        
-        // Fallback: If no branch-specific modules found (or user has no branch), 
+
+        // Fallback: If no branch-specific modules found (or user has no branch),
         // show all active modules that support items
         // BUG FIX: Added supports_items filter to prevent empty module list issue
         if ($modules->isEmpty()) {
@@ -420,7 +421,7 @@ class Form extends Component
                 ->orderBy('sort_order')
                 ->get();
         }
-        
+
         // Use cached currencies loaded in mount()
         return view('livewire.inventory.products.form', [
             'modules' => $modules,

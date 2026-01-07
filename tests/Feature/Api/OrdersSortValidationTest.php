@@ -62,7 +62,7 @@ class OrdersSortValidationTest extends TestCase
             // Should return 422 (validation error) or 401/403 (auth) but not execute
             // If authenticated, should be 422, otherwise 401/403 is acceptable
             $this->assertContains($response->status(), [401, 403, 422]);
-            
+
             // If we get 422, verify it's a validation error
             if ($response->status() === 422) {
                 $response->assertJsonValidationErrors(['sort_by']);
@@ -93,7 +93,7 @@ class OrdersSortValidationTest extends TestCase
 
             // Should return 422 (validation error) or 401/403 (auth) but not execute
             $this->assertContains($response->status(), [401, 403, 422]);
-            
+
             // If we get 422, verify it's a validation error
             if ($response->status() === 422) {
                 $response->assertJsonValidationErrors(['sort_dir']);
@@ -125,9 +125,9 @@ class OrdersSortValidationTest extends TestCase
         $injectionAttempts = [
             "id'; DROP TABLE sales; --",
             'id OR 1=1',
-            "id UNION SELECT * FROM users",
+            'id UNION SELECT * FROM users',
             'id/**/OR/**/1=1',
-            "(SELECT * FROM users WHERE id=1)",
+            '(SELECT * FROM users WHERE id=1)',
         ];
 
         foreach ($injectionAttempts as $attempt) {
@@ -135,11 +135,11 @@ class OrdersSortValidationTest extends TestCase
 
             // Should return 422 (validation error) or 401/403 (auth), not execute the injection
             $this->assertContains($response->status(), [401, 403, 422]);
-            
+
             // The key point is it should NOT return 200 (successful execution)
-            $this->assertNotEquals(200, $response->status(), 
+            $this->assertNotEquals(200, $response->status(),
                 "SQL injection attempt '{$attempt}' should not execute successfully");
-            
+
             // If we get 422, verify it's a validation error
             if ($response->status() === 422) {
                 $response->assertJsonValidationErrors(['sort_by']);

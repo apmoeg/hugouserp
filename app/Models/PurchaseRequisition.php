@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 
 class PurchaseRequisition extends BaseModel
 {
@@ -33,8 +32,8 @@ class PurchaseRequisition extends BaseModel
         parent::booted();
 
         static::creating(function ($model) {
-            if (!$model->code) {
-                $model->code = 'REQ-' . date('Ymd') . '-' . str_pad((string) (static::whereDate('created_at', today())->count() + 1), 5, '0', STR_PAD_LEFT);
+            if (! $model->code) {
+                $model->code = 'REQ-'.date('Ymd').'-'.str_pad((string) (static::whereDate('created_at', today())->count() + 1), 5, '0', STR_PAD_LEFT);
             }
         });
     }
@@ -136,6 +135,6 @@ class PurchaseRequisition extends BaseModel
 
     public function canBeConverted(): bool
     {
-        return $this->status === 'approved' && !$this->is_converted;
+        return $this->status === 'approved' && ! $this->is_converted;
     }
 }

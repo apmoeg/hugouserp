@@ -92,17 +92,17 @@ class Form extends Component
     {
         $prefix = 'WC';
         $base = strtoupper(Str::slug(Str::limit($this->name, 10, ''), ''));
-        
+
         if (empty($base)) {
             $base = sprintf('%03d', WorkCenter::count() + 1);
         }
-        
-        $code = $prefix . '-' . $base;
+
+        $code = $prefix.'-'.$base;
         $counter = 1;
         $workCenterId = $this->workCenter?->id;
 
         while (WorkCenter::where('code', $code)->where('id', '!=', $workCenterId)->exists()) {
-            $code = $prefix . '-' . $base . $counter;
+            $code = $prefix.'-'.$base.$counter;
             $counter++;
         }
 
@@ -121,8 +121,9 @@ class Form extends Component
         $user = auth()->user();
         $branchId = $user->branch_id ?? Branch::first()?->id;
 
-        if (!$branchId) {
+        if (! $branchId) {
             session()->flash('error', __('No branch available. Please contact your administrator.'));
+
             return null;
         }
 

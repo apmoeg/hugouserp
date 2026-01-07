@@ -81,16 +81,16 @@ class BankingService
             $depositsCollection = BankTransaction::where('reconciliation_id', $reconciliation->id)
                 ->whereIn('type', ['deposit', 'interest'])
                 ->get();
-            
+
             $withdrawalsCollection = BankTransaction::where('reconciliation_id', $reconciliation->id)
                 ->whereNotIn('type', ['deposit', 'interest'])
                 ->get();
-            
+
             $deposits = '0';
             foreach ($depositsCollection as $txn) {
                 $deposits = bcadd($deposits, (string) $txn->amount, 2);
             }
-            
+
             $withdrawals = '0';
             foreach ($withdrawalsCollection as $txn) {
                 $withdrawals = bcadd($withdrawals, (string) $txn->amount, 2);
@@ -267,6 +267,7 @@ class BankingService
 
     /**
      * Record a withdrawal transaction
+     *
      * @throws \InvalidArgumentException if insufficient balance
      */
     public function recordWithdrawal(array $data): BankTransaction

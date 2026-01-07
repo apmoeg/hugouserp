@@ -16,7 +16,9 @@ class BomCrudTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Branch $branch;
+
     protected Product $product;
 
     protected function setUp(): void
@@ -41,7 +43,7 @@ class BomCrudTest extends TestCase
 
         return BillOfMaterial::create(array_merge([
             'product_id' => $this->product->id,
-            'bom_number' => 'BOM-' . str_pad((string) $counter, 6, '0', STR_PAD_LEFT),
+            'bom_number' => 'BOM-'.str_pad((string) $counter, 6, '0', STR_PAD_LEFT),
             'name' => 'BOM for Product',
             'quantity' => 1,
             'status' => 'active',

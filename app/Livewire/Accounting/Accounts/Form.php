@@ -90,7 +90,7 @@ class Form extends Component
                 if ($accountId) {
                     $account = Account::findOrFail($accountId);
                 } else {
-                    $account = new Account();
+                    $account = new Account;
                     $account->branch_id = $user->branch_id ?? 1;
                     $account->balance = 0.00;
                 }

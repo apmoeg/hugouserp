@@ -16,7 +16,9 @@ class GlobalSearchTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Branch $branch;
+
     protected Warehouse $warehouse;
 
     protected function setUp(): void

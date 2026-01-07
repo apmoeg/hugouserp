@@ -72,7 +72,8 @@ class BranchProductSecurityTest extends TestCase
 
         // Simplify dynamic field resolution during the import
         app()->bind(ModuleFieldServiceInterface::class, function () {
-            return new class implements ModuleFieldServiceInterface {
+            return new class implements ModuleFieldServiceInterface
+            {
                 public function formSchema(string $moduleKey, string $entity, ?int $branchId = null): array
                 {
                     return [];

@@ -65,18 +65,21 @@ class PosController extends Controller
     public function reprint(Request $request, int $sale)
     {
         $this->requireBranchId($request);
+
         return $this->ok(app(\App\Services\Contracts\SaleServiceInterface::class)->printInvoice($sale));
     }
 
     public function xReport(Request $request)
     {
         $this->requireBranchId($request);
+
         return $this->ok(['report' => 'X']);
     }
 
     public function zReport(Request $request)
     {
         $this->requireBranchId($request);
+
         return $this->ok(['report' => 'Z']);
     }
 }

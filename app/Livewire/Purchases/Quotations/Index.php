@@ -12,7 +12,7 @@ use Livewire\WithPagination;
 #[Layout('layouts.app')]
 class Index extends Component
 {
-    use WithPagination, AuthorizesRequests;
+    use AuthorizesRequests, WithPagination;
 
     #[Url]
     public $search = '';
@@ -21,6 +21,7 @@ class Index extends Component
     public $statusFilter = '';
 
     public $sortField = 'created_at';
+
     public $sortDirection = 'desc';
 
     public function updatingSearch()
@@ -43,9 +44,10 @@ class Index extends Component
         $this->authorize('update', SupplierQuotation::class);
 
         $quotation = SupplierQuotation::findOrFail($id);
-        
+
         if ($quotation->isExpired()) {
             session()->flash('error', __('Cannot accept expired quotation'));
+
             return;
         }
 
@@ -63,7 +65,7 @@ class Index extends Component
         $this->authorize('update', SupplierQuotation::class);
 
         $quotation = SupplierQuotation::findOrFail($id);
-        
+
         $quotation->update([
             'status' => 'rejected',
             'rejected_at' => now(),
@@ -88,12 +90,12 @@ class Index extends Component
         $query = SupplierQuotation::with(['supplier', 'requisition', 'createdBy'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
-                    $q->where('quotation_number', 'like', '%' . $this->search . '%')
+                    $q->where('quotation_number', 'like', '%'.$this->search.'%')
                         ->orWhereHas('supplier', function ($q) {
-                            $q->where('name', 'like', '%' . $this->search . '%');
+                            $q->where('name', 'like', '%'.$this->search.'%');
                         })
                         ->orWhereHas('requisition', function ($q) {
-                            $q->where('requisition_number', 'like', '%' . $this->search . '%');
+                            $q->where('requisition_number', 'like', '%'.$this->search.'%');
                         });
                 });
             })

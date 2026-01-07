@@ -17,9 +17,9 @@ use Livewire\WithPagination;
 class Index extends Component
 {
     use AuthorizesRequests;
-    use WithPagination;
     use HasSortableColumns;
     use StatsCacheVersion;
+    use WithPagination;
 
     #[Url]
     public string $search = '';

@@ -33,7 +33,7 @@ final class Percentage
     public function apply(Money $amount): Money
     {
         $discount = bcmul($amount->amount, (string) ($this->value / 100), 2);
-        
+
         return new Money($discount, $amount->currency);
     }
 
@@ -58,7 +58,7 @@ final class Percentage
      */
     public function format(int $decimals = 2): string
     {
-        return number_format($this->value, $decimals) . '%';
+        return number_format($this->value, $decimals).'%';
     }
 
     /**

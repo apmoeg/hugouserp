@@ -18,21 +18,34 @@ class Tasks extends Component
     use AuthorizesRequests;
 
     public Project $project;
+
     public ?ProjectTask $editingTask = null;
+
     public bool $showModal = false;
+
     public ?int $editingTaskId = null;
+
     public array $form = [];
 
     // Form fields
     public string $title = '';
+
     public ?string $description = null;
+
     public ?int $assigned_to = null;
+
     public ?int $parent_task_id = null;
+
     public string $priority = 'medium';
+
     public string $status = 'pending';
+
     public ?string $start_date = null;
+
     public ?string $due_date = null;
+
     public float $estimated_hours = 0;
+
     public int $progress = 0;
 
     public array $selectedDependencies = [];
@@ -87,7 +100,7 @@ class Tasks extends Component
             ],
             'parent_task_id' => [
                 'nullable',
-                Rule::exists('project_tasks', 'id')->where('project_id', $this->project->id)
+                Rule::exists('project_tasks', 'id')->where('project_id', $this->project->id),
             ],
             'priority' => ['required', 'in:low,medium,high,critical'],
             'status' => ['required', 'in:pending,in_progress,review,completed,cancelled'],
@@ -97,7 +110,7 @@ class Tasks extends Component
             'progress' => ['required', 'integer', 'min:0', 'max:100'],
             'selectedDependencies' => ['array'],
             'selectedDependencies.*' => [
-                Rule::exists('project_tasks', 'id')->where('project_id', $this->project->id)
+                Rule::exists('project_tasks', 'id')->where('project_id', $this->project->id),
             ],
         ];
     }
@@ -116,7 +129,7 @@ class Tasks extends Component
         $this->fill($this->editingTask->only([
             'title', 'description', 'assigned_to', 'parent_task_id',
             'priority', 'status', 'start_date', 'due_date',
-            'estimated_hours', 'progress'
+            'estimated_hours', 'progress',
         ]));
         $this->selectedDependencies = $this->editingTask
             ->dependencies()
@@ -132,7 +145,7 @@ class Tasks extends Component
         $data = $this->only([
             'title', 'description', 'assigned_to', 'parent_task_id',
             'priority', 'status', 'start_date', 'due_date',
-            'estimated_hours', 'progress'
+            'estimated_hours', 'progress',
         ]);
 
         if ($this->editingTask) {
@@ -166,7 +179,7 @@ class Tasks extends Component
         $this->reset([
             'title', 'description', 'assigned_to', 'parent_task_id',
             'priority', 'status', 'start_date', 'due_date',
-            'estimated_hours', 'progress', 'selectedDependencies'
+            'estimated_hours', 'progress', 'selectedDependencies',
         ]);
     }
 
@@ -184,7 +197,7 @@ class Tasks extends Component
             ->get();
 
         $availableTasks = $this->project->tasks()
-            ->when($this->editingTask, fn($q) => $q->where('id', '!=', $this->editingTask->id))
+            ->when($this->editingTask, fn ($q) => $q->where('id', '!=', $this->editingTask->id))
             ->orderBy('title')
             ->get();
 

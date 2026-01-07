@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Livewire\Helpdesk\Categories;
 
 use App\Models\TicketCategory;
-use App\Models\TicketSLAPolicy;
-use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -29,11 +27,13 @@ class Index extends Component
 
         if ($category->hasChildren()) {
             session()->flash('error', __('Cannot delete category with subcategories'));
+
             return;
         }
 
         if ($category->tickets()->exists()) {
             session()->flash('error', __('Cannot delete category with existing tickets'));
+
             return;
         }
 
@@ -45,7 +45,7 @@ class Index extends Component
     public function toggleActive(int $id): void
     {
         $category = TicketCategory::findOrFail($id);
-        $category->is_active = !$category->is_active;
+        $category->is_active = ! $category->is_active;
         $category->updated_by = auth()->id();
         $category->save();
 

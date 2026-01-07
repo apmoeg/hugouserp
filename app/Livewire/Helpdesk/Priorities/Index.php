@@ -27,6 +27,7 @@ class Index extends Component
 
         if ($priority->tickets()->exists()) {
             session()->flash('error', __('Cannot delete priority with existing tickets'));
+
             return;
         }
 
@@ -38,7 +39,7 @@ class Index extends Component
     public function toggleActive(int $id): void
     {
         $priority = TicketPriority::findOrFail($id);
-        $priority->is_active = !$priority->is_active;
+        $priority->is_active = ! $priority->is_active;
         $priority->save();
 
         session()->flash('success', __('Priority status updated'));

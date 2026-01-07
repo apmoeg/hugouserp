@@ -22,14 +22,14 @@ return [
     'reference' => 'المرجع',
     'description' => 'الوصف',
     'status' => 'الحالة',
-    
+
     // Transaction Types
     'deposit' => 'إيداع',
     'withdrawal' => 'سحب',
     'transfer' => 'تحويل',
     'payment' => 'دفع',
     'receipt' => 'إيصال',
-    
+
     // Status Values
     'active' => 'نشط',
     'inactive' => 'غير نشط',
@@ -37,7 +37,7 @@ return [
     'pending' => 'معلق',
     'completed' => 'مكتمل',
     'failed' => 'فشل',
-    
+
     // Messages
     'account_created' => 'تم إنشاء الحساب البنكي بنجاح',
     'account_updated' => 'تم تحديث الحساب البنكي بنجاح',
@@ -45,19 +45,19 @@ return [
     'transaction_recorded' => 'تم تسجيل المعاملة بنجاح',
     'insufficient_balance' => 'الرصيد غير كافٍ',
     'transfer_completed' => 'تم التحويل بنجاح',
-    
+
     // Buttons
     'add_account' => 'إضافة حساب',
     'record_transaction' => 'تسجيل معاملة',
     'view_transactions' => 'عرض المعاملات',
     'transfer_funds' => 'تحويل أموال',
     'reconcile' => 'تسوية',
-    
+
     // Navigation
     'all_accounts' => 'جميع الحسابات',
     'all_transactions' => 'جميع المعاملات',
     'reconciliation' => 'التسويات',
-    
+
     // Validation Messages
     'account_name_required' => 'اسم الحساب مطلوب',
     'account_number_required' => 'رقم الحساب مطلوب',

@@ -34,12 +34,12 @@ class ClosePosDayJob implements ShouldQueue
         // Use bcmath for precise financial totals
         $grossString = '0.00';
         $paidString = '0.00';
-        
+
         foreach ($sales as $sale) {
             $grossString = bcadd($grossString, (string) $sale->grand_total, 2);
             $paidString = bcadd($paidString, (string) $sale->paid_total, 2);
         }
-        
+
         $gross = (float) $grossString;
         $paid = (float) $paidString;
 

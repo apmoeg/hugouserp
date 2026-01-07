@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class InventorySerial extends Model
 {
@@ -90,11 +90,12 @@ class InventorySerial extends Model
      */
     public function isWarrantyActive(): bool
     {
-        if (!$this->warranty_start || !$this->warranty_end) {
+        if (! $this->warranty_start || ! $this->warranty_end) {
             return false;
         }
 
         $now = now();
+
         return $now->between($this->warranty_start, $this->warranty_end);
     }
 

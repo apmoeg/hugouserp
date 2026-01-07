@@ -6,7 +6,6 @@ namespace App\Livewire\Hrm\Employees;
 
 use App\Models\HREmployee;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -130,12 +129,12 @@ class Index extends Component
         // Statistics
         $baseQuery = HREmployee::query()
             ->when($this->branchId, fn ($q) => $q->where('branch_id', $this->branchId));
-        
+
         $totalEmployees = (clone $baseQuery)->count();
         $activeEmployees = (clone $baseQuery)->where('is_active', true)->count();
         $inactiveEmployees = $totalEmployees - $activeEmployees;
         $totalSalary = (clone $baseQuery)->where('is_active', true)->sum('salary');
-        
+
         // Get departments/positions for filter - combine null and empty check
         $departments = HREmployee::query()
             ->when($this->branchId, fn ($q) => $q->where('branch_id', $this->branchId))

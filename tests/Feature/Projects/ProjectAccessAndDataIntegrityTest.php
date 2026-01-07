@@ -50,8 +50,8 @@ class ProjectAccessAndDataIntegrityTest extends TestCase
     {
         return Project::create(array_merge([
             'branch_id' => $branch->id,
-            'code' => 'PRJ-' . Str::random(5),
-            'name' => 'Project ' . Str::random(3),
+            'code' => 'PRJ-'.Str::random(5),
+            'name' => 'Project '.Str::random(3),
             'status' => 'planning',
         ], $overrides));
     }
@@ -60,8 +60,8 @@ class ProjectAccessAndDataIntegrityTest extends TestCase
     {
         return Customer::create([
             'uuid' => (string) Str::uuid(),
-            'code' => 'CUST-' . Str::random(5),
-            'name' => 'Customer ' . Str::random(3),
+            'code' => 'CUST-'.Str::random(5),
+            'name' => 'Customer '.Str::random(3),
             'branch_id' => $branch->id,
         ]);
     }

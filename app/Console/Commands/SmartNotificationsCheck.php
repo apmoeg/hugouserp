@@ -63,7 +63,7 @@ class SmartNotificationsCheck extends Command
 
             if ($count > 0) {
                 $this->info(sprintf('  %s: %d notifications sent', ucfirst(str_replace('_', ' ', $checkType)), $count));
-                
+
                 if ($this->getOutput()->isVerbose()) {
                     foreach ($items as $item) {
                         $this->line("    - {$item}");

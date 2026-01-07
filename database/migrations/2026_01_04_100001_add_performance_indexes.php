@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 /**
  * Performance Indexes Migration
- * 
+ *
  * Adds optimized indexes for frequently queried columns
  * to improve system performance.
- * 
+ *
  * Safe to run on fresh database or existing data.
  */
 
@@ -27,10 +27,10 @@ return new class extends Migration
             Schema::table('sales', function (Blueprint $table) {
                 // Index for dashboard queries (today's sales by branch)
                 $this->addIndexIfNotExists($table, 'sales', ['branch_id', 'sale_date', 'status'], 'idx_sales_branch_date_status');
-                
+
                 // Index for customer history
                 $this->addIndexIfNotExists($table, 'sales', ['customer_id', 'created_at'], 'idx_sales_customer_created');
-                
+
                 // Index for payment status queries
                 $this->addIndexIfNotExists($table, 'sales', ['payment_status', 'due_date'], 'idx_sales_payment_due');
             });
@@ -41,10 +41,10 @@ return new class extends Migration
             Schema::table('products', function (Blueprint $table) {
                 // Index for SKU lookups
                 $this->addIndexIfNotExists($table, 'products', ['sku'], 'idx_products_sku');
-                
+
                 // Index for category filtering
                 $this->addIndexIfNotExists($table, 'products', ['category_id', 'is_active'], 'idx_products_category_active');
-                
+
                 // Index for low stock queries
                 if (Schema::hasColumn('products', 'stock_alert_threshold')) {
                     $this->addIndexIfNotExists($table, 'products', ['is_active', 'track_stock_alerts'], 'idx_products_active_track');
@@ -57,7 +57,7 @@ return new class extends Migration
             Schema::table('stock_movements', function (Blueprint $table) {
                 // Index for product history
                 $this->addIndexIfNotExists($table, 'stock_movements', ['product_id', 'created_at'], 'idx_stock_product_created');
-                
+
                 // Index for warehouse queries
                 $this->addIndexIfNotExists($table, 'stock_movements', ['warehouse_id', 'movement_type', 'created_at'], 'idx_stock_warehouse_type_date');
             });
@@ -68,7 +68,7 @@ return new class extends Migration
             Schema::table('customers', function (Blueprint $table) {
                 // Index for phone lookup
                 $this->addIndexIfNotExists($table, 'customers', ['phone'], 'idx_customers_phone');
-                
+
                 // Index for branch + active queries
                 $this->addIndexIfNotExists($table, 'customers', ['branch_id', 'is_active'], 'idx_customers_branch_active');
             });
@@ -79,7 +79,7 @@ return new class extends Migration
             Schema::table('purchases', function (Blueprint $table) {
                 // Index for supplier history
                 $this->addIndexIfNotExists($table, 'purchases', ['supplier_id', 'purchase_date'], 'idx_purchases_supplier_date');
-                
+
                 // Index for pending payments
                 $this->addIndexIfNotExists($table, 'purchases', ['payment_status', 'due_date'], 'idx_purchases_payment_due');
             });
@@ -90,7 +90,7 @@ return new class extends Migration
             Schema::table('audit_logs', function (Blueprint $table) {
                 // Index for user activity reports - using correct column names (causer_id, event)
                 $this->addIndexIfNotExists($table, 'audit_logs', ['causer_id', 'event', 'created_at'], 'idx_audit_causer_event_date');
-                
+
                 // Index for log_name activity
                 if (Schema::hasColumn('audit_logs', 'log_name')) {
                     $this->addIndexIfNotExists($table, 'audit_logs', ['log_name', 'created_at'], 'idx_audit_log_created');
@@ -105,7 +105,7 @@ return new class extends Migration
                 if (Schema::hasColumn('pos_sessions', 'status')) {
                     $this->addIndexIfNotExists($table, 'pos_sessions', ['branch_id', 'status'], 'idx_pos_branch_status');
                 }
-                
+
                 // Index for user sessions
                 $this->addIndexIfNotExists($table, 'pos_sessions', ['user_id', 'opened_at'], 'idx_pos_user_opened');
             });
@@ -116,7 +116,7 @@ return new class extends Migration
             Schema::table('journal_entries', function (Blueprint $table) {
                 // Index for date range queries - fixed to use 'status' instead of non-existent 'is_posted'
                 $this->addIndexIfNotExists($table, 'journal_entries', ['entry_date', 'status'], 'idx_journal_date_posted');
-                
+
                 // Index for account queries
                 if (Schema::hasColumn('journal_entries', 'branch_id')) {
                     $this->addIndexIfNotExists($table, 'journal_entries', ['branch_id', 'entry_date'], 'idx_journal_branch_date');
@@ -156,7 +156,7 @@ return new class extends Migration
                 try {
                     $existingIndexes = Schema::getIndexes($tableName);
                     $existingIndexNames = array_column($existingIndexes, 'name');
-                    
+
                     foreach ($indexes as $indexName) {
                         if (in_array($indexName, $existingIndexNames)) {
                             try {
@@ -184,8 +184,8 @@ return new class extends Migration
             // Check if index exists using database inspection
             $indexes = Schema::getIndexes($tableName);
             $existingIndexNames = array_column($indexes, 'name');
-            
-            if (!in_array($indexName, $existingIndexNames)) {
+
+            if (! in_array($indexName, $existingIndexNames)) {
                 $table->index($columns, $indexName);
             }
         } catch (\Throwable) {

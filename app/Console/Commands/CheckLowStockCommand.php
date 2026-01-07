@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 
 /**
  * CheckLowStockCommand - Automated low stock monitoring
- * 
+ *
  * NEW FEATURE: Scheduled command for low stock monitoring
  */
 class CheckLowStockCommand extends Command
@@ -33,14 +33,15 @@ class CheckLowStockCommand extends Command
 
         if (empty($alerts)) {
             $this->info('No low stock alerts found.');
+
             return self::SUCCESS;
         }
 
-        $this->warn('Found ' . count($alerts) . ' low stock products:');
+        $this->warn('Found '.count($alerts).' low stock products:');
 
         $this->table(
             ['Product', 'Code', 'Current Stock', 'Threshold', 'Severity', 'Branch'],
-            array_map(fn($a) => [
+            array_map(fn ($a) => [
                 $a['product_name'],
                 $a['product_code'],
                 $a['current_stock'],
@@ -51,7 +52,7 @@ class CheckLowStockCommand extends Command
         );
 
         if (count($alerts) > 10) {
-            $this->info('... and ' . (count($alerts) - 10) . ' more');
+            $this->info('... and '.(count($alerts) - 10).' more');
         }
 
         // Auto-generate requisitions if requested
@@ -62,10 +63,10 @@ class CheckLowStockCommand extends Command
 
             if ($result['success']) {
                 $this->info($result['message']);
-                if (!empty($result['requisitions'])) {
+                if (! empty($result['requisitions'])) {
                     $this->table(
                         ['Requisition Code', 'Branch ID', 'Items Count'],
-                        array_map(fn($r) => [$r['code'], $r['branch_id'], $r['items_count']], $result['requisitions'])
+                        array_map(fn ($r) => [$r['code'], $r['branch_id'], $r['items_count']], $result['requisitions'])
                     );
                 }
             } else {

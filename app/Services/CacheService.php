@@ -10,11 +10,11 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * CacheService - Centralized caching layer for ERP modules
- * 
+ *
  * STATUS: ACTIVE - Core caching infrastructure service
  * PURPOSE: Provides tagged caching for settings, modules, permissions, products, roles, and branches
  * USAGE: Called by controllers/services for performance optimization
- * 
+ *
  * This service is fully implemented and actively used throughout the application
  * for caching frequently accessed data like settings, permissions, and products.
  */
@@ -366,16 +366,16 @@ class CacheService
             callback: function () {
                 // Warm settings cache
                 $this->getSettings();
-                
+
                 // Warm all branches
                 $this->getAllBranches();
-                
+
                 // Warm modules
                 $this->getModules();
-                
+
                 // Warm roles with permissions
                 $this->getRolesWithPermissions();
-                
+
                 Log::info('Cache warmed successfully');
             },
             operation: 'warmCache',
@@ -393,7 +393,7 @@ class CacheService
                 $this->getSettings($branchId);
                 $this->getModules($branchId);
                 $this->getProductsForBranch($branchId);
-                
+
                 Log::info('Branch cache warmed', ['branch_id' => $branchId]);
             },
             operation: 'warmBranchCache',
@@ -409,7 +409,7 @@ class CacheService
         return $this->handleServiceOperation(
             callback: function () {
                 $driver = config('cache.default');
-                
+
                 return [
                     'driver' => $driver,
                     'supports_tags' => $this->supportsTags(),

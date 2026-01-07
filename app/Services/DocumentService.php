@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentService
@@ -51,6 +51,7 @@ class DocumentService
     ];
 
     private string $documentsDisk;
+
     private ?string $fallbackDisk;
 
     public function __construct(
@@ -59,6 +60,7 @@ class DocumentService
         $this->documentsDisk = (string) config('filesystems.document_disk', 'local');
         $this->fallbackDisk = config('filesystems.document_disk_fallback');
     }
+
     /**
      * Upload a new document
      */
@@ -126,7 +128,7 @@ class DocumentService
             $document->logActivity('created', auth()->user());
 
             // Attach tags if provided
-            if (!empty($data['tags'])) {
+            if (! empty($data['tags'])) {
                 $document->tags()->sync($data['tags']);
             }
 
@@ -198,7 +200,7 @@ class DocumentService
         if ($user && $user->branch_id && $document->branch_id && $user->branch_id !== $document->branch_id) {
             throw new AuthorizationException('You cannot update documents from other branches.');
         }
-        
+
         return DB::transaction(function () use ($document, $data) {
             $document->update([
                 'title' => $data['title'] ?? $document->title,
@@ -229,7 +231,7 @@ class DocumentService
     {
         $allowedPermissions = ['view', 'download', 'edit', 'manage'];
 
-        if (!in_array($permission, $allowedPermissions, true)) {
+        if (! in_array($permission, $allowedPermissions, true)) {
             throw new AuthorizationException('Invalid share permission supplied.');
         }
 
@@ -315,7 +317,7 @@ class DocumentService
         }
 
         // Check access
-        if (!$document->canBeAccessedBy($user)) {
+        if (! $document->canBeAccessedBy($user)) {
             abort(403, 'You do not have permission to download this document');
         }
 
@@ -495,7 +497,7 @@ class DocumentService
                 ->with('uploader:id,name')
                 ->get(),
             'most_downloaded' => Document::withCount('activities')
-                ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+                ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
                 ->orderBy('activities_count', 'desc')
                 ->limit(5)
                 ->get(),

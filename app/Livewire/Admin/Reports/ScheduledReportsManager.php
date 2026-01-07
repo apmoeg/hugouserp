@@ -321,11 +321,11 @@ class ScheduledReportsManager extends Component
         $days = [__('Sunday'), __('Monday'), __('Tuesday'), __('Wednesday'), __('Thursday'), __('Friday'), __('Saturday')];
 
         if ($dayOfWeek !== '*' && $dayOfMonth === '*') {
-            return __('Weekly') . ' - ' . ($days[(int) $dayOfWeek] ?? '') . ' ' . $time;
+            return __('Weekly').' - '.($days[(int) $dayOfWeek] ?? '').' '.$time;
         } elseif ($dayOfMonth !== '*') {
-            return __('Monthly') . ' - ' . __('Day') . ' ' . $dayOfMonth . ' ' . $time;
+            return __('Monthly').' - '.__('Day').' '.$dayOfMonth.' '.$time;
         }
 
-        return __('Daily') . ' - ' . $time;
+        return __('Daily').' - '.$time;
     }
 }

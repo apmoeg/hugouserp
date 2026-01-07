@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
-use App\Models\Sale;
-use App\Models\Purchase;
 use App\Models\Customer;
+use App\Models\Purchase;
+use App\Models\Sale;
 use App\Models\Supplier;
 use Illuminate\Support\Facades\Log;
 
 /**
  * FinancialTransactionObserver - Track financial transaction changes
- * 
+ *
  * NEW FEATURE: Enhanced audit trail for financial transactions
- * 
+ *
  * FEATURES:
  * - Auto-update customer/supplier balances
  * - Auto-update payment status
@@ -30,7 +30,7 @@ class FinancialTransactionObserver
     {
         $this->updateRelatedBalance($model, 'add');
         $this->updatePaymentStatus($model);
-        
+
         Log::info('Financial transaction created', [
             'type' => get_class($model),
             'id' => $model->id,
@@ -53,7 +53,7 @@ class FinancialTransactionObserver
 
             if ($difference != 0) {
                 $this->adjustRelatedBalance($model, $difference);
-                
+
                 Log::warning('Financial transaction amount changed', [
                     'type' => get_class($model),
                     'id' => $model->id,
@@ -87,7 +87,7 @@ class FinancialTransactionObserver
     public function deleted(Sale|Purchase $model): void
     {
         $this->updateRelatedBalance($model, 'subtract');
-        
+
         Log::warning('Financial transaction deleted', [
             'type' => get_class($model),
             'id' => $model->id,

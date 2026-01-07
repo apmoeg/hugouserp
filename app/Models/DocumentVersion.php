@@ -46,11 +46,11 @@ class DocumentVersion extends Model
     {
         $size = $this->file_size;
         $units = ['B', 'KB', 'MB', 'GB'];
-        
+
         for ($i = 0; $size >= 1024 && $i < count($units) - 1; $i++) {
             $size /= 1024;
         }
-        
-        return round($size, 2) . ' ' . $units[$i];
+
+        return round($size, 2).' '.$units[$i];
     }
 }

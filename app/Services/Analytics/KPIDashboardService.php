@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Services\Analytics;
 
-use App\Models\Sale;
-use App\Models\Purchase;
-use App\Models\Product;
 use App\Models\Customer;
 use App\Models\Expense;
+use App\Models\Product;
+use App\Models\Purchase;
+use App\Models\Sale;
 use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Facades\DB;
 
 /**
  * KPI Dashboard Service
- * 
+ *
  * Provides key performance indicators for the ERP system
  * including sales, inventory, customer, and financial metrics.
  */
@@ -103,11 +103,11 @@ class KPIDashboardService
         }
 
         $totalProducts = $query->count();
-        
+
         // Low stock products
         $lowStockCount = Product::query()
             ->where('is_active', true)
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereColumn('qty', '<=', 'reorder_level')
             ->where('reorder_level', '>', 0)
             ->count();
@@ -115,14 +115,14 @@ class KPIDashboardService
         // Out of stock products
         $outOfStockCount = Product::query()
             ->where('is_active', true)
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->where('qty', '<=', 0)
             ->count();
 
         // Total inventory value
         $inventoryValue = Product::query()
             ->where('is_active', true)
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->sum(DB::raw('stock_quantity * COALESCE(cost, 0)'));
 
         return [
@@ -156,18 +156,18 @@ class KPIDashboardService
     {
         // New customers this period
         $newCustomers = Customer::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->count();
 
         $previousNewCustomers = Customer::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereBetween('created_at', [$previousDates['start'], $previousDates['end']])
             ->count();
 
         // Total active customers (purchased in period)
         $activeCustomers = Sale::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->where('status', '!=', 'cancelled')
             ->whereNotNull('customer_id')
@@ -177,7 +177,7 @@ class KPIDashboardService
         // Repeat customers
         $repeatCustomers = DB::table('sales')
             ->select('customer_id', DB::raw('COUNT(*) as order_count'))
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->where('status', '!=', 'cancelled')
             ->whereNotNull('customer_id')
@@ -217,32 +217,32 @@ class KPIDashboardService
     {
         // Revenue and expenses
         $currentRevenue = Sale::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->where('status', '!=', 'cancelled')
             ->sum('grand_total');
 
         $currentExpenses = Expense::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereBetween('expense_date', [$dates['start'], $dates['end']])
             ->where('status', 'approved')
             ->sum('amount');
 
         $previousRevenue = Sale::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereBetween('created_at', [$previousDates['start'], $previousDates['end']])
             ->where('status', '!=', 'cancelled')
             ->sum('grand_total');
 
         $previousExpenses = Expense::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereBetween('expense_date', [$previousDates['start'], $previousDates['end']])
             ->where('status', 'approved')
             ->sum('amount');
 
         // Purchases (COGS approximation)
         $currentPurchases = Purchase::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->where('status', '!=', 'cancelled')
             ->sum('grand_total');
@@ -250,9 +250,9 @@ class KPIDashboardService
         // Calculate gross profit
         $grossProfit = $currentRevenue - $currentPurchases;
         $netProfit = $grossProfit - $currentExpenses;
-        
+
         $previousGrossProfit = $previousRevenue - Purchase::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereBetween('created_at', [$previousDates['start'], $previousDates['end']])
             ->where('status', '!=', 'cancelled')
             ->sum('grand_total');
@@ -298,7 +298,7 @@ class KPIDashboardService
                 DB::raw('SUM(sale_items.quantity) as total_qty'),
                 DB::raw('SUM(sale_items.line_total) as total_revenue')
             )
-            ->when($branchId, fn($q) => $q->where('sales.branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('sales.branch_id', $branchId))
             ->whereBetween('sales.created_at', [$dates['start'], $dates['end']])
             ->where('sales.status', '!=', 'cancelled')
             ->groupBy('products.id', 'products.name')
@@ -313,7 +313,7 @@ class KPIDashboardService
                 DB::raw('SUM(total_amount) as revenue'),
                 DB::raw('COUNT(*) as orders')
             )
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereBetween('created_at', [$dates['start'], $dates['end']])
             ->where('status', '!=', 'cancelled')
             ->groupBy('date')
@@ -321,12 +321,12 @@ class KPIDashboardService
             ->get();
 
         return [
-            'top_products' => $topProducts->map(fn($p) => [
+            'top_products' => $topProducts->map(fn ($p) => [
                 'name' => $p->name,
                 'quantity' => $p->total_qty,
                 'revenue' => round($p->total_revenue, 2),
             ])->toArray(),
-            'daily_sales' => $dailySales->map(fn($d) => [
+            'daily_sales' => $dailySales->map(fn ($d) => [
                 'date' => $d->date,
                 'revenue' => round($d->revenue, 2),
                 'orders' => $d->orders,
@@ -341,7 +341,7 @@ class KPIDashboardService
     protected function getSalesData(?int $branchId, string $start, string $end): array
     {
         $query = Sale::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereBetween('created_at', [$start, $end])
             ->where('status', '!=', 'cancelled');
 
@@ -364,6 +364,7 @@ class KPIDashboardService
         if ($previous == 0) {
             return $current > 0 ? 100 : 0;
         }
+
         return round((($current - $previous) / $previous) * 100, 1);
     }
 
@@ -372,7 +373,7 @@ class KPIDashboardService
      */
     protected function getPeriodDates(string $period): array
     {
-        return match($period) {
+        return match ($period) {
             'week' => [
                 'start' => now()->startOfWeek()->toDateString(),
                 'end' => now()->endOfWeek()->toDateString(),
@@ -401,7 +402,7 @@ class KPIDashboardService
      */
     protected function getPreviousPeriodDates(string $period): array
     {
-        return match($period) {
+        return match ($period) {
             'week' => [
                 'start' => now()->subWeek()->startOfWeek()->toDateString(),
                 'end' => now()->subWeek()->endOfWeek()->toDateString(),
@@ -430,7 +431,7 @@ class KPIDashboardService
      */
     protected function getPeriodLabel(string $period): string
     {
-        return match($period) {
+        return match ($period) {
             'week' => __('This Week'),
             'month' => __('This Month'),
             'quarter' => __('This Quarter'),
@@ -455,10 +456,10 @@ class KPIDashboardService
     protected function getMarketingExpenses(?int $branchId, array $dates): float
     {
         return Expense::query()
-            ->when($branchId, fn($q) => $q->where('branch_id', $branchId))
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->whereBetween('expense_date', [$dates['start'], $dates['end']])
             ->where('status', 'approved')
-            ->whereHas('category', fn($q) => $q->where('name', 'like', '%marketing%'))
+            ->whereHas('category', fn ($q) => $q->where('name', 'like', '%marketing%'))
             ->sum('amount');
     }
 }

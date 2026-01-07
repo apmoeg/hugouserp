@@ -38,13 +38,13 @@ class Form extends Component
             $this->authorize('warehouse.manage');
             $this->adjustmentId = $id;
             $this->adjustment = Adjustment::with('items.product')->findOrFail($id);
-            
+
             // Check branch access
             $user = auth()->user();
             if ($user->branch_id && $this->adjustment->branch_id !== $user->branch_id) {
                 abort(403, 'Unauthorized access to this branch data');
             }
-            
+
             $this->loadAdjustment();
         } else {
             $this->authorize('warehouse.manage');

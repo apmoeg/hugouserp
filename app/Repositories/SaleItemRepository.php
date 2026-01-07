@@ -23,7 +23,7 @@ final class SaleItemRepository extends EloquentBaseRepository implements SaleIte
     protected function baseBranchQuery(int $branchId): Builder
     {
         return $this->query()
-            ->whereHas('sale', fn($q) => $q->where('branch_id', $branchId));
+            ->whereHas('sale', fn ($q) => $q->where('branch_id', $branchId));
     }
 
     public function paginateForBranch(int $branchId, int $perPage = 20): LengthAwarePaginator

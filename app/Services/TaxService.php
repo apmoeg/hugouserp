@@ -29,6 +29,7 @@ class TaxService implements TaxServiceInterface
         // Use bcmath for precise tax calculation (full bcmath chain)
         $rateDecimal = bcdiv((string) $r, '100', 6);
         $taxAmount = bcmul((string) $base, $rateDecimal, 4);
+
         return (float) bcdiv($taxAmount, '1', 2);
     }
 
@@ -91,6 +92,7 @@ class TaxService implements TaxServiceInterface
                 // Use bcmath for precise total calculation
                 $taxAmount = $this->amountFor($base, $taxId);
                 $total = bcadd((string) $base, (string) $taxAmount, 6);
+
                 return (float) bcdiv($total, '1', 4);
             },
             operation: 'totalWithTax',

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class BankTransaction extends Model
 {
@@ -44,8 +44,8 @@ class BankTransaction extends Model
         parent::boot();
 
         static::creating(function ($transaction) {
-            if (!$transaction->reference_number) {
-                $transaction->reference_number = 'BTX-' . date('Ymd') . '-' . uniqid();
+            if (! $transaction->reference_number) {
+                $transaction->reference_number = 'BTX-'.date('Ymd').'-'.uniqid();
             }
         });
     }
@@ -108,7 +108,7 @@ class BankTransaction extends Model
         if ($this->isDeposit() || $this->type === 'interest') {
             return $amount;
         }
-        
+
         return -$amount;
     }
 

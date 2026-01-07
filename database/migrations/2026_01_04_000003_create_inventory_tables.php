@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Consolidated Inventory Tables Migration
- * 
+ *
  * MySQL 8.4 Optimized:
  * - Products, categories, warehouses
  * - Stock management with batch/serial tracking
@@ -45,7 +45,7 @@ return new class extends Migration
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete(); // Updated by
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['parent_id', 'is_active']);
         });
 
@@ -124,7 +124,7 @@ return new class extends Migration
             $table->json('extra_attributes')->nullable(); // Extra attributes
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'is_active']);
         });
 
@@ -148,7 +148,7 @@ return new class extends Migration
             $table->string('barcode', 100)->nullable()->index();
             $table->text('description')->nullable();
             $table->text('description_ar')->nullable();
-            
+
             // Pricing
             $table->decimal('cost_price', 18, 4)->default(0);
             $table->decimal('cost', 18, 4)->default(0);
@@ -174,7 +174,7 @@ return new class extends Migration
             $table->foreignId('tax_id')->nullable()
                 ->constrained('taxes')
                 ->nullOnDelete();
-            
+
             // Units
             $table->string('uom', 50)->nullable();
             $table->decimal('uom_factor', 10, 4)->nullable();
@@ -187,7 +187,7 @@ return new class extends Migration
             $table->foreignId('sale_unit_id')->nullable()
                 ->constrained('units_of_measure')
                 ->nullOnDelete();
-            
+
             // Stock
             $table->decimal('stock_quantity', 18, 4)->default(0);
             $table->decimal('reserved_quantity', 18, 4)->default(0);
@@ -203,7 +203,7 @@ return new class extends Migration
             $table->integer('lead_time_days')->nullable();
             $table->string('location_code', 100)->nullable();
             $table->string('stock_management', 50)->default('simple'); // simple, batch, serial
-            
+
             // Type and status
             $table->string('type', 50)->default('product'); // product, service, spare_part, rental
             $table->string('product_type', 50)->nullable();
@@ -219,13 +219,13 @@ return new class extends Migration
             $table->boolean('allow_backorder')->default(false);
             $table->boolean('requires_approval')->default(false);
             $table->boolean('is_perishable')->default(false);
-            
+
             // Media
             $table->string('thumbnail', 500)->nullable();
             $table->string('image', 500)->nullable();
             $table->json('images')->nullable();
             $table->json('gallery')->nullable();
-            
+
             // Dimensions and physical properties
             $table->decimal('length', 10, 2)->nullable();
             $table->decimal('width', 10, 2)->nullable();
@@ -233,7 +233,7 @@ return new class extends Migration
             $table->decimal('weight', 10, 4)->nullable();
             $table->string('weight_unit', 20)->nullable();
             $table->json('dimensions')->nullable();
-            
+
             // Additional fields
             $table->string('brand', 255)->nullable();
             $table->string('manufacturer', 255)->nullable();
@@ -245,12 +245,12 @@ return new class extends Migration
             $table->json('attributes')->nullable();
             $table->json('extra_attributes')->nullable();
             $table->text('notes')->nullable();
-            
+
             // Dates for perishable items
             $table->date('manufacture_date')->nullable();
             $table->date('expiry_date')->nullable();
             $table->integer('shelf_life_days')->nullable();
-            
+
             // Warranty
             $table->boolean('has_warranty')->default(false);
             $table->integer('warranty_months')->nullable();
@@ -258,22 +258,22 @@ return new class extends Migration
             $table->string('warranty_period', 100)->nullable();
             $table->string('warranty_type', 100)->nullable();
             $table->text('warranty_terms')->nullable();
-            
+
             // Service products
             $table->decimal('hourly_rate', 10, 2)->nullable();
             $table->integer('service_duration')->nullable();
             $table->string('duration_unit', 50)->nullable();
-            
+
             $table->timestamps();
             $table->softDeletes();
-            
+
             // Indexes
             $table->index(['branch_id', 'is_active']);
             $table->index(['category_id', 'is_active']);
             $table->index(['type', 'is_active']);
             $table->index('stock_quantity');
         });
-        
+
         // Add fulltext index for MySQL only
         if (config('database.default') === 'mysql') {
             Schema::table('products', function (Blueprint $table) {
@@ -290,7 +290,7 @@ return new class extends Migration
             $table->decimal('price', 18, 4);
             $table->decimal('min_quantity', 18, 4)->nullable();
             $table->timestamps();
-            
+
             $table->unique(['product_id', 'price_group_id', 'min_quantity']);
         });
 
@@ -310,7 +310,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['product_id', 'is_active']);
         });
 
@@ -335,7 +335,7 @@ return new class extends Migration
             $table->json('meta')->nullable(); // Meta field
             $table->json('metadata')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['product_id', 'warehouse_id', 'batch_number']);
             $table->index(['product_id', 'expiry_date']);
         });
@@ -356,7 +356,7 @@ return new class extends Migration
             $table->timestamp('sold_at')->nullable();
             $table->json('metadata')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['product_id', 'serial_number']);
             $table->index(['status', 'warehouse_id']);
         });
@@ -382,7 +382,7 @@ return new class extends Migration
                 ->constrained('users')
                 ->nullOnDelete();
             $table->timestamp('created_at')->useCurrent();
-            
+
             $table->index(['product_id', 'created_at']);
             $table->index(['warehouse_id', 'created_at']);
             $table->index(['reference_type', 'reference_id']);
@@ -409,7 +409,7 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'status']);
         });
 
@@ -425,7 +425,7 @@ return new class extends Migration
             $table->decimal('unit_cost', 18, 4)->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['adjustment_id', 'product_id']);
         });
 
@@ -450,7 +450,7 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['branch_id', 'status']);
         });
 
@@ -465,7 +465,7 @@ return new class extends Migration
             $table->decimal('unit_cost', 18, 4)->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['transfer_id', 'product_id']);
         });
 
@@ -490,7 +490,7 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->timestamp('resolved_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['status', 'created_at']);
             $table->index(['branch_id', 'status', 'created_at'], 'idx_alerts_branch_status_created');
         });

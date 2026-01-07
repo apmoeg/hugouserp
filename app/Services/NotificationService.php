@@ -67,14 +67,14 @@ class NotificationService implements NotificationServiceInterface
         $this->handleServiceOperation(
             callback: function () use ($userId, $templateKey, $replacements, $extraData) {
                 $template = $this->templates[$templateKey] ?? null;
-                
-                if (!$template) {
+
+                if (! $template) {
                     throw new \InvalidArgumentException("Notification template '{$templateKey}' not found");
                 }
 
                 $title = $this->replacePlaceholders($template['title'], $replacements);
                 $message = $this->replacePlaceholders($template['message'], $replacements);
-                
+
                 $data = array_merge($extraData, [
                     'type' => $template['type'],
                     'template' => $templateKey,
@@ -95,14 +95,14 @@ class NotificationService implements NotificationServiceInterface
         $this->handleServiceOperation(
             callback: function () use ($userIds, $templateKey, $replacements, $extraData) {
                 $template = $this->templates[$templateKey] ?? null;
-                
-                if (!$template) {
+
+                if (! $template) {
                     throw new \InvalidArgumentException("Notification template '{$templateKey}' not found");
                 }
 
                 $title = $this->replacePlaceholders($template['title'], $replacements);
                 $message = $this->replacePlaceholders($template['message'], $replacements);
-                
+
                 $data = array_merge($extraData, [
                     'type' => $template['type'],
                     'template' => $templateKey,
@@ -123,6 +123,7 @@ class NotificationService implements NotificationServiceInterface
         foreach ($replacements as $key => $value) {
             $text = str_replace(":{$key}", (string) $value, $text);
         }
+
         return $text;
     }
 
@@ -145,7 +146,7 @@ class NotificationService implements NotificationServiceInterface
                 $user = User::find($userId);
                 if ($user) {
                     $user->notify(new InAppMessage($title, $message, $data));
-                    
+
                     // Broadcast real-time notification
                     event(new RealTimeNotification(
                         userId: $userId,
@@ -173,11 +174,11 @@ class NotificationService implements NotificationServiceInterface
             callback: function () use ($userIds, $title, $message, $data) {
                 // Load all users at once to avoid N+1
                 $users = User::whereIn('id', $userIds)->get();
-                
+
                 foreach ($users as $user) {
                     $user->notify(new InAppMessage($title, $message, $data));
                 }
-                
+
                 // Broadcast real-time notifications in batch
                 foreach ($userIds as $userId) {
                     event(new RealTimeNotification(
@@ -280,6 +281,7 @@ class NotificationService implements NotificationServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($userId) {
                 $user = User::find($userId);
+
                 return $user ? $user->unreadNotifications()->count() : 0;
             },
             operation: 'getUnreadCount',
@@ -297,16 +299,17 @@ class NotificationService implements NotificationServiceInterface
         return $this->handleServiceOperation(
             callback: function () use ($userId, $limit) {
                 $user = User::find($userId);
-                if (!$user) {
+                if (! $user) {
                     return [];
                 }
-                
+
                 return $user->notifications()
                     ->orderByDesc('created_at')
                     ->limit($limit)
                     ->get()
                     ->map(function ($notification) {
                         $data = $notification->data ?? [];
+
                         return [
                             'id' => $notification->id,
                             'type' => $data['type'] ?? 'info',

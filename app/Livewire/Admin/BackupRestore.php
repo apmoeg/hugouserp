@@ -9,7 +9,7 @@ use Livewire\Component;
 
 /**
  * BackupRestore - One-click backup and restore management
- * 
+ *
  * Provides a user-friendly interface for:
  * - Creating database backups
  * - Viewing existing backups
@@ -20,11 +20,17 @@ use Livewire\Component;
 class BackupRestore extends Component
 {
     public array $backups = [];
+
     public bool $isCreating = false;
+
     public bool $isRestoring = false;
+
     public ?string $selectedBackup = null;
+
     public bool $showRestoreConfirm = false;
+
     public ?string $lastBackupResult = null;
+
     public ?string $lastRestoreResult = null;
 
     protected BackupService $backupService;
@@ -57,7 +63,7 @@ class BackupRestore extends Component
 
         try {
             $result = $this->backupService->run(verify: true);
-            
+
             if (isset($result['path'])) {
                 $this->lastBackupResult = 'success';
                 session()->flash('success', __('Backup created successfully!'));
@@ -68,7 +74,7 @@ class BackupRestore extends Component
             }
         } catch (\Exception $e) {
             $this->lastBackupResult = 'error';
-            session()->flash('error', __('Backup failed: ') . $e->getMessage());
+            session()->flash('error', __('Backup failed: ').$e->getMessage());
         }
 
         $this->isCreating = false;
@@ -97,7 +103,7 @@ class BackupRestore extends Component
      */
     public function confirmRestore(): void
     {
-        if (!$this->selectedBackup) {
+        if (! $this->selectedBackup) {
             return;
         }
 
@@ -108,10 +114,10 @@ class BackupRestore extends Component
         try {
             // Create a pre-restore backup first
             $preBackup = $this->backupService->createPreRestoreBackup();
-            
+
             // Perform restore
             $result = $this->backupService->restore($this->selectedBackup);
-            
+
             if ($result['success'] ?? false) {
                 $this->lastRestoreResult = 'success';
                 session()->flash('success', __('Database restored successfully! A pre-restore backup was created.'));
@@ -122,7 +128,7 @@ class BackupRestore extends Component
             }
         } catch (\Exception $e) {
             $this->lastRestoreResult = 'error';
-            session()->flash('error', __('Restore failed: ') . $e->getMessage());
+            session()->flash('error', __('Restore failed: ').$e->getMessage());
         }
 
         $this->isRestoring = false;
@@ -135,9 +141,10 @@ class BackupRestore extends Component
     public function download(string $path): \Symfony\Component\HttpFoundation\StreamedResponse
     {
         $fullPath = $this->backupService->download($path);
-        
-        if (!$fullPath) {
+
+        if (! $fullPath) {
             session()->flash('error', __('Backup file not found'));
+
             return back();
         }
 
@@ -157,7 +164,7 @@ class BackupRestore extends Component
                 session()->flash('error', __('Failed to delete backup'));
             }
         } catch (\Exception $e) {
-            session()->flash('error', __('Delete failed: ') . $e->getMessage());
+            session()->flash('error', __('Delete failed: ').$e->getMessage());
         }
     }
 
@@ -171,7 +178,7 @@ class BackupRestore extends Component
         $pow = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, 2) . ' ' . $units[$pow];
+        return round($bytes, 2).' '.$units[$pow];
     }
 
     /**

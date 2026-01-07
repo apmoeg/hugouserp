@@ -43,7 +43,7 @@ class RoleController extends Controller
     public function update(Request $request, int $id)
     {
         $role = Role::where('guard_name', 'web')->findOrFail($id);
-        
+
         $this->validate($request, [
             'name' => [
                 'required',

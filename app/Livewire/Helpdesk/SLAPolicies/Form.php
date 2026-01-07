@@ -18,13 +18,21 @@ class Form extends Component
     public ?int $policyId = null;
 
     public string $name = '';
+
     public string $description = '';
+
     public int $response_time_minutes = 60;
+
     public int $resolution_time_minutes = 480;
+
     public bool $business_hours_only = false;
+
     public string $business_hours_start = '09:00';
+
     public string $business_hours_end = '17:00';
+
     public array $working_days = [1, 2, 3, 4, 5];
+
     public bool $is_active = true;
 
     protected array $daysOfWeek = [

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\FixedAssets;
 
-use App\Models\AssetDepreciation;
 use App\Models\FixedAsset;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +16,9 @@ class Depreciation extends Component
     use WithPagination;
 
     public string $search = '';
+
     public ?string $period = 'current_month';
+
     public ?int $branchId = null;
 
     public function mount(): void

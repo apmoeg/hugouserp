@@ -89,7 +89,7 @@ class RoleGuardTest extends TestCase
         // Note: There's a type issue with ApiResponse::success() and paginators
         // So we just verify the logic works by checking the database queries
         // The actual filtering is tested in other tests
-        
+
         // Verify database state instead
         $this->assertEquals(2, Role::where('guard_name', 'web')->count());
         $this->assertEquals(2, Role::where('guard_name', 'api')->count());
@@ -99,7 +99,7 @@ class RoleGuardTest extends TestCase
     {
         // Create a role in api guard
         $apiRole = Role::create(['name' => 'API Role', 'guard_name' => 'api']);
-        
+
         // Create a role in web guard
         $webRole = Role::create(['name' => 'Web Role', 'guard_name' => 'web']);
 
@@ -118,7 +118,7 @@ class RoleGuardTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        
+
         $this->assertDatabaseHas('roles', [
             'id' => $webRole->id,
             'name' => 'Updated Web Role',
@@ -184,12 +184,12 @@ class RoleGuardTest extends TestCase
 
         // Note: There's a type issue with ApiResponse::success() and paginators in test env
         // So we verify the database logic instead
-        
+
         // Verify the query logic would return correct results
         $webManagerRoles = Role::where('guard_name', 'web')
             ->where('name', 'like', '%Manager%')
             ->get();
-        
+
         $this->assertCount(2, $webManagerRoles);
         $names = $webManagerRoles->pluck('name')->toArray();
         $this->assertContains('Manager', $names);

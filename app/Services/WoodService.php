@@ -100,6 +100,7 @@ class WoodService implements WoodServiceInterface
         // Calculate efficiency: (output / input) * 100
         $ratio = bcdiv((string) $out, (string) $in, 6);
         $percentage = bcmul($ratio, '100', 4);
+
         return (float) bcdiv($percentage, '1', 2);
     }
 }

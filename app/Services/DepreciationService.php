@@ -19,7 +19,7 @@ class DepreciationService
      */
     public function calculateDepreciation(FixedAsset $asset, Carbon $date): ?array
     {
-        if (!$asset->isActive()) {
+        if (! $asset->isActive()) {
             return null;
         }
 
@@ -27,7 +27,7 @@ class DepreciationService
             return null;
         }
 
-        if (!$asset->depreciation_start_date || $date->lt($asset->depreciation_start_date)) {
+        if (! $asset->depreciation_start_date || $date->lt($asset->depreciation_start_date)) {
             return null;
         }
 
@@ -46,30 +46,30 @@ class DepreciationService
      */
     protected function calculateStraightLine(FixedAsset $asset, Carbon $date): array
     {
-        $depreciableAmount = bcsub((string)($asset->purchase_cost ?? 0), (string)($asset->salvage_value ?? 0), 2);
+        $depreciableAmount = bcsub((string) ($asset->purchase_cost ?? 0), (string) ($asset->salvage_value ?? 0), 2);
         $totalMonths = $asset->getTotalUsefulLifeMonths();
-        
+
         if ($totalMonths <= 0) {
             return [
                 'depreciation_amount' => '0.00',
-                'accumulated_depreciation' => (string)$asset->accumulated_depreciation,
-                'book_value' => (string)$asset->book_value,
+                'accumulated_depreciation' => (string) $asset->accumulated_depreciation,
+                'book_value' => (string) $asset->book_value,
             ];
         }
 
-        $monthlyDepreciation = bcdiv($depreciableAmount, (string)$totalMonths, 2);
-        
+        $monthlyDepreciation = bcdiv($depreciableAmount, (string) $totalMonths, 2);
+
         // Don't depreciate below salvage value
         $newAccumulated = bccomp(
-            bcadd((string)$asset->accumulated_depreciation, $monthlyDepreciation, 2),
+            bcadd((string) $asset->accumulated_depreciation, $monthlyDepreciation, 2),
             $depreciableAmount,
             2
         ) <= 0
-            ? bcadd((string)$asset->accumulated_depreciation, $monthlyDepreciation, 2)
+            ? bcadd((string) $asset->accumulated_depreciation, $monthlyDepreciation, 2)
             : $depreciableAmount;
-        
-        $actualDepreciation = bcsub($newAccumulated, (string)$asset->accumulated_depreciation, 2);
-        $newBookValue = bcsub((string)$asset->purchase_cost, $newAccumulated, 2);
+
+        $actualDepreciation = bcsub($newAccumulated, (string) $asset->accumulated_depreciation, 2);
+        $newBookValue = bcsub((string) $asset->purchase_cost, $newAccumulated, 2);
 
         return [
             'depreciation_amount' => $actualDepreciation,
@@ -84,20 +84,20 @@ class DepreciationService
     protected function calculateDecliningBalance(FixedAsset $asset, Carbon $date): array
     {
         $rate = $asset->depreciation_rate ?? 20.0; // Default 20% per year
-        $monthlyRate = bcdiv(bcdiv((string)$rate, '100', 6), '12', 6);
-        
-        $currentBookValue = (string)$asset->book_value;
+        $monthlyRate = bcdiv(bcdiv((string) $rate, '100', 6), '12', 6);
+
+        $currentBookValue = (string) $asset->book_value;
         $depreciation = bcmul($currentBookValue, $monthlyRate, 2);
-        
+
         // Don't depreciate below salvage value
-        $salvageValue = (string)$asset->salvage_value;
+        $salvageValue = (string) $asset->salvage_value;
         if (bccomp(bcsub($currentBookValue, $depreciation, 2), $salvageValue, 2) < 0) {
             $diff = bcsub($currentBookValue, $salvageValue, 2);
             $depreciation = bccomp($diff, '0', 2) > 0 ? $diff : '0.00';
         }
-        
-        $newAccumulated = bcadd((string)$asset->accumulated_depreciation, $depreciation, 2);
-        $newBookValue = bcsub((string)$asset->purchase_cost, $newAccumulated, 2);
+
+        $newAccumulated = bcadd((string) $asset->accumulated_depreciation, $depreciation, 2);
+        $newBookValue = bcsub((string) $asset->purchase_cost, $newAccumulated, 2);
 
         return [
             'depreciation_amount' => $depreciation,
@@ -145,13 +145,15 @@ class DepreciationService
 
                 if ($existing) {
                     $results['skipped']++;
+
                     continue;
                 }
 
                 $calculation = $this->calculateDepreciation($asset, $date);
-                
-                if (!$calculation || $calculation['depreciation_amount'] <= 0) {
+
+                if (! $calculation || $calculation['depreciation_amount'] <= 0) {
                     $results['skipped']++;
+
                     continue;
                 }
 
@@ -178,7 +180,7 @@ class DepreciationService
                 });
 
                 $results['processed']++;
-                $results['total_depreciation'] = bcadd((string)$results['total_depreciation'], (string)$calculation['depreciation_amount'], 2);
+                $results['total_depreciation'] = bcadd((string) $results['total_depreciation'], (string) $calculation['depreciation_amount'], 2);
             } catch (\Exception $e) {
                 $results['errors'][] = [
                     'asset_id' => $asset->id,
@@ -193,12 +195,12 @@ class DepreciationService
 
     /**
      * Post depreciation entries to accounting.
-     * 
+     *
      * Creates journal entries for depreciation and updates the depreciation record.
-     * 
-     * @param AssetDepreciation $depreciation The depreciation record to post
+     *
+     * @param  AssetDepreciation  $depreciation  The depreciation record to post
+     *
      * @throws \Exception If depreciation is already posted or account mapping is missing
-     * @return void
      */
     public function postDepreciationToAccounting(AssetDepreciation $depreciation): void
     {
@@ -207,21 +209,21 @@ class DepreciationService
         }
 
         $asset = $depreciation->asset;
-        
+
         // Get account mappings for depreciation
         $expenseAccountId = app(AccountingService::class)->getAccountMapping('fixed_assets.depreciation_expense');
         $accumulatedAccountId = app(AccountingService::class)->getAccountMapping('fixed_assets.accumulated_depreciation');
-        
-        if (!$expenseAccountId || !$accumulatedAccountId) {
+
+        if (! $expenseAccountId || ! $accumulatedAccountId) {
             throw new \Exception('Depreciation account mappings not configured');
         }
-        
+
         DB::transaction(function () use ($depreciation, $asset, $expenseAccountId, $accumulatedAccountId) {
             // Create journal entry for depreciation
             $journalEntry = app(AccountingService::class)->createEntry([
-                'reference_number' => 'DEP-' . $asset->id . '-' . date('Ym'),
+                'reference_number' => 'DEP-'.$asset->id.'-'.date('Ym'),
                 'entry_date' => $depreciation->period_end,
-                'description' => "Depreciation for {$asset->name} - " . date('M Y', strtotime($depreciation->period_end)),
+                'description' => "Depreciation for {$asset->name} - ".date('M Y', strtotime($depreciation->period_end)),
                 'branch_id' => $asset->branch_id,
                 'lines' => [
                     [
@@ -238,7 +240,7 @@ class DepreciationService
                     ],
                 ],
             ]);
-            
+
             $depreciation->update([
                 'status' => 'posted',
                 'journal_entry_id' => $journalEntry->id,
@@ -258,23 +260,23 @@ class DepreciationService
         $schedule = [];
         $startDate = Carbon::parse($asset->depreciation_start_date);
         $totalMonths = $asset->getTotalUsefulLifeMonths();
-        
+
         $runningAccumulated = 0;
-        
+
         for ($i = 0; $i < $totalMonths; $i++) {
             $date = $startDate->copy()->addMonths($i);
-            
+
             // Create a temporary asset with current accumulated value
             $tempAsset = clone $asset;
             $tempAsset->accumulated_depreciation = $runningAccumulated;
             $tempAsset->book_value = $asset->purchase_cost - $runningAccumulated;
-            
+
             $calculation = $this->calculateDepreciation($tempAsset, $date);
-            
-            if (!$calculation || $calculation['depreciation_amount'] <= 0) {
+
+            if (! $calculation || $calculation['depreciation_amount'] <= 0) {
                 break;
             }
-            
+
             $schedule[] = [
                 'period' => $date->format('Y-m'),
                 'date' => $date->toDateString(),
@@ -282,10 +284,10 @@ class DepreciationService
                 'accumulated_depreciation' => $calculation['accumulated_depreciation'],
                 'book_value' => $calculation['book_value'],
             ];
-            
+
             $runningAccumulated = $calculation['accumulated_depreciation'];
         }
-        
+
         return $schedule;
     }
 }

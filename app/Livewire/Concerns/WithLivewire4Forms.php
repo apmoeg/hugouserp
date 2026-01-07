@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\Concerns;
 
-use Illuminate\Support\Str;
-
 /**
  * Trait for Livewire 4 enhanced form features
- * 
+ *
  * Provides:
  * - Auto-save draft functionality
  * - Dirty state tracking
@@ -71,7 +69,7 @@ trait WithLivewire4Forms
      */
     public function saveDraft(): void
     {
-        if (!$this->autoSaveDraft) {
+        if (! $this->autoSaveDraft) {
             return;
         }
 
@@ -95,7 +93,7 @@ trait WithLivewire4Forms
         $draftKey = $this->getDraftKey();
         $draft = session()->get($draftKey);
 
-        if (!$draft || !isset($draft['data'])) {
+        if (! $draft || ! isset($draft['data'])) {
             return false;
         }
 
@@ -185,6 +183,7 @@ trait WithLivewire4Forms
     {
         if ($this->isDirty) {
             $this->dispatch('confirm-leave');
+
             return false;
         }
 
@@ -207,6 +206,7 @@ trait WithLivewire4Forms
     public function getValidationMessage(string $field): ?string
     {
         $errors = $this->getErrorBag();
+
         return $errors->first($field) ?: null;
     }
 
@@ -224,7 +224,7 @@ trait WithLivewire4Forms
     public function getInputClass(string $field, string $baseClass = 'erp-input'): string
     {
         if ($this->hasValidationError($field)) {
-            return $baseClass . ' border-red-500 focus:border-red-500 focus:ring-red-500';
+            return $baseClass.' border-red-500 focus:border-red-500 focus:ring-red-500';
         }
 
         return $baseClass;

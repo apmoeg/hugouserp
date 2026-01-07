@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Livewire\Projects;
 
 use App\Models\Project;
-use App\Models\ProjectTask;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -13,7 +12,7 @@ use Livewire\Component;
 
 /**
  * Projects Gantt Chart Component
- * 
+ *
  * Visual Gantt chart view of projects and their tasks showing:
  * - Project timelines
  * - Task progress
@@ -35,6 +34,7 @@ class GanttChart extends Component
     public ?int $projectId = null;
 
     public string $startDate = '';
+
     public string $endDate = '';
 
     public function mount(): void
@@ -49,7 +49,7 @@ class GanttChart extends Component
     protected function setDateRange(): void
     {
         $now = now();
-        
+
         if ($this->viewMode === 'week') {
             $this->startDate = $now->copy()->startOfWeek()->toDateString();
             $this->endDate = $now->copy()->endOfWeek()->toDateString();
@@ -68,7 +68,7 @@ class GanttChart extends Component
     public function previousPeriod(): void
     {
         $start = \Carbon\Carbon::parse($this->startDate);
-        
+
         if ($this->viewMode === 'week') {
             $this->startDate = $start->subWeek()->startOfWeek()->toDateString();
             $this->endDate = \Carbon\Carbon::parse($this->startDate)->endOfWeek()->toDateString();
@@ -87,7 +87,7 @@ class GanttChart extends Component
     public function nextPeriod(): void
     {
         $start = \Carbon\Carbon::parse($this->startDate);
-        
+
         if ($this->viewMode === 'week') {
             $this->startDate = $start->addWeek()->startOfWeek()->toDateString();
             $this->endDate = \Carbon\Carbon::parse($this->startDate)->endOfWeek()->toDateString();
@@ -122,23 +122,23 @@ class GanttChart extends Component
     public function getProjectsProperty()
     {
         $user = auth()->user();
-        
+
         return Project::query()
-            ->when($user && $user->branch_id, fn($q) => $q->where('branch_id', $user->branch_id))
-            ->when($this->status, fn($q) => $q->where('status', $this->status))
-            ->when($this->projectId, fn($q) => $q->where('id', $this->projectId))
-            ->where(function($query) {
+            ->when($user && $user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))
+            ->when($this->status, fn ($q) => $q->where('status', $this->status))
+            ->when($this->projectId, fn ($q) => $q->where('id', $this->projectId))
+            ->where(function ($query) {
                 $query->whereBetween('start_date', [$this->startDate, $this->endDate])
                     ->orWhereBetween('end_date', [$this->startDate, $this->endDate])
-                    ->orWhere(function($q) {
+                    ->orWhere(function ($q) {
                         $q->where('start_date', '<=', $this->startDate)
-                          ->where('end_date', '>=', $this->endDate);
+                            ->where('end_date', '>=', $this->endDate);
                     });
             })
             ->with(['client', 'manager', 'tasks'])
             ->orderBy('start_date')
             ->get()
-            ->map(function($project) {
+            ->map(function ($project) {
                 return [
                     'id' => $project->id,
                     'code' => $project->code,
@@ -154,7 +154,7 @@ class GanttChart extends Component
                     'currency' => $project->currency ?? 'EGP',
                     'days_remaining' => $project->end_date ? now()->diffInDays($project->end_date, false) : null,
                     'is_overdue' => $project->end_date && $project->end_date < now() && $project->status !== 'completed',
-                    'tasks' => $project->tasks->map(fn($task) => [
+                    'tasks' => $project->tasks->map(fn ($task) => [
                         'id' => $task->id,
                         'name' => $task->name ?? $task->title ?? '',
                         'status' => $task->status,
@@ -172,9 +172,9 @@ class GanttChart extends Component
     public function getAllProjectsProperty()
     {
         $user = auth()->user();
-        
+
         return Project::query()
-            ->when($user && $user->branch_id, fn($q) => $q->where('branch_id', $user->branch_id))
+            ->when($user && $user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))
             ->orderBy('name')
             ->get(['id', 'name', 'code']);
     }
@@ -187,7 +187,7 @@ class GanttChart extends Component
         $headers = [];
         $current = \Carbon\Carbon::parse($this->startDate);
         $end = \Carbon\Carbon::parse($this->endDate);
-        
+
         if ($this->viewMode === 'week') {
             // Daily headers for week view
             while ($current <= $end) {
@@ -216,11 +216,13 @@ class GanttChart extends Component
             // Weekly headers for quarter view
             while ($current <= $end) {
                 $weekEnd = $current->copy()->endOfWeek();
-                if ($weekEnd > $end) $weekEnd = $end;
-                
+                if ($weekEnd > $end) {
+                    $weekEnd = $end;
+                }
+
                 $headers[] = [
                     'date' => $current->format('Y-m-d'),
-                    'label' => 'W' . $current->weekOfYear,
+                    'label' => 'W'.$current->weekOfYear,
                     'sub_label' => $current->format('M d'),
                     'is_today' => now()->between($current, $weekEnd),
                     'is_weekend' => false,
@@ -228,7 +230,7 @@ class GanttChart extends Component
                 $current->addWeek()->startOfWeek();
             }
         }
-        
+
         return $headers;
     }
 
@@ -237,7 +239,7 @@ class GanttChart extends Component
      */
     public function getStatusColor(string $status): string
     {
-        return match($status) {
+        return match ($status) {
             'draft', 'pending' => 'bg-gray-400',
             'planning' => 'bg-blue-400',
             'active', 'in_progress' => 'bg-amber-400',
@@ -253,7 +255,7 @@ class GanttChart extends Component
      */
     public function getPriorityColor(string $priority): string
     {
-        return match($priority) {
+        return match ($priority) {
             'critical', 'urgent' => 'bg-red-500 text-white',
             'high' => 'bg-orange-500 text-white',
             'medium', 'normal' => 'bg-blue-500 text-white',
@@ -267,24 +269,28 @@ class GanttChart extends Component
      */
     public function getTimelinePosition(?string $itemStart, ?string $itemEnd): array
     {
-        if (!$itemStart) {
+        if (! $itemStart) {
             return ['left' => 0, 'width' => 0];
         }
 
         $startDate = \Carbon\Carbon::parse($this->startDate);
         $endDate = \Carbon\Carbon::parse($this->endDate);
         $totalDays = $startDate->diffInDays($endDate) + 1;
-        
+
         $itemStartDate = \Carbon\Carbon::parse($itemStart);
         $itemEndDate = $itemEnd ? \Carbon\Carbon::parse($itemEnd) : $itemStartDate;
-        
+
         // Clamp to visible range
-        if ($itemStartDate < $startDate) $itemStartDate = $startDate;
-        if ($itemEndDate > $endDate) $itemEndDate = $endDate;
-        
+        if ($itemStartDate < $startDate) {
+            $itemStartDate = $startDate;
+        }
+        if ($itemEndDate > $endDate) {
+            $itemEndDate = $endDate;
+        }
+
         $leftDays = $startDate->diffInDays($itemStartDate);
         $widthDays = max(1, $itemStartDate->diffInDays($itemEndDate) + 1);
-        
+
         return [
             'left' => ($leftDays / $totalDays) * 100,
             'width' => ($widthDays / $totalDays) * 100,

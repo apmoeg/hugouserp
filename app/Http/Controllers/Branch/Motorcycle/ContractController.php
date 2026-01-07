@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Branch\Motorcycle;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\Branch\Concerns\RequiresBranchContext;
+use App\Http\Controllers\Controller;
 use App\Models\VehicleContract;
 use App\Services\Contracts\MotorcycleServiceInterface as Motos;
 use Illuminate\Http\Request;
@@ -41,7 +41,7 @@ class ContractController extends Controller
         $branchId = $this->requireBranchId(request());
         $contract->load('vehicle');
         abort_if($contract->vehicle?->branch_id !== $branchId, 404, 'Contract not found in this branch');
-        
+
         return $this->ok($contract);
     }
 
@@ -51,7 +51,7 @@ class ContractController extends Controller
         $branchId = $this->requireBranchId($request);
         $contract->load('vehicle');
         abort_if($contract->vehicle?->branch_id !== $branchId, 404, 'Contract not found in this branch');
-        
+
         $contract->fill($request->only(['start_date', 'end_date', 'status']))->save();
 
         return $this->ok($contract);

@@ -18,8 +18,11 @@ class BranchScopeAccessTest extends TestCase
     use RefreshDatabase;
 
     protected Branch $branchA;
+
     protected Branch $branchB;
+
     protected User $userA;
+
     protected User $userB;
 
     protected function setUp(): void
@@ -96,7 +99,7 @@ class BranchScopeAccessTest extends TestCase
             ->call('save');
 
         $customer = Customer::where('email', 'new@example.com')->first();
-        
+
         $this->assertNotNull($customer);
         $this->assertEquals($this->branchA->id, $customer->branch_id);
     }

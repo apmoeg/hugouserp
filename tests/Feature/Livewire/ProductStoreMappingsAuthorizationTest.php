@@ -56,10 +56,10 @@ class ProductStoreMappingsAuthorizationTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        
-        $component = new ProductStoreMappingsForm();
+
+        $component = new ProductStoreMappingsForm;
         app()->call([$component, 'mount'], ['productId' => $product->id]);
-        
+
         $component->store_id = $store->id;
         $component->external_id = 'ext-123';
         app()->call([$component, 'save']);
@@ -81,8 +81,8 @@ class ProductStoreMappingsAuthorizationTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        
-        $component = new ProductStoreMappings();
+
+        $component = new ProductStoreMappings;
         app()->call([$component, 'mount'], ['productId' => $product->id]);
     }
 
@@ -99,9 +99,9 @@ class ProductStoreMappingsAuthorizationTest extends TestCase
 
         $this->actingAs($user);
 
-        $component = new ProductStoreMappingsForm();
+        $component = new ProductStoreMappingsForm;
         app()->call([$component, 'mount'], ['productId' => $product->id]);
-        
+
         // If we reach here without exception, the authorization passed
         $this->assertTrue(true);
     }
@@ -131,8 +131,8 @@ class ProductStoreMappingsAuthorizationTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        
-        $component = new ProductStoreMappings();
+
+        $component = new ProductStoreMappings;
         app()->call([$component, 'mount'], ['productId' => $product->id]);
         app()->call([$component, 'delete'], ['id' => $mapping->id]);
     }
@@ -162,8 +162,8 @@ class ProductStoreMappingsAuthorizationTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        
-        $component = new ProductStoreMappingsForm();
+
+        $component = new ProductStoreMappingsForm;
         app()->call([$component, 'mount'], ['productId' => $product->id, 'mapping' => $mapping->id]);
     }
 
@@ -181,8 +181,8 @@ class ProductStoreMappingsAuthorizationTest extends TestCase
         $this->actingAs($user);
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
-        
-        $component = new ProductStoreMappings();
+
+        $component = new ProductStoreMappings;
         app()->call([$component, 'mount'], ['productId' => $product->id]);
     }
 }

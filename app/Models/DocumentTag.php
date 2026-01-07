@@ -24,7 +24,7 @@ class DocumentTag extends Model
         parent::boot();
 
         static::creating(function ($tag) {
-            if (!$tag->slug) {
+            if (! $tag->slug) {
                 $tag->slug = \Illuminate\Support\Str::slug($tag->name);
             }
         });

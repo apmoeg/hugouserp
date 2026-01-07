@@ -81,7 +81,7 @@ class DocumentShowSecurityTest extends TestCase
     private function createDocument(User $owner, Branch $branch): Document
     {
         return Document::forceCreate([
-            'code' => 'DOC-' . uniqid(),
+            'code' => 'DOC-'.uniqid(),
             'title' => 'Secure Doc',
             'description' => 'Test document',
             'file_name' => 'doc.pdf',

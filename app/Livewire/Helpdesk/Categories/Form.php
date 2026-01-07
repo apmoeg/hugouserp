@@ -18,14 +18,23 @@ class Form extends Component
     public ?int $categoryId = null;
 
     public string $name = '';
+
     public string $name_ar = '';
+
     public string $description = '';
+
     public ?int $parent_id = null;
+
     public ?int $default_assignee_id = null;
+
     public ?int $sla_policy_id = null;
+
     public string $color = '#3B82F6';
+
     public string $icon = '';
+
     public bool $is_active = true;
+
     public int $sort_order = 0;
 
     public function mount(?int $category = null): void
@@ -113,8 +122,8 @@ class Form extends Component
 
         $agents = User::whereHas('roles', function ($query) {
             $query->where('name', 'like', '%agent%')
-                  ->orWhere('name', 'like', '%support%')
-                  ->orWhere('name', 'Super Admin');
+                ->orWhere('name', 'like', '%support%')
+                ->orWhere('name', 'Super Admin');
         })->get();
 
         $slaPolicies = TicketSLAPolicy::active()->get();

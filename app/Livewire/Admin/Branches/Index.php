@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Livewire\Admin\Branches;
 
 use App\Models\Branch;
-use App\Models\BranchModule;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;

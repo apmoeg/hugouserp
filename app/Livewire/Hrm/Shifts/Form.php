@@ -7,7 +7,6 @@ namespace App\Livewire\Hrm\Shifts;
 use App\Http\Requests\Traits\HasMultilingualValidation;
 use App\Models\Shift;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -84,16 +83,16 @@ class Form extends Component
     {
         $prefix = 'SH';
         $base = strtoupper(Str::slug(Str::limit($this->name, 10, ''), ''));
-        
+
         if (empty($base)) {
             $base = sprintf('%03d', Shift::count() + 1);
         }
-        
-        $code = $prefix . '-' . $base;
+
+        $code = $prefix.'-'.$base;
         $counter = 1;
 
         while (Shift::where('code', $code)->where('id', '!=', $this->shiftId)->exists()) {
-            $code = $prefix . '-' . $base . $counter;
+            $code = $prefix.'-'.$base.$counter;
             $counter++;
         }
 

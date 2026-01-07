@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Services\Analytics;
 
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 /**
  * InventoryTurnoverService - Analyze inventory turnover rates
- * 
+ *
  * Provides metrics to understand how quickly inventory moves:
  * - Turnover rate (how many times inventory is sold per period)
  * - Days to sell (average days to sell inventory)
@@ -80,7 +79,7 @@ class InventoryTurnoverService
                 JOIN sales ON sale_items.sale_id = sales.id
                 JOIN products ON sale_items.product_id = products.id
                 WHERE sales.status != \'cancelled\'
-                AND sales.created_at >= \'' . $startDate->toDateTimeString() . '\'
+                AND sales.created_at >= \''.$startDate->toDateTimeString().'\'
                 GROUP BY sale_items.product_id
             ) as sales_data'), 'products.id', '=', 'sales_data.product_id')
             ->select([
@@ -126,7 +125,7 @@ class InventoryTurnoverService
                 FROM sale_items
                 JOIN sales ON sale_items.sale_id = sales.id
                 WHERE sales.status != \'cancelled\'
-                AND sales.created_at >= \'' . $startDate->toDateTimeString() . '\'
+                AND sales.created_at >= \''.$startDate->toDateTimeString().'\'
             ) as recent_sales'), 'products.id', '=', 'recent_sales.product_id')
             ->select([
                 'products.id',
@@ -175,7 +174,7 @@ class InventoryTurnoverService
                 FROM sale_items
                 JOIN sales ON sale_items.sale_id = sales.id
                 WHERE sales.status != \'cancelled\'
-                AND sales.created_at >= \'' . $monthlySalesStart->toDateTimeString() . '\'
+                AND sales.created_at >= \''.$monthlySalesStart->toDateTimeString().'\'
                 GROUP BY sale_items.product_id
             ) as sales_data'), 'products.id', '=', 'sales_data.product_id')
             ->select([
@@ -226,7 +225,7 @@ class InventoryTurnoverService
                 JOIN sales ON sale_items.sale_id = sales.id
                 JOIN products p ON sale_items.product_id = p.id
                 WHERE sales.status != \'cancelled\'
-                AND sales.created_at >= \'' . $startDate->toDateTimeString() . '\'
+                AND sales.created_at >= \''.$startDate->toDateTimeString().'\'
                 GROUP BY sale_items.product_id
             ) as sales_data'), 'products.id', '=', 'sales_data.product_id')
             ->select([

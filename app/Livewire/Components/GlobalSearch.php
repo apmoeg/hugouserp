@@ -79,7 +79,7 @@ class GlobalSearch extends Component
 
     public function selectResult(string $url): void
     {
-            $this->redirect($url, navigate: true);
+        $this->redirect($url, navigate: true);
     }
 
     public function useRecentSearch(string $query): void
@@ -123,6 +123,7 @@ class GlobalSearch extends Component
 
             if (! $userId) {
                 $this->recentSearches = [];
+
                 return;
             }
 

@@ -16,6 +16,7 @@ class DocumentCrudTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Branch $branch;
 
     protected function setUp(): void
@@ -30,7 +31,7 @@ class DocumentCrudTest extends TestCase
     {
         return Document::forceCreate(array_merge([
             'title' => 'Test Document',
-            'code' => 'DOC-' . Str::random(6),
+            'code' => 'DOC-'.Str::random(6),
             'file_name' => 'test.pdf',
             'file_path' => 'documents/test.pdf',
             'file_size' => 1024,

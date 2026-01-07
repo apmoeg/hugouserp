@@ -36,8 +36,8 @@ class DiagnosticsService
     public function checkCache(): array
     {
         try {
-            $key = 'diagnostics_test_' . time();
-            $value = 'test_value_' . random_int(1000, 9999);
+            $key = 'diagnostics_test_'.time();
+            $value = 'test_value_'.random_int(1000, 9999);
 
             // Write test
             Cache::put($key, $value, 60);
@@ -59,7 +59,7 @@ class DiagnosticsService
             return [
                 'status' => 'error',
                 'driver' => Config::get('cache.default'),
-                'message' => 'Cache error: ' . $e->getMessage(),
+                'message' => 'Cache error: '.$e->getMessage(),
             ];
         }
     }
@@ -73,7 +73,7 @@ class DiagnosticsService
     {
         try {
             $connection = Config::get('queue.default');
-            
+
             // For sync driver, it's always available
             if ($connection === 'sync') {
                 return [
@@ -95,8 +95,8 @@ class DiagnosticsService
                     'status' => $exists ? 'ok' : 'warning',
                     'driver' => $connection,
                     'connection' => $dbConnection,
-                    'message' => $exists 
-                        ? 'Queue is operational' 
+                    'message' => $exists
+                        ? 'Queue is operational'
                         : "Queue table '{$table}' does not exist",
                 ];
             }
@@ -110,7 +110,7 @@ class DiagnosticsService
             return [
                 'status' => 'error',
                 'driver' => Config::get('queue.default'),
-                'message' => 'Queue error: ' . $e->getMessage(),
+                'message' => 'Queue error: '.$e->getMessage(),
             ];
         }
     }
@@ -145,16 +145,16 @@ class DiagnosticsService
             return [
                 'status' => $status,
                 'driver' => $mailer,
-                'message' => empty($warnings) 
-                    ? 'Mail configuration is valid' 
-                    : 'Mail configuration warnings: ' . implode(', ', $warnings),
+                'message' => empty($warnings)
+                    ? 'Mail configuration is valid'
+                    : 'Mail configuration warnings: '.implode(', ', $warnings),
                 'warnings' => $warnings,
             ];
         } catch (\Exception $e) {
             return [
                 'status' => 'error',
                 'driver' => Config::get('mail.default'),
-                'message' => 'Mail configuration error: ' . $e->getMessage(),
+                'message' => 'Mail configuration error: '.$e->getMessage(),
             ];
         }
     }
@@ -168,8 +168,8 @@ class DiagnosticsService
     {
         try {
             $disk = Config::get('filesystems.default');
-            $filename = 'diagnostics_test_' . time() . '.txt';
-            $content = 'test_content_' . random_int(1000, 9999);
+            $filename = 'diagnostics_test_'.time().'.txt';
+            $content = 'test_content_'.random_int(1000, 9999);
 
             // Write test
             Storage::disk($disk)->put($filename, $content);
@@ -185,15 +185,15 @@ class DiagnosticsService
             return [
                 'status' => $success ? 'ok' : 'error',
                 'disk' => $disk,
-                'message' => $success 
-                    ? 'Filesystem is operational' 
+                'message' => $success
+                    ? 'Filesystem is operational'
                     : 'Filesystem read/write failed',
             ];
         } catch (\Exception $e) {
             return [
                 'status' => 'error',
                 'disk' => Config::get('filesystems.default'),
-                'message' => 'Filesystem error: ' . $e->getMessage(),
+                'message' => 'Filesystem error: '.$e->getMessage(),
             ];
         }
     }
@@ -218,7 +218,7 @@ class DiagnosticsService
             return [
                 'status' => 'error',
                 'driver' => Config::get('database.default'),
-                'message' => 'Database error: ' . $e->getMessage(),
+                'message' => 'Database error: '.$e->getMessage(),
             ];
         }
     }

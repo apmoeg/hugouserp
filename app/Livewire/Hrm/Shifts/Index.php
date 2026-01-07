@@ -17,7 +17,9 @@ class Index extends Component
     use WithPagination;
 
     public string $search = '';
+
     public ?string $status = null;
+
     public ?int $branchId = null;
 
     protected array $daysOfWeek = [
@@ -55,7 +57,7 @@ class Index extends Component
     {
         $this->authorize('hrm.manage');
         $shift = Shift::findOrFail($id);
-        $shift->update(['is_active' => !$shift->is_active]);
+        $shift->update(['is_active' => ! $shift->is_active]);
     }
 
     public function delete(int $id): void
