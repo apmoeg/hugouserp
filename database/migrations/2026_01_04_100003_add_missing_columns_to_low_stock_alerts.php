@@ -13,6 +13,7 @@ declare(strict_types=1);
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\QueryException;
 
 return new class extends Migration
 {
@@ -23,7 +24,7 @@ return new class extends Migration
             if (!Schema::hasColumn('low_stock_alerts', 'branch_id')) {
                 $table->foreignId('branch_id')->nullable()
                     ->after('product_id')
-                    ->constrained()
+                    ->constrained('branches')
                     ->nullOnDelete();
             }
             
@@ -46,8 +47,11 @@ return new class extends Migration
             Schema::table('low_stock_alerts', function (Blueprint $table) {
                 $table->index(['branch_id', 'status', 'created_at'], 'idx_alerts_branch_status_created');
             });
-        } catch (\Exception $e) {
-            // Index already exists, ignore
+        } catch (QueryException $e) {
+            // Index already exists (duplicate key error), ignore
+            if ($e->getCode() !== '42000' && !str_contains($e->getMessage(), 'Duplicate key name')) {
+                throw $e;
+            }
         }
     }
 
@@ -58,8 +62,11 @@ return new class extends Migration
             Schema::table('low_stock_alerts', function (Blueprint $table) {
                 $table->dropIndex('idx_alerts_branch_status_created');
             });
-        } catch (\Exception $e) {
+        } catch (QueryException $e) {
             // Index doesn't exist, ignore
+            if ($e->getCode() !== '42000' && !str_contains($e->getMessage(), "doesn't exist")) {
+                throw $e;
+            }
         }
         
         Schema::table('low_stock_alerts', function (Blueprint $table) {
