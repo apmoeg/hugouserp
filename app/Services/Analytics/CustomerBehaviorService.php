@@ -249,13 +249,13 @@ class CustomerBehaviorService
                     }])
                     ->withSum(['sales' => function ($q) {
                         $q->where('status', '!=', 'cancelled');
-                    }], 'grand_total');
+                    }], 'total_amount');
 
                 if ($branchId) {
                     $query->where('branch_id', $branchId);
                 }
 
-                return $query->orderByDesc('sales_sum_grand_total')
+                return $query->orderByDesc('sales_sum_total_amount')
                     ->limit(50)
                     ->get()
                     ->map(function ($customer) {
@@ -266,7 +266,7 @@ class CustomerBehaviorService
                             'email' => $customer->email,
                             'phone' => $customer->phone,
                             'total_purchases' => $customer->sales_count,
-                            'total_spent' => round($customer->sales_sum_grand_total ?? 0, 2),
+                            'total_spent' => round($customer->sales_sum_total_amount ?? 0, 2),
                             'last_purchase' => $lastSale?->created_at?->toDateString(),
                             'days_inactive' => $lastSale ? now()->diffInDays($lastSale->created_at) : null,
                         ];
@@ -290,34 +290,34 @@ class CustomerBehaviorService
                     }])
                     ->withSum(['sales' => function ($q) {
                         $q->where('status', '!=', 'cancelled');
-                    }], 'grand_total')
+                    }], 'total_amount')
                     ->having('sales_count', '>', 0);
 
                 if ($branchId) {
                     $query->where('branch_id', $branchId);
                 }
 
-                $customers = $query->orderByDesc('sales_sum_grand_total')
+                $customers = $query->orderByDesc('sales_sum_total_amount')
                     ->limit($limit)
                     ->get();
 
-                $totalCLV = $customers->sum('sales_sum_grand_total');
+                $totalCLV = $customers->sum('sales_sum_total_amount');
 
                 return [
                     'customers' => $customers->map(function ($c) use ($totalCLV) {
                         $firstSale = $c->sales()->oldest()->first();
                         $monthsActive = $firstSale ? max(1, now()->diffInMonths($firstSale->created_at)) : 1;
-                        $monthlyValue = ($c->sales_sum_grand_total ?? 0) / $monthsActive;
+                        $monthlyValue = ($c->sales_sum_total_amount ?? 0) / $monthsActive;
                         
                         return [
                             'id' => $c->id,
                             'name' => $c->name,
                             'email' => $c->email,
                             'total_purchases' => $c->sales_count,
-                            'lifetime_value' => round($c->sales_sum_grand_total ?? 0, 2),
+                            'lifetime_value' => round($c->sales_sum_total_amount ?? 0, 2),
                             'monthly_value' => round($monthlyValue, 2),
                             'months_active' => $monthsActive,
-                            'clv_percentage' => $totalCLV > 0 ? round(($c->sales_sum_grand_total / $totalCLV) * 100, 2) : 0,
+                            'clv_percentage' => $totalCLV > 0 ? round(($c->sales_sum_total_amount / $totalCLV) * 100, 2) : 0,
                             'tier' => $c->customer_tier ?? 'standard',
                         ];
                     })->toArray(),

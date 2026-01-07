@@ -29,8 +29,10 @@ class Purchase extends BaseModel
         'warehouse_id',
         'supplier_id',
         'reference_number',
+        'external_reference',
         'supplier_invoice',
         'type',
+        'channel',
         'status',
         'payment_status',
         // Dates

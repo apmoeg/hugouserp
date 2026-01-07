@@ -51,7 +51,7 @@ class SupplierResource extends JsonResource
             ),
             'total_purchases_amount' => $this->when(
                 $request->user()?->can('suppliers.view-financial') && $this->relationLoaded('purchases'),
-                fn () => (float) $this->purchases->sum('grand_total')
+                fn () => (float) $this->purchases->sum('total_amount')
             ),
             'notes' => $this->notes,
             'created_at' => $this->created_at?->toIso8601String(),

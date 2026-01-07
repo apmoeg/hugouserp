@@ -149,9 +149,9 @@ class SalesAnalytics extends Component
         $totalOrders = (clone $query)->count();
         $completedOrders = (clone $query)->where('status', 'completed')->count();
         $avgOrderValue = $totalOrders > 0 ? (float) bcdiv((string) $totalSales, (string) $totalOrders, 2) : 0;
-        $totalDiscount = (clone $query)->sum('discount_total') ?? 0;
-        $totalTax = (clone $query)->sum('tax_total') ?? 0;
-        $refundedAmount = (clone $query)->where('status', 'refunded')->sum('grand_total') ?? 0;
+        $totalDiscount = (clone $query)->sum('discount_amount') ?? 0;
+        $totalTax = (clone $query)->sum('tax_amount') ?? 0;
+        $refundedAmount = (clone $query)->where('status', 'refunded')->sum('total_amount') ?? 0;
 
         $prevPeriodQuery = Sale::query()
             ->whereBetween('created_at', [

@@ -77,7 +77,7 @@ class CustomerPortalController extends Controller
             'total_orders' => Sale::where('customer_id', $customer->id)->count(),
             'total_spent' => Sale::where('customer_id', $customer->id)
                 ->where('status', '!=', 'cancelled')
-                ->sum('grand_total'),
+                ->sum('total_amount'),
             'pending_orders' => Sale::where('customer_id', $customer->id)
                 ->where('status', 'pending')
                 ->count(),

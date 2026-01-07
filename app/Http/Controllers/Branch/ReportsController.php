@@ -65,12 +65,12 @@ class ReportsController extends Controller
             ->where('branch_id', $b)
             ->whereDate('created_at', '>=', $from)
             ->whereDate('created_at', '<=', $to)
-            ->sum('grand_total');
+            ->sum('total_amount');
         $purchases = DB::table('purchases')
             ->where('branch_id', $b)
             ->whereDate('created_at', '>=', $from)
             ->whereDate('created_at', '<=', $to)
-            ->sum('grand_total');
+            ->sum('total_amount');
 
         return $this->ok(['period' => [$from, $to], 'pnl' => round($sales - $purchases, 2)]);
     }
