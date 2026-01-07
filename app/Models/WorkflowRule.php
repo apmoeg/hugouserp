@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class WorkflowRule extends Model
+class WorkflowRule extends BaseModel
 {
     protected $fillable = [
         'workflow_definition_id',
@@ -30,7 +29,7 @@ class WorkflowRule extends Model
         return $this->belongsTo(WorkflowDefinition::class, 'workflow_definition_id');
     }
 
-    public function scopeActive($query)
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_active', true);
     }

@@ -2,14 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class RentalPeriod extends Model
+class RentalPeriod extends BaseModel
 {
-    use HasFactory;
-
     protected $fillable = [
         'module_id',
         'period_key',
@@ -60,12 +56,12 @@ class RentalPeriod extends Model
         return $basePrice * $this->price_multiplier;
     }
 
-    public function scopeActive($query)
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_active', true);
     }
 
-    public function scopeDefault($query)
+    public function scopeDefault(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_default', true);
     }

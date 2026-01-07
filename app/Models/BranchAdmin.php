@@ -2,14 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class BranchAdmin extends Model
+class BranchAdmin extends BaseModel
 {
-    use HasFactory;
-
     protected $fillable = [
         'branch_id',
         'user_id',
@@ -42,12 +38,12 @@ class BranchAdmin extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function scopeActive($query)
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_active', true);
     }
 
-    public function scopePrimary($query)
+    public function scopePrimary(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_primary', true);
     }

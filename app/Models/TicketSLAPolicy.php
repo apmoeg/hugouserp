@@ -4,15 +4,11 @@ namespace App\Models;
 
 use App\Models\TicketPriority;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
 /** @mixin \Illuminate\Database\Eloquent\Builder */
 
-class TicketSLAPolicy extends Model
+class TicketSLAPolicy extends BaseModel
 {
-    use HasFactory;
-
     protected $table = 'ticket_sla_policies';
 
     protected $fillable = [
@@ -62,7 +58,7 @@ class TicketSLAPolicy extends Model
     }
 
     // Scopes
-    public function scopeActive($query)
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_active', true);
     }
