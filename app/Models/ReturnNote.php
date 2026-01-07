@@ -85,12 +85,12 @@ class ReturnNote extends BaseModel
     }
 
     // Scopes
-    public function scopeSaleReturns($query)
+    public function scopeSaleReturns(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('type', 'sale_return');
     }
 
-    public function scopePurchaseReturns($query)
+    public function scopePurchaseReturns(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('type', 'purchase_return');
     }

@@ -136,12 +136,12 @@ class RentalContract extends BaseModel
     }
 
     // Scopes
-    public function scopeActive($query)
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'active');
     }
 
-    public function scopeExpired($query)
+    public function scopeExpired(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'expired');
     }

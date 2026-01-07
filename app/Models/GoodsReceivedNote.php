@@ -98,12 +98,12 @@ class GoodsReceivedNote extends BaseModel
     }
 
     // Scopes
-    public function scopePendingInspection($query)
+    public function scopePendingInspection(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'inspecting');
     }
 
-    public function scopeApproved($query)
+    public function scopeApproved(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'completed');
     }

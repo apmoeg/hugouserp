@@ -61,12 +61,12 @@ class LeaveRequest extends BaseModel
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    public function scopePending($query)
+    public function scopePending(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'pending');
     }
 
-    public function scopeApproved($query)
+    public function scopeApproved(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'approved');
     }

@@ -60,7 +60,7 @@ class UserDashboardLayout extends BaseModel
     /**
      * Scope: Default layouts.
      */
-    public function scopeDefault($query)
+    public function scopeDefault(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_default', true);
     }

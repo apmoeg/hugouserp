@@ -104,12 +104,12 @@ class Payroll extends BaseModel
         return null;
     }
 
-    public function scopePaid($query)
+    public function scopePaid(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'paid');
     }
 
-    public function scopePending($query)
+    public function scopePending(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->whereIn('status', ['draft', 'calculated', 'approved']);
     }

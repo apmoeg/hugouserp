@@ -65,7 +65,7 @@ class AlertRule extends BaseModel
     /**
      * Scope: Active rules.
      */
-    public function scopeActive($query)
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_active', true);
     }
@@ -73,7 +73,7 @@ class AlertRule extends BaseModel
     /**
      * Scope: By category.
      */
-    public function scopeCategory($query, string $category)
+    public function scopeCategory(\Illuminate\Database\Eloquent\Builder $query, string $category): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('category', $category);
     }
@@ -81,7 +81,7 @@ class AlertRule extends BaseModel
     /**
      * Scope: By alert type.
      */
-    public function scopeType($query, string $type)
+    public function scopeType(\Illuminate\Database\Eloquent\Builder $query, string $type): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('alert_type', $type);
     }
@@ -89,7 +89,7 @@ class AlertRule extends BaseModel
     /**
      * Scope: Due for check.
      */
-    public function scopeDueForCheck($query)
+    public function scopeDueForCheck(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where(function ($q) {
             $q->whereNull('last_checked_at')

@@ -59,7 +59,7 @@ class Shift extends BaseModel
             ->withTimestamps();
     }
 
-    public function scopeActive($query)
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_active', true);
     }

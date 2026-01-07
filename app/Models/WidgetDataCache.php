@@ -69,7 +69,7 @@ class WidgetDataCache extends BaseModel
     /**
      * Scope: Not expired.
      */
-    public function scopeValid($query)
+    public function scopeValid(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where(function ($q) {
             $q->whereNull('expires_at')

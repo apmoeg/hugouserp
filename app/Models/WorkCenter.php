@@ -61,7 +61,7 @@ class WorkCenter extends BaseModel
     /**
      * Scope: Active work centers only.
      */
-    public function scopeActive($query)
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('status', 'active');
     }
@@ -69,7 +69,7 @@ class WorkCenter extends BaseModel
     /**
      * Scope: Available (not in maintenance).
      */
-    public function scopeAvailable($query)
+    public function scopeAvailable(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->whereIn('status', ['active']);
     }

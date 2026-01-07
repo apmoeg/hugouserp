@@ -38,12 +38,12 @@ class EmployeeShift extends BaseModel
         return $this->belongsTo(Shift::class);
     }
 
-    public function scopeActive($query)
+    public function scopeActive(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_current', true);
     }
 
-    public function scopeCurrent($query)
+    public function scopeCurrent(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         $today = now()->toDateString();
         return $query->where('is_current', true)

@@ -259,24 +259,24 @@ class Product extends BaseModel
             ->whereRaw('stock_quantity <= stock_alert_threshold');
     }
 
-    public function scopeOutOfStock($query)
+    public function scopeOutOfStock(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('stock_quantity', '<=', 0);
     }
 
-    public function scopeInStock($query)
+    public function scopeInStock(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('stock_quantity', '>', 0);
     }
 
-    public function scopeExpiringSoon($query, int $days = 30)
+    public function scopeExpiringSoon(\Illuminate\Database\Eloquent\Builder $query, int $days = 30): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_perishable', true)
             ->whereNotNull('expiry_date')
             ->whereBetween('expiry_date', [now(), now()->addDays($days)]);
     }
 
-    public function scopeExpired($query)
+    public function scopeExpired(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('is_perishable', true)
             ->whereNotNull('expiry_date')
