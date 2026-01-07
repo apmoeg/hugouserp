@@ -39,20 +39,44 @@ return new class extends Migration
                 $table->timestamp('resolved_at')->nullable()
                     ->after('resolved_by');
             }
-            
-            // Update index to include branch_id
-            $table->index(['branch_id', 'status', 'created_at'], 'idx_alerts_branch_status_created');
         });
+        
+        // Add index separately to handle duplicates gracefully
+        try {
+            Schema::table('low_stock_alerts', function (Blueprint $table) {
+                $table->index(['branch_id', 'status', 'created_at'], 'idx_alerts_branch_status_created');
+            });
+        } catch (\Exception $e) {
+            // Index already exists, ignore
+        }
     }
 
     public function down(): void
     {
+        // Drop index first if it exists
+        try {
+            Schema::table('low_stock_alerts', function (Blueprint $table) {
+                $table->dropIndex('idx_alerts_branch_status_created');
+            });
+        } catch (\Exception $e) {
+            // Index doesn't exist, ignore
+        }
+        
         Schema::table('low_stock_alerts', function (Blueprint $table) {
-            $table->dropIndex('idx_alerts_branch_status_created');
-            $table->dropForeign(['resolved_by']);
-            $table->dropColumn(['resolved_by', 'resolved_at']);
-            $table->dropForeign(['branch_id']);
-            $table->dropColumn('branch_id');
+            // Drop foreign keys and columns if they exist
+            if (Schema::hasColumn('low_stock_alerts', 'resolved_by')) {
+                $table->dropForeign(['resolved_by']);
+                $table->dropColumn('resolved_by');
+            }
+            
+            if (Schema::hasColumn('low_stock_alerts', 'resolved_at')) {
+                $table->dropColumn('resolved_at');
+            }
+            
+            if (Schema::hasColumn('low_stock_alerts', 'branch_id')) {
+                $table->dropForeign(['branch_id']);
+                $table->dropColumn('branch_id');
+            }
         });
     }
 };
