@@ -201,6 +201,7 @@ class OrdersController extends BaseApiController
                     'warehouse_id' => $warehouseId,
                     'customer_id' => $customerId,
                     'status' => 'draft',
+                    'channel' => 'api',
                     'subtotal' => $subTotal,
                     'discount_amount' => $itemDiscountTotal + $orderDiscount,
                     'discount_type' => 'fixed',

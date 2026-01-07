@@ -29,7 +29,9 @@ class Sale extends BaseModel
         'warehouse_id',
         'customer_id',
         'reference_number',
+        'external_reference',
         'type',
+        'channel',
         'status',
         'payment_status',
         // Dates
@@ -237,11 +239,6 @@ class Sale extends BaseModel
     }
 
     public function getReferenceNoAttribute()
-    {
-        return $this->reference_number;
-    }
-
-    public function getExternalReferenceAttribute()
     {
         return $this->reference_number;
     }
