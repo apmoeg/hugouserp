@@ -2,14 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class RentalPeriod extends Model
+class RentalPeriod extends BaseModel
 {
-    use HasFactory;
-
     protected $fillable = [
         'module_id',
         'period_key',

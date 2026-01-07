@@ -2,14 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class BranchAdmin extends Model
+class BranchAdmin extends BaseModel
 {
-    use HasFactory;
-
     protected $fillable = [
         'branch_id',
         'user_id',

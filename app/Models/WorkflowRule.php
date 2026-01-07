@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class WorkflowRule extends Model
+class WorkflowRule extends BaseModel
 {
     protected $fillable = [
         'workflow_definition_id',
