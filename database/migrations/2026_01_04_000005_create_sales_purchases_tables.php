@@ -47,7 +47,7 @@ return new class extends Migration
             
             // Amounts
             $table->decimal('subtotal', 18, 4)->default(0);
-            $table->decimal('discount_type', 5, 2)->nullable(); // percent or amount
+            $table->string('discount_type', 20)->nullable(); // fixed or percentage
             $table->decimal('discount_amount', 18, 4)->default(0);
             $table->decimal('tax_amount', 18, 4)->default(0);
             $table->decimal('shipping_amount', 18, 4)->default(0);

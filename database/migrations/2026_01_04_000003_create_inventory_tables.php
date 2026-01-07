@@ -123,8 +123,14 @@ return new class extends Migration
             $this->setTableOptions($table);
             $table->id();
             $table->foreignId('branch_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('module_id')->nullable()
+                ->constrained('modules')
+                ->nullOnDelete();
             $table->foreignId('category_id')->nullable()
                 ->constrained('product_categories')
+                ->nullOnDelete();
+            $table->foreignId('parent_product_id')->nullable()
+                ->constrained('products')
                 ->nullOnDelete();
             $table->string('name', 255);
             $table->string('name_ar', 255)->nullable();
@@ -135,10 +141,24 @@ return new class extends Migration
             
             // Pricing
             $table->decimal('cost_price', 18, 4)->default(0);
+            $table->decimal('cost', 18, 4)->default(0);
+            $table->decimal('standard_cost', 18, 4)->nullable();
             $table->decimal('selling_price', 18, 4)->default(0);
+            $table->decimal('price', 18, 4)->nullable();
+            $table->decimal('default_price', 18, 4)->nullable();
             $table->decimal('min_price', 18, 4)->nullable();
+            $table->decimal('wholesale_price', 18, 4)->nullable();
+            $table->decimal('msrp', 18, 4)->nullable();
             $table->decimal('max_discount_percent', 5, 2)->nullable();
+            $table->string('cost_currency', 3)->nullable();
+            $table->string('price_currency', 3)->nullable();
+            $table->string('cost_method', 50)->nullable();
+            $table->timestamp('last_cost_update')->nullable();
+            $table->timestamp('last_price_update')->nullable();
             $table->foreignId('price_group_id')->nullable()
+                ->constrained('price_groups')
+                ->nullOnDelete();
+            $table->foreignId('price_list_id')->nullable()
                 ->constrained('price_groups')
                 ->nullOnDelete();
             $table->foreignId('tax_id')->nullable()
@@ -146,6 +166,8 @@ return new class extends Migration
                 ->nullOnDelete();
             
             // Units
+            $table->string('uom', 50)->nullable();
+            $table->decimal('uom_factor', 10, 4)->nullable();
             $table->foreignId('unit_id')->nullable()
                 ->constrained('units_of_measure')
                 ->nullOnDelete();
@@ -158,37 +180,79 @@ return new class extends Migration
             
             // Stock
             $table->decimal('stock_quantity', 18, 4)->default(0);
-            $table->decimal('alert_quantity', 18, 4)->nullable();
+            $table->decimal('reserved_quantity', 18, 4)->default(0);
+            $table->decimal('min_stock', 18, 4)->nullable();
+            $table->decimal('reorder_point', 18, 4)->nullable();
+            $table->decimal('max_stock', 18, 4)->nullable();
+            $table->decimal('reorder_qty', 18, 4)->nullable();
+            $table->decimal('stock_alert_threshold', 18, 4)->nullable();
             $table->decimal('min_order_quantity', 18, 4)->nullable();
             $table->decimal('max_order_quantity', 18, 4)->nullable();
+            $table->decimal('minimum_order_quantity', 18, 4)->nullable();
+            $table->decimal('maximum_order_quantity', 18, 4)->nullable();
+            $table->integer('lead_time_days')->nullable();
+            $table->string('location_code', 100)->nullable();
             $table->string('stock_management', 50)->default('simple'); // simple, batch, serial
             
             // Type and status
             $table->string('type', 50)->default('product'); // product, service, spare_part, rental
+            $table->string('product_type', 50)->nullable();
+            $table->string('status', 50)->default('active');
             $table->boolean('is_active')->default(true)->index();
+            $table->boolean('has_variations')->default(false);
             $table->boolean('has_variants')->default(false);
+            $table->json('variation_attributes')->nullable();
             $table->boolean('is_serialized')->default(false);
             $table->boolean('is_batch_tracked')->default(false);
             $table->boolean('track_stock_alerts')->default(true);
             $table->boolean('is_taxable')->default(true);
+            $table->boolean('allow_backorder')->default(false);
+            $table->boolean('requires_approval')->default(false);
+            $table->boolean('is_perishable')->default(false);
             
             // Media
             $table->string('thumbnail', 500)->nullable();
+            $table->string('image', 500)->nullable();
             $table->json('images')->nullable();
+            $table->json('gallery')->nullable();
+            
+            // Dimensions and physical properties
+            $table->decimal('length', 10, 2)->nullable();
+            $table->decimal('width', 10, 2)->nullable();
+            $table->decimal('height', 10, 2)->nullable();
+            $table->decimal('weight', 10, 4)->nullable();
+            $table->string('weight_unit', 20)->nullable();
+            $table->json('dimensions')->nullable();
             
             // Additional fields
             $table->string('brand', 255)->nullable();
             $table->string('manufacturer', 255)->nullable();
             $table->string('model', 255)->nullable();
-            $table->decimal('weight', 10, 4)->nullable();
-            $table->string('weight_unit', 20)->nullable();
-            $table->json('dimensions')->nullable();
+            $table->string('model_number', 255)->nullable();
+            $table->string('origin_country', 100)->nullable();
+            $table->string('hs_code', 50)->nullable();
             $table->json('custom_fields')->nullable();
             $table->json('attributes')->nullable();
+            $table->json('extra_attributes')->nullable();
+            $table->text('notes')->nullable();
+            
+            // Dates for perishable items
+            $table->date('manufacture_date')->nullable();
+            $table->date('expiry_date')->nullable();
+            $table->integer('shelf_life_days')->nullable();
             
             // Warranty
+            $table->boolean('has_warranty')->default(false);
             $table->integer('warranty_months')->nullable();
+            $table->integer('warranty_period_days')->nullable();
+            $table->string('warranty_period', 100)->nullable();
+            $table->string('warranty_type', 100)->nullable();
             $table->text('warranty_terms')->nullable();
+            
+            // Service products
+            $table->decimal('hourly_rate', 10, 2)->nullable();
+            $table->integer('service_duration')->nullable();
+            $table->string('duration_unit', 50)->nullable();
             
             $table->timestamps();
             $table->softDeletes();
