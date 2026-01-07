@@ -11,20 +11,50 @@ class SupplierQuotationItem extends BaseModel
     protected $table = 'supplier_quotation_items';
 
     protected $fillable = [
-        'quotation_id', 'product_id', 'qty', 'uom',
-        'unit_cost', 'discount', 'tax_rate', 'line_total',
-        'specifications', 'notes', 'extra_attributes',
+        'quotation_id', 'product_id', 'quantity',
+        'unit_price', 'tax_percent', 'line_total',
+        'notes', 'extra_attributes',
         'created_by', 'updated_by',
     ];
 
     protected $casts = [
-        'qty' => 'decimal:4',
-        'unit_cost' => 'decimal:4',
-        'discount' => 'decimal:4',
-        'tax_rate' => 'decimal:4',
+        'quantity' => 'decimal:4',
+        'unit_price' => 'decimal:4',
+        'tax_percent' => 'decimal:2',
         'line_total' => 'decimal:4',
         'extra_attributes' => 'array',
     ];
+    
+    // Backward compatibility accessors
+    public function getQtyAttribute()
+    {
+        return $this->quantity;
+    }
+    
+    public function getUnitCostAttribute()
+    {
+        return $this->unit_price;
+    }
+    
+    public function getTaxRateAttribute()
+    {
+        return $this->tax_percent;
+    }
+    
+    public function getUomAttribute()
+    {
+        return null; // Not in migration, backward compat only
+    }
+    
+    public function getDiscountAttribute()
+    {
+        return 0; // Not in migration, backward compat only
+    }
+    
+    public function getSpecificationsAttribute()
+    {
+        return null; // Not in migration, backward compat only
+    }
 
     // Relationships
     public function quotation(): BelongsTo
