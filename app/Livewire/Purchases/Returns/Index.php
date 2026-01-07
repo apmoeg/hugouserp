@@ -224,7 +224,7 @@ class Index extends Component
             ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->when($this->search, function ($query) {
                 $query->whereHas('purchase', function ($q) {
-                    $q->where('reference_no', 'like', '%'.$this->search.'%');
+                    $q->where('reference_number', 'like', '%'.$this->search.'%');
                 });
             })
             ->when($this->dateFrom, fn ($q) => $q->whereDate('created_at', '>=', $this->dateFrom))

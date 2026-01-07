@@ -243,6 +243,28 @@ class Sale extends BaseModel
         return $this->reference_number;
     }
 
+    public function getOrderNumberAttribute()
+    {
+        return $this->reference_number;
+    }
+
+    public function getDiscountAttribute()
+    {
+        return $this->discount_amount;
+    }
+
+    public function getTaxAttribute()
+    {
+        return $this->tax_amount;
+    }
+
+    public function getPaymentMethodAttribute()
+    {
+        // Payment method is typically stored in the payments table
+        // Return null as a safe default
+        return null;
+    }
+
     public function getGrandTotalAttribute()
     {
         return $this->total_amount;

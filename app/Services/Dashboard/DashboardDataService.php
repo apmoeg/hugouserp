@@ -78,7 +78,7 @@ class DashboardDataService
             $query->where('branch_id', $branchId);
         }
 
-        $totalSales = $query->sum('grand_total') ?? 0;
+        $totalSales = $query->sum('total_amount') ?? 0;
         $totalOrders = $query->count();
         $averageOrder = $totalOrders > 0 ? $totalSales / $totalOrders : 0;
 
@@ -104,7 +104,7 @@ class DashboardDataService
         }
 
         return [
-            'total_sales' => $query->sum('grand_total') ?? 0,
+            'total_sales' => $query->sum('total_amount') ?? 0,
             'total_orders' => $query->count(),
             'currency' => setting('general.default_currency', 'EGP'),
         ];
@@ -125,7 +125,7 @@ class DashboardDataService
         }
 
         return [
-            'total_sales' => $query->sum('grand_total') ?? 0,
+            'total_sales' => $query->sum('total_amount') ?? 0,
             'total_orders' => $query->count(),
             'currency' => setting('general.default_currency', 'EGP'),
         ];
