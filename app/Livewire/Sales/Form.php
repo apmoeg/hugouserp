@@ -167,7 +167,7 @@ class Form extends Component
             $this->editMode = true;
             $this->customer_id = (string) ($sale->customer_id ?? '');
             $this->warehouse_id = (string) ($sale->warehouse_id ?? '');
-            $this->reference_no = $sale->reference_no ?? '';
+            $this->reference_no = $sale->reference_number ?? '';
             $this->status = $sale->status ?? 'completed';
             $this->currency = $sale->currency ?? 'EGP';
             $this->notes = $sale->notes ?? '';
@@ -432,7 +432,7 @@ class Form extends Component
         $customers = $customersQuery->limit(100)->get(['id', 'name']);
 
         // BUG-003 Fix: Filter warehouses by branch
-        $warehousesQuery = Warehouse::where('status', 'active')->orderBy('name');
+        $warehousesQuery = Warehouse::where('is_active', true)->orderBy('name');
         if ($branchId) {
             $warehousesQuery->where(function ($q) use ($branchId) {
                 $q->where('branch_id', $branchId)

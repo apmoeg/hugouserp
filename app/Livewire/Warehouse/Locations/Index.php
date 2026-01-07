@@ -79,9 +79,9 @@ class Index extends Component
         $stats = [
             'total' => Warehouse::when($user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))->count(),
             'active' => Warehouse::when($user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))
-                ->where('status', 'active')->count(),
+                ->where('is_active', true)->count(),
             'inactive' => Warehouse::when($user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))
-                ->where('status', 'inactive')->count(),
+                ->where('is_active', false)->count(),
         ];
 
         return view('livewire.warehouse.locations.index', [

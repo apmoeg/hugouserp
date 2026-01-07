@@ -16,7 +16,9 @@ class WidgetDataCache extends BaseModel
     protected $fillable = [
         'user_id',
         'dashboard_widget_id',
+        'widget_id',
         'branch_id',
+        'cache_key',
         'data',
         'cached_at',
         'expires_at',

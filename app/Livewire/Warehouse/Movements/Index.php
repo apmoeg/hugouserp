@@ -92,7 +92,7 @@ class Index extends Component
 
         // Get warehouses and products for filters
         $warehouses = \App\Models\Warehouse::when($user->branch_id, fn ($q) => $q->where('branch_id', $user->branch_id))
-            ->where('status', 'active')
+            ->where('is_active', true)
             ->orderBy('name')
             ->get();
 

@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class WorkflowDefinition extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
+        'branch_id',
         'name',
         'code',
         'module_name',
@@ -19,6 +24,7 @@ class WorkflowDefinition extends Model
         'rules',
         'is_active',
         'is_mandatory',
+        'created_by',
     ];
 
     protected $casts = [
@@ -36,6 +42,16 @@ class WorkflowDefinition extends Model
     public function workflowRules(): HasMany
     {
         return $this->hasMany(WorkflowRule::class);
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function scopeActive($query)
