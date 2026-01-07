@@ -73,12 +73,12 @@ return new class extends Migration
         if (Schema::hasTable('sales')) {
             Schema::table('sales', function (Blueprint $table) {
                 if (Schema::hasColumn('sales', 'external_reference')) {
-                    $table->dropIndex(['sales_external_reference_index']);
+                    $table->dropIndex('sales_external_reference_index');
                     $table->dropColumn('external_reference');
                 }
                 
                 if (Schema::hasColumn('sales', 'channel')) {
-                    $table->dropIndex(['sales_channel_index']);
+                    $table->dropIndex('sales_channel_index');
                     $table->dropColumn('channel');
                 }
             });
@@ -87,12 +87,12 @@ return new class extends Migration
         if (Schema::hasTable('purchases')) {
             Schema::table('purchases', function (Blueprint $table) {
                 if (Schema::hasColumn('purchases', 'external_reference')) {
-                    $table->dropIndex(['purchases_external_reference_index']);
+                    $table->dropIndex('purchases_external_reference_index');
                     $table->dropColumn('external_reference');
                 }
                 
                 if (Schema::hasColumn('purchases', 'channel')) {
-                    $table->dropIndex(['purchases_channel_index']);
+                    $table->dropIndex('purchases_channel_index');
                     $table->dropColumn('channel');
                 }
             });

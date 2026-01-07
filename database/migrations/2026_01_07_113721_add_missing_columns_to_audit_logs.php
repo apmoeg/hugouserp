@@ -120,7 +120,7 @@ return new class extends Migration
                         // Drop foreign keys first if they exist
                         if (in_array($column, ['user_id', 'target_user_id'])) {
                             try {
-                                $table->dropForeign(['audit_logs_' . $column . '_foreign']);
+                                $table->dropForeign('audit_logs_' . $column . '_foreign');
                             } catch (\Throwable $e) {
                                 // Foreign key may not exist
                             }
@@ -129,7 +129,7 @@ return new class extends Migration
                         // Drop indexes if they exist
                         if (in_array($column, ['action', 'module_key'])) {
                             try {
-                                $table->dropIndex(['audit_logs_' . $column . '_index']);
+                                $table->dropIndex('audit_logs_' . $column . '_index');
                             } catch (\Throwable $e) {
                                 // Index may not exist
                             }
