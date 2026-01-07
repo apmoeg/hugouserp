@@ -432,7 +432,7 @@ class Form extends Component
         $customers = $customersQuery->limit(100)->get(['id', 'name']);
 
         // BUG-003 Fix: Filter warehouses by branch
-        $warehousesQuery = Warehouse::where('status', 'active')->orderBy('name');
+        $warehousesQuery = Warehouse::where('is_active', true)->orderBy('name');
         if ($branchId) {
             $warehousesQuery->where(function ($q) use ($branchId) {
                 $q->where('branch_id', $branchId)
