@@ -141,7 +141,9 @@ return new class extends Migration
             // Make old foreign key nullable
             $table->foreignId('instance_id')->nullable()->change();
             
-            // Add missing updated_at timestamp that Laravel expects
+            // Add missing updated_at timestamp that Laravel Eloquent expects
+            // The original migration only had created_at which causes errors
+            // when using Eloquent models that default to using timestamps()
             $table->timestamp('updated_at')->nullable()->after('created_at');
             
             // Add new column with proper name
@@ -196,8 +198,18 @@ return new class extends Migration
             DB::statement('UPDATE workflow_rules SET priority = sequence WHERE sequence IS NOT NULL');
         }
         // Consolidate action_type and action_config into actions json
+        // Use database-agnostic approach with query builder
         if (Schema::hasColumn('workflow_rules', 'action_type') && Schema::hasColumn('workflow_rules', 'action_config')) {
-            DB::statement("UPDATE workflow_rules SET actions = json_object('type', action_type, 'config', json(COALESCE(action_config, 'null'))) WHERE action_type IS NOT NULL");
+            $rules = DB::table('workflow_rules')->whereNotNull('action_type')->get();
+            foreach ($rules as $rule) {
+                $actions = [
+                    'type' => $rule->action_type,
+                    'config' => $rule->action_config ? json_decode($rule->action_config) : null
+                ];
+                DB::table('workflow_rules')
+                    ->where('id', $rule->id)
+                    ->update(['actions' => json_encode($actions)]);
+            }
         }
     }
 
