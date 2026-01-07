@@ -11,17 +11,15 @@ class SupplierQuotationItem extends BaseModel
     protected $table = 'supplier_quotation_items';
 
     protected $fillable = [
-        'quotation_id', 'product_id', 'quantity', 'uom',
-        'unit_cost', 'discount', 'tax_rate', 'line_total',
-        'specifications', 'notes', 'extra_attributes',
-        'created_by', 'updated_by',
+        'quotation_id', 'product_id', 'quantity',
+        'unit_price', 'tax_percent', 'line_total', 'notes',
+        'extra_attributes', 'created_by', 'updated_by',
     ];
 
     protected $casts = [
         'quantity' => 'decimal:4',
-        'unit_cost' => 'decimal:4',
-        'discount' => 'decimal:4',
-        'tax_rate' => 'decimal:4',
+        'unit_price' => 'decimal:4',
+        'tax_percent' => 'decimal:2',
         'line_total' => 'decimal:4',
         'extra_attributes' => 'array',
     ];
@@ -56,5 +54,27 @@ class SupplierQuotationItem extends BaseModel
     public function setQtyAttribute($value): void
     {
         $this->attributes['quantity'] = $value;
+    }
+
+    // Backward compatibility for unit_cost -> unit_price
+    public function getUnitCostAttribute()
+    {
+        return $this->unit_price;
+    }
+
+    public function setUnitCostAttribute($value): void
+    {
+        $this->attributes['unit_price'] = $value;
+    }
+
+    // Backward compatibility for tax_rate -> tax_percent
+    public function getTaxRateAttribute()
+    {
+        return $this->tax_percent;
+    }
+
+    public function setTaxRateAttribute($value): void
+    {
+        $this->attributes['tax_percent'] = $value;
     }
 }

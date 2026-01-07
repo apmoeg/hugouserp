@@ -11,15 +11,14 @@ class PurchaseRequisitionItem extends BaseModel
     protected $table = 'purchase_requisition_items';
 
     protected $fillable = [
-        'requisition_id', 'product_id', 'quantity', 'uom',
-        'estimated_unit_cost', 'estimated_total', 'specifications', 'notes',
+        'requisition_id', 'product_id', 'quantity', 'unit_id',
+        'estimated_price', 'specifications', 'preferred_supplier_id',
         'extra_attributes', 'created_by', 'updated_by',
     ];
 
     protected $casts = [
         'quantity' => 'decimal:4',
-        'estimated_unit_cost' => 'decimal:4',
-        'estimated_total' => 'decimal:4',
+        'estimated_price' => 'decimal:4',
         'extra_attributes' => 'array',
     ];
 
@@ -53,5 +52,33 @@ class PurchaseRequisitionItem extends BaseModel
     public function setQtyAttribute($value): void
     {
         $this->attributes['quantity'] = $value;
+    }
+
+    // Backward compatibility for uom -> unit_id
+    public function getUomAttribute()
+    {
+        return $this->unit_id;
+    }
+
+    public function setUomAttribute($value): void
+    {
+        $this->attributes['unit_id'] = $value;
+    }
+
+    // Backward compatibility for estimated_unit_cost -> estimated_price
+    public function getEstimatedUnitCostAttribute()
+    {
+        return $this->estimated_price;
+    }
+
+    public function setEstimatedUnitCostAttribute($value): void
+    {
+        $this->attributes['estimated_price'] = $value;
+    }
+
+    // Calculated field for backward compatibility
+    public function getEstimatedTotalAttribute()
+    {
+        return $this->quantity * ($this->estimated_price ?? 0);
     }
 }
