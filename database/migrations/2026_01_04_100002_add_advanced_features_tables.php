@@ -286,18 +286,91 @@ return new class extends Migration
 
         // ===== ENHANCED STOCK TRANSFERS =====
         
+        // Stock Transfers - Advanced transfer system with approvals and tracking
+        Schema::create('stock_transfers', function (Blueprint $table) {
+            $this->setTableOptions($table);
+            $table->id();
+            $table->string('transfer_number', 100)->unique();
+            $table->foreignId('from_warehouse_id')->constrained('warehouses')->restrictOnDelete();
+            $table->foreignId('to_warehouse_id')->constrained('warehouses')->restrictOnDelete();
+            $table->foreignId('from_branch_id')->constrained('branches')->restrictOnDelete();
+            $table->foreignId('to_branch_id')->constrained('branches')->restrictOnDelete();
+            $table->string('transfer_type', 50)->default('inter_warehouse'); // inter_warehouse, inter_branch, internal
+            $table->string('status', 50)->default('draft'); // draft, pending, approved, in_transit, received, completed, cancelled, rejected
+            $table->date('transfer_date')->nullable();
+            $table->date('expected_delivery_date')->nullable();
+            $table->date('actual_delivery_date')->nullable();
+            $table->string('priority', 20)->default('medium'); // low, medium, high, urgent
+            $table->text('reason')->nullable();
+            $table->text('notes')->nullable();
+            $table->text('internal_notes')->nullable();
+            $table->string('tracking_number', 100)->nullable();
+            $table->string('courier_name', 100)->nullable();
+            $table->string('vehicle_number', 50)->nullable();
+            $table->string('driver_name', 100)->nullable();
+            $table->string('driver_phone', 50)->nullable();
+            $table->decimal('shipping_cost', 18, 2)->default(0);
+            $table->decimal('insurance_cost', 18, 2)->default(0);
+            $table->decimal('total_cost', 18, 2)->default(0);
+            $table->string('currency', 10)->default('USD');
+            $table->decimal('total_qty_requested', 18, 3)->default(0);
+            $table->decimal('total_qty_shipped', 18, 3)->default(0);
+            $table->decimal('total_qty_received', 18, 3)->default(0);
+            $table->decimal('total_qty_damaged', 18, 3)->default(0);
+            $table->foreignId('requested_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('approved_at')->nullable();
+            $table->foreignId('shipped_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('shipped_at')->nullable();
+            $table->foreignId('received_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('received_at')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamps();
+            $table->softDeletes();
+
+            $table->index(['from_branch_id', 'status']);
+            $table->index(['to_branch_id', 'status']);
+            $table->index(['status', 'priority']);
+            $table->index('transfer_date');
+        });
+
+        // Stock Transfer Items
+        Schema::create('stock_transfer_items', function (Blueprint $table) {
+            $this->setTableOptions($table);
+            $table->id();
+            $table->foreignId('stock_transfer_id')->constrained('stock_transfers')->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained('products')->restrictOnDelete();
+            $table->decimal('qty_requested', 18, 3)->default(0);
+            $table->decimal('qty_approved', 18, 3)->default(0);
+            $table->decimal('qty_shipped', 18, 3)->default(0);
+            $table->decimal('qty_received', 18, 3)->default(0);
+            $table->decimal('qty_damaged', 18, 3)->default(0);
+            $table->string('batch_number', 100)->nullable();
+            $table->date('expiry_date')->nullable();
+            $table->decimal('unit_cost', 18, 2)->default(0);
+            $table->text('condition_on_shipping')->nullable();
+            $table->text('condition_on_receiving')->nullable();
+            $table->text('notes')->nullable();
+            $table->text('damage_report')->nullable();
+            $table->timestamps();
+
+            $table->index('stock_transfer_id');
+            $table->index('product_id');
+        });
+        
         // Stock Transfer Approvals
         Schema::create('stock_transfer_approvals', function (Blueprint $table) {
             $this->setTableOptions($table);
             $table->id();
-            $table->foreignId('transfer_id')->constrained('transfers')->cascadeOnDelete();
+            $table->foreignId('stock_transfer_id')->constrained('stock_transfers')->cascadeOnDelete();
             $table->integer('approval_level')->default(1);
             $table->foreignId('approver_id')->constrained('users')->restrictOnDelete();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending')->index();
             $table->text('comments')->nullable();
             $table->timestamp('responded_at')->nullable();
             $table->timestamps();
-            $table->index(['transfer_id', 'approval_level']);
+            $table->index(['stock_transfer_id', 'approval_level']);
             $table->index(['approver_id', 'status']);
         });
 
@@ -305,7 +378,7 @@ return new class extends Migration
         Schema::create('stock_transfer_documents', function (Blueprint $table) {
             $this->setTableOptions($table);
             $table->id();
-            $table->foreignId('transfer_id')->constrained('transfers')->cascadeOnDelete();
+            $table->foreignId('stock_transfer_id')->constrained('stock_transfers')->cascadeOnDelete();
             $table->string('document_type', 50)->index(); // packing_list, delivery_note, photo, etc.
             $table->string('file_name', 255);
             $table->string('file_path', 500);
@@ -314,14 +387,14 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->foreignId('uploaded_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
-            $table->index(['transfer_id', 'document_type']);
+            $table->index(['stock_transfer_id', 'document_type']);
         });
 
         // Stock Transfer History
         Schema::create('stock_transfer_history', function (Blueprint $table) {
             $this->setTableOptions($table);
             $table->id();
-            $table->foreignId('transfer_id')->constrained('transfers')->cascadeOnDelete();
+            $table->foreignId('stock_transfer_id')->constrained('stock_transfers')->cascadeOnDelete();
             $table->string('from_status', 50);
             $table->string('to_status', 50);
             $table->text('notes')->nullable();
@@ -329,7 +402,7 @@ return new class extends Migration
             $table->foreignId('changed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('changed_at')->nullable();
             $table->timestamps();
-            $table->index(['transfer_id', 'changed_at']);
+            $table->index(['stock_transfer_id', 'changed_at']);
             $table->index(['to_status', 'changed_at']);
         });
 
@@ -489,6 +562,8 @@ return new class extends Migration
         Schema::dropIfExists('stock_transfer_history');
         Schema::dropIfExists('stock_transfer_documents');
         Schema::dropIfExists('stock_transfer_approvals');
+        Schema::dropIfExists('stock_transfer_items');
+        Schema::dropIfExists('stock_transfers');
         Schema::dropIfExists('supplier_performance_metrics');
         Schema::dropIfExists('debit_notes');
         Schema::dropIfExists('purchase_return_items');
