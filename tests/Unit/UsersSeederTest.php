@@ -7,6 +7,7 @@ namespace Tests\Unit;
 use App\Models\User;
 use Database\Seeders\UsersSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -25,7 +26,7 @@ class UsersSeederTest extends TestCase
     protected function setupSeederRequirements(): void
     {
         // Create a branch first (required by seeder)
-        \DB::table('branches')->insert([
+        DB::table('branches')->insert([
             'name' => 'Main Branch',
             'is_main' => true,
             'is_active' => true,
@@ -34,7 +35,7 @@ class UsersSeederTest extends TestCase
         ]);
 
         // Create Super Admin role (required by seeder)
-        \DB::table('roles')->insert([
+        DB::table('roles')->insert([
             'name' => 'Super Admin',
             'guard_name' => 'web',
             'created_at' => now(),
@@ -44,7 +45,6 @@ class UsersSeederTest extends TestCase
 
     public function test_users_seeder_sets_password_correctly(): void
     {
-
         // Run the seeder
         $seeder = new UsersSeeder();
         $seeder->run();
