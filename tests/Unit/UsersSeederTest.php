@@ -14,7 +14,15 @@ class UsersSeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_users_seeder_sets_password_correctly(): void
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        // Setup required data for seeder
+        $this->setupSeederRequirements();
+    }
+
+    protected function setupSeederRequirements(): void
     {
         // Create a branch first (required by seeder)
         \DB::table('branches')->insert([
@@ -32,6 +40,10 @@ class UsersSeederTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+    }
+
+    public function test_users_seeder_sets_password_correctly(): void
+    {
 
         // Run the seeder
         $seeder = new UsersSeeder();
@@ -63,23 +75,6 @@ class UsersSeederTest extends TestCase
 
     public function test_users_seeder_does_not_duplicate_user(): void
     {
-        // Create a branch first (required by seeder)
-        \DB::table('branches')->insert([
-            'name' => 'Main Branch',
-            'is_main' => true,
-            'is_active' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        // Create Super Admin role (required by seeder)
-        \DB::table('roles')->insert([
-            'name' => 'Super Admin',
-            'guard_name' => 'web',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
         // Run the seeder twice
         $seeder = new UsersSeeder();
         $seeder->run();
