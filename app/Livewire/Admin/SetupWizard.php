@@ -216,8 +216,8 @@ class SetupWizard extends Component
                 }
             }
 
-            // Create admin user
-            $user = User::create([
+            // Create admin user with password using forceCreate to bypass mass assignment protection
+            $user = User::forceCreate([
                 'name' => $this->adminName,
                 'email' => $this->adminEmail,
                 'password' => Hash::make($this->adminPassword),
