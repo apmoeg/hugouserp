@@ -16,21 +16,28 @@ class ChartOfAccountsSeeder extends Seeder
      */
     public function run(): void
     {
-        $branch = Branch::first();
+        // Get branch ID directly from database to avoid Eloquent issues
+        $branchId = \DB::table('branches')
+            ->where('is_main', true)
+            ->value('id');
+        
+        if (! $branchId) {
+            $branchId = \DB::table('branches')->value('id');
+        }
 
-        if (! $branch) {
+        if (! $branchId) {
             $this->command->warn('No branch found. Please create a branch first.');
 
             return;
         }
 
-        $this->createAssetAccounts($branch->id);
-        $this->createLiabilityAccounts($branch->id);
-        $this->createEquityAccounts($branch->id);
-        $this->createRevenueAccounts($branch->id);
-        $this->createExpenseAccounts($branch->id);
+        $this->createAssetAccounts($branchId);
+        $this->createLiabilityAccounts($branchId);
+        $this->createEquityAccounts($branchId);
+        $this->createRevenueAccounts($branchId);
+        $this->createExpenseAccounts($branchId);
 
-        $this->createAccountMappings($branch->id);
+        $this->createAccountMappings($branchId);
 
         $this->command->info('Chart of accounts and account mappings created successfully!');
     }
