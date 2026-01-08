@@ -7,9 +7,31 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * Transfer Model - Basic warehouse transfers
+ * 
+ * For basic stock transfers between warehouses. For advanced transfers with
+ * multi-level approvals, documents, and detailed tracking, use StockTransfer model.
+ * 
+ * @property int $id
+ * @property int $branch_id
+ * @property string $reference_number
+ * @property int $from_warehouse_id
+ * @property int $to_warehouse_id
+ * @property string $status
+ * @property string|null $notes
+ * @property float $total_value
+ * @property \Carbon\Carbon|null $shipped_at
+ * @property \Carbon\Carbon|null $received_at
+ * @property int|null $created_by
+ * @property int|null $received_by
+ */
 class Transfer extends BaseModel
 {
+    use SoftDeletes;
+
     protected ?string $moduleKey = 'inventory';
 
     /**
@@ -39,9 +61,23 @@ class Transfer extends BaseModel
         'extra_attributes' => 'array',
     ];
 
+    // Status constants
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_IN_TRANSIT = 'in_transit';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_CANCELLED = 'cancelled';
+
+    /**
+     * Relationships
+     */
     public function items(): HasMany
     {
         return $this->hasMany(TransferItem::class);
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
     }
 
     public function fromWarehouse(): BelongsTo
@@ -64,19 +100,130 @@ class Transfer extends BaseModel
         return $this->belongsTo(User::class, 'received_by');
     }
 
+    /**
+     * Scopes
+     */
     public function scopePending(Builder $query): Builder
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', self::STATUS_PENDING);
     }
 
     public function scopeInTransit(Builder $query): Builder
     {
-        return $query->where('status', 'in_transit');
+        return $query->where('status', self::STATUS_IN_TRANSIT);
     }
 
     public function scopeCompleted(Builder $query): Builder
     {
-        return $query->where('status', 'completed');
+        return $query->where('status', self::STATUS_COMPLETED);
+    }
+
+    public function scopeCancelled(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_CANCELLED);
+    }
+
+    /**
+     * Helper Methods
+     */
+    public function isPending(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    public function isInTransit(): bool
+    {
+        return $this->status === self::STATUS_IN_TRANSIT;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === self::STATUS_COMPLETED;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
+    }
+
+    public function canBeShipped(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    public function canBeReceived(): bool
+    {
+        return $this->status === self::STATUS_IN_TRANSIT;
+    }
+
+    public function canBeCancelled(): bool
+    {
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_IN_TRANSIT]);
+    }
+
+    /**
+     * Mark as shipped
+     */
+    public function ship(?int $userId = null): bool
+    {
+        if (!$this->canBeShipped()) {
+            return false;
+        }
+
+        return $this->update([
+            'status' => self::STATUS_IN_TRANSIT,
+            'shipped_at' => now(),
+            'created_by' => $userId ?? auth()->id(),
+        ]);
+    }
+
+    /**
+     * Mark as received/completed
+     */
+    public function receive(?int $userId = null): bool
+    {
+        if (!$this->canBeReceived()) {
+            return false;
+        }
+
+        return $this->update([
+            'status' => self::STATUS_COMPLETED,
+            'received_at' => now(),
+            'received_by' => $userId ?? auth()->id(),
+        ]);
+    }
+
+    /**
+     * Cancel transfer
+     */
+    public function cancel(?int $userId = null): bool
+    {
+        if (!$this->canBeCancelled()) {
+            return false;
+        }
+
+        return $this->update([
+            'status' => self::STATUS_CANCELLED,
+        ]);
+    }
+
+    /**
+     * Calculate total value from items
+     */
+    public function calculateTotalValue(): float
+    {
+        return (float) $this->items()
+            ->selectRaw('SUM(quantity * unit_cost) as total')
+            ->value('total') ?? 0.0;
+    }
+
+    /**
+     * Update total value
+     */
+    public function updateTotalValue(): bool
+    {
+        $this->total_value = $this->calculateTotalValue();
+        return $this->save();
     }
 
     // Backward compatibility accessor
