@@ -10,6 +10,8 @@ class StockTransferHistory extends Model
 {
     use HasFactory;
 
+    protected $table = 'stock_transfer_history';
+
     protected $fillable = [
         'stock_transfer_id',
         'from_status',
