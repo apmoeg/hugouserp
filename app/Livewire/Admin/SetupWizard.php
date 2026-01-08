@@ -222,6 +222,7 @@ class SetupWizard extends Component
                 'email' => $this->adminEmail,
                 'branch_id' => $branch->id,
                 'locale' => $this->locale,
+                'timezone' => $this->timezone,
                 'is_active' => true,
             ]);
             $user->password = Hash::make($this->adminPassword);
