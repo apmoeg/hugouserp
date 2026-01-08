@@ -136,6 +136,10 @@ return new class extends Migration
 
     /**
      * Reverse the migrations.
+     * 
+     * NOTE: This rollback restores the ORIGINAL BUGGY STATE where the foreign keys
+     * pointed to the 'transfers' table instead of 'stock_transfers'. This is intentional
+     * to allow the migration to be re-run if needed.
      */
     public function down(): void
     {
