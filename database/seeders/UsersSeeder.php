@@ -19,8 +19,14 @@ class UsersSeeder extends Seeder
         /** @var User|null $existing */
         $existing = User::query()->where('email', $email)->first();
 
-        /** @var Branch|null $branch */
-        $branch = Branch::query()->where('is_main', true)->first() ?? Branch::query()->first();
+        // Get branch ID directly from database
+        $branchId = \DB::table('branches')
+            ->where('is_main', true)
+            ->value('id');
+        
+        if (! $branchId) {
+            $branchId = \DB::table('branches')->value('id');
+        }
 
         if (! $existing) {
             $existing = User::query()->create([
@@ -32,12 +38,12 @@ class UsersSeeder extends Seeder
                 'username' => 'admin',
                 'locale' => 'en',
                 'timezone' => config('app.timezone'),
-                'branch_id' => $branch?->id,
+                'branch_id' => $branchId,
             ]);
         }
 
-        if ($branch && method_exists($existing, 'branches')) {
-            $existing->branches()->syncWithoutDetaching([$branch->id]);
+        if ($branchId && method_exists($existing, 'branches')) {
+            $existing->branches()->syncWithoutDetaching([$branchId]);
         }
 
         /** @var Role|null $superAdmin */
