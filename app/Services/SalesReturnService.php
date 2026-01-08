@@ -8,13 +8,13 @@ use App\Models\Sale;
 use App\Models\SalesReturn;
 use App\Models\SalesReturnItem;
 use App\Models\StockMovement;
-use App\Services\Traits\HandlesServiceOperations;
+use App\Traits\HandlesServiceErrors;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class SalesReturnService
 {
-    use HandlesServiceOperations;
+    use HandlesServiceErrors;
 
     public function __construct(
         protected StockService $stockService,
