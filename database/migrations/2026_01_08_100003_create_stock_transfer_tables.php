@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreignId('to_branch_id')->nullable()->constrained('branches')->onDelete('restrict');
             $table->enum('transfer_type', ['inter_warehouse', 'inter_branch', 'internal'])->default('inter_warehouse')->index();
             $table->enum('status', ['draft', 'pending', 'approved', 'in_transit', 'received', 'completed', 'cancelled', 'rejected'])->default('pending')->index();
-            $table->date('transfer_date')->default(DB::raw('CURRENT_DATE'))->index();
+            $table->date('transfer_date')->nullable()->index();
             $table->date('expected_delivery_date')->nullable();
             $table->date('actual_delivery_date')->nullable();
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium')->index();

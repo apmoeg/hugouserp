@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignId('warehouse_id')->constrained('warehouses')->onDelete('restrict');
             $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('restrict');
             $table->enum('status', ['draft', 'pending', 'approved', 'completed', 'cancelled'])->default('pending')->index();
-            $table->date('received_date')->default(DB::raw('CURRENT_DATE'))->index();
+            $table->date('received_date')->nullable()->index();
             $table->string('delivery_note_number', 100)->nullable(); // Supplier's delivery note
             $table->string('vehicle_number', 50)->nullable();
             $table->string('driver_name', 100)->nullable();
@@ -93,7 +93,7 @@ return new class extends Migration
             $table->string('currency', 3)->default('EGP');
             $table->text('notes')->nullable();
             $table->text('internal_notes')->nullable();
-            $table->date('return_date')->default(DB::raw('CURRENT_DATE'))->index();
+            $table->date('return_date')->nullable()->index();
             $table->string('tracking_number', 100)->nullable(); // Shipment tracking
             $table->string('courier_name', 100)->nullable();
             $table->date('shipped_date')->nullable();
@@ -121,7 +121,7 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained('products')->onDelete('restrict');
             $table->foreignId('branch_id')->constrained('branches')->onDelete('restrict');
             $table->decimal('qty_returned', 15, 3)->default(0);
-            $table->decimal('qty_original', 15, 3')->default(0); // Original received quantity
+            $table->decimal('qty_original', 15, 3)->default(0); // Original received quantity
             $table->decimal('unit_cost', 15, 2)->default(0);
             $table->decimal('tax_amount', 15, 2)->default(0);
             $table->decimal('line_total', 15, 2)->default(0);
@@ -153,7 +153,7 @@ return new class extends Migration
             $table->string('currency', 3)->default('EGP');
             $table->text('reason')->nullable();
             $table->text('notes')->nullable();
-            $table->date('issue_date')->default(DB::raw('CURRENT_DATE'))->index();
+            $table->date('issue_date')->nullable()->index();
             $table->date('applied_date')->nullable();
             $table->boolean('auto_apply')->default(true);
             $table->decimal('applied_amount', 15, 2)->default(0);

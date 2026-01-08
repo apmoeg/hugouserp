@@ -87,7 +87,7 @@ return new class extends Migration
             $table->string('currency', 3)->default('EGP');
             $table->text('reason')->nullable();
             $table->text('notes')->nullable();
-            $table->date('issue_date')->default(DB::raw('CURRENT_DATE'))->index();
+            $table->date('issue_date')->nullable()->index();
             $table->date('applied_date')->nullable(); // When credit was applied to customer account
             $table->boolean('auto_apply')->default(true); // Auto-apply to customer balance
             $table->decimal('applied_amount', 15, 2)->default(0); // Amount actually applied
@@ -118,7 +118,7 @@ return new class extends Migration
             $table->foreignId('credit_note_id')->constrained('credit_notes')->onDelete('cascade');
             $table->foreignId('sale_id')->nullable()->constrained('sales')->onDelete('restrict'); // Applied to which sale
             $table->decimal('applied_amount', 15, 2)->default(0);
-            $table->date('application_date')->default(DB::raw('CURRENT_DATE'));
+            $table->date('application_date')->nullable();
             $table->text('notes')->nullable();
             $table->foreignId('applied_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
