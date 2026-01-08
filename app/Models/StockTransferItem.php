@@ -1,0 +1,76 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class StockTransferItem extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'stock_transfer_id',
+        'product_id',
+        'qty_requested',
+        'qty_approved',
+        'qty_shipped',
+        'qty_received',
+        'qty_damaged',
+        'batch_number',
+        'expiry_date',
+        'unit_cost',
+        'condition_on_shipping',
+        'condition_on_receiving',
+        'notes',
+        'damage_report',
+    ];
+
+    protected $casts = [
+        'qty_requested' => 'decimal:3',
+        'qty_approved' => 'decimal:3',
+        'qty_shipped' => 'decimal:3',
+        'qty_received' => 'decimal:3',
+        'qty_damaged' => 'decimal:3',
+        'unit_cost' => 'decimal:2',
+        'expiry_date' => 'date',
+    ];
+
+    /**
+     * Relationships
+     */
+    public function stockTransfer(): BelongsTo
+    {
+        return $this->belongsTo(StockTransfer::class);
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Check if item is fully received
+     */
+    public function isFullyReceived(): bool
+    {
+        return bccomp((string)$this->qty_shipped, (string)$this->qty_received, 3) === 0;
+    }
+
+    /**
+     * Check if item has damage
+     */
+    public function hasDamage(): bool
+    {
+        return $this->qty_damaged > 0;
+    }
+
+    /**
+     * Get variance between shipped and received
+     */
+    public function getVariance(): float
+    {
+        return (float) bcsub((string)$this->qty_shipped, (string)$this->qty_received, 3);
+    }
+}
