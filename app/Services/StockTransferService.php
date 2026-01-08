@@ -22,42 +22,66 @@ class StockTransferService
      */
     public function createTransfer(array $data): StockTransfer
     {
+        // Input validation
+        $validated = validator($data, [
+            'from_warehouse_id' => 'required|integer|exists:warehouses,id',
+            'to_warehouse_id' => 'required|integer|exists:warehouses,id|different:from_warehouse_id',
+            'from_branch_id' => 'nullable|integer|exists:branches,id',
+            'to_branch_id' => 'nullable|integer|exists:branches,id',
+            'transfer_date' => 'nullable|date',
+            'expected_delivery_date' => 'nullable|date|after_or_equal:transfer_date',
+            'priority' => 'nullable|in:low,medium,high,urgent',
+            'reason' => 'nullable|string|max:255',
+            'notes' => 'nullable|string',
+            'shipping_cost' => 'nullable|numeric|min:0',
+            'insurance_cost' => 'nullable|numeric|min:0',
+            'currency' => 'nullable|string|max:3',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|integer|exists:products,id',
+            'items.*.qty' => 'required|numeric|min:0.001',
+            'items.*.batch_number' => 'nullable|string|max:50',
+            'items.*.expiry_date' => 'nullable|date',
+            'items.*.unit_cost' => 'nullable|numeric|min:0',
+            'items.*.condition' => 'nullable|string|max:50',
+            'items.*.notes' => 'nullable|string',
+        ])->validate();
+
         return $this->handleServiceOperation(
-            callback: fn() => DB::transaction(function () use ($data) {
+            callback: fn() => DB::transaction(function () use ($validated) {
                 // Validate different warehouses
                 abort_if(
-                    $data['from_warehouse_id'] === $data['to_warehouse_id'],
+                    $validated['from_warehouse_id'] === $validated['to_warehouse_id'],
                     422,
                     'Cannot transfer to the same warehouse'
                 );
 
                 // Create transfer
                 $transfer = StockTransfer::create([
-                    'from_warehouse_id' => $data['from_warehouse_id'],
-                    'to_warehouse_id' => $data['to_warehouse_id'],
-                    'from_branch_id' => $data['from_branch_id'] ?? null,
-                    'to_branch_id' => $data['to_branch_id'] ?? null,
-                    'transfer_type' => $this->determineTransferType($data),
+                    'from_warehouse_id' => $validated['from_warehouse_id'],
+                    'to_warehouse_id' => $validated['to_warehouse_id'],
+                    'from_branch_id' => $validated['from_branch_id'] ?? null,
+                    'to_branch_id' => $validated['to_branch_id'] ?? null,
+                    'transfer_type' => $this->determineTransferType($validated),
                     'status' => StockTransfer::STATUS_PENDING,
-                    'transfer_date' => $data['transfer_date'] ?? now()->toDateString(),
-                    'expected_delivery_date' => $data['expected_delivery_date'] ?? null,
-                    'priority' => $data['priority'] ?? StockTransfer::PRIORITY_MEDIUM,
-                    'reason' => $data['reason'] ?? null,
-                    'notes' => $data['notes'] ?? null,
-                    'shipping_cost' => $data['shipping_cost'] ?? 0,
-                    'insurance_cost' => $data['insurance_cost'] ?? 0,
-                    'total_cost' => ($data['shipping_cost'] ?? 0) + ($data['insurance_cost'] ?? 0),
-                    'currency' => $data['currency'] ?? 'EGP',
+                    'transfer_date' => $validated['transfer_date'] ?? now()->toDateString(),
+                    'expected_delivery_date' => $validated['expected_delivery_date'] ?? null,
+                    'priority' => $validated['priority'] ?? StockTransfer::PRIORITY_MEDIUM,
+                    'reason' => $validated['reason'] ?? null,
+                    'notes' => $validated['notes'] ?? null,
+                    'shipping_cost' => $validated['shipping_cost'] ?? 0,
+                    'insurance_cost' => $validated['insurance_cost'] ?? 0,
+                    'total_cost' => ($validated['shipping_cost'] ?? 0) + ($validated['insurance_cost'] ?? 0),
+                    'currency' => $validated['currency'] ?? 'EGP',
                     'requested_by' => auth()->id(),
                     'created_by' => auth()->id(),
                 ]);
 
                 // Add items
-                foreach ($data['items'] as $itemData) {
+                foreach ($validated['items'] as $itemData) {
                     // Validate stock availability
                     $availableStock = $this->stockService->getCurrentStock(
                         $itemData['product_id'],
-                        $data['from_warehouse_id']
+                        $validated['from_warehouse_id']
                     );
 
                     $requestedQty = (float)($itemData['qty'] ?? 0);
@@ -87,14 +111,14 @@ class StockTransferService
                 Log::info('Stock transfer created', [
                     'transfer_id' => $transfer->id,
                     'transfer_number' => $transfer->transfer_number,
-                    'from_warehouse' => $data['from_warehouse_id'],
-                    'to_warehouse' => $data['to_warehouse_id'],
+                    'from_warehouse' => $validated['from_warehouse_id'],
+                    'to_warehouse' => $validated['to_warehouse_id'],
                 ]);
 
                 return $transfer->load(['items.product', 'fromWarehouse', 'toWarehouse']);
             }),
             operation: 'create_transfer',
-            context: $data
+            context: $validated
         );
     }
 
@@ -148,8 +172,19 @@ class StockTransferService
      */
     public function shipTransfer(int $transferId, array $shippingData): StockTransfer
     {
+        // Input validation
+        $validated = validator($shippingData, [
+            'tracking_number' => 'nullable|string|max:100',
+            'courier_name' => 'nullable|string|max:100',
+            'vehicle_number' => 'nullable|string|max:50',
+            'driver_name' => 'nullable|string|max:100',
+            'driver_phone' => 'nullable|string|max:20',
+            'items' => 'nullable|array',
+            'items.*.qty_shipped' => 'nullable|numeric|min:0',
+        ])->validate();
+
         return $this->handleServiceOperation(
-            callback: fn() => DB::transaction(function () use ($transferId, $shippingData) {
+            callback: fn() => DB::transaction(function () use ($transferId, $validated) {
                 $transfer = StockTransfer::with(['items.product'])->findOrFail($transferId);
                 $userId = auth()->id();
 
@@ -161,7 +196,7 @@ class StockTransferService
 
                 // Deduct stock from source warehouse
                 foreach ($transfer->items as $item) {
-                    $qtyToShip = $shippingData['items'][$item->id]['qty_shipped'] ?? $item->qty_approved;
+                    $qtyToShip = $validated['items'][$item->id]['qty_shipped'] ?? $item->qty_approved;
 
                     // Update item shipped quantity
                     $item->update(['qty_shipped' => $qtyToShip]);
@@ -181,18 +216,18 @@ class StockTransferService
                 $transfer->calculateTotals();
 
                 // Mark as shipped
-                $transfer->markAsShipped($userId, $shippingData);
+                $transfer->markAsShipped($userId, $validated);
 
                 Log::info('Stock transfer shipped', [
                     'transfer_id' => $transfer->id,
                     'transfer_number' => $transfer->transfer_number,
-                    'tracking_number' => $shippingData['tracking_number'] ?? null,
+                    'tracking_number' => $validated['tracking_number'] ?? null,
                 ]);
 
                 return $transfer->refresh();
             }),
             operation: 'ship_transfer',
-            context: ['transfer_id' => $transferId, 'shipping_data' => $shippingData]
+            context: ['transfer_id' => $transferId, 'shipping_data' => $validated]
         );
     }
 
@@ -201,8 +236,17 @@ class StockTransferService
      */
     public function receiveTransfer(int $transferId, array $receivingData): StockTransfer
     {
+        // Input validation
+        $validated = validator($receivingData, [
+            'items' => 'required|array',
+            'items.*.qty_received' => 'nullable|numeric|min:0',
+            'items.*.qty_damaged' => 'nullable|numeric|min:0',
+            'items.*.condition' => 'nullable|string|max:50',
+            'items.*.damage_report' => 'nullable|string',
+        ])->validate();
+
         return $this->handleServiceOperation(
-            callback: fn() => DB::transaction(function () use ($transferId, $receivingData) {
+            callback: fn() => DB::transaction(function () use ($transferId, $validated) {
                 $transfer = StockTransfer::with(['items.product'])->findOrFail($transferId);
                 $userId = auth()->id();
 
@@ -214,7 +258,7 @@ class StockTransferService
 
                 // Process received items
                 foreach ($transfer->items as $item) {
-                    $itemReceivingData = $receivingData['items'][$item->id] ?? [];
+                    $itemReceivingData = $validated['items'][$item->id] ?? [];
                     
                     $qtyReceived = (float)($itemReceivingData['qty_received'] ?? $item->qty_shipped);
                     $qtyDamaged = (float)($itemReceivingData['qty_damaged'] ?? 0);
@@ -248,7 +292,7 @@ class StockTransferService
                             quantity: $qtyDamaged,
                             type: StockMovement::TYPE_ADJUSTMENT,
                             reference: "Transfer Damage: {$transfer->transfer_number}",
-                            notes: "Damaged during transfer - {$itemReceivingData['damage_report'] ?? 'No details'}"
+                            notes: "Damaged during transfer - " . ($itemReceivingData['damage_report'] ?? 'No details')
                         );
                     }
                 }
@@ -275,7 +319,7 @@ class StockTransferService
                 return $transfer->refresh();
             }),
             operation: 'receive_transfer',
-            context: ['transfer_id' => $transferId, 'receiving_data' => $receivingData]
+            context: ['transfer_id' => $transferId, 'receiving_data' => $validated]
         );
     }
 

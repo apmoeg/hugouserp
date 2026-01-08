@@ -36,14 +36,31 @@ class SalesReturnService
      */
     public function createReturn(array $data): SalesReturn
     {
+        // Input validation
+        $validated = validator($data, [
+            'sale_id' => 'required|integer|exists:sales,id',
+            'branch_id' => 'nullable|integer|exists:branches,id',
+            'warehouse_id' => 'nullable|integer|exists:warehouses,id',
+            'reason' => 'nullable|string|max:255',
+            'notes' => 'nullable|string',
+            'refund_method' => 'nullable|in:original,cash,bank_transfer,credit,store_credit',
+            'items' => 'required|array|min:1',
+            'items.*.sale_item_id' => 'required|integer|exists:sale_items,id',
+            'items.*.qty' => 'required|numeric|min:0.001',
+            'items.*.condition' => 'nullable|in:new,used,damaged,defective',
+            'items.*.reason' => 'nullable|string|max:255',
+            'items.*.notes' => 'nullable|string',
+            'items.*.restock' => 'nullable|boolean',
+        ])->validate();
+
         return $this->handleServiceOperation(
-            callback: fn() => DB::transaction(function () use ($data) {
+            callback: fn() => DB::transaction(function () use ($validated) {
                 // Validate sale exists
-                $sale = Sale::with(['items.product', 'customer'])->findOrFail($data['sale_id']);
+                $sale = Sale::with(['items.product', 'customer'])->findOrFail($validated['sale_id']);
                 
                 // Validate branch access
                 abort_if(
-                    !empty($data['branch_id']) && $sale->branch_id !== $data['branch_id'],
+                    !empty($validated['branch_id']) && $sale->branch_id !== $validated['branch_id'],
                     422,
                     'Branch mismatch between sale and return'
                 );
@@ -52,19 +69,19 @@ class SalesReturnService
                 $return = SalesReturn::create([
                     'sale_id' => $sale->id,
                     'branch_id' => $sale->branch_id,
-                    'warehouse_id' => $data['warehouse_id'] ?? $sale->warehouse_id,
+                    'warehouse_id' => $validated['warehouse_id'] ?? $sale->warehouse_id,
                     'customer_id' => $sale->customer_id,
-                    'return_type' => $this->determineReturnType($data['items'], $sale->items),
+                    'return_type' => $this->determineReturnType($validated['items'], $sale->items),
                     'status' => SalesReturn::STATUS_PENDING,
-                    'reason' => $data['reason'] ?? null,
-                    'notes' => $data['notes'] ?? null,
+                    'reason' => $validated['reason'] ?? null,
+                    'notes' => $validated['notes'] ?? null,
                     'currency' => $sale->currency,
-                    'refund_method' => $data['refund_method'] ?? 'original',
+                    'refund_method' => $validated['refund_method'] ?? 'original',
                     'created_by' => auth()->id(),
                 ]);
 
                 // Add return items
-                foreach ($data['items'] as $itemData) {
+                foreach ($validated['items'] as $itemData) {
                     $saleItem = $sale->items()->findOrFail($itemData['sale_item_id']);
                     
                     // Validate return quantity
@@ -108,7 +125,7 @@ class SalesReturnService
                 return $return->load(['items.product', 'sale', 'customer']);
             }),
             operation: 'create_return',
-            context: $data
+            context: $validated
         );
     }
 
@@ -162,8 +179,20 @@ class SalesReturnService
      */
     public function processRefund(int $returnId, array $refundData): ReturnRefund
     {
+        // Input validation
+        $validated = validator($refundData, [
+            'method' => 'nullable|in:cash,bank_transfer,credit_card,store_credit,original',
+            'amount' => 'nullable|numeric|min:0',
+            'reference_number' => 'nullable|string|max:100',
+            'transaction_id' => 'nullable|string|max:100',
+            'notes' => 'nullable|string',
+            'bank_name' => 'nullable|string|max:100',
+            'account_number' => 'nullable|string|max:50',
+            'card_last_four' => 'nullable|string|max:4',
+        ])->validate();
+
         return $this->handleServiceOperation(
-            callback: fn() => DB::transaction(function () use ($returnId, $refundData) {
+            callback: fn() => DB::transaction(function () use ($returnId, $validated) {
                 $return = SalesReturn::with(['creditNotes', 'customer'])->findOrFail($returnId);
                 $userId = auth()->id();
 
@@ -178,24 +207,24 @@ class SalesReturnService
                     'sales_return_id' => $return->id,
                     'credit_note_id' => $return->creditNotes->first()?->id,
                     'branch_id' => $return->branch_id,
-                    'refund_method' => $refundData['method'] ?? $return->refund_method,
-                    'amount' => $refundData['amount'] ?? $return->refund_amount,
+                    'refund_method' => $validated['method'] ?? $return->refund_method,
+                    'amount' => $validated['amount'] ?? $return->refund_amount,
                     'currency' => $return->currency,
-                    'reference_number' => $refundData['reference_number'] ?? null,
-                    'transaction_id' => $refundData['transaction_id'] ?? null,
+                    'reference_number' => $validated['reference_number'] ?? null,
+                    'transaction_id' => $validated['transaction_id'] ?? null,
                     'status' => ReturnRefund::STATUS_PENDING,
-                    'notes' => $refundData['notes'] ?? null,
-                    'bank_name' => $refundData['bank_name'] ?? null,
-                    'account_number' => $refundData['account_number'] ?? null,
-                    'card_last_four' => $refundData['card_last_four'] ?? null,
+                    'notes' => $validated['notes'] ?? null,
+                    'bank_name' => $validated['bank_name'] ?? null,
+                    'account_number' => $validated['account_number'] ?? null,
+                    'card_last_four' => $validated['card_last_four'] ?? null,
                     'created_by' => $userId,
                 ]);
 
                 // Process the refund based on method
-                $this->executeRefund($refund, $refundData);
+                $this->executeRefund($refund, $validated);
 
                 // Complete the refund
-                $refund->complete($userId, $refundData['transaction_id'] ?? null);
+                $refund->complete($userId, $validated['transaction_id'] ?? null);
 
                 // Mark return as completed
                 $return->complete($userId);
@@ -213,7 +242,7 @@ class SalesReturnService
                 return $refund->load(['salesReturn', 'creditNote']);
             }),
             operation: 'process_refund',
-            context: ['return_id' => $returnId, 'refund_data' => $refundData]
+            context: ['return_id' => $returnId, 'refund_data' => $validated]
         );
     }
 

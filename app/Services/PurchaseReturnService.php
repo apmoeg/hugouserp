@@ -33,27 +33,51 @@ class PurchaseReturnService
      */
     public function createReturn(array $data): PurchaseReturn
     {
-        return DB::transaction(function () use ($data) {
+        // Input validation
+        $validated = validator($data, [
+            'purchase_id' => 'required|integer|exists:purchases,id',
+            'supplier_id' => 'nullable|integer|exists:suppliers,id',
+            'branch_id' => 'nullable|integer|exists:branches,id',
+            'warehouse_id' => 'nullable|integer|exists:warehouses,id',
+            'grn_id' => 'nullable|integer|exists:goods_received_notes,id',
+            'return_type' => 'nullable|in:full,partial,defective,excess',
+            'reason' => 'required|string|max:255',
+            'notes' => 'nullable|string',
+            'internal_notes' => 'nullable|string',
+            'return_date' => 'nullable|date',
+            'tracking_number' => 'nullable|string|max:100',
+            'courier_name' => 'nullable|string|max:100',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|integer|exists:products,id',
+            'items.*.qty_returned' => 'required|numeric|min:0.001',
+            'items.*.condition' => 'nullable|in:defective,damaged,wrong_item,excess,expired',
+            'items.*.unit_cost' => 'nullable|numeric|min:0',
+            'items.*.batch_number' => 'nullable|string|max:50',
+            'items.*.expiry_date' => 'nullable|date',
+            'items.*.notes' => 'nullable|string',
+        ])->validate();
+
+        return DB::transaction(function () use ($validated) {
             // Validate purchase exists
-            $purchase = Purchase::findOrFail($data['purchase_id']);
+            $purchase = Purchase::findOrFail($validated['purchase_id']);
             
             // Create purchase return
             $return = PurchaseReturn::create([
-                'purchase_id' => $data['purchase_id'],
-                'supplier_id' => $data['supplier_id'] ?? $purchase->supplier_id,
-                'branch_id' => $data['branch_id'] ?? $purchase->branch_id,
-                'warehouse_id' => $data['warehouse_id'] ?? $purchase->warehouse_id,
-                'return_type' => $data['return_type'] ?? PurchaseReturn::TYPE_FULL,
-                'reason' => $data['reason'],
+                'purchase_id' => $validated['purchase_id'],
+                'supplier_id' => $validated['supplier_id'] ?? $purchase->supplier_id,
+                'branch_id' => $validated['branch_id'] ?? $purchase->branch_id,
+                'warehouse_id' => $validated['warehouse_id'] ?? $purchase->warehouse_id,
+                'return_type' => $validated['return_type'] ?? PurchaseReturn::TYPE_FULL,
+                'reason' => $validated['reason'],
                 'status' => PurchaseReturn::STATUS_PENDING,
                 'created_by' => Auth::id(),
-                'notes' => $data['notes'] ?? null,
+                'notes' => $validated['notes'] ?? null,
                 'expected_debit_note_amount' => 0,
             ]);
             
             // Add return items
             $totalAmount = 0;
-            foreach ($data['items'] as $itemData) {
+            foreach ($validated['items'] as $itemData) {
                 $item = PurchaseReturnItem::create([
                     'purchase_return_id' => $return->id,
                     'purchase_item_id' => $itemData['purchase_item_id'],
@@ -272,12 +296,16 @@ class PurchaseReturnService
             $totalReturns = PurchaseReturn::where('supplier_id', $supplierId)
                 ->whereYear('created_at', Carbon::now()->year)
                 ->whereMonth('created_at', Carbon::now()->month)
-                ->sum(DB::raw('(SELECT SUM(qty_returned) FROM purchase_return_items WHERE purchase_return_id = purchase_returns.id)'));
+                ->withSum('items', 'qty_returned')
+                ->get()
+                ->sum('items_sum_qty_returned');
             
             $totalOrders = Purchase::where('supplier_id', $supplierId)
                 ->whereYear('created_at', Carbon::now()->year)
                 ->whereMonth('created_at', Carbon::now()->month)
-                ->sum(DB::raw('(SELECT SUM(quantity) FROM purchase_items WHERE purchase_id = purchases.id)'));
+                ->withSum('items', 'quantity')
+                ->get()
+                ->sum('items_sum_quantity');
             
             if ($totalOrders > 0) {
                 $metric->update([
