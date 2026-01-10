@@ -593,7 +593,7 @@ class ChartOfAccountsSeeder extends Seeder
                 'mapping_key' => 'cheque_account',
             ],
             [
-                'account_id' => $this->getAccountId($branchId, '1030'), // Accounts Receivable - Cheques (using as fallback)
+                'account_id' => $this->getAccountId($branchId, '1030'), // Cheques Receivable
                 'is_active' => true,
             ]
         );

@@ -11,14 +11,26 @@ class ProductResource extends JsonResource
 {
     /**
      * BUG FIX #4: Cache permission check result to avoid N+1 queries
-     * This static property stores the result per request
+     * Note: Static cache is reset between requests in PHP-FPM/CLI environments
+     * Laravel's request lifecycle ensures this doesn't leak between users
      */
     private static ?bool $canViewCost = null;
+
+    /**
+     * Track the current request to prevent cache poisoning
+     */
+    private static ?string $requestId = null;
 
     public function toArray(Request $request): array
     {
         // BUG FIX #4: Check permission once per request, not per product
-        // This eliminates N+1 query issue while maintaining security
+        // Reset cache if this is a different request (safety measure)
+        $currentRequestId = spl_object_hash($request);
+        if (self::$requestId !== $currentRequestId) {
+            self::$canViewCost = null;
+            self::$requestId = $currentRequestId;
+        }
+
         if (self::$canViewCost === null) {
             self::$canViewCost = $request->user()?->can('products.view-cost') ?? false;
         }
@@ -59,5 +71,6 @@ class ProductResource extends JsonResource
     public static function resetPermissionCache(): void
     {
         self::$canViewCost = null;
+        self::$requestId = null;
     }
 }
