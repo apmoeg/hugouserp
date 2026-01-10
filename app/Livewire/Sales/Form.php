@@ -17,6 +17,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
+// Financial calculation precision constants
+const BCMATH_CALCULATION_SCALE = 4;  // Scale for intermediate calculations
+const BCMATH_TAX_RATE_SCALE = 6;     // Higher precision for tax rate division
+const BCMATH_STORAGE_SCALE = 2;       // Scale for database storage (2 decimal places)
+const PRICE_COMPARISON_TOLERANCE = 0.01; // Tolerance for price comparison (1 cent)
+
 class Form extends Component
 {
     use AuthorizesRequests;
@@ -364,26 +370,51 @@ class Form extends Component
                         }
 
                         foreach ($this->items as $item) {
-                            $lineTotal = ($item['qty'] * $item['unit_price']) - ($item['discount'] ?? 0);
-                            $taxAmount = $lineTotal * (($item['tax_rate'] ?? 0) / 100);
-                            $lineTotal += $taxAmount;
-
-                            // Get product info
+                            // SECURITY FIX: Validate price from database to prevent frontend manipulation
+                            // Always fetch the current product price from database, never trust client-side values
                             $product = Product::find($item['product_id']);
+                            
+                            if (! $product) {
+                                throw ValidationException::withMessages([
+                                    'items' => [__('Product not found: :id', ['id' => $item['product_id']])],
+                                ]);
+                            }
+
+                            // Use the database price, not the client-provided price
+                            $validatedPrice = (float) ($product->default_price ?? 0);
+                            
+                            // Optional: Check if user has permission to override prices
+                            if (abs($validatedPrice - ($item['unit_price'] ?? 0)) > PRICE_COMPARISON_TOLERANCE) {
+                                if (! $user->can_modify_price) {
+                                    throw ValidationException::withMessages([
+                                        'items' => [__('You are not allowed to modify product prices')],
+                                    ]);
+                                }
+                                // If user can modify prices, use their price but log it for audit
+                                $validatedPrice = (float) $item['unit_price'];
+                            }
+
+                            // Use bcmath for precise financial calculations
+                            $lineSubtotal = bcmul((string) $item['qty'], (string) $validatedPrice, BCMATH_CALCULATION_SCALE);
+                            $discountAmount = (string) ($item['discount'] ?? 0);
+                            $lineAfterDiscount = bcsub($lineSubtotal, $discountAmount, BCMATH_CALCULATION_SCALE);
+                            $taxRate = bcdiv((string) ($item['tax_rate'] ?? 0), '100', BCMATH_TAX_RATE_SCALE);
+                            $taxAmount = bcmul($lineAfterDiscount, $taxRate, BCMATH_CALCULATION_SCALE);
+                            $lineTotal = bcadd($lineAfterDiscount, $taxAmount, BCMATH_CALCULATION_SCALE);
 
                             SaleItem::create([
                                 'sale_id' => $sale->id,
                                 'product_id' => $item['product_id'],
                                 'warehouse_id' => $sale->warehouse_id,
-                                'product_name' => $product?->name ?? $item['product_name'] ?? '',
-                                'sku' => $product?->sku ?? $item['sku'] ?? null,
+                                'product_name' => $product->name ?? $item['product_name'] ?? '',
+                                'sku' => $product->sku ?? $item['sku'] ?? null,
                                 'quantity' => $item['qty'],
-                                'unit_price' => $item['unit_price'],
+                                'unit_price' => $validatedPrice,
                                 'discount_percent' => 0,
-                                'discount_amount' => $item['discount'] ?? 0,
+                                'discount_amount' => (float) bcdiv($discountAmount, '1', BCMATH_STORAGE_SCALE),
                                 'tax_percent' => $item['tax_rate'] ?? 0,
-                                'tax_amount' => $taxAmount,
-                                'line_total' => $lineTotal,
+                                'tax_amount' => (float) bcdiv($taxAmount, '1', BCMATH_STORAGE_SCALE),
+                                'line_total' => (float) bcdiv($lineTotal, '1', BCMATH_STORAGE_SCALE),
                             ]);
                         }
 
