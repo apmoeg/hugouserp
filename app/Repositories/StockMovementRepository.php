@@ -135,7 +135,9 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
 
             // Calculate stock_before and stock_after with pessimistic locking
             // Lock the latest stock movement record to prevent concurrent modifications
-            $latestMovement = StockMovement::where('product_id', $data['product_id'])
+            // This ensures that when two concurrent transactions try to create stock movements,
+            // they will be serialized: the second one will wait until the first completes
+            StockMovement::where('product_id', $data['product_id'])
                 ->where('warehouse_id', $data['warehouse_id'])
                 ->orderByDesc('id')
                 ->lockForUpdate()
