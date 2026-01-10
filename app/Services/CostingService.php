@@ -205,6 +205,9 @@ class CostingService
         if ($batch->exists) {
             // Update existing batch - recalculate weighted average cost
             // Formula: new_avg_cost = (old_qty * old_cost + new_qty * new_cost) / (old_qty + new_qty)
+            
+            // NOTE: We cast to string for bcmath functions to ensure precise decimal calculations
+            // BCMath operates on strings to avoid floating-point precision issues with money/inventory
             $oldQty = (string) $batch->quantity;
             $oldCost = (string) $batch->unit_cost;
             $newQty = (string) $quantity;

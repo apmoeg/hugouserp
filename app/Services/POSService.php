@@ -78,6 +78,14 @@ class POSService implements POSServiceInterface
                         ->sum('discount_total');
                 }
 
+                // Lock all products at once to prevent performance issues and deadlocks
+                $productIds = array_unique(array_column($items, 'product_id'));
+                $products = Product::withTrashed()
+                    ->whereIn('id', $productIds)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+
                 foreach ($items as $it) {
                     // Validate quantity is positive (prevent negative quantity exploit)
                     $qty = (float) ($it['qty'] ?? 1);
@@ -86,7 +94,7 @@ class POSService implements POSServiceInterface
                     }
 
                     // Check if product exists and is not soft-deleted (prevent zombie products in cart)
-                    $product = Product::withTrashed()->lockForUpdate()->find($it['product_id']);
+                    $product = $products->get($it['product_id']);
                     
                     if (! $product) {
                         abort(422, __('Product not found.'));
