@@ -4,9 +4,11 @@ use App\Console\Commands\ClosePosDay;
 use App\Console\Commands\RepairUserPasswords;
 use App\Console\Commands\SendScheduledReports;
 use App\Console\Commands\SystemDiagnostics;
+use App\Models\Branch;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,6 +16,15 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function (): void {
+            // Route parameter patterns (moved from RouteServiceProvider for Laravel 11/12 compatibility)
+            Route::pattern('id', '[0-9]+');
+
+            // Model binding for {branch} parameter
+            Route::bind('branch', function ($value) {
+                return Branch::query()->findOrFail($value);
+            });
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Security: Trusting all proxies ('*') can allow IP spoofing.
