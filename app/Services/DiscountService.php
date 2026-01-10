@@ -111,4 +111,77 @@ class DiscountService implements DiscountServiceInterface
 
         return true;
     }
+
+    /**
+     * Validate that discount stacking doesn't exceed limits
+     * Prevents combining incompatible discount types
+     *
+     * @param array $discounts Array of discount configurations: [['type' => 'customer', 'value' => 20, 'is_percent' => true], ...]
+     * @param float $baseAmount The base amount before any discounts
+     * @return array ['allowed' => bool, 'reason' => string|null, 'total_discount' => float]
+     */
+    public function validateDiscountStacking(array $discounts, float $baseAmount): array
+    {
+        if (empty($discounts)) {
+            return ['allowed' => true, 'reason' => null, 'total_discount' => 0.0];
+        }
+
+        // Extract discount types
+        $types = array_column($discounts, 'type');
+        
+        // Check for incompatible combinations
+        // Rule: Cannot combine coupon with seasonal discounts
+        if (in_array('coupon', $types) && in_array('seasonal', $types)) {
+            return [
+                'allowed' => false,
+                'reason' => 'Cannot combine coupon discounts with seasonal discounts',
+                'total_discount' => 0.0,
+            ];
+        }
+
+        // Calculate total discount by applying them sequentially
+        $currentAmount = $baseAmount;
+        $totalDiscountAmount = 0.0;
+
+        foreach ($discounts as $discount) {
+            $value = (float) ($discount['value'] ?? 0);
+            $isPercent = (bool) ($discount['is_percent'] ?? true);
+
+            if ($isPercent) {
+                // Percentage discount
+                $discountAmount = $currentAmount * ($value / 100);
+            } else {
+                // Fixed amount discount
+                $discountAmount = $value;
+            }
+
+            // Ensure discount doesn't exceed current amount
+            $discountAmount = min($discountAmount, $currentAmount);
+            
+            $totalDiscountAmount += $discountAmount;
+            $currentAmount -= $discountAmount;
+        }
+
+        // Final amount should never be negative
+        $finalAmount = max(0.0, $baseAmount - $totalDiscountAmount);
+
+        // Check if total discount exceeds maximum allowed (e.g., 80% of base)
+        $maxDiscountPercent = (float) config('sales.max_combined_discount_percent', 80);
+        $discountPercent = $baseAmount > 0 ? ($totalDiscountAmount / $baseAmount * 100) : 0;
+
+        if ($discountPercent > $maxDiscountPercent) {
+            return [
+                'allowed' => false,
+                'reason' => "Combined discounts ({$discountPercent}%) exceed maximum allowed ({$maxDiscountPercent}%)",
+                'total_discount' => $totalDiscountAmount,
+            ];
+        }
+
+        return [
+            'allowed' => true,
+            'reason' => null,
+            'total_discount' => $totalDiscountAmount,
+            'final_amount' => $finalAmount,
+        ];
+    }
 }

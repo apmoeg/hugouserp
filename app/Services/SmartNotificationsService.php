@@ -24,6 +24,7 @@ class SmartNotificationsService
 {
     /**
      * Check and send low stock notifications
+     * Uses batching to prevent notification floods during bulk operations
      */
     public function checkLowStockAlerts(?int $branchId = null): array
     {
@@ -49,35 +50,82 @@ class SmartNotificationsService
             // Get users who should receive notifications
             $users = $this->getUsersForNotification('inventory.products.view', $branchId);
 
-            foreach ($lowStockProducts as $product) {
+            // BATCHING: Instead of sending individual notifications for each product,
+            // send ONE aggregated notification per user if there are many products
+            $batchThreshold = 5; // Send batched notification if more than 5 products
+
+            if ($lowStockProducts->count() > $batchThreshold) {
+                // Send batched notification
                 foreach ($users as $user) {
-                    // Check if we already notified today for this product
+                    // Check if we already sent a batched notification today
                     $alreadyNotified = DB::table('notifications')
                         ->where('notifiable_id', $user->id)
                         ->where('notifiable_type', User::class)
                         ->whereDate('created_at', today())
-                        ->whereJsonContains('data->product_id', $product->id)
+                        ->where('type', GeneralNotification::class)
+                        ->whereJsonContains('data->notification_type', 'low_stock_batch')
                         ->exists();
 
-                    if (! $alreadyNotified) {
+                    if (!$alreadyNotified) {
+                        $productList = $lowStockProducts->map(function ($p) {
+                            return [
+                                'name' => $p->name,
+                                'current_qty' => $p->current_quantity,
+                                'min_stock' => $p->min_stock,
+                            ];
+                        })->toArray();
+
                         $user->notify(new GeneralNotification(
-                            type: 'low_stock',
-                            title: __('Low Stock Alert'),
-                            message: __(':product stock is low (:qty remaining, min: :min)', [
-                                'product' => $product->name,
-                                'qty' => $product->current_quantity,
-                                'min' => $product->min_stock,
+                            type: 'low_stock_batch',
+                            title: __('Low Stock Alert - Multiple Products'),
+                            message: __(':count products have reached low stock levels. Please review inventory.', [
+                                'count' => $lowStockProducts->count(),
                             ]),
-                            actionUrl: route('app.inventory.products.index', ['search' => $product->name]),
-                            actionLabel: __('View Product'),
+                            actionUrl: route('app.inventory.products.index', ['filter' => 'low_stock']),
+                            actionLabel: __('View Low Stock Products'),
                             data: [
-                                'product_id' => $product->id,
-                                'product_name' => $product->name,
-                                'current_qty' => $product->current_quantity,
-                                'min_stock' => $product->min_stock,
+                                'notification_type' => 'low_stock_batch',
+                                'product_count' => $lowStockProducts->count(),
+                                'products' => $productList,
+                                'branch_id' => $branchId,
                             ]
                         ));
-                        $notified[] = $product->name;
+
+                        $notified[] = "{$lowStockProducts->count()} products (batched)";
+                    }
+                }
+            } else {
+                // Send individual notifications for small numbers
+                foreach ($lowStockProducts as $product) {
+                    foreach ($users as $user) {
+                        // Check if we already notified today for this product
+                        $alreadyNotified = DB::table('notifications')
+                            ->where('notifiable_id', $user->id)
+                            ->where('notifiable_type', User::class)
+                            ->whereDate('created_at', today())
+                            ->whereJsonContains('data->product_id', $product->id)
+                            ->exists();
+
+                        if (! $alreadyNotified) {
+                            $user->notify(new GeneralNotification(
+                                type: 'low_stock',
+                                title: __('Low Stock Alert'),
+                                message: __(':product stock is low (:qty remaining, min: :min)', [
+                                    'product' => $product->name,
+                                    'qty' => $product->current_quantity,
+                                    'min' => $product->min_stock,
+                                ]),
+                                actionUrl: route('app.inventory.products.index', ['search' => $product->name]),
+                                actionLabel: __('View Product'),
+                                data: [
+                                    'product_id' => $product->id,
+                                    'product_name' => $product->name,
+                                    'current_qty' => $product->current_quantity,
+                                    'min_stock' => $product->min_stock,
+                                ]
+                            ));
+                            $notified[] = $product->name;
+                        }
                     }
                 }
             }

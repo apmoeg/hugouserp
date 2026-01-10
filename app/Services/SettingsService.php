@@ -112,6 +112,16 @@ class SettingsService
 
                 SystemSetting::updateOrCreate(['key' => $key], $data);
                 $this->clearCache();
+                
+                // Clear Laravel config cache to ensure changes are reflected immediately
+                try {
+                    \Illuminate\Support\Facades\Artisan::call('config:clear');
+                } catch (\Exception $e) {
+                    Log::warning('Failed to clear config cache after setting update', [
+                        'key' => $key,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
 
                 return true;
             },
@@ -131,6 +141,15 @@ class SettingsService
                     } else {
                         $this->set($key, $value);
                     }
+                }
+
+                // Clear Laravel config cache once after all settings are updated
+                try {
+                    \Illuminate\Support\Facades\Artisan::call('config:clear');
+                } catch (\Exception $e) {
+                    Log::warning('Failed to clear config cache after batch settings update', [
+                        'error' => $e->getMessage(),
+                    ]);
                 }
 
                 return true;

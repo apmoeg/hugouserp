@@ -76,6 +76,9 @@ class PricingService implements PricingServiceInterface
                     ? $this->taxes->totalWithTax($baseAfterDiscount, (int) $taxId)
                     : $baseAfterDiscount;
 
+                // Ensure total never goes below zero (prevent negative pricing)
+                $total = max(0.0, $total);
+
                 // Use bcmath for consistent precision across all line totals
                 return [
                     'subtotal' => (float) bcdiv((string) $subtotal, '1', 2),
