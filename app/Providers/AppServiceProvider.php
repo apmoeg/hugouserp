@@ -18,11 +18,14 @@ use App\Services\Contracts\ProductServiceInterface;
 use App\Services\ModuleFieldService;
 // Models & observers
 use App\Services\ProductService;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 // Services
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -73,5 +76,48 @@ class AppServiceProvider extends ServiceProvider
         Module::observe(ModuleObserver::class);
         BranchModule::observe(BranchModuleObserver::class);
         ModuleNavigation::observe(ModuleNavigationObserver::class);
+
+        // Configure rate limiting (moved from RouteServiceProvider for Laravel 11/12 compatibility)
+        $this->configureRateLimiting();
+    }
+
+    /**
+     * Configure rate limiting for different contexts.
+     * Moved from RouteServiceProvider for Laravel 11/12 compatibility.
+     */
+    protected function configureRateLimiting(): void
+    {
+        // General API rate limiting - 120 requests per minute
+        RateLimiter::for('api', function (Request $request) {
+            $key = optional($request->user())->getKey() ?: $request->ip();
+
+            return Limit::perMinute(120)->by($key);
+        });
+
+        // Authentication endpoints - stricter limits to prevent brute force
+        RateLimiter::for('auth', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip());
+        });
+
+        // Export/Report endpoints - limited to prevent abuse
+        RateLimiter::for('exports', function (Request $request) {
+            $key = optional($request->user())->getKey() ?: $request->ip();
+
+            return Limit::perMinute(10)->by($key);
+        });
+
+        // Bulk operations - very limited
+        RateLimiter::for('bulk', function (Request $request) {
+            $key = optional($request->user())->getKey() ?: $request->ip();
+
+            return Limit::perMinute(5)->by($key);
+        });
+
+        // Uploads - moderate limits
+        RateLimiter::for('uploads', function (Request $request) {
+            $key = optional($request->user())->getKey() ?: $request->ip();
+
+            return Limit::perMinute(30)->by($key);
+        });
     }
 }
