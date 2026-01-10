@@ -51,14 +51,6 @@ class SaleService implements SaleServiceInterface
                 $sale = $this->findBranchSaleOrFail($saleId)->load('items');
 
                 return DB::transaction(function () use ($sale, $items, $reason) {
-    /** Return items (full/partial). Negative movement is handled in listeners. */
-    public function handleReturn(int $saleId, array $items, ?string $reason = null): ReturnNote
-    {
-        return $this->handleServiceOperation(
-            callback: function () use ($saleId, $items, $reason) {
-                $sale = $this->findBranchSaleOrFail($saleId)->load('items');
-
-                return DB::transaction(function () use ($sale, $items, $reason) {
                     // Calculate refund amount first
                     $refund = '0.00';
                     foreach ($items as $it) {
