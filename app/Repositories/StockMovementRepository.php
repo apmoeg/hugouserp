@@ -9,6 +9,7 @@ use App\Repositories\Contracts\StockMovementRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 final class StockMovementRepository extends EloquentBaseRepository implements StockMovementRepositoryInterface
 {
@@ -106,39 +107,50 @@ final class StockMovementRepository extends EloquentBaseRepository implements St
 
     /**
      * Create a stock movement with proper column mapping
+     * Uses pessimistic locking to prevent race conditions in high-concurrency scenarios
      */
     public function create(array $data): StockMovement
     {
-        // Map legacy field names to new schema
-        $mappedData = [
-            'product_id' => $data['product_id'],
-            'warehouse_id' => $data['warehouse_id'],
-            'movement_type' => $data['movement_type'] ?? $data['reason'] ?? 'adjustment',
-            'reference_type' => $data['reference_type'] ?? null,
-            'reference_id' => $data['reference_id'] ?? null,
-            'notes' => $data['notes'] ?? $data['reason'] ?? null,
-            'created_by' => $data['created_by'] ?? null,
-        ];
+        // Use transaction with pessimistic locking to prevent race conditions
+        return DB::transaction(function () use ($data) {
+            // Map legacy field names to new schema
+            $mappedData = [
+                'product_id' => $data['product_id'],
+                'warehouse_id' => $data['warehouse_id'],
+                'movement_type' => $data['movement_type'] ?? $data['reason'] ?? 'adjustment',
+                'reference_type' => $data['reference_type'] ?? null,
+                'reference_id' => $data['reference_id'] ?? null,
+                'notes' => $data['notes'] ?? $data['reason'] ?? null,
+                'created_by' => $data['created_by'] ?? null,
+            ];
 
-        // Handle quantity: direction 'out' should be negative
-        $qty = abs((float) ($data['qty'] ?? $data['quantity'] ?? 0));
-        $direction = $data['direction'] ?? 'in';
+            // Handle quantity: direction 'out' should be negative
+            $qty = abs((float) ($data['qty'] ?? $data['quantity'] ?? 0));
+            $direction = $data['direction'] ?? 'in';
 
-        if ($direction === 'out') {
-            $qty = -$qty;
-        }
-        $mappedData['quantity'] = $qty;
+            if ($direction === 'out') {
+                $qty = -$qty;
+            }
+            $mappedData['quantity'] = $qty;
 
-        // Calculate stock_before and stock_after
-        $currentStock = $this->currentStockPerWarehouse(
-            \App\Models\Warehouse::find($data['warehouse_id'])?->branch_id ?? 0,
-            $data['product_id']
-        )->get($data['warehouse_id'], 0.0);
+            // Calculate stock_before and stock_after with pessimistic locking
+            // Lock the latest stock movement record to prevent concurrent modifications
+            $latestMovement = StockMovement::where('product_id', $data['product_id'])
+                ->where('warehouse_id', $data['warehouse_id'])
+                ->orderByDesc('id')
+                ->lockForUpdate()
+                ->first();
 
-        $mappedData['stock_before'] = $currentStock;
-        $mappedData['stock_after'] = $currentStock + $qty;
-        $mappedData['unit_cost'] = $data['unit_cost'] ?? null;
+            // Calculate current stock from all movements
+            $currentStock = (float) StockMovement::where('product_id', $data['product_id'])
+                ->where('warehouse_id', $data['warehouse_id'])
+                ->sum('quantity');
 
-        return StockMovement::create($mappedData);
+            $mappedData['stock_before'] = $currentStock;
+            $mappedData['stock_after'] = $currentStock + $qty;
+            $mappedData['unit_cost'] = $data['unit_cost'] ?? null;
+
+            return StockMovement::create($mappedData);
+        });
     }
 }
