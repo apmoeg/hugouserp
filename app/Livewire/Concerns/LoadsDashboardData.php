@@ -38,7 +38,8 @@ trait LoadsDashboardData
         }
 
         $this->branchId = session('admin_branch_context', $user->branch_id);
-        $this->isAdmin = $user->hasRole('super-admin') || $user->hasRole('admin');
+        // Use case-insensitive role check - seeder uses "Super Admin" (Title Case)
+        $this->isAdmin = $user->hasAnyRole(['Super Admin', 'super-admin', 'Admin', 'admin']);
         $this->cacheTtl = (int) (\App\Models\SystemSetting::where('key', 'advanced.cache_ttl')->value('value') ?? 300);
     }
 
@@ -171,19 +172,31 @@ trait LoadsDashboardData
     }
 
     /**
-     * Build sales chart data for last 7 days
+     * Build sales chart data for last 7 days using optimized single query
      */
     protected function buildSalesChartData(): array
     {
+        $startDate = now()->subDays(6)->startOfDay();
+        $endDate = now()->endOfDay();
+
+        // Single query with GROUP BY to get all 7 days' sales data
+        $query = $this->scopeQueryToBranch(Sale::query());
+        $salesByDate = $query
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->selectRaw('DATE(created_at) as sale_date, SUM(total_amount) as total')
+            ->groupByRaw('DATE(created_at)')
+            ->pluck('total', 'sale_date')
+            ->toArray();
+
         $labels = [];
         $data = [];
 
+        // Build the 7-day array, filling in zeros for missing dates
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
+            $dateKey = $date->format('Y-m-d');
             $labels[] = $date->format('D');
-            $data[] = (float) $this->scopeQueryToBranch(Sale::query())
-                ->whereDate('created_at', $date)
-                ->sum('total_amount');
+            $data[] = (float) ($salesByDate[$dateKey] ?? 0);
         }
 
         return ['labels' => $labels, 'data' => $data];

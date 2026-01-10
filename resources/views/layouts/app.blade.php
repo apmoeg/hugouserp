@@ -30,7 +30,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
-    {{-- Turbo.js is now loaded via Vite in app.js for proper SPA-like navigation --}}
+    {{-- Livewire 4 handles SPA-like navigation natively with wire:navigate --}}
 
     <style>
         * { font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif !important; }
@@ -65,10 +65,17 @@
             transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        /* Loading indicator */
-        .turbo-progress-bar {
+        /* Livewire Navigate loading indicator */
+        .livewire-progress-bar {
             height: 3px;
             background: linear-gradient(to right, #10b981, #3b82f6);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            transform-origin: left;
+            transition: transform 0.3s ease;
         }
         
         /* Responsive improvements */
@@ -377,27 +384,14 @@
         });
     });
 
-    // Handle session/page expiration (419 errors)
-    // This automatically refreshes the page when the CSRF token expires
-    document.addEventListener('livewire:init', () => {
-        Livewire.hook('request', ({ fail }) => {
-            fail(({ status, preventDefault }) => {
-                if (status === 419) {
-                    // Session expired - show a friendly message and refresh
-                    if (confirm('{{ __("Your session has expired. Click OK to refresh the page.") }}')) {
-                        window.location.reload();
-                    }
-                    preventDefault();
-                }
-            });
-        });
-    });
+    // Note: 419 session expiry is handled in the CSRF Token Refresh section above
+    // with a unified Livewire.hook('request') handler that silently refreshes.
 </script>
 
     <div id="erp-toast-root" class="toast-container flex flex-col items-end justify-start px-4 py-6 space-y-2 inset-inline-end-0 inset-block-start-0 inset-inline-start-auto inset-block-end-auto"></div>
 
-{{-- Loading indicator --}}
-<div id="page-loading" class="loading-overlay h-1 inset-block-end-auto bg-gradient-to-r from-emerald-500 via-blue-500 to-emerald-500 transform -translate-x-full transition-transform duration-300" style="display:none;"></div>
+{{-- Loading indicator for Livewire Navigate --}}
+<div id="page-loading" class="livewire-progress-bar" style="display:none;transform:scaleX(0);"></div>
 
 <script>
     // Intelligent prefetching - preload links on hover
@@ -425,27 +419,30 @@
         });
     });
     
-    // Show loading indicator during Turbo navigation (only if Turbo is loaded)
-    if (window.TurboLoaded !== false) {
-        document.addEventListener('turbo:before-fetch-request', () => {
-            const loader = document.getElementById('page-loading');
-            if (loader) {
-                loader.style.display = 'block';
-                loader.style.transform = 'translateX(-50%)';
-            }
-        });
-        
-        document.addEventListener('turbo:before-fetch-response', () => {
-            const loader = document.getElementById('page-loading');
-            if (loader) {
-                loader.style.transform = 'translateX(0)';
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    loader.style.transform = 'translateX(-100%)';
-            }, 300);
+    // Livewire Navigate loading indicator
+    document.addEventListener('livewire:navigating', () => {
+        const loader = document.getElementById('page-loading');
+        if (loader) {
+            loader.style.display = 'block';
+            loader.style.transform = 'scaleX(0.3)';
         }
     });
-    }
+    
+    document.addEventListener('livewire:navigated', () => {
+        const loader = document.getElementById('page-loading');
+        if (loader) {
+            loader.style.transform = 'scaleX(1)';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                loader.style.transform = 'scaleX(0)';
+            }, 200);
+        }
+        
+        // Re-initialize UI scripts on navigation
+        if (window.erpApplyTheme) {
+            window.erpApplyTheme();
+        }
+    });
 </script>
     
 </body>

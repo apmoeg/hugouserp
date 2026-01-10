@@ -37,7 +37,8 @@ class Terminal extends Component
         }
 
         $this->branchId = (int) ($user->branch_id ?? 0);
-        $this->isSuperAdmin = $user->hasRole('super-admin');
+        // Use case-insensitive role check - seeder uses "Super Admin" (Title Case)
+        $this->isSuperAdmin = $user->hasAnyRole(['Super Admin', 'super-admin']);
 
         if (! $this->isSuperAdmin && $this->branchId === 0) {
             abort(403, __('You must be assigned to a branch to use the POS terminal.'));

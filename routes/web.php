@@ -307,11 +307,11 @@ Route::middleware('auth')->group(function () {
             ->middleware('can:sales.view-reports');
 
         // Export & Import
-        Route::get('/export', \App\Http\Controllers\Branch\Sales\ExportImportController::class.'@exportSales')
+        Route::get('/export', [\App\Http\Controllers\Branch\Sales\ExportImportController::class, 'exportSales'])
             ->name('sales.export')
             ->middleware('can:sales.export');
 
-        Route::post('/import', \App\Http\Controllers\Branch\Sales\ExportImportController::class.'@importSales')
+        Route::post('/import', [\App\Http\Controllers\Branch\Sales\ExportImportController::class, 'importSales'])
             ->name('sales.import')
             ->middleware('can:sales.import');
 
@@ -373,11 +373,11 @@ Route::middleware('auth')->group(function () {
             ->middleware('can:purchases.manage');
 
         // Export & Import
-        Route::get('/export', \App\Http\Controllers\Branch\Purchases\ExportImportController::class.'@exportPurchases')
+        Route::get('/export', [\App\Http\Controllers\Branch\Purchases\ExportImportController::class, 'exportPurchases'])
             ->name('purchases.export')
             ->middleware('can:purchases.export');
 
-        Route::post('/import', \App\Http\Controllers\Branch\Purchases\ExportImportController::class.'@importPurchases')
+        Route::post('/import', [\App\Http\Controllers\Branch\Purchases\ExportImportController::class, 'importPurchases'])
             ->name('purchases.import')
             ->middleware('can:purchases.import');
 

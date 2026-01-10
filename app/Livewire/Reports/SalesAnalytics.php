@@ -55,7 +55,8 @@ class SalesAnalytics extends Component
         }
 
         $this->branchId = $user->branch_id;
-        $this->isAdmin = $user->hasRole('super-admin') || $user->hasRole('admin');
+        // Use case-insensitive role check - seeder uses "Super Admin" (Title Case)
+        $this->isAdmin = $user->hasAnyRole(['Super Admin', 'super-admin', 'Admin', 'admin']);
 
         $this->setDateRange();
         $this->loadAllData();

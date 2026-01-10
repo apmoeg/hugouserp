@@ -50,6 +50,7 @@ class SearchIndex extends BaseModel
 
     /**
      * Search across all indexed content.
+     * Dynamically handles MySQL (MATCH AGAINST) and PostgreSQL (ILIKE/to_tsvector).
      */
     public static function search(string $query, int $branchId, array|string|null $module = null, int $limit = 20): array
     {
@@ -67,17 +68,29 @@ class SearchIndex extends BaseModel
             }
         }
 
-        // Use full-text search if available
-        if (static::hasFullTextIndex()) {
+        // Determine the database driver and apply appropriate search
+        $driver = static::getDatabaseDriver();
+
+        if ($driver === 'mysql' && static::hasFullTextIndex()) {
+            // MySQL: Use MATCH AGAINST for full-text search
             $builder->whereRaw(
                 'MATCH(title, content) AGAINST(? IN BOOLEAN MODE)',
                 [$query]
             );
+        } elseif ($driver === 'pgsql') {
+            // PostgreSQL: Use ILIKE for case-insensitive search
+            // For better performance, consider using ts_vector if the column exists
+            $searchTerm = '%'.mb_strtolower($query).'%';
+            $builder->where(function ($q) use ($searchTerm) {
+                $q->whereRaw('LOWER(title) LIKE ?', [$searchTerm])
+                    ->orWhereRaw('LOWER(content) LIKE ?', [$searchTerm]);
+            });
         } else {
-            // Fallback to LIKE search
-            $builder->where(function ($q) use ($query) {
-                $q->where('title', 'like', "%{$query}%")
-                    ->orWhere('content', 'like', "%{$query}%");
+            // Fallback to LIKE search for other drivers (SQLite, etc.)
+            $searchTerm = '%'.$query.'%';
+            $builder->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'like', $searchTerm)
+                    ->orWhere('content', 'like', $searchTerm);
             });
         }
 
@@ -88,15 +101,29 @@ class SearchIndex extends BaseModel
     }
 
     /**
-     * Check if full-text index exists.
+     * Get the current database driver.
+     */
+    private static function getDatabaseDriver(): string
+    {
+        try {
+            $connection = config('database.default');
+
+            return config("database.connections.{$connection}.driver", 'mysql');
+        } catch (\Exception $e) {
+            return 'mysql';
+        }
+    }
+
+    /**
+     * Check if full-text index exists (MySQL specific).
      */
     private static function hasFullTextIndex(): bool
     {
         try {
-            $connection = config('database.default');
-            $driver = config("database.connections.{$connection}.driver");
+            $driver = static::getDatabaseDriver();
 
-            return in_array($driver, ['mysql', 'pgsql']);
+            // Full-text MATCH AGAINST is MySQL-specific
+            return $driver === 'mysql';
         } catch (\Exception $e) {
             return false;
         }

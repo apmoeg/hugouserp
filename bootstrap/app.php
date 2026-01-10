@@ -18,15 +18,28 @@ return Application::configure(basePath: dirname(__DIR__))
         // Security: Trusting all proxies ('*') can allow IP spoofing.
         // In production, configure specific proxy IPs via APP_TRUSTED_PROXIES env var
         $trustedProxies = env('APP_TRUSTED_PROXIES');
+
+        // Parse comma-separated proxy list into array (e.g., "ip1,ip2" -> ["ip1", "ip2"])
+        if ($trustedProxies !== null && $trustedProxies !== '*') {
+            $trustedProxies = array_filter(
+                array_map('trim', explode(',', $trustedProxies)),
+                fn ($ip) => $ip !== ''
+            );
+            // If parsing resulted in empty array, set to null
+            $trustedProxies = ! empty($trustedProxies) ? $trustedProxies : null;
+        }
+
         if ($trustedProxies === '*' && app()->environment('production')) {
             logger()->warning('Trusting all proxies (*) in production is a security risk. Set APP_TRUSTED_PROXIES to specific IPs.');
         }
+
         $middleware->trustProxies(at: $trustedProxies);
 
         $middleware->web(append: [
             \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\AutoLogout::class,
+            \App\Http\Middleware\ModuleContext::class,
         ]);
 
         $middleware->group('api-core', [
