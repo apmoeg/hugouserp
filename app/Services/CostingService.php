@@ -203,8 +203,32 @@ class CostingService
         ]);
 
         if ($batch->exists) {
-            // Update existing batch - increment quantity
-            $batch->quantity = $batch->quantity + $quantity;
+            // Update existing batch - recalculate weighted average cost
+            // Formula: new_avg_cost = (old_qty * old_cost + new_qty * new_cost) / (old_qty + new_qty)
+            $oldQty = (string) $batch->quantity;
+            $oldCost = (string) $batch->unit_cost;
+            $newQty = (string) $quantity;
+            $newCost = (string) $unitCost;
+            
+            // Calculate old total value
+            $oldTotalValue = bcmul($oldQty, $oldCost, 4);
+            
+            // Calculate new addition value
+            $newAdditionValue = bcmul($newQty, $newCost, 4);
+            
+            // Calculate combined total value
+            $combinedValue = bcadd($oldTotalValue, $newAdditionValue, 4);
+            
+            // Calculate combined quantity
+            $combinedQty = bcadd($oldQty, $newQty, 4);
+            
+            // Calculate weighted average cost
+            $weightedAvgCost = bccomp($combinedQty, '0', 4) > 0 
+                ? bcdiv($combinedValue, $combinedQty, 4) 
+                : '0';
+            
+            $batch->quantity = (float) $combinedQty;
+            $batch->unit_cost = (float) $weightedAvgCost;
         } else {
             // New batch
             $batch->fill(array_merge([
