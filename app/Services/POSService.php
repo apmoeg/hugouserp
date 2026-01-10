@@ -78,11 +78,32 @@ class POSService implements POSServiceInterface
                         ->sum('discount_total');
                 }
 
+                // Lock all products at once to prevent performance issues and deadlocks
+                $productIds = array_unique(array_column($items, 'product_id'));
+                $products = Product::withTrashed()
+                    ->whereIn('id', $productIds)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+
                 foreach ($items as $it) {
-                    // Use lockForUpdate() to prevent concurrent stock issues and overselling
-                    // Note: In high-concurrency environments, handle potential deadlocks with retry logic
-                    $product = Product::lockForUpdate()->findOrFail($it['product_id']);
+                    // Validate quantity is positive (prevent negative quantity exploit)
                     $qty = (float) ($it['qty'] ?? 1);
+                    if ($qty <= 0) {
+                        abort(422, __('Quantity must be positive. Received: :qty', ['qty' => $qty]));
+                    }
+
+                    // Check if product exists and is not soft-deleted (prevent zombie products in cart)
+                    $product = $products->get($it['product_id']);
+                    
+                    if (! $product) {
+                        abort(422, __('Product not found.'));
+                    }
+                    
+                    if ($product->trashed()) {
+                        abort(422, __('Product ":product" is no longer available for sale.', ['product' => $product->name]));
+                    }
+                    
                     $price = isset($it['price']) ? (float) $it['price'] : (float) ($product->default_price ?? 0);
 
                     // Check stock availability for physical products (not services)

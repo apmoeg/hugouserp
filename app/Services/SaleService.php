@@ -58,15 +58,21 @@ class SaleService implements SaleServiceInterface
                         if (! isset($it['product_id']) || ! isset($it['qty'])) {
                             continue;
                         }
+                        
+                        // Prevent negative quantity exploit in returns
+                        $requestedQty = (float) $it['qty'];
+                        if ($requestedQty <= 0) {
+                            throw new \InvalidArgumentException(__('Return quantity must be positive. Received: :qty', ['qty' => $requestedQty]));
+                        }
 
                         $si = $sale->items->firstWhere('product_id', $it['product_id']);
                         if (! $si) {
                             continue;
                         }
-                        // Use quantity column (not qty)
-                        $qty = min((float) $it['qty'], (float) $si->quantity);
+                        // Use quantity column (not qty) - cap at original sale quantity
+                        $qty = min($requestedQty, (float) $si->quantity);
 
-                        // Skip if qty is zero or negative
+                        // Skip if qty is zero or negative (additional safety check)
                         if ($qty <= 0) {
                             continue;
                         }
