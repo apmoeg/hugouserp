@@ -110,12 +110,29 @@ class RolesAndPermissionsSeeder extends Seeder
             'tickets.sla.manage',
         ];
 
+        // SECURITY FIX: Create permissions for API guard
         foreach ($apiPermissions as $name) {
             Permission::findOrCreate($name, 'api');
         }
 
+        // Create Super Admin role for API and assign all API permissions
         $superAdminApi = Role::findOrCreate('Super Admin', 'api');
         $superAdminApi->syncPermissions(Permission::where('guard_name', 'api')->get());
+
+        // SECURITY FIX: Also create API permissions for POS Cashier role
+        // This ensures mobile app users can access POS functionality
+        $posCashierApi = Role::findOrCreate('POS Cashier', 'api');
+        $posCashierApi->syncPermissions(Permission::where('guard_name', 'api')->whereIn('name', [
+            'pos.use',
+            'pos.session.manage',
+            'pos.daily-report.view',
+            'sales.void',
+            'sales.return',
+            'customers.create',
+            'customers.update',
+            'products.create',
+            'products.update',
+        ])->get());
 
         $webPermissions = [
             'dashboard.view',
