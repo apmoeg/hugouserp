@@ -25,22 +25,28 @@ class ModuleService implements ModuleServiceInterface
                 return [];
             }
 
-            $mods = BranchModule::query()
+            // Get branch modules with their associated Module records from database
+            $branchModules = BranchModule::query()
                 ->where('branch_id', $branchId)
-                ->get(['module_key', 'enabled']);
+                ->with('module')
+                ->get();
 
-            $definitions = collect(config('modules.available', []))
+            // Also get all active modules from the database as fallback definitions
+            $allModules = Module::where('is_active', true)
+                ->get()
                 ->keyBy('key');
 
-            return $mods->map(function (BranchModule $bm) use ($definitions) {
-                $def = $definitions->get($bm->module_key, [
-                    'key' => $bm->module_key,
-                    'name' => ucfirst($bm->module_key),
-                ]);
+            return $branchModules->map(function (BranchModule $bm) use ($allModules) {
+                // Prefer the related module, fallback to looking up by key, then to defaults
+                $module = $bm->module ?? $allModules->get($bm->module_key);
+
+                $moduleName = $module?->localized_name
+                    ?? $module?->name
+                    ?? ucfirst(str_replace(['_', '-'], ' ', $bm->module_key));
 
                 return [
                     'key' => $bm->module_key,
-                    'name' => (string) ($def['name'] ?? ucfirst($bm->module_key)),
+                    'name' => (string) $moduleName,
                     'enabled' => (bool) $bm->is_enabled,
                 ];
             })->all();

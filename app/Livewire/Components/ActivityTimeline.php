@@ -33,7 +33,8 @@ class ActivityTimeline extends Component
             ->limit($this->limit);
 
         // If not admin, filter by branch
-        if (! $user->hasRole('super-admin') && ! $user->hasRole('admin')) {
+        // Use case-insensitive role check - seeder uses "Super Admin" (Title Case)
+        if (! $user->hasAnyRole(['Super Admin', 'super-admin', 'Admin', 'admin'])) {
             $query->whereHas('user', fn ($q) => $q->where('branch_id', $user->branch_id));
         }
 

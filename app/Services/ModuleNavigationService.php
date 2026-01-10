@@ -26,9 +26,24 @@ class ModuleNavigationService
             app()->getLocale()
         );
 
-        return Cache::remember($cacheKey, 600, function () use ($user, $branchId) {
-            return $this->buildNavigationTree($user, $branchId);
-        });
+        // Use cache tags for better invalidation (branch/user level)
+        $cacheTags = [
+            'navigation',
+            "nav:user:{$user->id}",
+            "nav:branch:{$branchId}",
+        ];
+
+        // Use tagged cache if the driver supports it (Redis, Memcached)
+        try {
+            return Cache::tags($cacheTags)->remember($cacheKey, 600, function () use ($user, $branchId) {
+                return $this->buildNavigationTree($user, $branchId);
+            });
+        } catch (\BadMethodCallException $e) {
+            // Fallback to regular cache for drivers that don't support tags (file, database)
+            return Cache::remember($cacheKey, 600, function () use ($user, $branchId) {
+                return $this->buildNavigationTree($user, $branchId);
+            });
+        }
     }
 
     /**
@@ -226,11 +241,17 @@ class ModuleNavigationService
             ->push(null)
             ->unique();
 
-        foreach ($locales as $locale) {
-            foreach ($branches as $branchId) {
-                Cache::forget(
-                    sprintf('nav:user:%d:branch:%s:locale:%s', $user->id, $branchId ?? 'null', $locale)
-                );
+        // Try to use cache tags for efficient invalidation
+        try {
+            Cache::tags(["nav:user:{$user->id}"])->flush();
+        } catch (\BadMethodCallException $e) {
+            // Fallback to individual key deletion for drivers without tag support
+            foreach ($locales as $locale) {
+                foreach ($branches as $branchId) {
+                    Cache::forget(
+                        sprintf('nav:user:%d:branch:%s:locale:%s', $user->id, $branchId ?? 'null', $locale)
+                    );
+                }
             }
         }
     }

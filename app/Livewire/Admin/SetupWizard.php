@@ -112,8 +112,9 @@ class SetupWizard extends Component
         }
 
         // Check if user has permission
+        // Use case-insensitive role check - seeder uses "Super Admin" (Title Case)
         $user = auth()->user();
-        if ($user && ! $user->hasRole('super-admin') && ! $user->can('settings.manage')) {
+        if ($user && ! $user->hasAnyRole(['Super Admin', 'super-admin']) && ! $user->can('settings.manage')) {
             abort(403, __('Unauthorized'));
         }
 

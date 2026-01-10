@@ -64,7 +64,8 @@ class DashboardWidgets extends Component
         $cacheKey = "dashboard_widgets:user_{$user->id}:branch_{$user->branch_id}";
 
         $this->widgetData = Cache::remember($cacheKey, $this->cacheTtl, function () use ($user) {
-            $isAdmin = $user->hasRole('super-admin') || $user->hasRole('admin');
+            // Use case-insensitive role check - seeder uses "Super Admin" (Title Case)
+            $isAdmin = $user->hasAnyRole(['Super Admin', 'super-admin', 'Admin', 'admin']);
             $branchId = $user->branch_id;
 
             $salesQuery = Sale::query();
