@@ -307,7 +307,7 @@ class AccountingService
             foreach ($entry->lines as $line) {
                 $account = $accounts->get($line->account_id);
                 if (! $account) {
-                    continue;
+                    throw new Exception("Account ID {$line->account_id} not found for journal entry line. Data integrity issue detected.");
                 }
                 $netChange = $line->debit - $line->credit;
 
@@ -375,7 +375,7 @@ class AccountingService
                 // Update account balance using locked account
                 $account = $accounts->get($line->account_id);
                 if (! $account) {
-                    continue;
+                    throw new Exception("Account ID {$line->account_id} not found during journal entry reversal. Data integrity issue detected.");
                 }
                 $netChange = $line->credit - $line->debit; // Reversed
 
