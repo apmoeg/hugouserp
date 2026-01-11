@@ -52,21 +52,29 @@ return new class extends Migration
                     ->comment('The user being impersonated during this action');
             }
 
-            // Add index for impersonation audit queries
+            // Add index for impersonation audit queries (composite for common join/filter patterns)
             $table->index(['performed_by_id', 'impersonating_as_id', 'created_at'], 'idx_audit_impersonation');
+
+            // Add single-column index on performed_by_id for efficient "show all actions by user X" queries
+            if (! $hasPerformedById) {
+                $table->index('performed_by_id', 'idx_audit_performed_by');
+            }
         });
     }
 
     public function down(): void
     {
-        // Check if index exists before dropping
+        // Check if indexes exist before dropping
         $indexes = Schema::getIndexes('audit_logs');
         $indexNames = array_column($indexes, 'name');
 
         Schema::table('audit_logs', function (Blueprint $table) use ($indexNames) {
-            // Drop the index first if it exists
+            // Drop indexes first if they exist
             if (in_array('idx_audit_impersonation', $indexNames, true)) {
                 $table->dropIndex('idx_audit_impersonation');
+            }
+            if (in_array('idx_audit_performed_by', $indexNames, true)) {
+                $table->dropIndex('idx_audit_performed_by');
             }
         });
 

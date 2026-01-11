@@ -29,20 +29,13 @@ class WriteAuditTrail implements ShouldQueue
 
             // SECURITY FIX: Track impersonation context
             // If impersonation is active, record both the actual performer and impersonated user
-            $performedById = null;
-            $impersonatingAsId = null;
-
-            if (Impersonate::isImpersonating()) {
-                // During impersonation:
-                // - performed_by_id: The actual user (impersonator) who performed the action
-                // - impersonating_as_id: The user being impersonated
-                // - user_id: The user context visible to the application (impersonated user)
-                $performedById = Impersonate::getActualPerformerId();
-                $impersonatingAsId = Impersonate::getImpersonatedUserId();
-            } else {
-                // Normal operation: performed_by_id equals user_id
-                $performedById = $userId;
-            }
+            $isImpersonating = Impersonate::isImpersonating();
+            $performedById = $isImpersonating
+                ? Impersonate::getActualPerformerId()
+                : $userId;
+            $impersonatingAsId = $isImpersonating
+                ? Impersonate::getImpersonatedUserId()
+                : null;
 
             // Build meta array consistently
             $meta = [];
