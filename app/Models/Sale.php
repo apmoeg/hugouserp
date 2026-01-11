@@ -111,6 +111,12 @@ class Sale extends BaseModel
         static::deleted(function ($sale) {
             static::clearSalesStatsCache($sale->branch_id);
         });
+
+        // Cascading restore for soft-deleted sale items
+        static::restored(function ($sale) {
+            $sale->items()->withTrashed()->restore();
+            static::clearSalesStatsCache($sale->branch_id);
+        });
     }
 
     /**
