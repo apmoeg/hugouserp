@@ -22,6 +22,12 @@ use Illuminate\Support\Facades\DB;
 class CostingService
 {
     /**
+     * Tolerance threshold for stock level comparisons.
+     * Stock levels below this value are considered effectively zero.
+     */
+    public const STOCK_ZERO_TOLERANCE = 0.0001;
+
+    /**
      * Calculate cost for stock movement based on product's costing method
      * Falls back to system-wide default costing method from settings
      */
@@ -340,7 +346,7 @@ class CostingService
             ->active()
             ->sum('quantity');
 
-        if ((float) $totalStock <= 0.0001) {
+        if ((float) $totalStock <= self::STOCK_ZERO_TOLERANCE) {
             // Mark all batches as depleted to prevent old costs from affecting new stock
             InventoryBatch::where('product_id', $productId)
                 ->where('warehouse_id', $warehouseId)

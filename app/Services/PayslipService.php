@@ -250,8 +250,8 @@ class PayslipService
         int $daysInMonth,
         ?array $salaryChanges = null
     ): float {
-        // Get current salary
-        $currentSalary = (float) $employee->basic_salary;
+        // Get current salary using the model accessor for consistency
+        $currentSalary = (float) $employee->salary;
 
         // If no salary changes provided, try to get from activity log
         if ($salaryChanges === null) {
@@ -268,7 +268,7 @@ class PayslipService
             return strcmp($a['effective_date'], $b['effective_date']);
         });
 
-        // Calculate pro-rata salary
+        // Calculate pro-rata salary using bcmath string operations for precision
         $proRataSalary = '0';
         $previousDate = $periodStart;
         $previousSalary = null;

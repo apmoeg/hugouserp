@@ -575,12 +575,18 @@ class RentalService implements RentalServiceInterface
                 // A conflict exists if:
                 // - Existing contract end_date + buffer overlaps with requested start
                 // - Existing contract start_date - buffer overlaps with requested end
-                $conflicts = $query->where(function ($q) use ($requestedStart, $requestedEnd, $bufferHours) {
-                    $q->where(function ($inner) use ($requestedStart, $requestedEnd, $bufferHours) {
-                        // Add buffer to existing end dates when checking against requested start
-                        // Subtract buffer from existing start dates when checking against requested end
-                        $inner->whereRaw('DATE_ADD(end_date, INTERVAL ? HOUR) > ?', [$bufferHours, $requestedStart])
-                              ->whereRaw('DATE_SUB(start_date, INTERVAL ? HOUR) < ?', [$bufferHours, $requestedEnd]);
+                //
+                // We apply buffer by adjusting our requested dates instead of the stored dates.
+                // This provides better database portability (works with SQLite, MySQL, PostgreSQL)
+                // by avoiding database-specific date functions in queries.
+                $requestedStartWithBuffer = $requestedStart->copy()->subHours($bufferHours);
+                $requestedEndWithBuffer = $requestedEnd->copy()->addHours($bufferHours);
+
+                $conflicts = $query->where(function ($q) use ($requestedStartWithBuffer, $requestedEndWithBuffer) {
+                    $q->where(function ($inner) use ($requestedStartWithBuffer, $requestedEndWithBuffer) {
+                        // Check for overlap: existing.end > requested.start - buffer AND existing.start < requested.end + buffer
+                        $inner->where('end_date', '>', $requestedStartWithBuffer)
+                              ->where('start_date', '<', $requestedEndWithBuffer);
                     });
                 })->get(['id', 'start_date', 'end_date', 'tenant_id']);
 
