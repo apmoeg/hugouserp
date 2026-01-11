@@ -33,9 +33,18 @@ class POSService implements POSServiceInterface
 
                 $user = auth()->user();
                 $branchId = $payload['branch_id'] ?? request()->attributes->get('branch_id');
+                $clientUuid = $payload['client_uuid'] ?? $payload['client_sale_uuid'] ?? null;
 
                 // Validate branch ID is present
                 abort_if(! $branchId, 422, __('Branch context is required'));
+
+                // Idempotency check: If client_uuid provided and sale exists, return existing sale
+                if ($clientUuid) {
+                    $existingSale = Sale::where('client_uuid', $clientUuid)->first();
+                    if ($existingSale) {
+                        return $existingSale->load(['items.product', 'payments', 'customer']);
+                    }
+                }
 
                 // Validate POS session exists and is open
                 if (($payload['channel'] ?? 'pos') === 'pos') {
@@ -53,6 +62,7 @@ class POSService implements POSServiceInterface
                     'branch_id' => $branchId,
                     'warehouse_id' => $payload['warehouse_id'] ?? null,
                     'customer_id' => $payload['customer_id'] ?? null,
+                    'client_uuid' => $clientUuid,
                     'status' => 'completed',
                     'channel' => $payload['channel'] ?? 'pos',
                     'currency' => $payload['currency'] ?? 'EGP',
@@ -245,6 +255,20 @@ class POSService implements POSServiceInterface
                 $sale->due_total = bccomp($dueAmount, '0', 2) < 0 ? 0 : (float) $dueAmount;
                 $sale->status = bccomp($paidTotal, $grandTotal, 2) >= 0 ? 'completed' : 'partial';
                 $sale->save();
+
+                // Generate accounting journal entry for the sale
+                // This ensures sales are "on the books" per requirement D
+                try {
+                    $accountingService = app(AccountingService::class);
+                    $accountingService->generateSaleJournalEntry($sale);
+                } catch (\Throwable $e) {
+                    // Log but don't fail the sale if accounting entry fails
+                    // This can happen if accounts are not configured yet
+                    \Illuminate\Support\Facades\Log::warning('Failed to generate journal entry for sale', [
+                        'sale_id' => $sale->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
 
                 event(new \App\Events\SaleCompleted($sale));
 

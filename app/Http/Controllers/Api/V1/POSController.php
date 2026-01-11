@@ -27,6 +27,8 @@ class POSController extends Controller
 
         // Use branchId from route if provided, otherwise require it in request
         $validationRules = [
+            'client_uuid' => 'nullable|uuid',
+            'client_sale_uuid' => 'nullable|uuid',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:products,id',
             'items.*.qty' => 'required|numeric|min:0.01',
@@ -86,6 +88,7 @@ class POSController extends Controller
                 'data' => [
                     'id' => $sale->id,
                     'code' => $sale->code,
+                    'client_uuid' => $sale->client_uuid,
                     'grand_total' => $sale->grand_total,
                     'paid_total' => $sale->paid_total,
                     'due_total' => $sale->due_total,

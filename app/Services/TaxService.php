@@ -101,4 +101,92 @@ class TaxService implements TaxServiceInterface
             defaultValue: (float) bcdiv((string) $base, '1', 4)
         );
     }
+
+    /**
+     * Calculate tax lines for multiple items
+     *
+     * @param array $items Array of items with subtotal and tax_id keys
+     * @param mixed $customer Customer model or null (for future tax exemption logic)
+     * @param mixed $warehouse Warehouse model or null (for future location-based tax)
+     * @param string|null $date Date for tax rate lookup (for future rate versioning)
+     * @return array Returns ['lines' => [...], 'total_tax' => float]
+     */
+    public function calculateTaxLines(array $items, mixed $customer = null, mixed $warehouse = null, ?string $date = null): array
+    {
+        return $this->handleServiceOperation(
+            callback: function () use ($items) {
+                $lines = [];
+                $totalTax = '0';
+
+                foreach ($items as $index => $item) {
+                    $subtotal = (float) ($item['subtotal'] ?? $item['line_total'] ?? 0);
+                    $taxId = $item['tax_id'] ?? null;
+
+                    $taxAmount = $taxId ? $this->amountFor($subtotal, $taxId) : 0.0;
+                    $taxRate = $taxId ? $this->rate($taxId) : 0.0;
+
+                    $lines[] = [
+                        'index' => $index,
+                        'subtotal' => $subtotal,
+                        'tax_id' => $taxId,
+                        'tax_rate' => $taxRate,
+                        'tax_amount' => $taxAmount,
+                        'total_with_tax' => (float) bcadd((string) $subtotal, (string) $taxAmount, 4),
+                    ];
+
+                    $totalTax = bcadd($totalTax, (string) $taxAmount, 4);
+                }
+
+                return [
+                    'lines' => $lines,
+                    'total_tax' => (float) bcdiv($totalTax, '1', 2),
+                ];
+            },
+            operation: 'calculateTaxLines',
+            context: ['items_count' => count($items)],
+            defaultValue: ['lines' => [], 'total_tax' => 0.0]
+        );
+    }
+
+    /**
+     * Calculate total tax for a subtotal given tax rate rules
+     *
+     * @param float $subtotal Base amount before tax
+     * @param array $taxRateRules Tax rules array with rate, is_inclusive keys
+     * @return float Total tax amount
+     */
+    public function calculateTotalTax(float $subtotal, array $taxRateRules): float
+    {
+        return $this->handleServiceOperation(
+            callback: function () use ($subtotal, $taxRateRules) {
+                if (empty($taxRateRules) || $subtotal <= 0) {
+                    return 0.0;
+                }
+
+                $rate = (float) ($taxRateRules['rate'] ?? 0);
+                $isInclusive = (bool) ($taxRateRules['is_inclusive'] ?? false);
+
+                if ($rate <= 0) {
+                    return 0.0;
+                }
+
+                if ($isInclusive) {
+                    // Extract tax from inclusive price: tax = price - (price / (1 + rate/100))
+                    $divisor = bcadd('1', bcdiv((string) $rate, '100', 6), 6);
+                    $baseExcl = bcdiv((string) $subtotal, $divisor, 6);
+                    $taxAmount = bcsub((string) $subtotal, $baseExcl, 6);
+
+                    return (float) bcdiv($taxAmount, '1', 2);
+                }
+
+                // Exclusive: tax = subtotal * (rate / 100)
+                $taxAmount = bcmul((string) $subtotal, bcdiv((string) $rate, '100', 6), 6);
+
+                return (float) bcdiv($taxAmount, '1', 2);
+            },
+            operation: 'calculateTotalTax',
+            context: ['subtotal' => $subtotal, 'rules' => $taxRateRules],
+            defaultValue: 0.0
+        );
+    }
 }

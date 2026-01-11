@@ -31,6 +31,7 @@ class Sale extends BaseModel
         'warehouse_id',
         'customer_id',
         'reference_number',
+        'client_uuid',
         'external_reference',
         'type',
         'channel',
