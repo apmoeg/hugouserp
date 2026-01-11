@@ -99,6 +99,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'module' => \App\Http\Middleware\SetModuleContext::class,
             'module.enabled' => \App\Http\Middleware\EnsureModuleEnabled::class,
             'perm' => \App\Http\Middleware\EnsurePermission::class,
+            'permission' => \App\Http\Middleware\EnsurePermission::class,
             'assign.guard' => \App\Http\Middleware\AssignGuard::class,
             'store.token' => \App\Http\Middleware\AuthenticateStoreToken::class,
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
