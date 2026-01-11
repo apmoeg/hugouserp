@@ -25,22 +25,16 @@ return new class extends Migration
 
         // Add additional performance indexes to sales table
         Schema::table('sales', function (Blueprint $table) {
-            // Composite index for customer sales history queries
-            $table->index(['customer_id', 'created_at'], 'idx_sales_customer_created');
+            // Note: idx_sales_customer_created already added in 2026_01_04_100001_add_performance_indexes.php
             
             // Composite index for warehouse sales queries
-            $table->index(['warehouse_id', 'created_at'], 'idx_sales_warehouse_created');
+            $this->addIndexIfNotExists('sales', $table, ['warehouse_id', 'created_at'], 'idx_sales_warehouse_created');
         });
 
         // Add performance index to inventory_movements if table exists
         if (Schema::hasTable('inventory_movements')) {
             Schema::table('inventory_movements', function (Blueprint $table) {
-                // Use try-catch to handle cases where index might already exist
-                try {
-                    $table->index(['branch_id', 'created_at'], 'idx_inv_movements_branch_created');
-                } catch (\Exception $e) {
-                    // Index already exists, ignore
-                }
+                $this->addIndexIfNotExists('inventory_movements', $table, ['branch_id', 'created_at'], 'idx_inv_movements_branch_created');
             });
         }
     }
@@ -54,19 +48,58 @@ return new class extends Migration
 
         // Remove indexes from sales table
         Schema::table('sales', function (Blueprint $table) {
-            $table->dropIndex('idx_sales_customer_created');
-            $table->dropIndex('idx_sales_warehouse_created');
+            $this->dropIndexIfExists('sales', $table, 'idx_sales_warehouse_created');
         });
 
         // Remove index from inventory_movements if table exists
         if (Schema::hasTable('inventory_movements')) {
             Schema::table('inventory_movements', function (Blueprint $table) {
-                try {
-                    $table->dropIndex('idx_inv_movements_branch_created');
-                } catch (\Exception $e) {
-                    // Index doesn't exist, ignore
-                }
+                $this->dropIndexIfExists('inventory_movements', $table, 'idx_inv_movements_branch_created');
             });
+        }
+    }
+
+    /**
+     * Add index if it doesn't already exist
+     */
+    private function addIndexIfNotExists(string $tableName, Blueprint $table, array $columns, string $indexName): void
+    {
+        try {
+            $indexes = Schema::getIndexes($tableName);
+            $existingIndexNames = array_column($indexes, 'name');
+
+            if (!in_array($indexName, $existingIndexNames)) {
+                $table->index($columns, $indexName);
+            }
+        } catch (\Throwable) {
+            // If we can't check, try to add it anyway
+            try {
+                $table->index($columns, $indexName);
+            } catch (\Throwable) {
+                // Index already exists or other error, ignore
+            }
+        }
+    }
+
+    /**
+     * Drop index if it exists
+     */
+    private function dropIndexIfExists(string $tableName, Blueprint $table, string $indexName): void
+    {
+        try {
+            $indexes = Schema::getIndexes($tableName);
+            $existingIndexNames = array_column($indexes, 'name');
+
+            if (in_array($indexName, $existingIndexNames)) {
+                $table->dropIndex($indexName);
+            }
+        } catch (\Throwable) {
+            // If we can't check, try to drop it anyway
+            try {
+                $table->dropIndex($indexName);
+            } catch (\Throwable) {
+                // Index doesn't exist or other error, ignore
+            }
         }
     }
 };
