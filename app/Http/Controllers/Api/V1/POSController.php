@@ -26,9 +26,11 @@ class POSController extends Controller
         $branch = null;
 
         // Use branchId from route if provided, otherwise require it in request
+        // client_uuid: Primary parameter for POS idempotency
+        // client_sale_uuid: Deprecated alias for backward compatibility
         $validationRules = [
             'client_uuid' => 'nullable|uuid',
-            'client_sale_uuid' => 'nullable|uuid',
+            'client_sale_uuid' => 'nullable|uuid', // Deprecated: use client_uuid instead
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|integer|exists:products,id',
             'items.*.qty' => 'required|numeric|min:0.01',

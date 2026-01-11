@@ -33,6 +33,7 @@ class POSService implements POSServiceInterface
 
                 $user = auth()->user();
                 $branchId = $payload['branch_id'] ?? request()->attributes->get('branch_id');
+                // Primary: client_uuid, Fallback: client_sale_uuid for backward compatibility
                 $clientUuid = $payload['client_uuid'] ?? $payload['client_sale_uuid'] ?? null;
 
                 // Validate branch ID is present

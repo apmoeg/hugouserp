@@ -45,6 +45,18 @@ class CriticalFlowsTest extends TestCase
 
     protected Product $product;
 
+    /**
+     * Helper method to create and grant a permission to the user
+     */
+    protected function grantPermission(string $permissionName): void
+    {
+        $permission = Permission::firstOrCreate([
+            'name' => $permissionName,
+            'guard_name' => 'web',
+        ]);
+        $this->user->givePermissionTo($permission);
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -133,8 +145,7 @@ class CriticalFlowsTest extends TestCase
     public function test_pos_checkout_creates_sale_and_supports_idempotency(): void
     {
         // Grant POS permission to user
-        Permission::create(['name' => 'pos.use', 'guard_name' => 'web']);
-        $this->user->givePermissionTo('pos.use');
+        $this->grantPermission('pos.use');
 
         $this->actingAs($this->user);
 
@@ -270,8 +281,7 @@ class CriticalFlowsTest extends TestCase
             ],
         ];
 
-        Permission::create(['name' => 'pos.use', 'guard_name' => 'web']);
-        $this->user->givePermissionTo('pos.use');
+        $this->grantPermission('pos.use');
 
         $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
         $this->expectExceptionMessage('Insufficient stock');
@@ -285,8 +295,7 @@ class CriticalFlowsTest extends TestCase
     public function test_discount_policy_enforced(): void
     {
         // Grant POS permission
-        Permission::firstOrCreate(['name' => 'pos.use', 'guard_name' => 'web']);
-        $this->user->givePermissionTo('pos.use');
+        $this->grantPermission('pos.use');
 
         // Set max discount for user
         $this->user->update(['max_discount_percent' => 10]);

@@ -106,13 +106,20 @@ class TaxService implements TaxServiceInterface
      * Calculate tax lines for multiple items
      *
      * @param array $items Array of items with subtotal and tax_id keys
-     * @param mixed $customer Customer model or null (for future tax exemption logic)
-     * @param mixed $warehouse Warehouse model or null (for future location-based tax)
-     * @param string|null $date Date for tax rate lookup (for future rate versioning)
+     * @param mixed $customer Customer model or null - Reserved for future tax exemption logic
+     * @param mixed $warehouse Warehouse model or null - Reserved for future location-based tax
+     * @param string|null $date Date for tax rate lookup - Reserved for future rate versioning
      * @return array Returns ['lines' => [...], 'total_tax' => float]
+     *
+     * @todo Implement customer tax exemption checking
+     * @todo Implement warehouse/location-based tax rates
+     * @todo Implement date-based tax rate versioning
      */
     public function calculateTaxLines(array $items, mixed $customer = null, mixed $warehouse = null, ?string $date = null): array
     {
+        // Note: $customer, $warehouse, $date parameters are reserved for future functionality
+        // They are intentionally unused in the current implementation
+
         return $this->handleServiceOperation(
             callback: function () use ($items) {
                 $lines = [];
