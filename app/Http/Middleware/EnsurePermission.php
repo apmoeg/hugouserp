@@ -82,6 +82,16 @@ class EnsurePermission
 
     protected function error(string $message, int $status, array $meta = []): Response
     {
-        return response()->json(['success' => false, 'message' => $message, 'meta' => $meta], $status);
+        // Get the current request - using the Request facade to get the actual request
+        // being processed through the middleware
+        $request = request();
+
+        // Check if the request expects JSON (API request)
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json(['success' => false, 'message' => $message, 'meta' => $meta], $status);
+        }
+
+        // For web requests, return a proper HTML response
+        abort($status, $message);
     }
 }
