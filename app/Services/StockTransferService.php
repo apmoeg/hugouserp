@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\InventoryTransit;
 use App\Models\StockMovement;
 use App\Models\StockTransfer;
 use App\Models\StockTransferItem;
@@ -194,7 +195,7 @@ class StockTransferService
                     "Transfer {$transfer->transfer_number} cannot be shipped in {$transfer->status} status"
                 );
 
-                // Deduct stock from source warehouse
+                // Move stock from source warehouse to transit table
                 foreach ($transfer->items as $item) {
                     $qtyToShip = $validated['items'][$item->id]['qty_shipped'] ?? $item->qty_approved;
 
@@ -208,8 +209,25 @@ class StockTransferService
                         quantity: -$qtyToShip, // Negative for deduction
                         type: StockMovement::TYPE_TRANSFER_OUT,
                         reference: "Transfer Out: {$transfer->transfer_number}",
-                        notes: "Transferred to " . $transfer->toWarehouse->name
+                        notes: "In transit to " . $transfer->toWarehouse->name
                     );
+
+                    // Add to transit table (inventory is now "in-flight")
+                    InventoryTransit::create([
+                        'product_id' => $item->product_id,
+                        'from_warehouse_id' => $transfer->from_warehouse_id,
+                        'to_warehouse_id' => $transfer->to_warehouse_id,
+                        'stock_transfer_id' => $transfer->id,
+                        'quantity' => $qtyToShip,
+                        'unit_cost' => $item->unit_cost,
+                        'batch_number' => $item->batch_number,
+                        'expiry_date' => $item->expiry_date,
+                        'status' => InventoryTransit::STATUS_IN_TRANSIT,
+                        'shipped_at' => now(),
+                        'expected_arrival' => $transfer->expected_delivery_date,
+                        'notes' => "Transfer: {$transfer->transfer_number}",
+                        'created_by' => auth()->id(),
+                    ]);
                 }
 
                 // Update transfer totals
@@ -256,7 +274,7 @@ class StockTransferService
                     "Transfer {$transfer->transfer_number} cannot be received in {$transfer->status} status"
                 );
 
-                // Process received items
+                // Process received items and move from transit to destination
                 foreach ($transfer->items as $item) {
                     $itemReceivingData = $validated['items'][$item->id] ?? [];
                     
@@ -272,6 +290,16 @@ class StockTransferService
                         'damage_report' => $itemReceivingData['damage_report'] ?? null,
                     ]);
 
+                    // Find and mark transit records as received
+                    $transitRecords = InventoryTransit::where('stock_transfer_id', $transfer->id)
+                        ->where('product_id', $item->product_id)
+                        ->where('status', InventoryTransit::STATUS_IN_TRANSIT)
+                        ->get();
+
+                    foreach ($transitRecords as $transitRecord) {
+                        $transitRecord->markAsReceived();
+                    }
+
                     // Add good stock to destination warehouse
                     if ($qtyGood > 0) {
                         $this->stockService->adjustStock(
@@ -280,7 +308,7 @@ class StockTransferService
                             quantity: $qtyGood,
                             type: StockMovement::TYPE_TRANSFER_IN,
                             reference: "Transfer In: {$transfer->transfer_number}",
-                            notes: "Transferred from " . $transfer->fromWarehouse->name
+                            notes: "Received from " . $transfer->fromWarehouse->name
                         );
                     }
 
@@ -367,20 +395,26 @@ class StockTransferService
 
                 $oldStatus = $transfer->status;
 
-                // If already shipped, need to return stock to source
+                // If already shipped, need to return stock from transit to source
                 if ($transfer->status === StockTransfer::STATUS_IN_TRANSIT) {
-                    foreach ($transfer->items as $item) {
-                        if ($item->qty_shipped > 0) {
-                            // Return stock to source warehouse
-                            $this->stockService->adjustStock(
-                                productId: $item->product_id,
-                                warehouseId: $transfer->from_warehouse_id,
-                                quantity: $item->qty_shipped,
-                                type: StockMovement::TYPE_ADJUSTMENT,
-                                reference: "Transfer Cancelled: {$transfer->transfer_number}",
-                                notes: "Stock returned due to cancellation"
-                            );
-                        }
+                    // Find all transit records for this transfer
+                    $transitRecords = InventoryTransit::where('stock_transfer_id', $transfer->id)
+                        ->where('status', InventoryTransit::STATUS_IN_TRANSIT)
+                        ->get();
+
+                    foreach ($transitRecords as $transitRecord) {
+                        // Return stock to source warehouse
+                        $this->stockService->adjustStock(
+                            productId: $transitRecord->product_id,
+                            warehouseId: $transfer->from_warehouse_id,
+                            quantity: $transitRecord->quantity,
+                            type: StockMovement::TYPE_ADJUSTMENT,
+                            reference: "Transfer Cancelled: {$transfer->transfer_number}",
+                            notes: "Stock returned from transit due to cancellation"
+                        );
+
+                        // Mark transit record as cancelled
+                        $transitRecord->markAsCancelled();
                     }
                 }
 

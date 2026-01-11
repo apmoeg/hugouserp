@@ -57,6 +57,40 @@ class ProductObserver
 
     public function deleted(Product $product): void
     {
+        // Delete associated media files to prevent orphaned files
+        try {
+            if ($product->image) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($product->image);
+            }
+            
+            if ($product->thumbnail) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($product->thumbnail);
+            }
+
+            // Delete gallery images if stored as JSON array
+            if ($product->images && is_array($product->images)) {
+                foreach ($product->images as $imagePath) {
+                    if ($imagePath) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($imagePath);
+                    }
+                }
+            }
+
+            if ($product->gallery && is_array($product->gallery)) {
+                foreach ($product->gallery as $imagePath) {
+                    if ($imagePath) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($imagePath);
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Log but don't fail the deletion
+            \Illuminate\Support\Facades\Log::warning('Failed to delete product media files', [
+                'product_id' => $product->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         $this->audit('deleted', $product);
     }
 

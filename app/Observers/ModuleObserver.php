@@ -36,6 +36,40 @@ class ModuleObserver
      */
     public function deleted(Module $module): void
     {
+        // Delete associated media files to prevent orphaned files
+        try {
+            if ($module->icon && is_string($module->icon)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($module->icon);
+            }
+
+            if (method_exists($module, 'getAttribute')) {
+                $image = $module->getAttribute('image');
+                if ($image && is_string($image)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($image);
+                }
+
+                $logo = $module->getAttribute('logo');
+                if ($logo && is_string($logo)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($logo);
+                }
+
+                // Check for any media field that might contain file paths
+                $mediaFields = ['thumbnail', 'banner', 'header_image'];
+                foreach ($mediaFields as $field) {
+                    $value = $module->getAttribute($field);
+                    if ($value && is_string($value)) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($value);
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Log but don't fail the deletion
+            \Illuminate\Support\Facades\Log::warning('Failed to delete module media files', [
+                'module_id' => $module->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         $this->invalidateModuleCaches($module);
     }
 
