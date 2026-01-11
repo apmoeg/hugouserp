@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\User;
 use App\Services\Contracts\AuthServiceInterface;
 use App\Traits\HandlesServiceErrors;
+use App\Traits\InvalidatesUserSessions;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +24,7 @@ use Laravel\Sanctum\NewAccessToken;
 class AuthService implements AuthServiceInterface
 {
     use HandlesServiceErrors;
+    use InvalidatesUserSessions;
 
     public function guard(?string $name = null)
     {
@@ -332,32 +334,10 @@ class AuthService implements AuthServiceInterface
                 }
 
                 $user->password = Hash::make($password);
-
-                // SECURITY FIX: Update password_changed_at to invalidate all "trusted device" cookies
-                // This ensures that 2FA "remember me" tokens are invalidated on password change
-                $user->password_changed_at = now();
-
-                // SECURITY FIX: Clear remember_token to force re-login on all devices
-                $user->remember_token = null;
-
                 $user->save();
 
-                // SECURITY FIX: Revoke all existing API tokens
-                if (method_exists($user, 'tokens')) {
-                    $user->tokens()->delete();
-                }
-
-                // SECURITY FIX: Invalidate all database sessions
-                if (config('session.driver') === 'database') {
-                    DB::table('sessions')
-                        ->where('user_id', $user->getKey())
-                        ->delete();
-                }
-
-                // Clean up user_sessions tracking
-                if (method_exists($user, 'sessions')) {
-                    $user->sessions()->delete();
-                }
+                // SECURITY FIX: Full security invalidation on password reset
+                $this->performFullSecurityInvalidation($user);
 
                 DB::table('password_reset_tokens')
                     ->where('email', $email)
@@ -395,30 +375,14 @@ class AuthService implements AuthServiceInterface
                 }
 
                 $user->password = Hash::make($newPassword);
-
-                // SECURITY FIX: Update password_changed_at to invalidate all "trusted device" cookies
-                $user->password_changed_at = now();
-
                 $user->save();
 
-                // SECURITY FIX: Revoke all API tokens except the current one (if any)
-                $currentTokenId = $user->currentAccessToken()?->id ?? null;
-                if (method_exists($user, 'tokens')) {
-                    $query = $user->tokens();
-                    if ($currentTokenId) {
-                        $query->where('id', '!=', $currentTokenId);
-                    }
-                    $query->delete();
-                }
-
-                // SECURITY FIX: Invalidate all other database sessions
+                // SECURITY FIX: Invalidate other sessions, keeping current session
                 $currentSessionId = session()->getId();
-                if (config('session.driver') === 'database' && $currentSessionId) {
-                    DB::table('sessions')
-                        ->where('user_id', $user->getKey())
-                        ->where('id', '!=', $currentSessionId)
-                        ->delete();
-                }
+                $currentTokenId = $user->currentAccessToken()?->id ?? null;
+
+                $this->invalidateUserSessions($user, $currentSessionId, $currentTokenId);
+                $this->invalidateTrustedDevices($user);
 
                 $this->logServiceInfo('changePassword', 'Password changed - other sessions invalidated', [
                     'user_id' => $user->getKey(),

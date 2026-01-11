@@ -69,7 +69,7 @@ class Require2FA
 
         // SECURITY FIX: If password was changed after 2FA verification,
         // require re-verification to prevent bypass attacks
-        $verifiedAt = session('2fa_verified_at');
+        $verifiedAt = $this->parseTimestamp(session('2fa_verified_at'));
         $passwordChangedAt = $user->password_changed_at;
 
         if ($verifiedAt && $passwordChangedAt) {
@@ -85,7 +85,7 @@ class Require2FA
         // SECURITY FIX: Check "trusted device" cookie validity
         // If using trusted device feature, validate against password_changed_at
         if ($this->isTrustedDeviceSession($request)) {
-            $trustedAt = session('2fa_trusted_device_at');
+            $trustedAt = $this->parseTimestamp(session('2fa_trusted_device_at'));
 
             if ($trustedAt && $passwordChangedAt && $passwordChangedAt->gt($trustedAt)) {
                 // Password was changed after device was trusted, invalidate trust
@@ -117,5 +117,36 @@ class Require2FA
         }
 
         return false;
+    }
+
+    /**
+     * Safely parse a timestamp value to Carbon instance.
+     *
+     * @param  mixed  $value  The timestamp value to parse
+     * @return \Illuminate\Support\Carbon|null
+     */
+    protected function parseTimestamp(mixed $value): ?\Illuminate\Support\Carbon
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if ($value instanceof \Illuminate\Support\Carbon || $value instanceof \Carbon\Carbon) {
+            return $value;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return \Illuminate\Support\Carbon::instance($value);
+        }
+
+        if (is_string($value) || is_numeric($value)) {
+            try {
+                return \Illuminate\Support\Carbon::parse($value);
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        return null;
     }
 }
