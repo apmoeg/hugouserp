@@ -107,8 +107,9 @@ class BranchContextManager
 
         // Check if user is Super Admin (has access to all branches)
         if (self::isSuperAdmin($user)) {
-            // Super Admins see all branches - don't filter
-            self::$cachedBranchIds = null; // null means "all branches"
+            // Super Admins see all branches - return empty array to signal "no filtering"
+            // Note: Empty array in this context means "don't apply branch filter" not "no access"
+            self::$cachedBranchIds = [];
             return [];
         }
 

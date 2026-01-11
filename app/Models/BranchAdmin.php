@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * infinite recursion during authentication. BranchAdmin records are used
  * to determine user permissions, so they must be accessible regardless of
  * current branch context.
+ *
+ * The exclusion is handled in BranchScope::shouldExcludeModel() method.
  */
 class BranchAdmin extends BaseModel
 {
@@ -37,21 +39,6 @@ class BranchAdmin extends BaseModel
         'is_primary' => 'boolean',
         'is_active' => 'boolean',
     ];
-
-    /**
-     * Boot the model.
-     * Remove BranchScope to prevent infinite recursion.
-     */
-    protected static function booted(): void
-    {
-        parent::booted();
-
-        // Remove BranchScope from this model to prevent recursion
-        static::addGlobalScope('excludeBranchScope', function (Builder $builder) {
-            // This is a no-op scope that prevents BranchScope from being applied
-            // The actual removal is handled by BranchScope's shouldExcludeModel check
-        });
-    }
 
     public function branch(): BelongsTo
     {

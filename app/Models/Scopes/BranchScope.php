@@ -73,8 +73,9 @@ class BranchScope implements Scope
         } elseif (count($accessibleBranchIds) > 1) {
             $builder->whereIn("{$table}.branch_id", $accessibleBranchIds);
         } elseif (count($accessibleBranchIds) === 0) {
-            // User has no branch access - return empty result
-            $builder->whereRaw('1 = 0');
+            // User has no branch access - return empty result set
+            // Using a condition that's always false in a database-agnostic way
+            $builder->whereNull("{$table}.id")->whereNotNull("{$table}.id");
         }
     }
 
