@@ -38,27 +38,26 @@ class User extends BaseModel implements AuthenticatableContract, AuthorizableCon
         'email',
         'password',
         'phone',
-        'is_active',
         'username',
         'locale',
         'timezone',
         'branch_id',
+        'avatar',
+        'preferences',
+        // Admin-controllable fields - MUST be validated at controller/request level
+        // These fields have security implications and should only be modified by authorized users
+        'is_active',
         'last_login_at',
         'max_discount_percent',
         'daily_discount_limit',
         'can_modify_price',
-        'two_factor_enabled',
         'max_sessions',
-        'avatar',
-        'preferences',
     ];
 
-    protected $guarded = [
-        'two_factor_secret',
-        'two_factor_recovery_codes',
-        'two_factor_confirmed_at',
-        'password_changed_at',
-    ];
+    // Note: The following fields are NOT in $fillable for security:
+    // - id, remember_token, two_factor_*, password_changed_at,
+    // - last_login_ip, failed_login_attempts, locked_until, email_verified_at
+    // These should only be modified through specific, controlled methods
 
     protected $hidden = [
         'password',
