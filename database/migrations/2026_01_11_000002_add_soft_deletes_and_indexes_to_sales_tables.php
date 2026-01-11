@@ -35,9 +35,11 @@ return new class extends Migration
         // Add performance index to inventory_movements if table exists
         if (Schema::hasTable('inventory_movements')) {
             Schema::table('inventory_movements', function (Blueprint $table) {
-                // Check if index doesn't already exist
-                if (!$this->indexExists('inventory_movements', 'idx_inv_movements_branch_created')) {
+                // Use try-catch to handle cases where index might already exist
+                try {
                     $table->index(['branch_id', 'created_at'], 'idx_inv_movements_branch_created');
+                } catch (\Exception $e) {
+                    // Index already exists, ignore
                 }
             });
         }
@@ -59,22 +61,12 @@ return new class extends Migration
         // Remove index from inventory_movements if table exists
         if (Schema::hasTable('inventory_movements')) {
             Schema::table('inventory_movements', function (Blueprint $table) {
-                if ($this->indexExists('inventory_movements', 'idx_inv_movements_branch_created')) {
+                try {
                     $table->dropIndex('idx_inv_movements_branch_created');
+                } catch (\Exception $e) {
+                    // Index doesn't exist, ignore
                 }
             });
         }
-    }
-
-    /**
-     * Check if an index exists on a table
-     */
-    private function indexExists(string $table, string $indexName): bool
-    {
-        $indexes = Schema::getConnection()
-            ->getDoctrineSchemaManager()
-            ->listTableIndexes($table);
-        
-        return isset($indexes[$indexName]);
     }
 };

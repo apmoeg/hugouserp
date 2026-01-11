@@ -5,12 +5,9 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SaleItem extends BaseModel
 {
-    use SoftDeletes;
-
     protected ?string $moduleKey = 'sales';
 
     protected $table = 'sale_items';
