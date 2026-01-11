@@ -83,8 +83,8 @@ class ManufacturingToSalesLifecycleTest extends TestCase
         $this->manufacturingService = app(ManufacturingService::class);
         $this->posService = app(POSService::class);
 
-        // Setup: Create branch using factory
-        $this->branch = Branch::factory()->create([
+        // Setup: Create branch directly (matching pattern used in other working tests)
+        $this->branch = Branch::create([
             'name' => 'Test Manufacturing Branch',
             'code' => 'MFG-001',
             'is_active' => true,
@@ -240,6 +240,7 @@ class ManufacturingToSalesLifecycleTest extends TestCase
             'bom_id' => $this->bom->id,
             'warehouse_id' => $this->warehouse->id,
             'quantity_planned' => self::CHAIRS_TO_PRODUCE,
+            'planned_start_date' => now()->format('Y-m-d'),
             'status' => 'draft',
             'priority' => 'normal',
             'created_by' => $this->user->id,
@@ -431,6 +432,7 @@ class ManufacturingToSalesLifecycleTest extends TestCase
             'bom_id' => $this->bom->id,
             'warehouse_id' => $this->warehouse->id,
             'quantity_planned' => 5, // Produce 5 chairs (needs 20 wood)
+            'planned_start_date' => now()->format('Y-m-d'),
             'status' => 'draft',
             'priority' => 'normal',
             'created_by' => $this->user->id,
@@ -476,6 +478,7 @@ class ManufacturingToSalesLifecycleTest extends TestCase
             'bom_id' => $this->bom->id,
             'warehouse_id' => $this->warehouse->id,
             'quantity_planned' => 5,
+            'planned_start_date' => now()->format('Y-m-d'),
             'status' => 'draft',
             'priority' => 'normal',
             'created_by' => $this->user->id,
@@ -541,6 +544,7 @@ class ManufacturingToSalesLifecycleTest extends TestCase
             'bom_id' => $this->bom->id,
             'warehouse_id' => $this->warehouse->id,
             'quantity_planned' => self::CHAIRS_TO_PRODUCE,
+            'planned_start_date' => now()->format('Y-m-d'),
             'status' => 'draft',
             'created_by' => $this->user->id,
         ]);
@@ -604,6 +608,7 @@ class ManufacturingToSalesLifecycleTest extends TestCase
             'bom_id' => $bom->id,
             'warehouse_id' => $this->warehouse->id,
             'quantity_planned' => 3,
+            'planned_start_date' => now()->format('Y-m-d'),
             'status' => 'draft',
             'created_by' => $this->user->id,
         ]);

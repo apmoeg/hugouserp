@@ -120,10 +120,10 @@ trait CommonQueryScopes
      */
     public function scopeActive(Builder $query): Builder
     {
-        if ($this->hasAttribute('is_active')) {
+        if ($this->hasModelAttribute('is_active')) {
             return $query->where('is_active', true);
         }
-        if ($this->hasAttribute('status')) {
+        if ($this->hasModelAttribute('status')) {
             return $query->where('status', 'active');
         }
 
@@ -135,10 +135,10 @@ trait CommonQueryScopes
      */
     public function scopeInactive(Builder $query): Builder
     {
-        if ($this->hasAttribute('is_active')) {
+        if ($this->hasModelAttribute('is_active')) {
             return $query->where('is_active', false);
         }
-        if ($this->hasAttribute('status')) {
+        if ($this->hasModelAttribute('status')) {
             return $query->where('status', 'inactive');
         }
 
@@ -154,9 +154,10 @@ trait CommonQueryScopes
     }
 
     /**
-     * Check if model has an attribute
+     * Check if model has a defined fillable/cast attribute
+     * Note: Named hasModelAttribute to avoid conflict with Laravel's internal hasAttribute method
      */
-    public function hasAttribute($key): bool
+    public function hasModelAttribute($key): bool
     {
         return in_array($key, $this->fillable ?? []) ||
                array_key_exists($key, $this->casts ?? []);

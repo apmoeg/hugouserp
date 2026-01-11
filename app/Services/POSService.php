@@ -64,6 +64,7 @@ class POSService implements POSServiceInterface
                     'warehouse_id' => $payload['warehouse_id'] ?? null,
                     'customer_id' => $payload['customer_id'] ?? null,
                     'client_uuid' => $clientUuid,
+                    'sale_date' => now()->toDateString(),
                     'status' => 'completed',
                     'channel' => $payload['channel'] ?? 'pos',
                     'currency' => $payload['currency'] ?? 'EGP',
@@ -293,9 +294,18 @@ class POSService implements POSServiceInterface
                     return $existingSession;
                 }
 
+                // Generate session number: POS-{YYYYMMDD}-{sequence}
+                $date = now()->format('Ymd');
+                $lastSession = PosSession::where('session_number', 'like', "POS-{$date}-%")
+                    ->orderByDesc('id')
+                    ->first();
+                $sequence = $lastSession ? ((int) substr($lastSession->session_number, -4)) + 1 : 1;
+                $sessionNumber = sprintf('POS-%s-%04d', $date, $sequence);
+
                 return PosSession::create([
                     'branch_id' => $branchId,
                     'user_id' => $userId,
+                    'session_number' => $sessionNumber,
                     'opening_cash' => $openingCash,
                     'status' => PosSession::STATUS_OPEN,
                     'opened_at' => now(),

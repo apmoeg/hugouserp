@@ -26,7 +26,7 @@ class ManufacturingService
             $bom = BillOfMaterial::create([
                 'branch_id' => $data['branch_id'],
                 'product_id' => $data['product_id'],
-                'bom_number' => $data['bom_number'] ?? BillOfMaterial::generateBomNumber($data['branch_id']),
+                'reference_number' => $data['reference_number'] ?? $data['bom_number'] ?? BillOfMaterial::generateBomNumber($data['branch_id']),
                 'name' => $data['name'],
                 'name_ar' => $data['name_ar'] ?? null,
                 'description' => $data['description'] ?? null,
@@ -136,21 +136,22 @@ class ManufacturingService
     {
         return DB::transaction(function () use ($data) {
             $bom = BillOfMaterial::findOrFail($data['bom_id']);
+            $plannedQuantity = $data['planned_quantity'] ?? $data['quantity_planned'];
 
             $order = ProductionOrder::create([
                 'branch_id' => $data['branch_id'],
-                'order_number' => $data['order_number'] ?? ProductionOrder::generateOrderNumber($data['branch_id']),
+                'reference_number' => $data['reference_number'] ?? $data['order_number'] ?? ProductionOrder::generateOrderNumber($data['branch_id']),
                 'bom_id' => $bom->id,
                 'product_id' => $bom->product_id,
                 'warehouse_id' => $data['warehouse_id'],
-                'quantity_planned' => $data['quantity_planned'],
+                'planned_quantity' => $plannedQuantity,
                 'status' => $data['status'] ?? 'draft',
                 'priority' => $data['priority'] ?? 'normal',
                 'planned_start_date' => $data['planned_start_date'] ?? null,
                 'planned_end_date' => $data['planned_end_date'] ?? null,
                 'created_by' => $data['created_by'] ?? auth()->id(),
                 'notes' => $data['notes'] ?? null,
-                'estimated_cost' => $bom->calculateTotalCost() * $data['quantity_planned'],
+                'estimated_cost' => $bom->calculateTotalCost() * $plannedQuantity,
                 'sale_id' => $data['sale_id'] ?? null,
                 'metadata' => $data['metadata'] ?? null,
             ]);
@@ -159,10 +160,10 @@ class ManufacturingService
             foreach ($bom->items as $bomItem) {
                 $order->items()->create([
                     'product_id' => $bomItem->product_id,
-                    'quantity_required' => $bomItem->effective_quantity * $data['quantity_planned'],
+                    'quantity_required' => $bomItem->effective_quantity * $plannedQuantity,
                     'unit_id' => $bomItem->unit_id,
                     'unit_cost' => $bomItem->product->cost ?? 0.00,
-                    'total_cost' => ($bomItem->product->cost ?? 0.00) * $bomItem->effective_quantity * $data['quantity_planned'],
+                    'total_cost' => ($bomItem->product->cost ?? 0.00) * $bomItem->effective_quantity * $plannedQuantity,
                     'warehouse_id' => $data['warehouse_id'],
                 ]);
             }
@@ -226,7 +227,7 @@ class ManufacturingService
                     'movement_type' => 'production',
                     'reference_type' => ProductionOrder::class,
                     'reference_id' => $order->id,
-                    'notes' => "Material issued for production order {$order->order_number}",
+                    'notes' => "Material issued for production order {$order->reference_number}",
                     'created_by' => auth()->id(),
                 ]);
 
@@ -252,8 +253,8 @@ class ManufacturingService
     {
         DB::transaction(function () use ($order, $quantity, $scrapQuantity) {
             // Update production order
-            $order->increment('quantity_produced', $quantity);
-            $order->increment('quantity_scrapped', $scrapQuantity);
+            $order->increment('produced_quantity', $quantity);
+            $order->increment('rejected_quantity', $scrapQuantity);
 
             // Create stock movement for finished goods using repository
             $this->stockMovementRepo->create([
@@ -264,13 +265,13 @@ class ManufacturingService
                 'movement_type' => 'production',
                 'reference_type' => ProductionOrder::class,
                 'reference_id' => $order->id,
-                'notes' => "Production output for order {$order->order_number}",
+                'notes' => "Production output for order {$order->reference_number}",
                 'created_by' => auth()->id(),
             ]);
 
             // Update product cost based on actual manufacturing cost
-            if ($order->quantity_produced > 0) {
-                $unitCost = $order->actual_cost / $order->quantity_produced;
+            if ($order->produced_quantity > 0) {
+                $unitCost = $order->actual_cost / $order->produced_quantity;
                 $order->product->update(['cost' => $unitCost]);
             }
 
@@ -385,8 +386,8 @@ class ManufacturingService
         return [
             'total_orders' => $orders->count(),
             'total_planned' => $orders->sum('quantity_planned'),
-            'total_produced' => $orders->sum('quantity_produced'),
-            'total_scrapped' => $orders->sum('quantity_scrapped'),
+            'total_produced' => $orders->sum('produced_quantity'),
+            'total_scrapped' => $orders->sum('rejected_quantity'),
             'estimated_cost' => $orders->sum('estimated_cost'),
             'actual_cost' => $orders->sum('actual_cost'),
             'orders' => $orders,

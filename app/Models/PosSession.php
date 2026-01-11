@@ -11,6 +11,7 @@ class PosSession extends Model
     protected $fillable = [
         'branch_id',
         'user_id',
+        'session_number',
         'opening_cash',
         'closing_cash',
         'expected_cash',
